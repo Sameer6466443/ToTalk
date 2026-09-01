@@ -3,563 +3,361 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>ToTalk — Connect with Sameer</title>
-
+<title>ToTalk Sameer</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
-*{
-  box-sizing:border-box;
-  margin:0;
-  padding:0;
-}
-
-:root{
-  --blue:#1596dc;
-  --deep:#075d91;
-  --sky:#e9f8ff;
-  --yellow:#ffe36b;
-  --text:#123c55;
-  --muted:#708895;
-}
-
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
 body{
-  font-family:Arial,Helvetica,sans-serif;
+  font-family:Inter,Arial,sans-serif;
   min-height:100vh;
-  color:var(--text);
+  color:#fff;
+  background:#03040d;
+  overflow-x:hidden;
+}
+
+/* Galaxy background */
+.space{
+  position:fixed;inset:0;z-index:-5;
   background:
-    radial-gradient(circle at 5% 5%,#c9f0ff,transparent 28%),
-    radial-gradient(circle at 95% 10%,#fff0a0,transparent 25%),
-    linear-gradient(145deg,#f3fcff,#fff 55%,#fffef2);
+    radial-gradient(circle at 78% 30%,rgba(132,74,255,.32),transparent 23%),
+    radial-gradient(circle at 58% 72%,rgba(48,92,255,.22),transparent 28%),
+    radial-gradient(circle at 20% 15%,rgba(186,87,255,.13),transparent 22%),
+    linear-gradient(180deg,#02030a,#07091b 55%,#02030b);
+}
+.stars,.stars:before,.stars:after{
+  content:"";position:absolute;inset:0;
+  background-image:
+    radial-gradient(#fff 1px,transparent 1px),
+    radial-gradient(#fff .8px,transparent .8px),
+    radial-gradient(#c6b6ff 1px,transparent 1px);
+  background-size:97px 97px,151px 151px,211px 211px;
+  background-position:10px 20px,40px 80px,90px 10px;
+  opacity:.55;
+}
+.stars:before{transform:scale(1.5);opacity:.18}
+.stars:after{transform:scale(.75);opacity:.5}
+
+/* Nebula */
+.nebula{
+  position:absolute;
+  width:900px;height:500px;
+  right:-180px;top:180px;
+  border-radius:50%;
+  transform:rotate(-22deg);
+  background:
+    radial-gradient(ellipse at center,
+      rgba(240,170,255,.45) 0%,
+      rgba(145,76,255,.25) 24%,
+      rgba(48,73,255,.12) 47%,
+      transparent 70%);
+  filter:blur(18px);
 }
 
-nav{
-  max-width:1180px;
-  margin:auto;
-  padding:22px 28px;
-  display:flex;
+/* Main layout */
+.page{max-width:1180px;margin:auto;padding:0 28px}
+header{
+  height:88px;display:flex;align-items:center;
   justify-content:space-between;
-  align-items:center;
+  border-bottom:1px solid rgba(255,255,255,.1);
 }
-
 .logo{
-  display:flex;
-  align-items:center;
-  gap:12px;
-  font-size:27px;
-  font-weight:900;
-  color:var(--deep);
+  font-size:28px;font-weight:900;letter-spacing:-1.5px;
 }
-
-.logo-box{
-  width:48px;
-  height:48px;
-  border-radius:15px;
-  background:var(--yellow);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-size:23px;
+.logo span{color:#a879ff}
+.topline{
+  color:#bbb;font-size:13px;font-weight:700;
 }
-
-.logo span{
-  color:var(--blue);
-}
-
-.creator{
-  color:var(--muted);
-  font-size:14px;
-  font-weight:700;
-}
-
-.creator b{
-  color:var(--blue);
-}
-
 .hero{
-  max-width:1180px;
-  min-height:650px;
-  margin:auto;
-  padding:60px 28px 90px;
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:65px;
-  align-items:center;
+  min-height:680px;
+  display:grid;grid-template-columns:1fr 1fr;
+  align-items:center;gap:50px;
+  padding:70px 0 90px;
 }
-
-.badge{
-  display:inline-block;
-  background:white;
-  border:1px solid #d9edf5;
-  padding:11px 17px;
-  border-radius:30px;
-  color:var(--deep);
-  font-size:13px;
-  font-weight:800;
-  margin-bottom:25px;
-  box-shadow:0 8px 25px rgba(20,100,130,.06);
+.eyebrow{
+  color:#ad82ff;text-transform:uppercase;
+  font-size:12px;font-weight:900;letter-spacing:2.5px;
+  margin-bottom:20px;
 }
-
 h1{
-  font-size:clamp(52px,7vw,82px);
-  line-height:.96;
-  letter-spacing:-4px;
-  margin-bottom:27px;
+  font-size:clamp(62px,8vw,104px);
+  line-height:.84;
+  letter-spacing:-6px;
+  font-weight:950;
 }
-
-.blue{
-  color:var(--blue);
+h1 .sameer{
+  display:block;
+  color:#a879ff;
+  font-weight:700;
+  font-style:italic;
+  letter-spacing:-5px;
 }
-
-.yellow{
-  color:#c59b00;
+.tagline{
+  margin:30px 0 13px;
+  font-size:22px;font-weight:800;
 }
-
-.intro{
-  max-width:600px;
-  color:var(--muted);
-  font-size:18px;
-  line-height:1.75;
-  margin-bottom:25px;
-}
-
-.sameer{
-  color:var(--deep);
-  font-weight:900;
-}
-
-.contact-box{
-  max-width:590px;
-  padding:18px 20px;
-  border-radius:17px;
-  background:#fffdf0;
-  border:1px solid #f3e8a9;
-  color:#756522;
-  font-size:14px;
-  line-height:1.6;
-  margin-bottom:30px;
-}
-
-.contact-box strong{
-  color:#5f5111;
-}
-
-.login-btn{
-  border:0;
-  cursor:pointer;
-  display:inline-flex;
-  align-items:center;
-  gap:12px;
-  padding:17px 27px;
-  border-radius:16px;
-  background:var(--blue);
-  color:white;
+.description{
+  max-width:520px;
+  color:#a9a9b8;
+  line-height:1.7;
   font-size:16px;
-  font-weight:900;
-  box-shadow:0 15px 32px rgba(21,150,220,.25);
+}
+.login-btn{
+  margin-top:30px;
+  display:flex;align-items:center;gap:14px;
+  padding:15px 22px;
+  border-radius:16px;
+  border:1px solid rgba(170,125,255,.8);
+  background:rgba(12,12,28,.72);
+  color:white;
+  box-shadow:0 0 28px rgba(126,78,255,.18);
+  font-size:15px;font-weight:900;
+  cursor:pointer;
   transition:.2s;
 }
-
 .login-btn:hover{
-  background:var(--deep);
-  transform:translateY(-3px);
+  transform:translateY(-2px);
+  background:#17112c;
+  box-shadow:0 0 40px rgba(151,99,255,.35);
 }
-
-.login-btn:disabled{
-  opacity:.6;
-  cursor:wait;
-  transform:none;
-}
-
 .google{
-  width:25px;
-  height:25px;
-  border-radius:50%;
-  background:white;
-  color:#4285f4;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-weight:900;
+  width:34px;height:34px;border-radius:50%;
+  background:#fff;color:#4285f4;
+  display:flex;align-items:center;justify-content:center;
+  font-weight:900;font-size:18px;
 }
+#status{min-height:18px;margin-top:12px;color:#ff8eae;font-size:12px}
 
-#status{
-  min-height:20px;
-  margin-top:14px;
-  font-size:13px;
-  font-weight:700;
+/* Moon */
+.scene{
+  position:relative;height:560px;
+  display:flex;align-items:center;justify-content:center;
 }
-
-.preview{
+.moon{
+  width:330px;height:330px;border-radius:50%;
   position:relative;
+  animation:moonRotate 28s linear infinite;
+  transform-origin:center center;
+  background:
+    radial-gradient(circle at 32% 28%,#e7e4ef 0 2%,transparent 2.5%),
+    radial-gradient(circle at 65% 25%,#aaa8b7 0 7%,transparent 7.5%),
+    radial-gradient(circle at 25% 65%,#aaa9b7 0 8%,transparent 8.5%),
+    radial-gradient(circle at 70% 70%,#9695a5 0 5%,transparent 5.5%),
+    radial-gradient(circle at 48% 45%,#c6c4ce 0 12%,transparent 12.5%),
+    radial-gradient(circle at 35% 80%,#8f8e9c 0 4%,transparent 4.5%),
+    radial-gradient(circle,#e0dde6,#8d8b99);
+  box-shadow:
+    -28px -22px 45px rgba(255,255,255,.28) inset,
+    25px 20px 55px rgba(0,0,0,.7) inset,
+    0 0 70px rgba(207,182,255,.18);
 }
-
-.card{
-  background:rgba(255,255,255,.92);
-  border:10px solid rgba(255,255,255,.8);
-  border-radius:34px;
-  box-shadow:0 35px 80px rgba(20,100,135,.15);
-  overflow:hidden;
+.moon:after{
+  content:"";
+  position:absolute;inset:0;border-radius:50%;
+  background:linear-gradient(115deg,transparent 35%,rgba(0,0,0,.55) 78%);
 }
-
-.card-top{
-  display:flex;
-  align-items:center;
-  gap:13px;
-  padding:22px;
-  border-bottom:1px solid #edf2f5;
-}
-
-.avatar{
-  width:52px;
-  height:52px;
+.ring{
+  position:absolute;width:440px;height:145px;
+  border:1px solid rgba(185,151,255,.25);
   border-radius:50%;
-  background:var(--yellow);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-size:22px;
+  transform:rotate(-18deg);
 }
+.ring2{
+  width:510px;height:180px;
+  border-color:rgba(255,255,255,.08);
+}
+.orb{
+  position:absolute;border-radius:50%;
+  background:#b98aff;
+  box-shadow:0 0 25px #9a65ff;
+}
+.orb.one{width:9px;height:9px;top:50px;right:70px}
+.orb.two{width:5px;height:5px;bottom:90px;left:55px;background:#fff}
+.orb.three{width:7px;height:7px;top:155px;left:20px}
 
-.card-top strong{
-  display:block;
-  margin-bottom:5px;
+/* Bottom cards */
+.section{
+  border-top:1px solid rgba(255,255,255,.1);
+  padding:55px 0 70px;
 }
-
-.online{
-  color:#31b963;
-  font-size:12px;
-  font-weight:800;
+.section-title{
+  color:#a879ff;text-transform:uppercase;
+  font-size:12px;letter-spacing:2px;font-weight:900;
+  margin-bottom:25px;
 }
-
-.messages{
-  min-height:350px;
-  padding:28px 22px;
-  background:#f7fcff;
+.cards{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:16px;
 }
-
-.msg{
-  width:max-content;
-  max-width:78%;
-  padding:13px 16px;
-  border-radius:18px;
-  margin-bottom:13px;
-  font-size:14px;
-  line-height:1.5;
+.card{
+  min-height:180px;padding:27px;
+  border:1px solid rgba(255,255,255,.09);
+  border-radius:22px;
+  background:rgba(10,11,25,.72);
+  backdrop-filter:blur(8px);
 }
-
-.left{
-  background:#e2f5fc;
-  border-bottom-left-radius:5px;
+.icon{
+  width:48px;height:48px;border-radius:15px;
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(139,91,255,.16);
+  font-size:23px;margin-bottom:22px;
 }
-
-.right{
-  margin-left:auto;
-  background:var(--blue);
-  color:white;
-  border-bottom-right-radius:5px;
-}
-
-.yellow-msg{
-  background:#fff9d9;
-  color:#65591d;
-}
-
-.fake-input{
-  padding:15px;
-  background:white;
-  border-top:1px solid #edf2f5;
-  color:#9aadb6;
-  font-size:13px;
-}
-
-.float{
-  position:absolute;
-  background:white;
-  padding:13px 17px;
-  border-radius:15px;
-  box-shadow:0 16px 35px rgba(20,100,130,.13);
-  font-size:13px;
-  font-weight:900;
-}
-
-.one{
-  top:-20px;
-  left:-20px;
-}
-
-.two{
-  right:-20px;
-  bottom:30px;
-  background:#fff9d9;
-}
-
-.about{
-  padding:20px 28px 100px;
-}
-
-.about-box{
-  max-width:1050px;
-  margin:auto;
-  padding:42px;
-  border-radius:30px;
-  background:linear-gradient(110deg,#fff8c9,#e3f7ff);
-}
-
-.about-box h2{
-  font-size:31px;
-  margin-bottom:12px;
-}
-
-.about-box p{
-  color:var(--muted);
-  line-height:1.75;
-}
-
-.about-box .made{
-  margin-top:15px;
-  color:var(--deep);
-  font-weight:900;
-}
+.card h3{font-size:18px;margin-bottom:9px}
+.card p{color:#999aaa;font-size:14px;line-height:1.6}
 
 footer{
-  padding:30px;
-  text-align:center;
-  background:white;
-  color:#7b909c;
-  font-size:13px;
+  padding:28px 0 35px;
+  border-top:1px solid rgba(255,255,255,.08);
+  color:#77788a;font-size:12px;text-align:center;
+}
+footer strong{color:#a879ff}
+
+@keyframes moonRotate{
+  from{transform:rotate(0deg)}
+  to{transform:rotate(360deg)}
 }
 
-footer b{
-  color:var(--blue);
-}
-
-@media(max-width:850px){
-  .creator{
-    display:none;
-  }
-
+@media(max-width:800px){
+  .page{padding:0 19px}
+  header{height:72px}
+  .topline{display:none}
   .hero{
     grid-template-columns:1fr;
-    padding:45px 20px 75px;
-    gap:60px;
+    padding:55px 0 50px;
+    gap:20px;
   }
-
-  .hero-text{
-    text-align:center;
-  }
-
-  .intro,
-  .contact-box{
-    margin-left:auto;
-    margin-right:auto;
-  }
-
-  .preview{
-    max-width:550px;
-    width:100%;
-    margin:auto;
-  }
-
-  .float{
-    display:none;
-  }
-}
-
-@media(max-width:500px){
-  h1{
-    font-size:52px;
-  }
-
-  .intro{
-    font-size:16px;
-  }
-
-  .about-box{
-    padding:30px 23px;
-  }
+  h1{font-size:66px;letter-spacing:-4px}
+  h1 .sameer{letter-spacing:-3px}
+  .tagline{font-size:19px}
+  .scene{height:400px}
+  .moon{width:250px;height:250px}
+  .ring{width:350px;height:115px}
+  .ring2{width:390px;height:135px}
+  .cards{grid-template-columns:1fr}
+  .card{min-height:auto}
 }
 </style>
 </head>
 
 <body>
+<div class="space"><div class="stars"></div><div class="nebula"></div></div>
 
-<nav>
-  <div class="logo">
-    <div class="logo-box">💬</div>
-    To<span>Talk</span>
-  </div>
+<div class="page">
+<header>
+  <div class="logo">ToTalk <span>Sameer</span></div>
+  <div class="topline">Sameer's personal chat space ✦</div>
+</header>
 
-  <div class="creator">
-    Created by <b>Sameer</b>
-  </div>
-</nav>
-
+<main>
 <section class="hero">
-
-  <div class="hero-text">
-
-    <div class="badge">
-      ✦ Welcome to ToTalk
-    </div>
+  <div>
+    <div class="eyebrow">Welcome to ToTalk Sameer</div>
 
     <h1>
-      Talk.<br>
-      Connect.<br>
-      <span class="blue">Enjoy.</span>
+      ToTalk
+      <span class="sameer">Sameer</span>
     </h1>
 
-    <p class="intro">
-      Welcome to <span class="sameer">ToTalk</span> —
-      a fresh and simple place to chat and connect.
-      Sign in with Google and enter your conversation.
-    </p>
+    <div class="tagline">My space. My conversations. You’re welcome here.</div>
 
-    <div class="contact-box">
-      <strong>Made by Sameer.</strong><br>
-      This website is my own space for chatting and
-      connecting with people. Come in, sign in and talk.
-    </div>
+    <p class="description">
+      ToTalk Sameer is a simple personal space to chat, connect,
+      and have a real conversation with Sameer. Sign in with Google
+      and enter Sameer's chat.
+    </p>
 
     <button class="login-btn" id="loginBtn">
       <span class="google">G</span>
-      Continue with Google
+      <span>Continue with Google</span>
+      <span style="margin-left:auto;font-size:20px">→</span>
     </button>
 
     <div id="status"></div>
-
   </div>
 
-  <div class="preview">
+  <div class="scene">
+    <div class="ring"></div>
+    <div class="ring ring2"></div>
+    <div class="moon"></div>
+    <div class="orb one"></div>
+    <div class="orb two"></div>
+    <div class="orb three"></div>
+  </div>
+</section>
 
-    <div class="float one">👋 Hey!</div>
-    <div class="float two">✨ Let's talk</div>
+<section class="section">
+  <div class="section-title">Inside Sameer's space</div>
 
+  <div class="cards">
     <div class="card">
-
-      <div class="card-top">
-        <div class="avatar">S</div>
-
-        <div>
-          <strong>Sameer's ToTalk</strong>
-          <div class="online">● Ready to chat</div>
-        </div>
-      </div>
-
-      <div class="messages">
-
-        <div class="msg left">
-          Welcome to ToTalk 👋
-        </div>
-
-        <div class="msg right">
-          Hey Sameer! 😄
-        </div>
-
-        <div class="msg yellow-msg">
-          Let's have a chat!
-        </div>
-
-        <div class="msg right">
-          Sure ✨
-        </div>
-
-      </div>
-
-      <div class="fake-input">
-        Write a message...
-      </div>
-
+      <div class="icon">💬</div>
+      <h3>Just Talk</h3>
+      <p>A simple place for conversations with Sameer, without unnecessary distractions.</p>
     </div>
 
+    <div class="card">
+      <div class="icon">🌙</div>
+      <h3>Any Time</h3>
+      <p>Come in, say hello, and enjoy a calm little corner of Sameer's online space.</p>
+    </div>
+
+    <div class="card">
+      <div class="icon">✦</div>
+      <h3>Made by Sameer</h3>
+      <p>ToTalk is Sameer's own personal chat website, created for connecting through conversation.</p>
+    </div>
   </div>
-
 </section>
-
-<section class="about">
-
-  <div class="about-box">
-
-    <h2>This is ToTalk.</h2>
-
-    <p>
-      A simple website created by Sameer for chatting
-      and connecting. Sign in with Google and enter
-      the ToTalk chat.
-    </p>
-
-    <p class="made">
-      Created by Sameer ✦
-    </p>
-
-  </div>
-
-</section>
+</main>
 
 <footer>
-  ToTalk © 2026 · Created by <b>Sameer</b>
+  ToTalk <strong>Sameer</strong> · Made by Sameer · © 2026
 </footer>
+</div>
 
 <script>
+const SUPABASE_URL="https://qiynczbrhpxwuabwuyiy.supabase.co";
+const SUPABASE_KEY="sb_publishable_eUPz4c_nYckgINEK-AIWqw_JAXIHozd";
 
-const SUPABASE_URL =
-"https://qiynczbrhpxwuabwuyiy.supabase.co";
-
-const SUPABASE_KEY =
-"sb_publishable_eUPz4c_nYckgINEK-AIWqw_JAXIHozd";
-
-const supabaseClient =
-supabase.createClient(
+const supabaseClient=supabase.createClient(
   SUPABASE_URL,
-  SUPABASE_KEY
+  SUPABASE_KEY,
+  {
+    auth:{
+      persistSession:true,
+      autoRefreshToken:true,
+      detectSessionInUrl:true,
+      flowType:"pkce"
+    }
+  }
 );
 
-const loginBtn =
-document.getElementById("loginBtn");
+document.getElementById("loginBtn").addEventListener("click",async()=>{
+  const btn=document.getElementById("loginBtn");
+  const status=document.getElementById("status");
 
-const status =
-document.getElementById("status");
+  btn.disabled=true;
+  btn.innerHTML='<span class="google">G</span><span>Opening Sameer\'s Chat...</span>';
+  status.textContent="";
 
+  try{
+    const redirectURL=new URL("./chat.html",window.location.href).href;
 
-loginBtn.addEventListener("click", async () => {
-
-  loginBtn.disabled = true;
-
-  loginBtn.innerHTML =
-  '<span class="google">G</span> Opening Google...';
-
-  status.textContent = "";
-
-  const redirectURL =
-    new URL("chat.html", window.location.href).href;
-
-  const { error } =
-    await supabaseClient.auth.signInWithOAuth({
-
+    const {error}=await supabaseClient.auth.signInWithOAuth({
       provider:"google",
-
       options:{
         redirectTo:redirectURL
       }
-
     });
 
-  if(error){
-
+    if(error) throw error;
+  }catch(error){
     console.error(error);
-
-    status.textContent =
-      error.message;
-
-    loginBtn.disabled = false;
-
-    loginBtn.innerHTML =
-      '<span class="google">G</span> Continue with Google';
+    status.textContent=error.message || "Unable to start Google login.";
+    btn.disabled=false;
+    btn.innerHTML='<span class="google">G</span><span>Continue with Google</span><span style="margin-left:auto;font-size:20px">→</span>';
   }
-
 });
-
 </script>
 
 </body>
