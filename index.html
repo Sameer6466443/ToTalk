@@ -1,941 +1,566 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <title>ToTalk — Talk. Connect. Enjoy.</title>
-
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-  <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    :root {
-      --blue: #1596dc;
-      --deep-blue: #075d91;
-      --sky: #e9f8ff;
-      --yellow: #ffe36b;
-      --dark-yellow: #d3a500;
-      --white: #ffffff;
-      --text: #123c55;
-      --muted: #708895;
-    }
-
-    html {
-      scroll-behavior: smooth;
-    }
-
-    body {
-      font-family: Arial, Helvetica, sans-serif;
-      color: var(--text);
-      background:
-        radial-gradient(circle at 5% 5%, #c9f0ff 0, transparent 28%),
-        radial-gradient(circle at 95% 10%, #fff0a0 0, transparent 25%),
-        linear-gradient(145deg, #f3fcff 0%, #ffffff 55%, #fffef2 100%);
-      min-height: 100vh;
-      overflow-x: hidden;
-    }
-
-    /* NAVBAR */
-
-    nav {
-      width: 100%;
-      max-width: 1180px;
-      margin: auto;
-      padding: 22px 28px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .logo {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      font-size: 26px;
-      font-weight: 900;
-      color: var(--deep-blue);
-    }
-
-    .logo-box {
-      width: 46px;
-      height: 46px;
-      border-radius: 15px;
-      background: var(--yellow);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      font-size: 23px;
-      box-shadow: 0 10px 25px rgba(200, 165, 0, .18);
-    }
-
-    .logo span {
-      color: var(--dark-yellow);
-    }
-
-    .creator {
-      font-size: 14px;
-      color: var(--muted);
-      font-weight: 700;
-    }
-
-    .creator strong {
-      color: var(--blue);
-    }
-
-    /* HERO */
-
-    .hero {
-      max-width: 1180px;
-      min-height: 650px;
-      margin: auto;
-      padding: 65px 28px 90px;
-      display: grid;
-      grid-template-columns: 1.05fr .95fr;
-      gap: 65px;
-      align-items: center;
-    }
-
-    .eyebrow {
-      display: inline-flex;
-      align-items: center;
-      gap: 9px;
-      background: rgba(255,255,255,.85);
-      border: 1px solid #d9edf5;
-      padding: 11px 17px;
-      border-radius: 30px;
-      font-size: 13px;
-      font-weight: 800;
-      color: var(--deep-blue);
-      margin-bottom: 25px;
-      box-shadow: 0 8px 25px rgba(20,100,130,.06);
-    }
-
-    .online-dot {
-      width: 9px;
-      height: 9px;
-      background: #32c76a;
-      border-radius: 50%;
-    }
-
-    h1 {
-      font-size: clamp(52px, 7vw, 82px);
-      line-height: .96;
-      letter-spacing: -4px;
-      margin-bottom: 27px;
-    }
-
-    h1 .blue {
-      color: var(--blue);
-    }
-
-    h1 .yellow {
-      color: var(--dark-yellow);
-    }
-
-    .intro {
-      max-width: 610px;
-      color: var(--muted);
-      font-size: 18px;
-      line-height: 1.75;
-      margin-bottom: 28px;
-    }
-
-    .sameer {
-      color: var(--deep-blue);
-      font-weight: 900;
-      border-bottom: 4px solid var(--yellow);
-    }
-
-    /* IMPORTANT MESSAGE */
-
-    .not-contact {
-      max-width: 590px;
-      padding: 17px 19px;
-      border-radius: 17px;
-      background: #fffdf0;
-      border: 1px solid #f3e8a9;
-      color: #756522;
-      font-size: 14px;
-      line-height: 1.55;
-      margin-bottom: 30px;
-    }
-
-    .not-contact strong {
-      color: #5f5111;
-    }
-
-    /* LOGIN */
-
-    .login-btn {
-      border: none;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 12px;
-      padding: 17px 27px;
-      border-radius: 16px;
-      background: var(--blue);
-      color: white;
-      font-size: 16px;
-      font-weight: 900;
-      box-shadow: 0 15px 32px rgba(21,150,220,.25);
-      transition: .2s ease;
-    }
-
-    .login-btn:hover {
-      background: var(--deep-blue);
-      transform: translateY(-3px);
-    }
-
-    .login-btn:disabled {
-      opacity: .65;
-      cursor: wait;
-      transform: none;
-    }
-
-    .google {
-      width: 24px;
-      height: 24px;
-      border-radius: 50%;
-      background: white;
-      color: #4285f4;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 900;
-    }
-
-    #status {
-      min-height: 20px;
-      margin-top: 13px;
-      font-size: 13px;
-      font-weight: 700;
-    }
-
-    /* CHAT PREVIEW */
-
-    .preview {
-      position: relative;
-    }
-
-    .chat-window {
-      background: rgba(255,255,255,.9);
-      padding: 11px;
-      border: 2px solid white;
-      border-radius: 34px;
-      box-shadow: 0 35px 80px rgba(20,100,135,.15);
-    }
-
-    .chat-inner {
-      background: white;
-      border-radius: 25px;
-      overflow: hidden;
-    }
-
-    .chat-top {
-      display: flex;
-      align-items: center;
-      gap: 13px;
-      padding: 20px;
-      border-bottom: 1px solid #edf2f5;
-    }
-
-    .avatar {
-      width: 48px;
-      height: 48px;
-      border-radius: 50%;
-      background: #def5ff;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 23px;
-    }
-
-    .chat-name strong {
-      display: block;
-      font-size: 15px;
-      margin-bottom: 4px;
-    }
-
-    .chat-name small {
-      color: #31b963;
-      font-weight: 800;
-    }
-
-    .messages {
-      min-height: 345px;
-      padding: 27px 20px;
-      background: #f7fcff;
-    }
-
-    .msg {
-      width: fit-content;
-      max-width: 78%;
-      padding: 13px 16px;
-      border-radius: 18px;
-      margin-bottom: 13px;
-      font-size: 14px;
-      line-height: 1.5;
-    }
-
-    .msg.left {
-      background: #e2f5fc;
-      border-bottom-left-radius: 5px;
-    }
-
-    .msg.right {
-      margin-left: auto;
-      background: var(--blue);
-      color: white;
-      border-bottom-right-radius: 5px;
-    }
-
-    .msg.yellow {
-      background: #fff9d9;
-      color: #65591d;
-      border-bottom-left-radius: 5px;
-    }
-
-    .chat-input {
-      display: flex;
-      gap: 10px;
-      padding: 15px;
-      border-top: 1px solid #edf2f5;
-    }
-
-    .fake-input {
-      flex: 1;
-      background: #f2f8fb;
-      border-radius: 13px;
-      padding: 13px;
-      color: #9aadb6;
-      font-size: 13px;
-    }
-
-    .send {
-      width: 46px;
-      border: none;
-      border-radius: 13px;
-      background: var(--yellow);
-      font-size: 18px;
-    }
-
-    .floating {
-      position: absolute;
-      background: white;
-      padding: 13px 17px;
-      border-radius: 15px;
-      box-shadow: 0 16px 35px rgba(20,100,130,.13);
-      font-size: 13px;
-      font-weight: 900;
-    }
-
-    .floating.one {
-      top: -22px;
-      left: -22px;
-    }
-
-    .floating.two {
-      right: -20px;
-      bottom: 40px;
-      background: #fff9d9;
-    }
-
-    /* INFO */
-
-    .info {
-      padding: 20px 28px 90px;
-    }
-
-    .info-box {
-      max-width: 1050px;
-      margin: auto;
-      padding: 42px;
-      border-radius: 30px;
-      background: linear-gradient(110deg, #fff8c9, #e3f7ff);
-      box-shadow: 0 18px 50px rgba(20,100,130,.08);
-    }
-
-    .info-box h2 {
-      font-size: 30px;
-      margin-bottom: 12px;
-    }
-
-    .info-box p {
-      color: var(--muted);
-      line-height: 1.75;
-      max-width: 850px;
-    }
-
-    .creator-line {
-      margin-top: 17px;
-      color: var(--deep-blue) !important;
-      font-weight: 800;
-    }
-
-    /* FEATURES */
-
-    .features {
-      padding: 85px 28px 100px;
-      background: rgba(255,255,255,.72);
-    }
-
-    .section-title {
-      max-width: 680px;
-      text-align: center;
-      margin: auto auto 45px;
-    }
-
-    .section-title small {
-      color: var(--blue);
-      font-weight: 900;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      font-size: 12px;
-    }
-
-    .section-title h2 {
-      font-size: 42px;
-      letter-spacing: -2px;
-      margin: 10px 0;
-    }
-
-    .section-title p {
-      color: var(--muted);
-      line-height: 1.65;
-    }
-
-    .feature-grid {
-      max-width: 1050px;
-      margin: auto;
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 20px;
-    }
-
-    .feature {
-      background: white;
-      border: 1px solid #e3eef3;
-      border-radius: 24px;
-      padding: 30px;
-      transition: .2s ease;
-    }
-
-    .feature:hover {
-      transform: translateY(-6px);
-      box-shadow: 0 20px 45px rgba(20,100,130,.10);
-    }
-
-    .feature-icon {
-      width: 53px;
-      height: 53px;
-      border-radius: 16px;
-      background: #fff8d5;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 23px;
-      margin-bottom: 19px;
-    }
-
-    .feature:nth-child(2) .feature-icon {
-      background: #e3f7ff;
-    }
-
-    .feature:nth-child(3) .feature-icon {
-      background: #eaf1ff;
-    }
-
-    .feature h3 {
-      margin-bottom: 10px;
-      font-size: 19px;
-    }
-
-    .feature p {
-      color: var(--muted);
-      font-size: 14px;
-      line-height: 1.7;
-    }
-
-    /* FOOTER */
-
-    footer {
-      background: white;
-      text-align: center;
-      padding: 30px 20px;
-      color: #7b909c;
-      font-size: 13px;
-    }
-
-    footer strong {
-      color: var(--blue);
-    }
-
-    /* MOBILE */
-
-    @media (max-width: 850px) {
-
-      nav {
-        padding: 18px 20px;
-      }
-
-      .creator {
-        display: none;
-      }
-
-      .hero {
-        grid-template-columns: 1fr;
-        padding: 45px 20px 75px;
-        gap: 60px;
-      }
-
-      .hero-text {
-        text-align: center;
-      }
-
-      .intro,
-      .not-contact {
-        margin-left: auto;
-        margin-right: auto;
-      }
-
-      .preview {
-        width: 100%;
-        max-width: 540px;
-        margin: auto;
-      }
-
-      .feature-grid {
-        grid-template-columns: 1fr;
-        max-width: 520px;
-      }
-
-      .info-box {
-        padding: 32px 25px;
-      }
-    }
-
-    @media (max-width: 500px) {
-
-      .logo {
-        font-size: 23px;
-      }
-
-      .logo-box {
-        width: 42px;
-        height: 42px;
-      }
-
-      h1 {
-        font-size: 52px;
-        letter-spacing: -3px;
-      }
-
-      .intro {
-        font-size: 16px;
-      }
-
-      .floating {
-        display: none;
-      }
-
-      .section-title h2 {
-        font-size: 34px;
-      }
-
-      .messages {
-        min-height: 300px;
-      }
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>ToTalk — Connect with Sameer</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+*{
+  box-sizing:border-box;
+  margin:0;
+  padding:0;
+}
+
+:root{
+  --blue:#1596dc;
+  --deep:#075d91;
+  --sky:#e9f8ff;
+  --yellow:#ffe36b;
+  --text:#123c55;
+  --muted:#708895;
+}
+
+body{
+  font-family:Arial,Helvetica,sans-serif;
+  min-height:100vh;
+  color:var(--text);
+  background:
+    radial-gradient(circle at 5% 5%,#c9f0ff,transparent 28%),
+    radial-gradient(circle at 95% 10%,#fff0a0,transparent 25%),
+    linear-gradient(145deg,#f3fcff,#fff 55%,#fffef2);
+}
+
+nav{
+  max-width:1180px;
+  margin:auto;
+  padding:22px 28px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+.logo{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  font-size:27px;
+  font-weight:900;
+  color:var(--deep);
+}
+
+.logo-box{
+  width:48px;
+  height:48px;
+  border-radius:15px;
+  background:var(--yellow);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:23px;
+}
+
+.logo span{
+  color:var(--blue);
+}
+
+.creator{
+  color:var(--muted);
+  font-size:14px;
+  font-weight:700;
+}
+
+.creator b{
+  color:var(--blue);
+}
+
+.hero{
+  max-width:1180px;
+  min-height:650px;
+  margin:auto;
+  padding:60px 28px 90px;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:65px;
+  align-items:center;
+}
+
+.badge{
+  display:inline-block;
+  background:white;
+  border:1px solid #d9edf5;
+  padding:11px 17px;
+  border-radius:30px;
+  color:var(--deep);
+  font-size:13px;
+  font-weight:800;
+  margin-bottom:25px;
+  box-shadow:0 8px 25px rgba(20,100,130,.06);
+}
+
+h1{
+  font-size:clamp(52px,7vw,82px);
+  line-height:.96;
+  letter-spacing:-4px;
+  margin-bottom:27px;
+}
+
+.blue{
+  color:var(--blue);
+}
+
+.yellow{
+  color:#c59b00;
+}
+
+.intro{
+  max-width:600px;
+  color:var(--muted);
+  font-size:18px;
+  line-height:1.75;
+  margin-bottom:25px;
+}
+
+.sameer{
+  color:var(--deep);
+  font-weight:900;
+}
+
+.contact-box{
+  max-width:590px;
+  padding:18px 20px;
+  border-radius:17px;
+  background:#fffdf0;
+  border:1px solid #f3e8a9;
+  color:#756522;
+  font-size:14px;
+  line-height:1.6;
+  margin-bottom:30px;
+}
+
+.contact-box strong{
+  color:#5f5111;
+}
+
+.login-btn{
+  border:0;
+  cursor:pointer;
+  display:inline-flex;
+  align-items:center;
+  gap:12px;
+  padding:17px 27px;
+  border-radius:16px;
+  background:var(--blue);
+  color:white;
+  font-size:16px;
+  font-weight:900;
+  box-shadow:0 15px 32px rgba(21,150,220,.25);
+  transition:.2s;
+}
+
+.login-btn:hover{
+  background:var(--deep);
+  transform:translateY(-3px);
+}
+
+.login-btn:disabled{
+  opacity:.6;
+  cursor:wait;
+  transform:none;
+}
+
+.google{
+  width:25px;
+  height:25px;
+  border-radius:50%;
+  background:white;
+  color:#4285f4;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:900;
+}
+
+#status{
+  min-height:20px;
+  margin-top:14px;
+  font-size:13px;
+  font-weight:700;
+}
+
+.preview{
+  position:relative;
+}
+
+.card{
+  background:rgba(255,255,255,.92);
+  border:10px solid rgba(255,255,255,.8);
+  border-radius:34px;
+  box-shadow:0 35px 80px rgba(20,100,135,.15);
+  overflow:hidden;
+}
+
+.card-top{
+  display:flex;
+  align-items:center;
+  gap:13px;
+  padding:22px;
+  border-bottom:1px solid #edf2f5;
+}
+
+.avatar{
+  width:52px;
+  height:52px;
+  border-radius:50%;
+  background:var(--yellow);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:22px;
+}
+
+.card-top strong{
+  display:block;
+  margin-bottom:5px;
+}
+
+.online{
+  color:#31b963;
+  font-size:12px;
+  font-weight:800;
+}
+
+.messages{
+  min-height:350px;
+  padding:28px 22px;
+  background:#f7fcff;
+}
+
+.msg{
+  width:max-content;
+  max-width:78%;
+  padding:13px 16px;
+  border-radius:18px;
+  margin-bottom:13px;
+  font-size:14px;
+  line-height:1.5;
+}
+
+.left{
+  background:#e2f5fc;
+  border-bottom-left-radius:5px;
+}
+
+.right{
+  margin-left:auto;
+  background:var(--blue);
+  color:white;
+  border-bottom-right-radius:5px;
+}
+
+.yellow-msg{
+  background:#fff9d9;
+  color:#65591d;
+}
+
+.fake-input{
+  padding:15px;
+  background:white;
+  border-top:1px solid #edf2f5;
+  color:#9aadb6;
+  font-size:13px;
+}
+
+.float{
+  position:absolute;
+  background:white;
+  padding:13px 17px;
+  border-radius:15px;
+  box-shadow:0 16px 35px rgba(20,100,130,.13);
+  font-size:13px;
+  font-weight:900;
+}
+
+.one{
+  top:-20px;
+  left:-20px;
+}
+
+.two{
+  right:-20px;
+  bottom:30px;
+  background:#fff9d9;
+}
+
+.about{
+  padding:20px 28px 100px;
+}
+
+.about-box{
+  max-width:1050px;
+  margin:auto;
+  padding:42px;
+  border-radius:30px;
+  background:linear-gradient(110deg,#fff8c9,#e3f7ff);
+}
+
+.about-box h2{
+  font-size:31px;
+  margin-bottom:12px;
+}
+
+.about-box p{
+  color:var(--muted);
+  line-height:1.75;
+}
+
+.about-box .made{
+  margin-top:15px;
+  color:var(--deep);
+  font-weight:900;
+}
+
+footer{
+  padding:30px;
+  text-align:center;
+  background:white;
+  color:#7b909c;
+  font-size:13px;
+}
+
+footer b{
+  color:var(--blue);
+}
+
+@media(max-width:850px){
+  .creator{
+    display:none;
+  }
+
+  .hero{
+    grid-template-columns:1fr;
+    padding:45px 20px 75px;
+    gap:60px;
+  }
+
+  .hero-text{
+    text-align:center;
+  }
+
+  .intro,
+  .contact-box{
+    margin-left:auto;
+    margin-right:auto;
+  }
+
+  .preview{
+    max-width:550px;
+    width:100%;
+    margin:auto;
+  }
+
+  .float{
+    display:none;
+  }
+}
+
+@media(max-width:500px){
+  h1{
+    font-size:52px;
+  }
+
+  .intro{
+    font-size:16px;
+  }
+
+  .about-box{
+    padding:30px 23px;
+  }
+}
+</style>
 </head>
 
 <body>
 
-  <!-- NAVIGATION -->
+<nav>
+  <div class="logo">
+    <div class="logo-box">💬</div>
+    To<span>Talk</span>
+  </div>
 
-  <nav>
+  <div class="creator">
+    Created by <b>Sameer</b>
+  </div>
+</nav>
 
-    <div class="logo">
-      <div class="logo-box">💬</div>
-      To<span>Talk</span>
+<section class="hero">
+
+  <div class="hero-text">
+
+    <div class="badge">
+      ✦ Welcome to ToTalk
     </div>
 
-    <div class="creator">
-      Created by <strong>Sameer</strong>
+    <h1>
+      Talk.<br>
+      Connect.<br>
+      <span class="blue">Enjoy.</span>
+    </h1>
+
+    <p class="intro">
+      Welcome to <span class="sameer">ToTalk</span> —
+      a fresh and simple place to chat and connect.
+      Sign in with Google and enter your conversation.
+    </p>
+
+    <div class="contact-box">
+      <strong>Made by Sameer.</strong><br>
+      This website is my own space for chatting and
+      connecting with people. Come in, sign in and talk.
     </div>
 
-  </nav>
+    <button class="login-btn" id="loginBtn">
+      <span class="google">G</span>
+      Continue with Google
+    </button>
 
+    <div id="status"></div>
 
-  <!-- MAIN HERO -->
+  </div>
 
-  <section class="hero">
+  <div class="preview">
 
-    <div class="hero-text">
+    <div class="float one">👋 Hey!</div>
+    <div class="float two">✨ Let's talk</div>
 
-      <div class="eyebrow">
-        <span class="online-dot"></span>
-        Welcome to ToTalk
+    <div class="card">
+
+      <div class="card-top">
+        <div class="avatar">S</div>
+
+        <div>
+          <strong>Sameer's ToTalk</strong>
+          <div class="online">● Ready to chat</div>
+        </div>
       </div>
 
-      <h1>
-        Talk.<br>
-        Connect.<br>
-        <span class="blue">Enjoy.</span>
-      </h1>
+      <div class="messages">
 
-      <p class="intro">
-        ToTalk is a simple place made for chatting and
-        connecting with people. Create an account,
-        enter the conversation and enjoy your time here.
-      </p>
+        <div class="msg left">
+          Welcome to ToTalk 👋
+        </div>
 
+        <div class="msg right">
+          Hey Sameer! 😄
+        </div>
 
-      <!-- CLEARLY NOT A PERSONAL CONTACT PAGE -->
+        <div class="msg yellow-msg">
+          Let's have a chat!
+        </div>
 
-      <div class="not-contact">
-        <strong>Just to be clear:</strong>
-        ToTalk is a chatting platform, not a personal
-        contact page for Sameer. The name Sameer appears
-        because he created this project.
-      </div>
-
-
-      <!-- ONE LOGIN BUTTON -->
-
-      <button class="login-btn" id="loginBtn">
-
-        <span class="google">G</span>
-
-        Continue with Google
-
-      </button>
-
-      <div id="status"></div>
-
-    </div>
-
-
-    <!-- CHAT PREVIEW -->
-
-    <div class="preview">
-
-      <div class="floating one">
-        💬 Ready to chat?
-      </div>
-
-      <div class="floating two">
-        ✨ ToTalk by Sameer
-      </div>
-
-      <div class="chat-window">
-
-        <div class="chat-inner">
-
-          <div class="chat-top">
-
-            <div class="avatar">
-              😊
-            </div>
-
-            <div class="chat-name">
-
-              <strong>ToTalk Chat</strong>
-
-              <small>● Online</small>
-
-            </div>
-
-          </div>
-
-
-          <div class="messages">
-
-            <div class="msg left">
-              Welcome to ToTalk 👋
-            </div>
-
-            <div class="msg right">
-              Hey! What's up? 😄
-            </div>
-
-            <div class="msg left yellow">
-              Nothing much. Let's chat!
-            </div>
-
-            <div class="msg right">
-              That's what ToTalk is for ✨
-            </div>
-
-            <div class="msg left">
-              Sounds good! 🚀
-            </div>
-
-          </div>
-
-
-          <div class="chat-input">
-
-            <div class="fake-input">
-              Write a message...
-            </div>
-
-            <button class="send">
-              ➤
-            </button>
-
-          </div>
-
+        <div class="msg right">
+          Sure ✨
         </div>
 
       </div>
 
-    </div>
-
-  </section>
-
-
-  <!-- ABOUT TOTAlK -->
-
-  <section class="info">
-
-    <div class="info-box">
-
-      <h2>
-        This is ToTalk.
-      </h2>
-
-      <p>
-        A place where people can sign in and enjoy
-        conversations without making things complicated.
-        The goal is simple — open ToTalk, find your way
-        into the chat and have a good time.
-      </p>
-
-      <p class="creator-line">
-        Created and designed by Sameer.
-      </p>
-
-    </div>
-
-  </section>
-
-
-  <!-- FEATURES -->
-
-  <section class="features">
-
-    <div class="section-title">
-
-      <small>Why ToTalk?</small>
-
-      <h2>
-        Made around chatting.
-      </h2>
-
-      <p>
-        A clean and straightforward experience
-        without unnecessary things getting in the way.
-      </p>
-
-    </div>
-
-
-    <div class="feature-grid">
-
-      <div class="feature">
-
-        <div class="feature-icon">
-          💬
-        </div>
-
-        <h3>
-          Chat
-        </h3>
-
-        <p>
-          A simple space designed around
-          conversations and messages.
-        </p>
-
-      </div>
-
-
-      <div class="feature">
-
-        <div class="feature-icon">
-          👥
-        </div>
-
-        <h3>
-          Connect
-        </h3>
-
-        <p>
-          Sign in and get into the ToTalk
-          experience with your account.
-        </p>
-
-      </div>
-
-
-      <div class="feature">
-
-        <div class="feature-icon">
-          ⚡
-        </div>
-
-        <h3>
-          Keep It Simple
-        </h3>
-
-        <p>
-          No unnecessary clutter. Just a fresh,
-          friendly place built around chatting.
-        </p>
-
+      <div class="fake-input">
+        Write a message...
       </div>
 
     </div>
 
-  </section>
+  </div>
+
+</section>
+
+<section class="about">
+
+  <div class="about-box">
+
+    <h2>This is ToTalk.</h2>
+
+    <p>
+      A simple website created by Sameer for chatting
+      and connecting. Sign in with Google and enter
+      the ToTalk chat.
+    </p>
+
+    <p class="made">
+      Created by Sameer ✦
+    </p>
+
+  </div>
+
+</section>
+
+<footer>
+  ToTalk © 2026 · Created by <b>Sameer</b>
+</footer>
+
+<script>
+
+const SUPABASE_URL =
+"https://qiynczbrhpxwuabwuyiy.supabase.co";
+
+const SUPABASE_KEY =
+"sb_publishable_eUPz4c_nYckgINEK-AIWqw_JAXIHozd";
+
+const supabaseClient =
+supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_KEY
+);
+
+const loginBtn =
+document.getElementById("loginBtn");
+
+const status =
+document.getElementById("status");
 
 
-  <!-- FOOTER -->
+loginBtn.addEventListener("click", async () => {
 
-  <footer>
+  loginBtn.disabled = true;
 
-    ToTalk © 2026 · Created by
-    <strong>Sameer</strong>
+  loginBtn.innerHTML =
+  '<span class="google">G</span> Opening Google...';
 
-  </footer>
+  status.textContent = "";
 
+  const redirectURL =
+    new URL("chat.html", window.location.href).href;
 
-  <!-- SUPABASE LOGIN -->
+  const { error } =
+    await supabaseClient.auth.signInWithOAuth({
 
-  <script>
+      provider:"google",
 
-    const SUPABASE_URL =
-      "https://qiynczbrhpxwuabwuyiy.supabase.co";
-
-    const SUPABASE_KEY =
-      "sb_publishable_eUPz4c_nYckgINEK-AIWqw_JAXIHozd";
-
-
-    const supabaseClient =
-      supabase.createClient(
-        SUPABASE_URL,
-        SUPABASE_KEY
-      );
-
-
-    const loginBtn =
-      document.getElementById("loginBtn");
-
-    const status =
-      document.getElementById("status");
-
-
-    /*
-      IMPORTANT:
-      new URL("chat.html", window.location.href)
-      automatically keeps your GitHub Pages /ToTalk/
-      folder.
-
-      Example:
-      https://sameer6466443.github.io/ToTalk/
-      becomes:
-      https://sameer6466443.github.io/ToTalk/chat.html
-    */
-
-    loginBtn.addEventListener("click", async () => {
-
-      loginBtn.disabled = true;
-
-      loginBtn.innerHTML =
-        "Connecting to Google...";
-
-      status.textContent = "";
-
-
-      const chatURL =
-        new URL(
-          "chat.html",
-          window.location.href
-        ).href;
-
-
-      const { error } =
-        await supabaseClient.auth.signInWithOAuth({
-
-          provider: "google",
-
-          options: {
-
-            redirectTo: chatURL
-
-          }
-
-        });
-
-
-      if (error) {
-
-        console.error(error);
-
-        status.textContent =
-          "Unable to start Google login. Please try again.";
-
-        loginBtn.disabled = false;
-
-        loginBtn.innerHTML =
-          '<span class="google">G</span> Continue with Google';
-
+      options:{
+        redirectTo:redirectURL
       }
 
     });
 
+  if(error){
 
-    /*
-      If someone is already logged in,
-      send them to chat.html instead of
-      showing the homepage again.
-    */
+    console.error(error);
 
-    async function checkLogin() {
+    status.textContent =
+      error.message;
 
-      const {
-        data: { session }
-      } =
-        await supabaseClient.auth.getSession();
+    loginBtn.disabled = false;
 
+    loginBtn.innerHTML =
+      '<span class="google">G</span> Continue with Google';
+  }
 
-      if (session) {
+});
 
-        const chatURL =
-          new URL(
-            "chat.html",
-            window.location.href
-          ).href;
-
-        window.location.replace(chatURL);
-
-      }
-
-    }
-
-
-    checkLogin();
-
-  </script>
+</script>
 
 </body>
 </html>
