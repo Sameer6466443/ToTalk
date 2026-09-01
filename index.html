@@ -1,689 +1,571 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>ToTalk — Talk. Connect. Be You.</title>
+  <title>ToTalk — Talk Freely</title>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-<style>
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
-}
-
-:root{
-    --blue:#55b9e8;
-    --blue-dark:#17638d;
-    --blue-soft:#eaf8ff;
-    --yellow:#ffd84d;
-    --yellow-soft:#fff5bf;
-    --dark:#123047;
-    --muted:#668095;
-    --white:#ffffff;
-}
-
-body{
-    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
-    color:var(--dark);
-    min-height:100vh;
-    overflow-x:hidden;
-    background:
-        radial-gradient(circle at 85% 10%,#fff2a8 0,transparent 23%),
-        radial-gradient(circle at 5% 80%,#bceaff 0,transparent 28%),
-        linear-gradient(135deg,#f4fcff 0%,#e8f8ff 48%,#fffde9 100%);
-}
-
-/* BACKGROUND */
-
-.blob{
-    position:fixed;
-    border-radius:50%;
-    filter:blur(2px);
-    z-index:-1;
-}
-
-.blob.one{
-    width:340px;
-    height:340px;
-    background:rgba(255,216,77,.22);
-    top:-140px;
-    right:-100px;
-}
-
-.blob.two{
-    width:280px;
-    height:280px;
-    background:rgba(85,185,232,.16);
-    bottom:-120px;
-    left:-100px;
-}
-
-/* NAV */
-
-nav{
-    width:100%;
-    padding:25px 7%;
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-}
-
-.logo{
-    font-size:30px;
-    font-weight:900;
-    letter-spacing:-1.5px;
-}
-
-.logo .to{
-    color:var(--dark);
-}
-
-.logo .talk{
-    color:var(--blue-dark);
-}
-
-.logo-dot{
-    display:inline-block;
-    width:9px;
-    height:9px;
-    border-radius:50%;
-    background:var(--yellow);
-    margin-left:3px;
-    margin-bottom:3px;
-}
-
-.nav-pill{
-    padding:9px 15px;
-    border-radius:30px;
-    background:rgba(255,255,255,.65);
-    border:1px solid rgba(255,255,255,.9);
-    color:#58748a;
-    font-size:13px;
-    font-weight:700;
-}
-
-/* MAIN */
-
-main{
-    max-width:1180px;
-    min-height:calc(100vh - 90px);
-    margin:auto;
-    padding:55px 7% 70px;
-    display:flex;
-    align-items:center;
-}
-
-.hero{
-    width:100%;
-    display:grid;
-    grid-template-columns:1.1fr .9fr;
-    gap:70px;
-    align-items:center;
-}
-
-/* LEFT */
-
-.eyebrow{
-    display:inline-flex;
-    align-items:center;
-    gap:9px;
-    padding:8px 14px;
-    border-radius:30px;
-    background:rgba(255,255,255,.72);
-    border:1px solid rgba(255,255,255,.9);
-    box-shadow:0 8px 25px rgba(30,100,140,.07);
-    font-size:13px;
-    font-weight:800;
-    color:var(--blue-dark);
-    margin-bottom:25px;
-}
-
-.eyebrow-dot{
-    width:8px;
-    height:8px;
-    background:#54c58a;
-    border-radius:50%;
-}
-
-h1{
-    font-size:clamp(52px,7vw,86px);
-    line-height:.94;
-    letter-spacing:-5px;
-    margin-bottom:28px;
-}
-
-.line-blue{
-    color:var(--blue-dark);
-}
-
-.line-yellow{
-    color:#d9a900;
-}
-
-.description{
-    max-width:560px;
-    color:var(--muted);
-    font-size:18px;
-    line-height:1.75;
-}
-
-/* VISUAL */
-
-.visual{
-    position:relative;
-    min-height:480px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-}
-
-.orbit{
-    width:350px;
-    height:350px;
-    border:1px solid rgba(85,185,232,.25);
-    border-radius:50%;
-    position:absolute;
-}
-
-.orbit:before{
-    content:"";
-    position:absolute;
-    width:14px;
-    height:14px;
-    border-radius:50%;
-    background:var(--yellow);
-    top:25px;
-    left:55px;
-    box-shadow:0 0 0 9px rgba(255,216,77,.15);
-}
-
-.orbit.two{
-    width:430px;
-    height:430px;
-    border-color:rgba(255,216,77,.18);
-}
-
-.center-card{
-    width:285px;
-    height:330px;
-    background:rgba(255,255,255,.78);
-    backdrop-filter:blur(20px);
-    border:1px solid rgba(255,255,255,.95);
-    border-radius:38px;
-    box-shadow:
-        0 35px 80px rgba(37,112,150,.18),
-        inset 0 1px 0 rgba(255,255,255,.9);
-    position:relative;
-    z-index:2;
-    padding:30px;
-    display:flex;
-    flex-direction:column;
-    justify-content:space-between;
-}
-
-.mini-top{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-}
-
-.mini-logo{
-    font-weight:900;
-    color:var(--blue-dark);
-}
-
-.status{
-    width:10px;
-    height:10px;
-    background:#58c98d;
-    border-radius:50%;
-    box-shadow:0 0 0 6px rgba(88,201,141,.12);
-}
-
-.chat-bubble{
-    width:92px;
-    height:92px;
-    border-radius:30px;
-    background:linear-gradient(145deg,#9bdfff,#fff0a0);
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    font-size:42px;
-    margin:auto;
-    box-shadow:0 18px 35px rgba(68,160,200,.16);
-}
-
-.center-card h3{
-    font-size:23px;
-    text-align:center;
-    margin-bottom:8px;
-}
-
-.center-card p{
-    text-align:center;
-    font-size:13px;
-    line-height:1.6;
-    color:var(--muted);
-}
-
-/* FLOATING CARDS */
-
-.float{
-    position:absolute;
-    z-index:4;
-    background:rgba(255,255,255,.85);
-    backdrop-filter:blur(12px);
-    border:1px solid rgba(255,255,255,.9);
-    border-radius:18px;
-    padding:13px 16px;
-    box-shadow:0 15px 35px rgba(40,110,145,.13);
-    font-size:12px;
-    font-weight:800;
-}
-
-.float.a{
-    top:65px;
-    left:10px;
-}
-
-.float.b{
-    right:0;
-    bottom:75px;
-}
-
-.float-icon{
-    margin-right:7px;
-}
-
-/* LOGIN */
-
-.login-area{
-    margin-top:38px;
-}
-
-.google-button{
-    border:0;
-    cursor:pointer;
-    display:inline-flex;
-    align-items:center;
-    justify-content:center;
-    gap:13px;
-    min-width:245px;
-    padding:17px 25px;
-    border-radius:17px;
-    background:#123047;
-    color:white;
-    font-size:16px;
-    font-weight:800;
-    box-shadow:
-        0 15px 30px rgba(18,48,71,.18);
-    transition:all .2s ease;
-}
-
-.google-button:hover{
-    transform:translateY(-3px);
-    box-shadow:0 20px 38px rgba(18,48,71,.24);
-}
-
-.google-button:active{
-    transform:translateY(0);
-}
-
-.google-icon{
-    width:20px;
-    height:20px;
-    background:white;
-    border-radius:50%;
-    padding:3px;
-}
-
-.login-note{
-    margin-top:13px;
-    font-size:11px;
-    color:#8196a5;
-}
-
-/* LOGGED IN */
-
-#loggedIn{
-    display:none;
-}
-
-.logged-card{
-    margin-top:30px;
-    max-width:420px;
-    padding:20px;
-    border-radius:18px;
-    background:rgba(255,255,255,.72);
-}
-
-.user-email{
-    margin:10px 0;
-    font-size:14px;
-    word-break:break-all;
-    color:var(--blue-dark);
-    font-weight:700;
-}
-
-.logout{
-    border:0;
-    background:var(--yellow-soft);
-    color:#705900;
-    padding:9px 15px;
-    border-radius:10px;
-    font-weight:700;
-    cursor:pointer;
-}
-
-/* FOOTER */
-
-footer{
-    text-align:center;
-    padding:20px;
-    color:#7890a0;
-    font-size:12px;
-}
-
-footer strong{
-    color:var(--blue-dark);
-}
-
-/* MOBILE */
-
-@media(max-width:850px){
-
-    nav{
-        padding:20px 5%;
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
     }
 
-    .nav-pill{
-        display:none;
+    html {
+      scroll-behavior: smooth;
     }
 
-    main{
-        padding:35px 5% 50px;
-        display:block;
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      background: #f5fbff;
+      color: #123047;
+      overflow-x: hidden;
     }
 
-    .hero{
-        grid-template-columns:1fr;
-        gap:20px;
+    /* NAVBAR */
+
+    nav {
+      height: 76px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 7%;
+      background: rgba(255,255,255,0.9);
+      backdrop-filter: blur(15px);
+      border-bottom: 1px solid rgba(18,48,71,0.08);
+      position: sticky;
+      top: 0;
+      z-index: 100;
     }
 
-    h1{
-        font-size:57px;
-        letter-spacing:-3.5px;
+    .logo {
+      font-size: 27px;
+      font-weight: 800;
+      color: #123047;
+      letter-spacing: -1px;
     }
 
-    .description{
-        font-size:16px;
-        line-height:1.65;
+    .logo span {
+      color: #f5c542;
     }
 
-    .visual{
-        min-height:400px;
-        margin-top:15px;
+    .nav-login {
+      text-decoration: none;
+      color: #123047;
+      font-weight: 700;
+      padding: 11px 22px;
+      border-radius: 30px;
+      border: 1px solid #d9eaf3;
+      background: white;
+      transition: 0.25s;
     }
 
-    .orbit{
-        width:280px;
-        height:280px;
+    .nav-login:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(18,48,71,0.1);
     }
 
-    .orbit.two{
-        width:330px;
-        height:330px;
+    /* HERO */
+
+    .hero {
+      min-height: 680px;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 90px 20px 100px;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 15% 20%, #dff5ff 0, transparent 32%),
+        radial-gradient(circle at 85% 20%, #fff4bd 0, transparent 30%),
+        linear-gradient(180deg, #f7fcff, #eefaff);
     }
 
-    .center-card{
-        width:245px;
-        height:290px;
+    .bubble {
+      position: absolute;
+      border-radius: 50%;
+      opacity: 0.55;
+      pointer-events: none;
     }
 
-    .float.a{
-        left:0;
-        top:45px;
+    .bubble.one {
+      width: 170px;
+      height: 170px;
+      background: #ccefff;
+      left: -50px;
+      bottom: 60px;
     }
 
-    .float.b{
-        right:0;
-        bottom:45px;
+    .bubble.two {
+      width: 100px;
+      height: 100px;
+      background: #ffe99a;
+      right: 8%;
+      bottom: 90px;
     }
 
-    .google-button{
-        width:100%;
+    .hero-content {
+      max-width: 850px;
+      position: relative;
+      z-index: 2;
     }
-}
-</style>
+
+    .badge {
+      display: inline-block;
+      padding: 9px 17px;
+      border-radius: 50px;
+      background: #fff4bd;
+      color: #765d00;
+      font-size: 13px;
+      font-weight: 800;
+      margin-bottom: 24px;
+      border: 1px solid #f7df76;
+    }
+
+    .hero h1 {
+      font-size: clamp(48px, 8vw, 88px);
+      line-height: 0.98;
+      letter-spacing: -4px;
+      margin-bottom: 28px;
+      color: #123047;
+    }
+
+    .hero h1 span {
+      color: #f2bf24;
+    }
+
+    .hero p {
+      max-width: 650px;
+      margin: auto;
+      font-size: 20px;
+      line-height: 1.7;
+      color: #587084;
+    }
+
+    .hero-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 38px;
+      padding: 17px 34px;
+      min-width: 190px;
+      border-radius: 50px;
+      text-decoration: none;
+      background: #123047;
+      color: white;
+      font-size: 16px;
+      font-weight: 800;
+      box-shadow: 0 15px 35px rgba(18,48,71,0.2);
+      transition: 0.25s;
+    }
+
+    .hero-button:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 20px 40px rgba(18,48,71,0.25);
+    }
+
+    .small-note {
+      margin-top: 16px;
+      font-size: 13px;
+      color: #7890a0;
+    }
+
+    /* INTRO */
+
+    .intro {
+      padding: 100px 7%;
+      background: white;
+      text-align: center;
+    }
+
+    .intro h2 {
+      font-size: clamp(32px, 5vw, 50px);
+      letter-spacing: -2px;
+      margin-bottom: 18px;
+    }
+
+    .intro > p {
+      max-width: 650px;
+      margin: auto;
+      color: #657b8b;
+      font-size: 18px;
+      line-height: 1.7;
+    }
+
+    /* CARDS */
+
+    .cards {
+      max-width: 1100px;
+      margin: 55px auto 0;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 22px;
+    }
+
+    .card {
+      padding: 32px;
+      text-align: left;
+      border-radius: 24px;
+      background: #f7fcff;
+      border: 1px solid #e1f0f7;
+      transition: 0.25s;
+    }
+
+    .card:hover {
+      transform: translateY(-7px);
+      box-shadow: 0 18px 40px rgba(36,111,150,0.1);
+    }
+
+    .icon {
+      width: 52px;
+      height: 52px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 16px;
+      background: #fff0a8;
+      font-size: 23px;
+      margin-bottom: 22px;
+    }
+
+    .card:nth-child(2) .icon {
+      background: #d8f3ff;
+    }
+
+    .card:nth-child(3) .icon {
+      background: #e8f8ee;
+    }
+
+    .card h3 {
+      font-size: 21px;
+      margin-bottom: 12px;
+    }
+
+    .card p {
+      color: #6b8190;
+      line-height: 1.65;
+      font-size: 15px;
+    }
+
+    /* CTA */
+
+    .cta-section {
+      padding: 90px 7%;
+      background: #e8f7ff;
+    }
+
+    .cta-box {
+      max-width: 1000px;
+      margin: auto;
+      padding: 65px 35px;
+      text-align: center;
+      border-radius: 32px;
+      background:
+        radial-gradient(circle at 10% 20%, #fff1a8 0, transparent 28%),
+        radial-gradient(circle at 90% 80%, #c9efff 0, transparent 30%),
+        white;
+      border: 1px solid #d9edf6;
+    }
+
+    .cta-box h2 {
+      font-size: clamp(32px, 5vw, 54px);
+      letter-spacing: -2px;
+      margin-bottom: 15px;
+    }
+
+    .cta-box p {
+      color: #687f8f;
+      font-size: 17px;
+      line-height: 1.6;
+      max-width: 560px;
+      margin: auto;
+    }
+
+    .cta-button {
+      display: inline-block;
+      margin-top: 30px;
+      padding: 16px 32px;
+      border-radius: 50px;
+      text-decoration: none;
+      background: #f2bf24;
+      color: #263600;
+      font-weight: 800;
+      transition: 0.25s;
+    }
+
+    .cta-button:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 25px rgba(242,191,36,0.3);
+    }
+
+    /* FOOTER */
+
+    footer {
+      padding: 35px 7%;
+      background: #123047;
+      color: #c9dbe5;
+      text-align: center;
+    }
+
+    footer .footer-logo {
+      font-size: 24px;
+      font-weight: 800;
+      color: white;
+      margin-bottom: 10px;
+    }
+
+    footer .footer-logo span {
+      color: #f2bf24;
+    }
+
+    footer p {
+      font-size: 14px;
+      line-height: 1.7;
+    }
+
+    .creator {
+      margin-top: 12px;
+      color: #f2bf24;
+      font-weight: 700;
+    }
+
+    /* MOBILE */
+
+    @media (max-width: 750px) {
+
+      nav {
+        padding: 0 5%;
+      }
+
+      .nav-login {
+        padding: 9px 17px;
+        font-size: 14px;
+      }
+
+      .hero {
+        min-height: 620px;
+        padding: 70px 20px;
+      }
+
+      .hero h1 {
+        letter-spacing: -2.5px;
+      }
+
+      .hero p {
+        font-size: 17px;
+      }
+
+      .cards {
+        grid-template-columns: 1fr;
+        margin-top: 40px;
+      }
+
+      .card {
+        text-align: center;
+      }
+
+      .icon {
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      .intro {
+        padding: 75px 6%;
+      }
+
+      .cta-section {
+        padding: 65px 5%;
+      }
+
+      .cta-box {
+        padding: 50px 22px;
+      }
+    }
+  </style>
 </head>
 
 <body>
 
-<div class="blob one"></div>
-<div class="blob two"></div>
+  <!-- NAVBAR -->
 
-<nav>
+  <nav>
     <div class="logo">
-        <span class="to">To</span><span class="talk">Talk</span><span class="logo-dot"></span>
+      To<span>Talk</span>
     </div>
 
-    <div class="nav-pill">
-        Created by Sameer
+    <!-- ONE LOGIN BUTTON ONLY -->
+    <a href="#login" class="nav-login">
+      Login
+    </a>
+  </nav>
+
+
+  <!-- HERO -->
+
+  <section class="hero">
+
+    <div class="bubble one"></div>
+    <div class="bubble two"></div>
+
+    <div class="hero-content">
+
+      <div class="badge">
+        ✦ A place for real conversations
+      </div>
+
+      <h1>
+        Just <span>Talk.</span><br>
+        Be Yourself.
+      </h1>
+
+      <p>
+        ToTalk is a simple place to connect, share your thoughts,
+        and have genuine conversations without making things complicated.
+      </p>
+
+      <!-- ONE MAIN LOGIN BUTTON -->
+      <a href="#login" class="hero-button">
+        Enter ToTalk →
+      </a>
+
+      <div class="small-note">
+        Simple. Private. Made for conversations.
+      </div>
+
     </div>
-</nav>
+  </section>
 
-<main>
 
-<section class="hero">
+  <!-- INTRO -->
 
-    <!-- LEFT SIDE -->
+  <section class="intro">
 
-    <div>
+    <h2>
+      Conversations, made simple.
+    </h2>
 
-        <div class="eyebrow">
-            <span class="eyebrow-dot"></span>
-            A simple space to connect
-        </div>
+    <p>
+      No unnecessary clutter. No complicated screens.
+      Just a clean space where people can talk and connect.
+    </p>
 
-        <h1>
-            Talk.<br>
-            <span class="line-blue">Connect.</span><br>
-            <span class="line-yellow">ToTalk.</span>
-        </h1>
 
-        <p class="description">
-            A simple place made by Sameer for starting conversations,
-            sharing thoughts and making a genuine connection —
-            without making things complicated.
+    <div class="cards">
+
+      <div class="card">
+        <div class="icon">💬</div>
+
+        <h3>
+          Start talking
+        </h3>
+
+        <p>
+          Enter ToTalk and start a conversation without
+          getting lost in complicated features.
         </p>
-
-        <!-- ONLY ONE LOGIN BUTTON -->
-
-        <div class="login-area" id="loginBox">
-
-            <button class="google-button" onclick="loginWithGoogle()">
-
-                <svg class="google-icon" viewBox="0 0 24 24">
-                    <path fill="#4285F4"
-                    d="M21.35 12.27c0-.68-.06-1.34-.18-1.97H12v3.73h5.24a4.48 4.48 0 0 1-1.94 2.94v2.45h3.14c1.84-1.69 2.91-4.18 2.91-7.15z"/>
-                    <path fill="#34A853"
-                    d="M12 21.5c2.63 0 4.84-.87 6.45-2.36l-3.14-2.45c-.87.58-1.98.93-3.31.93-2.54 0-4.69-1.72-5.46-4.03H3.3v2.53A9.74 9.74 0 0 0 12 21.5z"/>
-                    <path fill="#FBBC05"
-                    d="M6.54 13.59A5.86 5.86 0 0 1 6.23 12c0-.55.1-1.09.31-1.59V7.88H3.3A9.75 9.75 0 0 0 2.25 12c0 1.57.38 3.06 1.05 4.12l3.24-2.53z"/>
-                    <path fill="#EA4335"
-                    d="M12 6.38c1.43 0 2.72.49 3.73 1.45l2.8-2.8C16.83 3.4 14.63 2.5 12 2.5a9.74 9.74 0 0 0-8.7 5.38l3.24 2.53C7.31 8.1 9.46 6.38 12 6.38z"/>
-                </svg>
-
-                Continue with Google
-
-            </button>
-
-            <div class="login-note">
-                Secure sign-in powered by Google
-            </div>
-
-        </div>
+      </div>
 
 
-        <!-- AFTER LOGIN -->
+      <div class="card">
+        <div class="icon">☁️</div>
 
-        <div id="loggedIn">
+        <h3>
+          Your space
+        </h3>
 
-            <div class="logged-card">
+        <p>
+          A calm, simple interface designed around
+          conversations instead of distractions.
+        </p>
+      </div>
 
-                <strong>You're connected to ToTalk ✓</strong>
 
-                <div class="user-email" id="userEmail"></div>
+      <div class="card">
+        <div class="icon">✨</div>
 
-                <button class="logout" onclick="logout()">
-                    Sign out
-                </button>
+        <h3>
+          Keep it real
+        </h3>
 
-            </div>
-
-        </div>
+        <p>
+          Talk naturally. Share ideas. Meet conversations
+          with a simple and friendly experience.
+        </p>
+      </div>
 
     </div>
 
+  </section>
 
-    <!-- RIGHT SIDE VISUAL -->
 
-    <div class="visual">
+  <!-- CTA -->
 
-        <div class="orbit"></div>
-        <div class="orbit two"></div>
+  <section class="cta-section" id="login">
 
-        <div class="float a">
-            <span class="float-icon">☀️</span>
-            Keep it simple
-        </div>
+    <div class="cta-box">
 
-        <div class="float b">
-            <span class="float-icon">💬</span>
-            Start a conversation
-        </div>
+      <h2>
+        Ready to talk?
+      </h2>
 
-        <div class="center-card">
+      <p>
+        Your next conversation starts here.
+        Come in, sign in, and make ToTalk yours.
+      </p>
 
-            <div class="mini-top">
-                <div class="mini-logo">ToTalk</div>
-                <div class="status"></div>
-            </div>
-
-            <div class="chat-bubble">
-                💬
-            </div>
-
-            <div>
-                <h3>
-                    Your conversation<br>starts here.
-                </h3>
-
-                <p>
-                    One place. One connection.<br>
-                    Just talk.
-                </p>
-            </div>
-
-        </div>
+      <!-- TEMPORARY LOGIN BUTTON -->
+      <!-- We will connect this to your Google login next. -->
+      <a href="#" class="cta-button" id="loginButton">
+        Login to ToTalk →
+      </a>
 
     </div>
 
-</section>
-
-</main>
-
-<footer>
-    ToTalk © 2026 · Created by <strong>Sameer</strong>
-</footer>
+  </section>
 
 
-<script>
+  <!-- FOOTER -->
 
-/* SUPABASE */
+  <footer>
 
-const SUPABASE_URL =
-"https://qyinczbrhpxwuabwuyiy.supabase.co";
+    <div class="footer-logo">
+      To<span>Talk</span>
+    </div>
 
-const SUPABASE_KEY =
-"sb_publishable_eUPz4c_nYckgINEK-AIWqw_JAXIHozd";
+    <p>
+      Talk. Share. Connect.
+    </p>
 
-const supabaseClient =
-window.supabase.createClient(
-    SUPABASE_URL,
-    SUPABASE_KEY
-);
+    <p class="creator">
+      Built with ❤️ by Sameer
+    </p>
 
+    <p style="margin-top:15px;">
+      © 2026 ToTalk. All rights reserved.
+    </p>
 
-/* GOOGLE LOGIN */
-
-async function loginWithGoogle(){
-
-    const redirectUrl =
-        window.location.origin + "/ToTalk/";
-
-    const { error } =
-        await supabaseClient.auth.signInWithOAuth({
-
-            provider:"google",
-
-            options:{
-                redirectTo:redirectUrl
-            }
-
-        });
-
-    if(error){
-        alert("Login error: " + error.message);
-    }
-}
+  </footer>
 
 
-/* CHECK LOGIN */
+  <script>
 
-async function checkUser(){
+    /*
+      LOGIN WILL BE CONNECTED IN THE NEXT STEP.
 
-    const {
-        data:{session}
-    } = await supabaseClient.auth.getSession();
+      For now, the homepage is designed and the
+      login buttons are ready for the Google login connection.
+    */
 
-    if(session && session.user){
+    document.getElementById("loginButton").addEventListener("click", function(event) {
+      event.preventDefault();
 
-        document.getElementById("loginBox").style.display =
-            "none";
+      alert("Google Login will be connected here in the next step.");
+    });
 
-        document.getElementById("loggedIn").style.display =
-            "block";
-
-        document.getElementById("userEmail").textContent =
-            session.user.email;
-    }
-}
-
-
-/* LOGOUT */
-
-async function logout(){
-
-    await supabaseClient.auth.signOut();
-
-    document.getElementById("loggedIn").style.display =
-        "none";
-
-    document.getElementById("loginBox").style.display =
-        "block";
-}
-
-
-/* START */
-
-checkUser();
-
-</script>
+  </script>
 
 </body>
 </html>
