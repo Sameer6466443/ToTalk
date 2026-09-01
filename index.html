@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>ToTalk — Chat Your Way</title>
+  <title>ToTalk — Chat Freely</title>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -17,123 +17,113 @@
 
     :root {
       --blue: #168bd1;
-      --blue-dark: #0b5d91;
+      --dark-blue: #075b8d;
       --sky: #e8f8ff;
       --yellow: #ffe36a;
-      --yellow-light: #fff9d9;
-      --text: #163b55;
-      --muted: #6d8798;
-      --white: #ffffff;
+      --soft-yellow: #fff9d8;
+      --text: #143b54;
+      --muted: #718a99;
     }
 
     body {
       font-family: Arial, Helvetica, sans-serif;
       color: var(--text);
-      background: #f5fcff;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 8% 8%, #c8f0ff 0, transparent 27%),
+        radial-gradient(circle at 92% 18%, #fff0a1 0, transparent 25%),
+        linear-gradient(145deg, #f0fbff, #ffffff 55%, #fffdf0);
       overflow-x: hidden;
     }
 
-    /* BACKGROUND */
-
-    .background {
-      position: fixed;
-      inset: 0;
-      z-index: -1;
-      background:
-        radial-gradient(circle at 5% 10%, #c7efff 0, transparent 25%),
-        radial-gradient(circle at 95% 20%, #fff2a5 0, transparent 23%),
-        linear-gradient(180deg, #eafaff 0%, #ffffff 65%, #fffdf0 100%);
-    }
-
-    /* NAVBAR */
+    /* NAVIGATION */
 
     nav {
-      width: 100%;
-      max-width: 1250px;
+      max-width: 1200px;
       margin: auto;
-      padding: 24px 6%;
+      padding: 22px 6%;
       display: flex;
       align-items: center;
       justify-content: space-between;
     }
 
-    .logo {
+    .brand {
       display: flex;
       align-items: center;
       gap: 11px;
       font-size: 25px;
       font-weight: 900;
-      color: var(--blue-dark);
+      color: var(--dark-blue);
     }
 
-    .logo-box {
-      width: 44px;
-      height: 44px;
+    .brand-icon {
+      width: 45px;
+      height: 45px;
       border-radius: 14px;
+      background: var(--yellow);
       display: flex;
       align-items: center;
       justify-content: center;
-      background: var(--yellow);
       font-size: 22px;
-      box-shadow: 0 8px 22px rgba(211, 178, 28, .2);
+      box-shadow: 0 8px 20px rgba(215, 177, 24, .18);
     }
 
-    .logo span {
-      color: #e0ad13;
+    .brand span {
+      color: #d7a912;
     }
 
-    .made-by {
+    .creator {
       color: var(--muted);
       font-size: 14px;
       font-weight: 700;
     }
 
-    .made-by strong {
+    .creator strong {
       color: var(--blue);
     }
 
     /* HERO */
 
     .hero {
-      max-width: 1250px;
+      max-width: 1200px;
       min-height: 650px;
       margin: auto;
-      padding: 55px 6% 85px;
+      padding: 55px 6% 80px;
       display: grid;
       grid-template-columns: 1fr 0.9fr;
       gap: 70px;
       align-items: center;
     }
 
-    .hero-left {
+    .hero-content {
       max-width: 650px;
     }
 
-    .welcome {
+    .tag {
       display: inline-flex;
       align-items: center;
-      gap: 9px;
-      padding: 10px 16px;
-      border-radius: 30px;
+      gap: 8px;
       background: white;
-      color: var(--blue-dark);
+      border: 1px solid #dceef5;
+      border-radius: 30px;
+      padding: 10px 16px;
+      color: var(--dark-blue);
       font-size: 13px;
       font-weight: 800;
-      border: 1px solid #dceff7;
-      box-shadow: 0 8px 25px rgba(27, 105, 139, .07);
       margin-bottom: 24px;
+      box-shadow: 0 8px 25px rgba(30,100,130,.06);
     }
 
-    .online-dot {
+    .dot {
       width: 8px;
       height: 8px;
+      background: #35c66a;
       border-radius: 50%;
-      background: #37c86a;
     }
 
     h1 {
-      font-size: clamp(48px, 7vw, 82px);
-      line-height: .97;
+      font-size: clamp(50px, 7vw, 82px);
+      line-height: .98;
       letter-spacing: -4px;
       margin-bottom: 25px;
     }
@@ -143,7 +133,7 @@
     }
 
     h1 .yellow {
-      color: #dfae16;
+      color: #d9aa16;
     }
 
     .description {
@@ -151,107 +141,80 @@
       color: var(--muted);
       font-size: 18px;
       line-height: 1.75;
-      margin-bottom: 31px;
+      margin-bottom: 32px;
     }
 
     .sameer {
-      color: var(--blue-dark);
+      color: var(--dark-blue);
       font-weight: 900;
       border-bottom: 4px solid var(--yellow);
     }
 
-    /* LOGIN */
+    /* LOGIN BUTTON */
 
-    .login-button {
-      border: 0;
+    .login-btn {
+      border: none;
       cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 12px;
-      padding: 17px 27px;
+      padding: 17px 25px;
       border-radius: 16px;
       background: var(--blue);
       color: white;
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
       font-size: 16px;
       font-weight: 900;
-      box-shadow: 0 14px 30px rgba(22, 139, 209, .24);
+      box-shadow: 0 15px 30px rgba(22,139,209,.24);
       transition: .2s ease;
     }
 
-    .login-button:hover {
-      background: var(--blue-dark);
+    .login-btn:hover {
+      background: var(--dark-blue);
       transform: translateY(-3px);
-      box-shadow: 0 19px 35px rgba(22, 139, 209, .3);
     }
 
-    .login-button:active {
-      transform: scale(.97);
-    }
-
-    .login-button:disabled {
+    .login-btn:disabled {
       opacity: .65;
       cursor: wait;
+      transform: none;
     }
 
-    .google-icon {
-      width: 22px;
-      height: 22px;
+    .google {
+      width: 23px;
+      height: 23px;
+      border-radius: 50%;
       background: white;
       color: #4285f4;
-      border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 14px;
       font-weight: 900;
     }
 
     #status {
-      min-height: 22px;
-      margin-top: 15px;
-      color: var(--blue-dark);
-      font-size: 14px;
+      margin-top: 14px;
+      min-height: 20px;
+      font-size: 13px;
       font-weight: 700;
+      color: var(--dark-blue);
     }
 
     /* CHAT PREVIEW */
 
-    .chat-preview {
+    .preview {
       position: relative;
     }
 
-    .floating {
-      position: absolute;
-      z-index: 3;
-      padding: 12px 16px;
-      border-radius: 15px;
-      background: white;
-      box-shadow: 0 15px 35px rgba(24, 102, 138, .13);
-      font-size: 13px;
-      font-weight: 900;
-    }
-
-    .floating.one {
-      left: -20px;
-      top: -22px;
-    }
-
-    .floating.two {
-      right: -20px;
-      bottom: 35px;
-      background: var(--yellow-light);
-    }
-
-    .chat-window {
-      background: rgba(255,255,255,.85);
+    .chat-card {
+      background: rgba(255,255,255,.86);
       border: 2px solid white;
       border-radius: 32px;
-      padding: 12px;
-      box-shadow: 0 30px 80px rgba(21, 101, 137, .14);
+      padding: 11px;
+      box-shadow: 0 30px 75px rgba(22,102,138,.14);
       backdrop-filter: blur(12px);
     }
 
-    .chat-inner {
+    .chat {
       background: white;
       border-radius: 24px;
       overflow: hidden;
@@ -261,7 +224,7 @@
       padding: 20px;
       display: flex;
       align-items: center;
-      gap: 13px;
+      gap: 12px;
       border-bottom: 1px solid #edf3f6;
     }
 
@@ -269,75 +232,57 @@
       width: 47px;
       height: 47px;
       border-radius: 50%;
-      background: #ccefff;
+      background: #dff6ff;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 23px;
+      font-size: 22px;
     }
 
-    .chat-person strong {
+    .person strong {
       display: block;
-      font-size: 16px;
+      font-size: 15px;
     }
 
-    .chat-person small {
-      color: #38b967;
+    .person small {
+      color: #36b967;
       font-weight: 700;
     }
 
     .messages {
       padding: 28px 20px;
-      min-height: 330px;
-      background:
-        linear-gradient(180deg, #fbfeff, #f4fbfe);
+      min-height: 340px;
+      background: #f8fdff;
     }
 
     .message {
-      max-width: 78%;
+      max-width: 76%;
       padding: 13px 16px;
       border-radius: 18px;
-      margin-bottom: 15px;
+      margin-bottom: 14px;
       font-size: 14px;
       line-height: 1.5;
     }
 
-    .message.left {
-      background: #e4f7ff;
+    .left {
+      background: #e3f6fd;
       border-bottom-left-radius: 5px;
-      color: #315b70;
     }
 
-    .message.right {
+    .right {
+      margin-left: auto;
       background: var(--blue);
       color: white;
-      margin-left: auto;
       border-bottom-right-radius: 5px;
     }
 
-    .message.yellow {
-      background: var(--yellow-light);
+    .yellow-message {
+      background: var(--soft-yellow);
+      color: #66591d;
       border-bottom-left-radius: 5px;
-      color: #695b20;
     }
 
-    .typing {
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      color: #88a0ad;
-      font-size: 12px;
-      margin-top: 5px;
-    }
-
-    .typing i {
-      width: 5px;
-      height: 5px;
-      background: #88a0ad;
-      border-radius: 50%;
-    }
-
-    .chat-input {
+    .input-preview {
       padding: 15px;
       border-top: 1px solid #edf3f6;
       display: flex;
@@ -346,59 +291,80 @@
 
     .fake-input {
       flex: 1;
-      background: #f2f8fb;
-      border-radius: 13px;
+      background: #f1f8fb;
       padding: 13px;
-      color: #9aadb8;
+      border-radius: 13px;
+      color: #9aadb7;
       font-size: 13px;
     }
 
     .send {
       width: 45px;
-      border: 0;
+      border: none;
       border-radius: 13px;
       background: var(--yellow);
       font-size: 18px;
     }
 
-    /* INTRO */
-
-    .intro {
-      padding: 35px 6% 90px;
+    .bubble {
+      position: absolute;
+      background: white;
+      border-radius: 15px;
+      padding: 12px 16px;
+      box-shadow: 0 15px 35px rgba(22,100,130,.13);
+      font-size: 13px;
+      font-weight: 900;
     }
 
-    .intro-box {
-      max-width: 1080px;
+    .bubble.one {
+      top: -22px;
+      left: -20px;
+    }
+
+    .bubble.two {
+      right: -20px;
+      bottom: 40px;
+      background: var(--soft-yellow);
+    }
+
+    /* ABOUT */
+
+    .about {
+      padding: 30px 6% 90px;
+    }
+
+    .about-box {
+      max-width: 1050px;
       margin: auto;
-      border-radius: 30px;
       padding: 40px 45px;
-      background: linear-gradient(110deg, #fff8c8, #e4f8ff);
+      border-radius: 30px;
+      background: linear-gradient(110deg, #fff8c9, #e2f7ff);
       display: flex;
-      align-items: center;
       justify-content: space-between;
+      align-items: center;
       gap: 30px;
-      box-shadow: 0 15px 45px rgba(37, 111, 139, .08);
+      box-shadow: 0 15px 45px rgba(30,105,135,.08);
     }
 
-    .intro-box h2 {
-      font-size: 30px;
-      margin-bottom: 8px;
+    .about-box h2 {
+      font-size: 29px;
+      margin-bottom: 9px;
     }
 
-    .intro-box p {
+    .about-box p {
       color: var(--muted);
       line-height: 1.6;
     }
 
     .signature {
-      font-size: 26px;
-      font-weight: 900;
-      color: var(--blue-dark);
       white-space: nowrap;
+      font-size: 27px;
+      font-weight: 900;
+      color: var(--dark-blue);
     }
 
     .signature span {
-      color: #dfae16;
+      color: #d7a912;
     }
 
     /* FEATURES */
@@ -408,33 +374,33 @@
       background: rgba(255,255,255,.7);
     }
 
-    .section-title {
+    .heading {
       text-align: center;
       max-width: 650px;
       margin: 0 auto 45px;
     }
 
-    .section-title small {
+    .heading small {
       color: var(--blue);
-      font-size: 12px;
       font-weight: 900;
       letter-spacing: 2px;
+      font-size: 12px;
       text-transform: uppercase;
     }
 
-    .section-title h2 {
-      font-size: 43px;
+    .heading h2 {
+      font-size: 42px;
       letter-spacing: -2px;
       margin: 10px 0;
     }
 
-    .section-title p {
+    .heading p {
       color: var(--muted);
       line-height: 1.6;
     }
 
-    .feature-grid {
-      max-width: 1080px;
+    .grid {
+      max-width: 1050px;
       margin: auto;
       display: grid;
       grid-template-columns: repeat(3,1fr);
@@ -442,87 +408,56 @@
     }
 
     .feature {
-      background: white;
-      border: 1px solid #e5f0f5;
-      border-radius: 25px;
       padding: 30px;
+      background: white;
+      border: 1px solid #e3eff4;
+      border-radius: 24px;
       transition: .2s ease;
     }
 
     .feature:hover {
       transform: translateY(-6px);
-      box-shadow: 0 20px 45px rgba(30, 108, 140, .1);
+      box-shadow: 0 20px 45px rgba(30,105,135,.1);
     }
 
-    .feature-icon {
-      width: 54px;
-      height: 54px;
+    .icon {
+      width: 53px;
+      height: 53px;
       border-radius: 16px;
-      background: var(--yellow-light);
+      background: var(--soft-yellow);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 24px;
-      margin-bottom: 20px;
+      font-size: 23px;
+      margin-bottom: 19px;
     }
 
-    .feature:nth-child(2) .feature-icon {
-      background: #e5f7ff;
+    .feature:nth-child(2) .icon {
+      background: #e4f7ff;
     }
 
-    .feature:nth-child(3) .feature-icon {
-      background: #edf3ff;
+    .feature:nth-child(3) .icon {
+      background: #edf4ff;
     }
 
     .feature h3 {
-      margin-bottom: 10px;
-      font-size: 20px;
+      font-size: 19px;
+      margin-bottom: 9px;
     }
 
     .feature p {
       color: var(--muted);
-      line-height: 1.7;
       font-size: 14px;
-    }
-
-    /* FINAL */
-
-    .final {
-      padding: 90px 6% 100px;
-    }
-
-    .final-box {
-      max-width: 850px;
-      margin: auto;
-      padding: 65px 30px;
-      text-align: center;
-      border-radius: 35px;
-      background: var(--blue);
-      color: white;
-      box-shadow: 0 25px 60px rgba(22,139,209,.2);
-    }
-
-    .final-box h2 {
-      font-size: 42px;
-      margin-bottom: 12px;
-    }
-
-    .final-box p {
-      opacity: .9;
-      line-height: 1.6;
-    }
-
-    .final-box strong {
-      color: var(--yellow);
+      line-height: 1.7;
     }
 
     /* FOOTER */
 
     footer {
-      text-align: center;
       padding: 30px;
+      text-align: center;
       background: white;
-      color: #7892a2;
+      color: #78909f;
       font-size: 13px;
     }
 
@@ -534,7 +469,7 @@
 
     @media (max-width: 850px) {
 
-      .made-by {
+      .creator {
         display: none;
       }
 
@@ -543,7 +478,7 @@
         padding-top: 35px;
       }
 
-      .hero-left {
+      .hero-content {
         text-align: center;
         margin: auto;
       }
@@ -553,18 +488,18 @@
         margin-right: auto;
       }
 
-      .chat-preview {
+      .preview {
+        max-width: 520px;
         width: 100%;
-        max-width: 500px;
         margin: auto;
       }
 
-      .feature-grid {
+      .grid {
         grid-template-columns: 1fr;
         max-width: 500px;
       }
 
-      .intro-box {
+      .about-box {
         flex-direction: column;
         text-align: center;
       }
@@ -582,34 +517,29 @@
       }
 
       h1 {
-        font-size: 54px;
+        font-size: 53px;
       }
 
-      .floating {
+      .bubble {
         display: none;
       }
 
-      .messages {
-        min-height: 290px;
-      }
-
-      .intro,
-      .features,
-      .final {
+      .about {
         padding-left: 5%;
         padding-right: 5%;
       }
 
-      .intro-box {
-        padding: 32px 25px;
+      .about-box {
+        padding: 32px 24px;
       }
 
-      .section-title h2 {
-        font-size: 36px;
+      .features {
+        padding-left: 5%;
+        padding-right: 5%;
       }
 
-      .final-box h2 {
-        font-size: 34px;
+      .heading h2 {
+        font-size: 35px;
       }
     }
   </style>
@@ -617,18 +547,16 @@
 
 <body>
 
-  <div class="background"></div>
-
   <!-- NAVBAR -->
 
   <nav>
 
-    <div class="logo">
-      <div class="logo-box">💬</div>
+    <div class="brand">
+      <div class="brand-icon">💬</div>
       To<span>Talk</span>
     </div>
 
-    <div class="made-by">
+    <div class="creator">
       Created by <strong>Sameer</strong>
     </div>
 
@@ -639,31 +567,35 @@
 
   <section class="hero">
 
-    <div class="hero-left">
+    <div class="hero-content">
 
-      <div class="welcome">
-        <span class="online-dot"></span>
-        Welcome to ToTalk
+      <div class="tag">
+        <span class="dot"></span>
+        A simple place to talk
       </div>
 
       <h1>
-        Talk more.<br>
-        Connect <span class="blue">better.</span><br>
-        Stay <span class="yellow">connected.</span>
+        Talk freely.<br>
+        Connect <span class="blue">easily.</span><br>
+        Be <span class="yellow">yourself.</span>
       </h1>
 
       <p class="description">
-        ToTalk is a simple and modern place to chat,
-        connect and enjoy conversations.
+        Welcome to ToTalk — a fresh and simple place
+        for conversations, connections and new chats.
         Built with an idea from
         <span class="sameer">Sameer</span>.
       </p>
 
-      <!-- ONLY ONE LOGIN BUTTON -->
 
-      <button class="login-button" id="loginBtn">
-        <span class="google-icon">G</span>
+      <!-- ONE LOGIN BUTTON -->
+
+      <button class="login-btn" id="loginBtn">
+
+        <span class="google">G</span>
+
         Continue with Google
+
       </button>
 
       <div id="status"></div>
@@ -673,19 +605,19 @@
 
     <!-- CHAT PREVIEW -->
 
-    <div class="chat-preview">
+    <div class="preview">
 
-      <div class="floating one">
-        💬 Real conversations
+      <div class="bubble one">
+        💬 Start a conversation
       </div>
 
-      <div class="floating two">
-        ✨ Made by Sameer
+      <div class="bubble two">
+        ✨ ToTalk by Sameer
       </div>
 
-      <div class="chat-window">
+      <div class="chat-card">
 
-        <div class="chat-inner">
+        <div class="chat">
 
           <div class="chat-header">
 
@@ -693,8 +625,8 @@
               😊
             </div>
 
-            <div class="chat-person">
-              <strong>ToTalk Chat</strong>
+            <div class="person">
+              <strong>ToTalk</strong>
               <small>● Online</small>
             </div>
 
@@ -708,28 +640,21 @@
             </div>
 
             <div class="message right">
-              Nice to meet you! 😊
+              Hey! Nice to be here 😊
             </div>
 
-            <div class="message yellow">
-              What are you up to today?
+            <div class="message yellow-message">
+              What should we talk about?
             </div>
 
             <div class="message right">
-              Just here to chat ✨
-            </div>
-
-            <div class="typing">
-              Someone is typing
-              <i></i>
-              <i></i>
-              <i></i>
+              Anything! That's the idea ✨
             </div>
 
           </div>
 
 
-          <div class="chat-input">
+          <div class="input-preview">
 
             <div class="fake-input">
               Write a message...
@@ -750,19 +675,23 @@
   </section>
 
 
-  <!-- SAMEER -->
+  <!-- SAMEER SECTION -->
 
-  <section class="intro">
+  <section class="about">
 
-    <div class="intro-box">
+    <div class="about-box">
 
       <div>
-        <h2>Built with an idea from Sameer.</h2>
+
+        <h2>
+          A place built for conversations.
+        </h2>
 
         <p>
-          ToTalk is being created to make chatting
-          feel simple, clean and enjoyable.
+          ToTalk is created by Sameer with one simple idea:
+          make chatting feel clean, friendly and easy.
         </p>
+
       </div>
 
       <div class="signature">
@@ -778,37 +707,33 @@
 
   <section class="features">
 
-    <div class="section-title">
+    <div class="heading">
 
-      <small>Why ToTalk</small>
+      <small>ToTalk</small>
 
       <h2>
-        Just chat. Keep it simple.
+        Everything starts with a conversation.
       </h2>
 
       <p>
-        A clean space designed around conversations
-        instead of unnecessary distractions.
+        No unnecessary distractions. Just a clean
+        space made around chatting.
       </p>
 
     </div>
 
 
-    <div class="feature-grid">
+    <div class="grid">
 
       <div class="feature">
 
-        <div class="feature-icon">
-          💬
-        </div>
+        <div class="icon">💬</div>
 
-        <h3>
-          Easy Conversations
-        </h3>
+        <h3>Simple Chat</h3>
 
         <p>
-          A simple interface that keeps the focus
-          where it belongs — on chatting.
+          An easy interface designed to keep
+          conversations comfortable and clear.
         </p>
 
       </div>
@@ -816,17 +741,13 @@
 
       <div class="feature">
 
-        <div class="feature-icon">
-          👥
-        </div>
+        <div class="icon">👥</div>
 
-        <h3>
-          Connect
-        </h3>
+        <h3>Connect</h3>
 
         <p>
-          Meet people and create conversations
-          in one comfortable space.
+          Find conversations and connect with
+          people through ToTalk.
         </p>
 
       </div>
@@ -834,39 +755,16 @@
 
       <div class="feature">
 
-        <div class="feature-icon">
-          ✨
-        </div>
+        <div class="icon">✨</div>
 
-        <h3>
-          Built by Sameer
-        </h3>
+        <h3>Made by Sameer</h3>
 
         <p>
-          ToTalk is an independent project created
-          by Sameer and designed to keep improving.
+          An independent project that will keep
+          getting better as ToTalk grows.
         </p>
 
       </div>
-
-    </div>
-
-  </section>
-
-
-  <!-- FINAL -->
-
-  <section class="final">
-
-    <div class="final-box">
-
-      <h2>
-        Ready to start talking?
-      </h2>
-
-      <p>
-        Sign in with Google and enter <strong>ToTalk</strong>.
-      </p>
 
     </div>
 
@@ -880,7 +778,7 @@
   </footer>
 
 
-  <!-- SUPABASE LOGIN -->
+  <!-- LOGIN -->
 
   <script>
 
@@ -889,6 +787,7 @@
 
     const SUPABASE_KEY =
       "sb_publishable_eUPz4c_nYckgINEK-AIWqw_JAXIHozd";
+
 
     const supabaseClient =
       supabase.createClient(
@@ -900,9 +799,11 @@
     const loginBtn =
       document.getElementById("loginBtn");
 
-    const statusText =
+    const status =
       document.getElementById("status");
 
+
+    /* GOOGLE LOGIN */
 
     loginBtn.addEventListener("click", async () => {
 
@@ -911,75 +812,62 @@
       loginBtn.innerHTML =
         "Connecting to Google...";
 
-      statusText.textContent = "";
+      status.textContent = "";
 
 
-      try {
+      const { error } =
+        await supabaseClient.auth.signInWithOAuth({
 
-        const { error } =
-          await supabaseClient.auth.signInWithOAuth({
+          provider: "google",
 
-            provider: "google",
+          options: {
 
-            options: {
+            redirectTo:
+              window.location.origin + "/chat.html"
 
-              redirectTo:
-                window.location.origin +
-                window.location.pathname
+          }
 
-            }
-
-          });
+        });
 
 
-        if (error) {
-          throw error;
-        }
-
-      } catch (error) {
+      if (error) {
 
         console.error(error);
 
-        statusText.textContent =
-          "Google login could not start. Please try again.";
+        status.textContent =
+          "Login error. Please try again.";
 
         loginBtn.disabled = false;
 
         loginBtn.innerHTML =
-          '<span class="google-icon">G</span> Continue with Google';
+          '<span class="google">G</span> Continue with Google';
 
       }
 
     });
 
 
-    async function checkUser() {
+    /* IF ALREADY LOGGED IN */
+
+    async function checkSession() {
 
       const {
         data: { session }
-      } = await supabaseClient.auth.getSession();
+      } =
+        await supabaseClient.auth.getSession();
 
 
-      if (session && session.user) {
+      if (session) {
 
-        const name =
-          session.user.user_metadata?.name ||
-          "Sameer";
-
-        loginBtn.innerHTML =
-          "✅ Logged in";
-
-        loginBtn.disabled = true;
-
-        statusText.textContent =
-          "Welcome to ToTalk, " + name + "!";
+        window.location.href =
+          "chat.html";
 
       }
 
     }
 
 
-    checkUser();
+    checkSession();
 
   </script>
 
