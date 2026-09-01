@@ -6,6 +6,7 @@
 
   <title>ToTalk — Talk to Sameer</title>
 
+  <!-- Supabase -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
@@ -15,358 +16,439 @@
       box-sizing: border-box;
     }
 
+    :root {
+      --blue: #3478f6;
+      --blue-light: #60a5fa;
+      --navy: #07111f;
+      --text: #f8fbff;
+      --muted: #91a4bb;
+      --card: rgba(255,255,255,0.055);
+      --border: rgba(255,255,255,0.10);
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
     body {
-      font-family: Arial, Helvetica, sans-serif;
-      background: #eaf7ff;
-      color: #12304a;
       min-height: 100vh;
+      font-family: Arial, Helvetica, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 15% 20%, rgba(52,120,246,.20), transparent 28%),
+        radial-gradient(circle at 85% 15%, rgba(96,165,250,.13), transparent 25%),
+        radial-gradient(circle at 50% 100%, rgba(37,99,235,.16), transparent 35%),
+        var(--navy);
       overflow-x: hidden;
     }
 
-    /* Decorative circles */
-    .bubble {
+    /* Background glow */
+
+    .glow {
       position: fixed;
+      width: 500px;
+      height: 500px;
       border-radius: 50%;
-      z-index: 0;
+      background: rgba(52,120,246,.08);
+      filter: blur(80px);
       pointer-events: none;
+      z-index: 0;
     }
 
-    .bubble.one {
-      width: 280px;
-      height: 280px;
-      background: #bdeeff;
-      top: -100px;
-      right: -70px;
+    .glow-one {
+      top: -250px;
+      left: -200px;
     }
 
-    .bubble.two {
-      width: 180px;
-      height: 180px;
-      background: #fff0a8;
-      bottom: 70px;
-      left: -80px;
+    .glow-two {
+      right: -250px;
+      bottom: -250px;
     }
 
     /* Navigation */
+
     nav {
       position: relative;
       z-index: 5;
-      padding: 22px 7%;
+      max-width: 1200px;
+      margin: auto;
+      padding: 25px 30px;
       display: flex;
-      justify-content: space-between;
       align-items: center;
+      justify-content: space-between;
     }
 
     .logo {
-      font-size: 30px;
+      font-size: 29px;
       font-weight: 900;
-      color: #087ea4;
-      letter-spacing: -1px;
+      letter-spacing: -1.5px;
     }
 
     .logo span {
-      color: #f5b700;
+      color: var(--blue-light);
     }
 
-    .creator {
-      background: white;
+    .nav-pill {
       padding: 9px 15px;
-      border-radius: 50px;
-      color: #5d7180;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,.045);
+      border-radius: 100px;
+      color: var(--muted);
       font-size: 13px;
-      box-shadow: 0 5px 20px rgba(0, 90, 130, 0.08);
+      backdrop-filter: blur(15px);
     }
 
     /* Hero */
+
     .hero {
       position: relative;
       z-index: 2;
-      max-width: 1100px;
+      max-width: 1200px;
+      min-height: 680px;
       margin: auto;
-      min-height: 65vh;
-      display: flex;
+      padding: 80px 30px 70px;
+      display: grid;
+      grid-template-columns: 1.15fr .85fr;
       align-items: center;
-      justify-content: space-between;
-      padding: 60px 30px;
-      gap: 50px;
+      gap: 70px;
     }
 
-    .hero-text {
-      flex: 1;
-    }
-
-    .small-label {
-      display: inline-block;
-      background: #fff4b8;
-      color: #8c6900;
-      padding: 9px 15px;
-      border-radius: 50px;
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      padding: 9px 14px;
+      border-radius: 100px;
+      background: rgba(52,120,246,.10);
+      border: 1px solid rgba(96,165,250,.20);
+      color: #a9caff;
       font-size: 13px;
-      font-weight: 800;
-      margin-bottom: 22px;
-    }
-
-    h1 {
-      font-size: clamp(50px, 8vw, 86px);
-      line-height: .95;
-      letter-spacing: -5px;
+      font-weight: 700;
       margin-bottom: 25px;
     }
 
-    h1 .blue {
-      color: #087ea4;
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #57e389;
+      box-shadow: 0 0 12px #57e389;
     }
 
-    h1 .yellow {
-      color: #f5b700;
+    h1 {
+      max-width: 720px;
+      font-size: clamp(52px, 7vw, 88px);
+      line-height: .98;
+      letter-spacing: -5px;
+      margin-bottom: 27px;
+    }
+
+    h1 .gradient {
+      background: linear-gradient(
+        90deg,
+        #ffffff,
+        #7db4ff,
+        #4f8df7
+      );
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
     }
 
     .description {
-      color: #607888;
+      max-width: 610px;
+      color: var(--muted);
       font-size: 18px;
-      line-height: 1.65;
-      max-width: 590px;
-      margin-bottom: 30px;
+      line-height: 1.7;
+      margin-bottom: 34px;
     }
 
-    /* Login button */
+    /* Login */
+
     .login-btn {
       display: inline-flex;
       align-items: center;
       justify-content: center;
       gap: 12px;
       padding: 17px 25px;
-      background: #087ea4;
-      color: white;
-      border: none;
-      border-radius: 15px;
-      font-size: 16px;
+      border: 1px solid rgba(255,255,255,.15);
+      border-radius: 14px;
+      background: #ffffff;
+      color: #101828;
+      font-size: 15px;
       font-weight: 800;
       cursor: pointer;
-      box-shadow: 0 12px 25px rgba(8, 126, 164, .25);
-      transition: .25s;
+      box-shadow: 0 15px 40px rgba(0,0,0,.25);
+      transition: .25s ease;
     }
 
     .login-btn:hover {
       transform: translateY(-3px);
-      background: #066d8e;
+      box-shadow: 0 20px 50px rgba(0,0,0,.35);
     }
 
-    .google {
+    .google-icon {
       width: 20px;
       height: 20px;
-      background: white;
-      border-radius: 50%;
-      padding: 2px;
     }
 
     #message {
       margin-top: 15px;
       min-height: 20px;
-      color: #607888;
+      color: var(--muted);
       font-size: 13px;
     }
 
-    /* Pineapple */
-    .pineapple-area {
-      flex: .75;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
+    /* Conversation visual */
 
-    .pineapple {
-      width: 250px;
-      height: 310px;
+    .visual {
       position: relative;
-      filter: drop-shadow(0 25px 25px rgba(0, 80, 110, .16));
-      animation: float 4s ease-in-out infinite;
+      height: 440px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
-    .leaves {
+    .orb {
       position: absolute;
-      top: 0;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 130px;
-      height: 100px;
+      width: 310px;
+      height: 310px;
+      border-radius: 50%;
+      background: radial-gradient(
+        circle,
+        rgba(52,120,246,.28),
+        rgba(52,120,246,.03) 65%,
+        transparent 70%
+      );
+      animation: pulse 4s ease-in-out infinite;
     }
 
-    .leaf {
-      position: absolute;
-      width: 35px;
-      height: 85px;
-      background: #32a852;
-      border-radius: 100% 0 100% 0;
-      transform-origin: bottom center;
+    .chat-card {
+      position: relative;
+      width: 340px;
+      padding: 25px;
+      border-radius: 25px;
+      background: rgba(255,255,255,.065);
+      border: 1px solid rgba(255,255,255,.12);
+      backdrop-filter: blur(25px);
+      box-shadow:
+        0 30px 70px rgba(0,0,0,.35),
+        inset 0 1px rgba(255,255,255,.08);
+      animation: float 5s ease-in-out infinite;
     }
 
-    .leaf:nth-child(1) {
-      left: 48px;
-      transform: rotate(-5deg);
+    .chat-top {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid rgba(255,255,255,.08);
+      margin-bottom: 22px;
     }
 
-    .leaf:nth-child(2) {
-      left: 25px;
-      transform: rotate(-30deg);
-      height: 75px;
+    .avatar {
+      width: 43px;
+      height: 43px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #3478f6, #60a5fa);
+      font-weight: 900;
     }
 
-    .leaf:nth-child(3) {
-      left: 70px;
-      transform: rotate(28deg);
-      height: 75px;
+    .person strong {
+      display: block;
+      font-size: 14px;
+      margin-bottom: 3px;
     }
 
-    .leaf:nth-child(4) {
-      left: 45px;
-      transform: rotate(-52deg);
-      height: 65px;
-      background: #238c43;
+    .person small {
+      color: #7e93aa;
+      font-size: 12px;
     }
 
-    .leaf:nth-child(5) {
-      left: 55px;
-      transform: rotate(50deg);
-      height: 65px;
-      background: #238c43;
+    .bubble-message {
+      max-width: 85%;
+      padding: 13px 15px;
+      border-radius: 15px;
+      background: rgba(255,255,255,.07);
+      color: #b9c8d9;
+      font-size: 13px;
+      line-height: 1.5;
+      margin-bottom: 12px;
     }
 
-    .fruit {
-      position: absolute;
-      top: 70px;
-      left: 20px;
-      width: 210px;
-      height: 220px;
-      background: #ffc928;
-      border-radius: 48% 48% 45% 45%;
-      border: 5px solid #f1b900;
-      overflow: hidden;
+    .bubble-message.you {
+      margin-left: auto;
+      background: #3478f6;
+      color: white;
+      border-bottom-right-radius: 5px;
     }
 
-    .pattern {
-      position: absolute;
-      width: 100%;
-      height: 100%;
-      background:
-        linear-gradient(45deg, transparent 43%, #dca900 44%, #dca900 48%, transparent 49%),
-        linear-gradient(-45deg, transparent 43%, #dca900 44%, #dca900 48%, transparent 49%);
-      background-size: 45px 45px;
-      opacity: .8;
+    .bubble-message.them {
+      border-bottom-left-radius: 5px;
     }
 
-    .pineapple-face {
-      position: absolute;
-      left: 50%;
-      top: 53%;
-      transform: translate(-50%, -50%);
-      font-size: 58px;
+    .typing {
+      display: flex;
+      gap: 4px;
+      padding: 8px 3px;
     }
 
-    @keyframes float {
-      0%, 100% {
-        transform: translateY(0);
-      }
-      50% {
-        transform: translateY(-13px);
-      }
+    .typing span {
+      width: 5px;
+      height: 5px;
+      background: #6e8299;
+      border-radius: 50%;
+      animation: typing 1.2s infinite;
+    }
+
+    .typing span:nth-child(2) {
+      animation-delay: .15s;
+    }
+
+    .typing span:nth-child(3) {
+      animation-delay: .3s;
     }
 
     /* Features */
+
     .features {
       position: relative;
       z-index: 2;
-      max-width: 1050px;
+      max-width: 1100px;
       margin: auto;
-      padding: 25px 25px 60px;
+      padding: 30px 30px 80px;
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 18px;
     }
 
-    .card {
-      background: rgba(255,255,255,.88);
-      border: 1px solid rgba(8,126,164,.08);
+    .feature {
+      padding: 28px;
       border-radius: 22px;
-      padding: 27px;
-      box-shadow: 0 10px 30px rgba(8, 90, 130, .07);
-      transition: .25s;
+      background: var(--card);
+      border: 1px solid var(--border);
+      backdrop-filter: blur(15px);
+      transition: .25s ease;
     }
 
-    .card:hover {
+    .feature:hover {
       transform: translateY(-5px);
-      box-shadow: 0 16px 35px rgba(8, 90, 130, .12);
+      border-color: rgba(96,165,250,.25);
     }
 
-    .icon {
-      width: 48px;
-      height: 48px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      background: #fff4bd;
-      border-radius: 15px;
-      font-size: 24px;
-      margin-bottom: 17px;
+    .feature-number {
+      color: #6ea8ff;
+      font-size: 12px;
+      font-weight: 800;
+      margin-bottom: 22px;
     }
 
-    .card h3 {
-      margin-bottom: 9px;
-      font-size: 18px;
+    .feature h3 {
+      font-size: 19px;
+      margin-bottom: 10px;
     }
 
-    .card p {
-      color: #708491;
-      line-height: 1.55;
+    .feature p {
+      color: #8195aa;
       font-size: 14px;
+      line-height: 1.6;
     }
 
-    /* Bottom message */
+    /* About */
+
     .about {
       position: relative;
       z-index: 2;
       max-width: 850px;
-      margin: 0 auto 55px;
-      padding: 30px;
-      background: #087ea4;
-      color: white;
-      border-radius: 25px;
+      margin: 0 auto 70px;
+      padding: 35px;
       text-align: center;
-      box-shadow: 0 15px 35px rgba(8,126,164,.18);
+      border-radius: 25px;
+      background:
+        linear-gradient(
+          135deg,
+          rgba(52,120,246,.13),
+          rgba(255,255,255,.035)
+        );
+      border: 1px solid rgba(96,165,250,.14);
     }
 
     .about h2 {
-      margin-bottom: 10px;
-      font-size: 25px;
+      font-size: 27px;
+      margin-bottom: 12px;
     }
 
     .about p {
-      color: rgba(255,255,255,.8);
-      line-height: 1.6;
+      color: #8ca0b5;
+      line-height: 1.65;
       font-size: 14px;
     }
 
     footer {
+      position: relative;
+      z-index: 2;
       text-align: center;
-      padding: 25px;
-      color: #78909e;
+      padding: 30px;
+      color: #53677c;
       font-size: 13px;
+      border-top: 1px solid rgba(255,255,255,.05);
     }
 
-    @media (max-width: 750px) {
+    /* Animations */
 
-      nav {
-        padding: 18px 20px;
+    @keyframes float {
+      0%, 100% {
+        transform: translateY(0);
       }
 
-      .creator {
-        font-size: 11px;
+      50% {
+        transform: translateY(-12px);
+      }
+    }
+
+    @keyframes pulse {
+      0%, 100% {
+        transform: scale(1);
+        opacity: .7;
+      }
+
+      50% {
+        transform: scale(1.08);
+        opacity: 1;
+      }
+    }
+
+    @keyframes typing {
+      0%, 60%, 100% {
+        transform: translateY(0);
+      }
+
+      30% {
+        transform: translateY(-4px);
+      }
+    }
+
+    /* Mobile */
+
+    @media (max-width: 800px) {
+
+      nav {
+        padding: 20px;
       }
 
       .hero {
-        flex-direction: column;
+        min-height: auto;
+        grid-template-columns: 1fr;
         text-align: center;
-        padding-top: 35px;
+        padding: 55px 20px 40px;
+        gap: 25px;
+      }
+
+      h1 {
+        letter-spacing: -3px;
       }
 
       .description {
@@ -375,22 +457,18 @@
         font-size: 16px;
       }
 
-      h1 {
-        letter-spacing: -3px;
+      .visual {
+        height: 350px;
       }
 
-      .pineapple-area {
-        order: -1;
-      }
-
-      .pineapple {
-        transform: scale(.72);
-        margin-top: -35px;
-        margin-bottom: -35px;
+      .chat-card {
+        width: 320px;
       }
 
       .features {
         grid-template-columns: 1fr;
+        padding-left: 20px;
+        padding-right: 20px;
       }
 
       .about {
@@ -398,48 +476,70 @@
         margin-right: 20px;
       }
     }
+
+    @media (max-width: 420px) {
+
+      .nav-pill {
+        font-size: 11px;
+      }
+
+      h1 {
+        font-size: 51px;
+      }
+
+      .chat-card {
+        width: 290px;
+      }
+    }
   </style>
 </head>
 
 <body>
 
-  <div class="bubble one"></div>
-  <div class="bubble two"></div>
+  <div class="glow glow-one"></div>
+  <div class="glow glow-two"></div>
+
+
+  <!-- Navigation -->
 
   <nav>
+
     <div class="logo">
       To<span>Talk</span>
     </div>
 
-    <div class="creator">
-      Created by Sameer ✨
+    <div class="nav-pill">
+      Created by Sameer
     </div>
+
   </nav>
 
 
+  <!-- Hero -->
+
   <section class="hero">
 
-    <div class="hero-text">
+    <div>
 
-      <div class="small-label">
-        🍍 A little space to talk
+      <div class="eyebrow">
+        <span class="status-dot"></span>
+        A simple place to talk
       </div>
 
       <h1>
-        Talk.<br>
-        <span class="blue">Share.</span><br>
-        <span class="yellow">Connect.</span>
+        Some things<br>
+        are better <span class="gradient">talked about.</span>
       </h1>
 
       <p class="description">
-        Welcome to ToTalk — a personal project by Sameer.
-        A simple place where you can sign in, reach out,
-        and start a genuine conversation.
+        Welcome to ToTalk — a personal project created by Sameer.
+        Sign in and start a simple, genuine conversation.
       </p>
+
 
       <button class="login-btn" onclick="loginWithGoogle()">
 
-        <svg class="google" viewBox="0 0 24 24">
+        <svg class="google-icon" viewBox="0 0 24 24">
           <path fill="#4285F4"
             d="M21.35 12.23c0-.72-.06-1.41-.18-2.08H12v3.94h5.24a4.48 4.48 0 0 1-1.94 2.94v2.45h3.14c1.84-1.69 2.91-4.18 2.91-7.25z"/>
           <path fill="#34A853"
@@ -459,21 +559,44 @@
     </div>
 
 
-    <div class="pineapple-area">
+    <!-- Conversation visual -->
 
-      <div class="pineapple">
+    <div class="visual">
 
-        <div class="leaves">
-          <div class="leaf"></div>
-          <div class="leaf"></div>
-          <div class="leaf"></div>
-          <div class="leaf"></div>
-          <div class="leaf"></div>
+      <div class="orb"></div>
+
+      <div class="chat-card">
+
+        <div class="chat-top">
+
+          <div class="avatar">
+            S
+          </div>
+
+          <div class="person">
+            <strong>Sameer</strong>
+            <small>ToTalk · Conversation</small>
+          </div>
+
         </div>
 
-        <div class="fruit">
-          <div class="pattern"></div>
-          <div class="pineapple-face">😊</div>
+
+        <div class="bubble-message them">
+          Hey, what's on your mind?
+        </div>
+
+        <div class="bubble-message you">
+          I just wanted someone to talk to.
+        </div>
+
+        <div class="bubble-message them">
+          You're in the right place.
+        </div>
+
+        <div class="typing">
+          <span></span>
+          <span></span>
+          <span></span>
         </div>
 
       </div>
@@ -483,54 +606,93 @@
   </section>
 
 
+  <!-- Features -->
+
   <section class="features">
 
-    <div class="card">
-      <div class="icon">💬</div>
-      <h3>Just talk</h3>
+    <div class="feature">
+
+      <div class="feature-number">
+        01 — SIMPLE
+      </div>
+
+      <h3>
+        Just start talking.
+      </h3>
+
       <p>
-        Sometimes starting a conversation is all you need.
-        Keep it simple and just talk.
+        No complicated process. Sign in and
+        start a conversation when you feel
+        like reaching out.
       </p>
+
     </div>
 
-    <div class="card">
-      <div class="icon">🌊</div>
-      <h3>Keep it comfortable</h3>
+
+    <div class="feature">
+
+      <div class="feature-number">
+        02 — PERSONAL
+      </div>
+
+      <h3>
+        One genuine connection.
+      </h3>
+
       <p>
-        ToTalk is designed to feel friendly, simple,
-        and easy to use.
+        ToTalk is designed around a simple
+        one-to-one conversation between
+        you and Sameer.
       </p>
+
     </div>
 
-    <div class="card">
-      <div class="icon">🍍</div>
-      <h3>Made by Sameer</h3>
+
+    <div class="feature">
+
+      <div class="feature-number">
+        03 — ORIGINAL
+      </div>
+
+      <h3>
+        Built by Sameer.
+      </h3>
+
       <p>
-        A personal project built by Sameer around
-        one simple idea — making it easier to reach out.
+        ToTalk is an independent personal
+        project created with one goal:
+        making it easier to reach out.
       </p>
+
     </div>
 
   </section>
 
 
+  <!-- About -->
+
   <section class="about">
 
-    <h2>Welcome to ToTalk 🍍</h2>
+    <h2>
+      Welcome to ToTalk.
+    </h2>
 
     <p>
-      This isn't a therapy service or a replacement for professional help.
-      It's simply Sameer's personal project for having a genuine conversation.
+      ToTalk is a personal project by Sameer.
+      It isn't a therapy service or a replacement
+      for professional help — it's simply a place
+      to start a genuine conversation.
     </p>
 
   </section>
 
 
   <footer>
-    ToTalk © 2026 · Created by Sameer · Talk. Share. Connect.
+    ToTalk © 2026 · Created by Sameer
   </footer>
 
+
+  <!-- Supabase Login -->
 
   <script>
 
@@ -539,6 +701,7 @@
 
     const SUPABASE_KEY =
       "sb_publishable_eUPz4c_nYckgINEK-AIWqw_JAXIHozd";
+
 
     const supabaseClient =
       window.supabase.createClient(
@@ -554,6 +717,7 @@
 
       message.textContent =
         "Opening Google login...";
+
 
       const { error } =
         await supabaseClient.auth.signInWithOAuth({
