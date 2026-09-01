@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>ToTalk — Sameer</title>
+  <title>ToTalk — Chat Your Way</title>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -16,172 +16,126 @@
     }
 
     :root {
-      --blue: #1688d8;
-      --blue-dark: #07558f;
-      --sky: #dff6ff;
-      --yellow: #ffe66d;
-      --yellow-soft: #fff8c9;
+      --blue: #168bd1;
+      --blue-dark: #0b5d91;
+      --sky: #e8f8ff;
+      --yellow: #ffe36a;
+      --yellow-light: #fff9d9;
+      --text: #163b55;
+      --muted: #6d8798;
       --white: #ffffff;
-      --text: #123b59;
-      --muted: #66849a;
-    }
-
-    html {
-      scroll-behavior: smooth;
     }
 
     body {
       font-family: Arial, Helvetica, sans-serif;
       color: var(--text);
-      background: #eefaff;
+      background: #f5fcff;
       overflow-x: hidden;
     }
 
-    /* =========================
-       BACKGROUND
-    ========================= */
+    /* BACKGROUND */
 
     .background {
       position: fixed;
       inset: 0;
-      z-index: -5;
-      overflow: hidden;
+      z-index: -1;
       background:
-        linear-gradient(180deg, #dff7ff 0%, #f8fdff 55%, #fffde8 100%);
+        radial-gradient(circle at 5% 10%, #c7efff 0, transparent 25%),
+        radial-gradient(circle at 95% 20%, #fff2a5 0, transparent 23%),
+        linear-gradient(180deg, #eafaff 0%, #ffffff 65%, #fffdf0 100%);
     }
 
-    .bubble {
-      position: absolute;
-      border-radius: 50%;
-      opacity: .55;
-      filter: blur(1px);
-    }
-
-    .bubble.one {
-      width: 280px;
-      height: 280px;
-      background: #b8ecff;
-      top: -100px;
-      left: -90px;
-    }
-
-    .bubble.two {
-      width: 230px;
-      height: 230px;
-      background: #fff09a;
-      right: -70px;
-      top: 180px;
-    }
-
-    .bubble.three {
-      width: 190px;
-      height: 190px;
-      background: #bcefff;
-      left: 35%;
-      bottom: -80px;
-    }
-
-    /* =========================
-       NAVBAR
-    ========================= */
+    /* NAVBAR */
 
     nav {
       width: 100%;
-      padding: 22px 7%;
+      max-width: 1250px;
+      margin: auto;
+      padding: 24px 6%;
       display: flex;
+      align-items: center;
       justify-content: space-between;
-      align-items: center;
-      position: relative;
-      z-index: 10;
     }
 
-    .brand {
+    .logo {
       display: flex;
       align-items: center;
-      gap: 12px;
-    }
-
-    .brand-icon {
-      width: 45px;
-      height: 45px;
-      border-radius: 15px;
-      background: var(--yellow);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      font-size: 23px;
-      box-shadow: 0 8px 20px rgba(220, 181, 28, .2);
-    }
-
-    .brand-name {
-      font-size: 24px;
+      gap: 11px;
+      font-size: 25px;
       font-weight: 900;
       color: var(--blue-dark);
     }
 
-    .brand-name span {
-      color: #f0bd16;
+    .logo-box {
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--yellow);
+      font-size: 22px;
+      box-shadow: 0 8px 22px rgba(211, 178, 28, .2);
     }
 
-    .creator-line {
+    .logo span {
+      color: #e0ad13;
+    }
+
+    .made-by {
+      color: var(--muted);
       font-size: 14px;
-      font-weight: 800;
-      color: #4c7188;
+      font-weight: 700;
     }
 
-    .creator-line strong {
+    .made-by strong {
       color: var(--blue);
     }
 
-    /* =========================
-       HERO
-    ========================= */
+    /* HERO */
 
     .hero {
       max-width: 1250px;
-      min-height: 680px;
+      min-height: 650px;
       margin: auto;
-      padding: 60px 7% 90px;
+      padding: 55px 6% 85px;
       display: grid;
-      grid-template-columns: 1.05fr .95fr;
-      align-items: center;
+      grid-template-columns: 1fr 0.9fr;
       gap: 70px;
+      align-items: center;
     }
 
     .hero-left {
-      position: relative;
-      z-index: 2;
+      max-width: 650px;
     }
 
-    .small-tag {
+    .welcome {
       display: inline-flex;
       align-items: center;
-      gap: 8px;
-      background: rgba(255,255,255,.8);
-      border: 1px solid rgba(22,136,216,.12);
+      gap: 9px;
       padding: 10px 16px;
       border-radius: 30px;
+      background: white;
       color: var(--blue-dark);
       font-size: 13px;
       font-weight: 800;
-      margin-bottom: 25px;
-      box-shadow: 0 8px 25px rgba(30,120,160,.08);
+      border: 1px solid #dceff7;
+      box-shadow: 0 8px 25px rgba(27, 105, 139, .07);
+      margin-bottom: 24px;
     }
 
-    .dot {
+    .online-dot {
       width: 8px;
       height: 8px;
-      background: #43c66c;
       border-radius: 50%;
-      box-shadow: 0 0 0 5px rgba(67,198,108,.12);
+      background: #37c86a;
     }
 
     h1 {
-      font-size: clamp(50px, 7vw, 82px);
-      line-height: .95;
+      font-size: clamp(48px, 7vw, 82px);
+      line-height: .97;
       letter-spacing: -4px;
-      color: var(--text);
-      margin-bottom: 28px;
+      margin-bottom: 25px;
     }
 
     h1 .blue {
@@ -189,45 +143,45 @@
     }
 
     h1 .yellow {
-      color: #e4ae10;
+      color: #dfae16;
     }
 
-    .hero-text {
-      max-width: 590px;
+    .description {
+      max-width: 570px;
       color: var(--muted);
       font-size: 18px;
-      line-height: 1.7;
-      margin-bottom: 30px;
+      line-height: 1.75;
+      margin-bottom: 31px;
     }
 
-    .sameer-highlight {
-      display: inline-block;
+    .sameer {
       color: var(--blue-dark);
       font-weight: 900;
       border-bottom: 4px solid var(--yellow);
     }
 
-    /* =========================
-       LOGIN
-    ========================= */
+    /* LOGIN */
 
     .login-button {
-      border: none;
+      border: 0;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      padding: 17px 27px;
+      border-radius: 16px;
       background: var(--blue);
       color: white;
-      padding: 18px 27px;
-      border-radius: 16px;
       font-size: 16px;
       font-weight: 900;
-      cursor: pointer;
-      box-shadow: 0 15px 30px rgba(22,136,216,.25);
-      transition: .2s;
+      box-shadow: 0 14px 30px rgba(22, 139, 209, .24);
+      transition: .2s ease;
     }
 
     .login-button:hover {
-      transform: translateY(-3px);
       background: var(--blue-dark);
-      box-shadow: 0 20px 35px rgba(22,136,216,.3);
+      transform: translateY(-3px);
+      box-shadow: 0 19px 35px rgba(22, 139, 209, .3);
     }
 
     .login-button:active {
@@ -239,238 +193,195 @@
       cursor: wait;
     }
 
+    .google-icon {
+      width: 22px;
+      height: 22px;
+      background: white;
+      color: #4285f4;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 900;
+    }
+
     #status {
       min-height: 22px;
       margin-top: 15px;
+      color: var(--blue-dark);
       font-size: 14px;
       font-weight: 700;
-      color: var(--blue-dark);
     }
 
-    /* =========================
-       GAME PANEL
-    ========================= */
+    /* CHAT PREVIEW */
 
-    .game-wrapper {
+    .chat-preview {
       position: relative;
     }
 
-    .floating-label {
+    .floating {
       position: absolute;
-      z-index: 5;
-      background: white;
-      padding: 12px 17px;
+      z-index: 3;
+      padding: 12px 16px;
       border-radius: 15px;
+      background: white;
+      box-shadow: 0 15px 35px rgba(24, 102, 138, .13);
       font-size: 13px;
       font-weight: 900;
-      box-shadow: 0 15px 30px rgba(25,90,130,.13);
     }
 
-    .label-one {
-      top: -22px;
+    .floating.one {
       left: -20px;
+      top: -22px;
     }
 
-    .label-two {
-      right: -18px;
-      bottom: 30px;
-      background: var(--yellow-soft);
+    .floating.two {
+      right: -20px;
+      bottom: 35px;
+      background: var(--yellow-light);
     }
 
-    .game-panel {
-      background: rgba(255,255,255,.72);
-      border: 2px solid rgba(255,255,255,.9);
-      border-radius: 35px;
-      padding: 15px;
-      box-shadow: 0 30px 80px rgba(21,103,145,.16);
-      backdrop-filter: blur(15px);
+    .chat-window {
+      background: rgba(255,255,255,.85);
+      border: 2px solid white;
+      border-radius: 32px;
+      padding: 12px;
+      box-shadow: 0 30px 80px rgba(21, 101, 137, .14);
+      backdrop-filter: blur(12px);
     }
 
-    .game-inner {
-      border-radius: 27px;
+    .chat-inner {
+      background: white;
+      border-radius: 24px;
       overflow: hidden;
-      background: white;
     }
 
-    .game-header {
-      height: 65px;
+    .chat-header {
+      padding: 20px;
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      padding: 0 22px;
-      border-bottom: 1px solid #e7f1f6;
+      gap: 13px;
+      border-bottom: 1px solid #edf3f6;
     }
 
-    .game-header-left {
-      display: flex;
-      align-items: center;
-      gap: 9px;
-      font-weight: 900;
-    }
-
-    .game-dots {
-      display: flex;
-      gap: 5px;
-    }
-
-    .game-dots i {
-      width: 8px;
-      height: 8px;
+    .avatar {
+      width: 47px;
+      height: 47px;
       border-radius: 50%;
-      background: #b6e9fa;
+      background: #ccefff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 23px;
     }
 
-    .game-body {
-      min-height: 420px;
-      padding: 35px 25px;
+    .chat-person strong {
+      display: block;
+      font-size: 16px;
+    }
+
+    .chat-person small {
+      color: #38b967;
+      font-weight: 700;
+    }
+
+    .messages {
+      padding: 28px 20px;
+      min-height: 330px;
       background:
-        radial-gradient(circle at 20% 20%, white 0 4px, transparent 5px),
-        radial-gradient(circle at 80% 30%, white 0 5px, transparent 6px),
-        linear-gradient(145deg, #83d8f5, #d8f8ff 70%, #fff7ae);
-      position: relative;
+        linear-gradient(180deg, #fbfeff, #f4fbfe);
     }
 
-    .cloud {
-      position: absolute;
-      background: rgba(255,255,255,.82);
-      width: 95px;
-      height: 30px;
-      border-radius: 30px;
-      top: 55px;
-      left: 35px;
-    }
-
-    .cloud:before,
-    .cloud:after {
-      content: "";
-      position: absolute;
-      background: white;
-      border-radius: 50%;
-    }
-
-    .cloud:before {
-      width: 42px;
-      height: 42px;
-      left: 13px;
-      bottom: 4px;
-    }
-
-    .cloud:after {
-      width: 50px;
-      height: 50px;
-      right: 10px;
-      bottom: 2px;
-    }
-
-    .sun {
-      position: absolute;
-      width: 78px;
-      height: 78px;
-      border-radius: 50%;
-      background: #ffe45b;
-      right: 32px;
-      top: 30px;
-      box-shadow: 0 0 35px rgba(255,224,65,.65);
-    }
-
-    .player {
-      position: relative;
-      z-index: 2;
-      text-align: center;
-      padding-top: 65px;
-    }
-
-    .player-character {
-      font-size: 95px;
-      animation: bounce 3s ease-in-out infinite;
-    }
-
-    @keyframes bounce {
-      0%,100% {
-        transform: translateY(0);
-      }
-      50% {
-        transform: translateY(-12px);
-      }
-    }
-
-    .player h2 {
-      margin-top: 15px;
-      color: #115477;
-      font-size: 27px;
-    }
-
-    .player p {
-      color: #578199;
+    .message {
+      max-width: 78%;
+      padding: 13px 16px;
+      border-radius: 18px;
+      margin-bottom: 15px;
       font-size: 14px;
-      margin-top: 8px;
+      line-height: 1.5;
     }
 
-    .sameer-card {
-      display: inline-block;
-      margin-top: 18px;
-      background: white;
-      padding: 11px 18px;
-      border-radius: 14px;
-      font-size: 13px;
-      font-weight: 900;
-      box-shadow: 0 10px 25px rgba(27,112,151,.12);
+    .message.left {
+      background: #e4f7ff;
+      border-bottom-left-radius: 5px;
+      color: #315b70;
     }
 
-    .sameer-card span {
-      color: var(--blue);
+    .message.right {
+      background: var(--blue);
+      color: white;
+      margin-left: auto;
+      border-bottom-right-radius: 5px;
     }
 
-    .game-footer {
+    .message.yellow {
+      background: var(--yellow-light);
+      border-bottom-left-radius: 5px;
+      color: #695b20;
+    }
+
+    .typing {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      color: #88a0ad;
+      font-size: 12px;
+      margin-top: 5px;
+    }
+
+    .typing i {
+      width: 5px;
+      height: 5px;
+      background: #88a0ad;
+      border-radius: 50%;
+    }
+
+    .chat-input {
+      padding: 15px;
+      border-top: 1px solid #edf3f6;
       display: flex;
       gap: 10px;
-      padding: 17px;
-      background: white;
     }
 
-    .game-stat {
+    .fake-input {
       flex: 1;
-      background: #f2fbff;
-      border-radius: 14px;
-      padding: 12px;
-      text-align: center;
+      background: #f2f8fb;
+      border-radius: 13px;
+      padding: 13px;
+      color: #9aadb8;
+      font-size: 13px;
     }
 
-    .game-stat strong {
-      display: block;
-      color: var(--blue-dark);
-      font-size: 17px;
+    .send {
+      width: 45px;
+      border: 0;
+      border-radius: 13px;
+      background: var(--yellow);
+      font-size: 18px;
     }
 
-    .game-stat small {
-      color: #7993a4;
-      font-weight: 700;
-    }
-
-    /* =========================
-       INTRO STRIP
-    ========================= */
+    /* INTRO */
 
     .intro {
-      padding: 30px 7% 80px;
+      padding: 35px 6% 90px;
     }
 
     .intro-box {
-      max-width: 1100px;
+      max-width: 1080px;
       margin: auto;
-      background: linear-gradient(110deg, #fff8bf, #e4f8ff);
       border-radius: 30px;
-      padding: 38px 45px;
+      padding: 40px 45px;
+      background: linear-gradient(110deg, #fff8c8, #e4f8ff);
       display: flex;
-      justify-content: space-between;
       align-items: center;
+      justify-content: space-between;
       gap: 30px;
-      border: 1px solid rgba(255,255,255,.8);
-      box-shadow: 0 18px 50px rgba(43,110,140,.09);
+      box-shadow: 0 15px 45px rgba(37, 111, 139, .08);
     }
 
     .intro-box h2 {
-      font-size: 29px;
+      font-size: 30px;
       margin-bottom: 8px;
     }
 
@@ -479,53 +390,51 @@
       line-height: 1.6;
     }
 
-    .sameer-name {
-      white-space: nowrap;
-      font-size: 24px;
+    .signature {
+      font-size: 26px;
       font-weight: 900;
       color: var(--blue-dark);
+      white-space: nowrap;
     }
 
-    .sameer-name span {
-      color: #e1af12;
+    .signature span {
+      color: #dfae16;
     }
 
-    /* =========================
-       FEATURES
-    ========================= */
+    /* FEATURES */
 
     .features {
-      padding: 80px 7% 100px;
-      background: rgba(255,255,255,.52);
+      padding: 85px 6% 100px;
+      background: rgba(255,255,255,.7);
     }
 
-    .section-heading {
+    .section-title {
       text-align: center;
       max-width: 650px;
-      margin: auto auto 45px;
+      margin: 0 auto 45px;
     }
 
-    .section-heading .mini {
+    .section-title small {
       color: var(--blue);
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 900;
-      text-transform: uppercase;
       letter-spacing: 2px;
+      text-transform: uppercase;
     }
 
-    .section-heading h2 {
+    .section-title h2 {
       font-size: 43px;
-      letter-spacing: -1.5px;
+      letter-spacing: -2px;
       margin: 10px 0;
     }
 
-    .section-heading p {
+    .section-title p {
       color: var(--muted);
       line-height: 1.6;
     }
 
     .feature-grid {
-      max-width: 1100px;
+      max-width: 1080px;
       margin: auto;
       display: grid;
       grid-template-columns: repeat(3,1fr);
@@ -533,36 +442,36 @@
     }
 
     .feature {
-      background: rgba(255,255,255,.88);
+      background: white;
+      border: 1px solid #e5f0f5;
       border-radius: 25px;
       padding: 30px;
-      border: 1px solid #e5f0f5;
-      transition: .2s;
+      transition: .2s ease;
     }
 
     .feature:hover {
       transform: translateY(-6px);
-      box-shadow: 0 20px 45px rgba(29,106,139,.1);
+      box-shadow: 0 20px 45px rgba(30, 108, 140, .1);
     }
 
     .feature-icon {
-      width: 55px;
-      height: 55px;
-      border-radius: 17px;
-      background: var(--yellow-soft);
+      width: 54px;
+      height: 54px;
+      border-radius: 16px;
+      background: var(--yellow-light);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 25px;
+      font-size: 24px;
       margin-bottom: 20px;
     }
 
     .feature:nth-child(2) .feature-icon {
-      background: #e2f7ff;
+      background: #e5f7ff;
     }
 
     .feature:nth-child(3) .feature-icon {
-      background: #e8f2ff;
+      background: #edf3ff;
     }
 
     .feature h3 {
@@ -572,79 +481,48 @@
 
     .feature p {
       color: var(--muted);
-      font-size: 14px;
       line-height: 1.7;
+      font-size: 14px;
     }
 
-    /* =========================
-       FINAL CTA
-    ========================= */
+    /* FINAL */
 
     .final {
-      padding: 80px 7% 100px;
-      text-align: center;
+      padding: 90px 6% 100px;
     }
 
     .final-box {
       max-width: 850px;
       margin: auto;
+      padding: 65px 30px;
+      text-align: center;
+      border-radius: 35px;
       background: var(--blue);
       color: white;
-      border-radius: 35px;
-      padding: 65px 30px;
-      position: relative;
-      overflow: hidden;
-      box-shadow: 0 25px 60px rgba(22,136,216,.22);
-    }
-
-    .final-box:before,
-    .final-box:after {
-      content: "";
-      position: absolute;
-      border-radius: 50%;
-      background: rgba(255,255,255,.1);
-    }
-
-    .final-box:before {
-      width: 200px;
-      height: 200px;
-      left: -80px;
-      top: -80px;
-    }
-
-    .final-box:after {
-      width: 250px;
-      height: 250px;
-      right: -100px;
-      bottom: -120px;
+      box-shadow: 0 25px 60px rgba(22,139,209,.2);
     }
 
     .final-box h2 {
       font-size: 42px;
       margin-bottom: 12px;
-      position: relative;
     }
 
     .final-box p {
-      opacity: .88;
-      margin-bottom: 25px;
-      position: relative;
+      opacity: .9;
+      line-height: 1.6;
     }
 
-    .final-name {
-      font-weight: 900;
+    .final-box strong {
       color: var(--yellow);
     }
 
-    /* =========================
-       FOOTER
-    ========================= */
+    /* FOOTER */
 
     footer {
       text-align: center;
-      padding: 30px 7%;
-      background: #f8fdff;
-      color: #7590a1;
+      padding: 30px;
+      background: white;
+      color: #7892a2;
       font-size: 13px;
     }
 
@@ -652,35 +530,33 @@
       color: var(--blue);
     }
 
-    /* =========================
-       MOBILE
-    ========================= */
+    /* MOBILE */
 
-    @media(max-width:850px) {
+    @media (max-width: 850px) {
 
-      .creator-line {
+      .made-by {
         display: none;
       }
 
       .hero {
         grid-template-columns: 1fr;
         padding-top: 35px;
-        gap: 55px;
       }
 
       .hero-left {
         text-align: center;
+        margin: auto;
       }
 
-      .hero-text {
+      .description {
         margin-left: auto;
         margin-right: auto;
       }
 
-      .game-wrapper {
+      .chat-preview {
+        width: 100%;
         max-width: 500px;
         margin: auto;
-        width: 100%;
       }
 
       .feature-grid {
@@ -694,7 +570,7 @@
       }
     }
 
-    @media(max-width:500px) {
+    @media (max-width: 500px) {
 
       nav {
         padding: 18px 5%;
@@ -709,68 +585,51 @@
         font-size: 54px;
       }
 
-      .game-body {
-        min-height: 370px;
-      }
-
-      .floating-label {
+      .floating {
         display: none;
       }
 
-      .game-footer {
-        gap: 6px;
+      .messages {
+        min-height: 290px;
       }
 
-      .game-stat {
-        padding: 9px 4px;
-      }
-
-      .final-box h2 {
-        font-size: 33px;
-      }
-
-      .intro {
-        padding-left: 5%;
-        padding-right: 5%;
-      }
-
+      .intro,
       .features,
       .final {
         padding-left: 5%;
         padding-right: 5%;
       }
+
+      .intro-box {
+        padding: 32px 25px;
+      }
+
+      .section-title h2 {
+        font-size: 36px;
+      }
+
+      .final-box h2 {
+        font-size: 34px;
+      }
     }
   </style>
 </head>
 
-
 <body>
 
-  <div class="background">
-    <div class="bubble one"></div>
-    <div class="bubble two"></div>
-    <div class="bubble three"></div>
-  </div>
+  <div class="background"></div>
 
-
-  <!-- NAVIGATION -->
+  <!-- NAVBAR -->
 
   <nav>
 
-    <div class="brand">
-
-      <div class="brand-icon">
-        💬
-      </div>
-
-      <div class="brand-name">
-        To<span>Talk</span>
-      </div>
-
+    <div class="logo">
+      <div class="logo-box">💬</div>
+      To<span>Talk</span>
     </div>
 
-    <div class="creator-line">
-      A project by <strong>Sameer</strong>
+    <div class="made-by">
+      Created by <strong>Sameer</strong>
     </div>
 
   </nav>
@@ -782,27 +641,29 @@
 
     <div class="hero-left">
 
-      <div class="small-tag">
-        <span class="dot"></span>
-        ToTalk is ready
+      <div class="welcome">
+        <span class="online-dot"></span>
+        Welcome to ToTalk
       </div>
 
       <h1>
-        Your world.<br>
-        Your <span class="blue">talk.</span><br>
-        Your <span class="yellow">game.</span>
+        Talk more.<br>
+        Connect <span class="blue">better.</span><br>
+        Stay <span class="yellow">connected.</span>
       </h1>
 
-      <p class="hero-text">
-        Welcome to ToTalk — a fresh place built by
-        <span class="sameer-highlight">Sameer</span>
-        where conversations and a playful experience come together.
+      <p class="description">
+        ToTalk is a simple and modern place to chat,
+        connect and enjoy conversations.
+        Built with an idea from
+        <span class="sameer">Sameer</span>.
       </p>
 
-      <!-- ONLY LOGIN BUTTON -->
+      <!-- ONLY ONE LOGIN BUTTON -->
 
       <button class="login-button" id="loginBtn">
-        🔵 Continue with Google
+        <span class="google-icon">G</span>
+        Continue with Google
       </button>
 
       <div id="status"></div>
@@ -810,29 +671,56 @@
     </div>
 
 
-    <!-- GAME PREVIEW -->
+    <!-- CHAT PREVIEW -->
 
-    <div class="game-wrapper">
+    <div class="chat-preview">
 
-      <div class="floating-label label-one">
-        🎮 ToTalk World
+      <div class="floating one">
+        💬 Real conversations
       </div>
 
-      <div class="floating-label label-two">
-        ⭐ Created by Sameer
+      <div class="floating two">
+        ✨ Made by Sameer
       </div>
 
-      <div class="game-panel">
+      <div class="chat-window">
 
-        <div class="game-inner">
+        <div class="chat-inner">
 
-          <div class="game-header">
+          <div class="chat-header">
 
-            <div class="game-header-left">
-              🕹️ ToTalk
+            <div class="avatar">
+              😊
             </div>
 
-            <div class="game-dots">
+            <div class="chat-person">
+              <strong>ToTalk Chat</strong>
+              <small>● Online</small>
+            </div>
+
+          </div>
+
+
+          <div class="messages">
+
+            <div class="message left">
+              Hey! Welcome to ToTalk 👋
+            </div>
+
+            <div class="message right">
+              Nice to meet you! 😊
+            </div>
+
+            <div class="message yellow">
+              What are you up to today?
+            </div>
+
+            <div class="message right">
+              Just here to chat ✨
+            </div>
+
+            <div class="typing">
+              Someone is typing
               <i></i>
               <i></i>
               <i></i>
@@ -841,51 +729,15 @@
           </div>
 
 
-          <div class="game-body">
+          <div class="chat-input">
 
-            <div class="cloud"></div>
-
-            <div class="sun"></div>
-
-            <div class="player">
-
-              <div class="player-character">
-                🧑‍🚀
-              </div>
-
-              <h2>
-                Welcome, Player!
-              </h2>
-
-              <p>
-                Your next conversation is waiting.
-              </p>
-
-              <div class="sameer-card">
-                Built with ✨ by <span>Sameer</span>
-              </div>
-
+            <div class="fake-input">
+              Write a message...
             </div>
 
-          </div>
-
-
-          <div class="game-footer">
-
-            <div class="game-stat">
-              <strong>💬</strong>
-              <small>Talk</small>
-            </div>
-
-            <div class="game-stat">
-              <strong>🌎</strong>
-              <small>Connect</small>
-            </div>
-
-            <div class="game-stat">
-              <strong>🎮</strong>
-              <small>Play</small>
-            </div>
+            <button class="send">
+              ➤
+            </button>
 
           </div>
 
@@ -898,23 +750,22 @@
   </section>
 
 
-  <!-- SAMEER INTRO -->
+  <!-- SAMEER -->
 
   <section class="intro">
 
     <div class="intro-box">
 
       <div>
-        <h2>Welcome to ToTalk.</h2>
+        <h2>Built with an idea from Sameer.</h2>
 
         <p>
-          Designed and created with an idea from
-          <strong>Sameer</strong>.
-          More is coming.
+          ToTalk is being created to make chatting
+          feel simple, clean and enjoyable.
         </p>
       </div>
 
-      <div class="sameer-name">
+      <div class="signature">
         — <span>Sameer</span>
       </div>
 
@@ -927,19 +778,17 @@
 
   <section class="features">
 
-    <div class="section-heading">
+    <div class="section-title">
 
-      <div class="mini">
-        Inside ToTalk
-      </div>
+      <small>Why ToTalk</small>
 
       <h2>
-        Simple. Social. Fun.
+        Just chat. Keep it simple.
       </h2>
 
       <p>
-        No complicated homepage. Just enter ToTalk
-        and start your experience.
+        A clean space designed around conversations
+        instead of unnecessary distractions.
       </p>
 
     </div>
@@ -954,12 +803,12 @@
         </div>
 
         <h3>
-          Talk
+          Easy Conversations
         </h3>
 
         <p>
-          Start conversations and enjoy a simple,
-          clean chat experience.
+          A simple interface that keeps the focus
+          where it belongs — on chatting.
         </p>
 
       </div>
@@ -968,16 +817,16 @@
       <div class="feature">
 
         <div class="feature-icon">
-          🎮
+          👥
         </div>
 
         <h3>
-          Game Feel
+          Connect
         </h3>
 
         <p>
-          A playful interface that feels more alive
-          than an ordinary website.
+          Meet people and create conversations
+          in one comfortable space.
         </p>
 
       </div>
@@ -986,16 +835,16 @@
       <div class="feature">
 
         <div class="feature-icon">
-          🚀
+          ✨
         </div>
 
         <h3>
-          More Coming
+          Built by Sameer
         </h3>
 
         <p>
-          ToTalk is only getting started.
-          More features can be added as the project grows.
+          ToTalk is an independent project created
+          by Sameer and designed to keep improving.
         </p>
 
       </div>
@@ -1012,16 +861,11 @@
     <div class="final-box">
 
       <h2>
-        Ready to enter ToTalk?
+        Ready to start talking?
       </h2>
 
       <p>
-        Sign in with Google and enter the world created by
-        <span class="final-name">Sameer</span>.
-      </p>
-
-      <p>
-        ↑ Use the login button at the top to begin.
+        Sign in with Google and enter <strong>ToTalk</strong>.
       </p>
 
     </div>
@@ -1032,10 +876,7 @@
   <!-- FOOTER -->
 
   <footer>
-
-    ToTalk © 2026 · Created by
-    <strong>Sameer</strong>
-
+    ToTalk © 2026 · Created by <strong>Sameer</strong>
   </footer>
 
 
@@ -1067,7 +908,7 @@
 
       loginBtn.disabled = true;
 
-      loginBtn.textContent =
+      loginBtn.innerHTML =
         "Connecting to Google...";
 
       statusText.textContent = "";
@@ -1104,8 +945,8 @@
 
         loginBtn.disabled = false;
 
-        loginBtn.textContent =
-          "🔵 Continue with Google";
+        loginBtn.innerHTML =
+          '<span class="google-icon">G</span> Continue with Google';
 
       }
 
@@ -1125,7 +966,7 @@
           session.user.user_metadata?.name ||
           "Sameer";
 
-        loginBtn.textContent =
+        loginBtn.innerHTML =
           "✅ Logged in";
 
         loginBtn.disabled = true;
