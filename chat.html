@@ -4,55 +4,139 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>ToTalk Chat</title>
+  <title>ToTalk Sameer</title>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
+
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
     }
 
-    body {
-      font-family: Arial, Helvetica, sans-serif;
-      min-height: 100vh;
-      color: #173d57;
-      background:
-        radial-gradient(circle at 5% 5%, #c9f0ff, transparent 25%),
-        radial-gradient(circle at 95% 95%, #fff3a6, transparent 25%),
-        linear-gradient(135deg, #eefbff, #fffef1);
+    :root {
+      --purple: #a56cff;
+      --purple-light: #c59aff;
+      --purple-dark: #6f3fd0;
+      --yellow: #ffe45c;
+      --white: #ffffff;
+      --muted: #aaa8bd;
+      --dark: #070713;
+      --dark2: #0d0a20;
+      --panel: rgba(20, 15, 42, 0.82);
+      --border: rgba(170, 105, 255, 0.28);
     }
 
+    body {
+      min-height: 100vh;
+      font-family: Arial, Helvetica, sans-serif;
+      color: var(--white);
+
+      background:
+        radial-gradient(
+          circle at 20% 20%,
+          rgba(104, 45, 190, 0.30),
+          transparent 32%
+        ),
+        radial-gradient(
+          circle at 80% 70%,
+          rgba(84, 38, 180, 0.30),
+          transparent 35%
+        ),
+        radial-gradient(
+          circle at 50% 110%,
+          rgba(154, 82, 255, 0.20),
+          transparent 40%
+        ),
+        linear-gradient(
+          135deg,
+          #05050d,
+          #0a0718 45%,
+          #100b2a
+        );
+
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* STAR FIELD */
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: .7;
+
+      background-image:
+        radial-gradient(circle, rgba(255,255,255,.75) 1px, transparent 1.5px),
+        radial-gradient(circle, rgba(197,154,255,.55) 1px, transparent 1.5px),
+        radial-gradient(circle, rgba(255,255,255,.45) 1px, transparent 1.5px);
+
+      background-size:
+        120px 120px,
+        190px 190px,
+        260px 260px;
+
+      background-position:
+        20px 30px,
+        70px 90px,
+        120px 20px;
+    }
+
+    /* HEADER */
+
     header {
-      height: 75px;
+      height: 82px;
       padding: 0 5%;
-      background: rgba(255,255,255,.92);
-      border-bottom: 1px solid #e4f0f5;
+
       display: flex;
       align-items: center;
       justify-content: space-between;
+
+      border-bottom: 1px solid rgba(255,255,255,.10);
+
+      background: rgba(5, 5, 15, .72);
+
+      backdrop-filter: blur(18px);
+
+      position: relative;
+      z-index: 2;
     }
 
     .logo {
       display: flex;
       align-items: center;
-      gap: 10px;
-      font-size: 24px;
+      gap: 11px;
+
+      font-size: 25px;
       font-weight: 900;
-      color: #0b5d91;
+      letter-spacing: -1px;
     }
 
     .logo-box {
-      width: 42px;
-      height: 42px;
-      background: #ffe36a;
-      border-radius: 13px;
+      width: 43px;
+      height: 43px;
+
       display: flex;
       align-items: center;
       justify-content: center;
+
+      background: var(--yellow);
+      color: #151020;
+
+      border-radius: 13px;
+
       font-size: 21px;
+
+      box-shadow:
+        0 0 25px rgba(255, 228, 92, .20);
+    }
+
+    .logo span {
+      color: var(--purple-light);
     }
 
     .right-header {
@@ -62,230 +146,484 @@
     }
 
     .user-name {
+      color: #cfcce0;
       font-size: 14px;
       font-weight: 800;
-      color: #78909f;
     }
 
     .logout {
-      border: none;
-      background: #edf8fd;
-      color: #0b5d91;
-      padding: 10px 15px;
-      border-radius: 11px;
+      border: 1px solid rgba(165,108,255,.35);
+
+      background: rgba(165,108,255,.10);
+
+      color: var(--white);
+
+      padding: 10px 16px;
+
+      border-radius: 12px;
+
       font-weight: 800;
+
       cursor: pointer;
+
+      transition: .2s;
     }
+
+    .logout:hover {
+      background: rgba(165,108,255,.22);
+      border-color: rgba(165,108,255,.65);
+    }
+
+    /* MAIN */
 
     .chat-layout {
-      max-width: 1150px;
-      height: calc(100vh - 115px);
-      min-height: 600px;
+      max-width: 1250px;
+
+      min-height: calc(100vh - 122px);
+
       margin: 20px auto;
+
       padding: 0 20px;
+
       display: grid;
-      grid-template-columns: 300px 1fr;
+
+      grid-template-columns: 290px 1fr;
+
       gap: 18px;
+
+      position: relative;
+
+      z-index: 1;
     }
 
+    /* SIDEBAR */
+
     .sidebar {
-      background: rgba(255,255,255,.92);
-      border: 1px solid #e2eff5;
-      border-radius: 25px;
+      min-height: 620px;
+
+      background:
+        linear-gradient(
+          145deg,
+          rgba(27,20,55,.88),
+          rgba(10,8,25,.88)
+        );
+
+      border: 1px solid var(--border);
+
+      border-radius: 24px;
+
       overflow: hidden;
-      box-shadow: 0 15px 45px rgba(27,105,139,.08);
+
+      box-shadow:
+        0 0 50px rgba(99,44,190,.12);
+
+      backdrop-filter: blur(18px);
     }
 
     .sidebar-title {
-      padding: 22px;
-      border-bottom: 1px solid #edf3f6;
+      padding: 24px;
+
+      border-bottom:
+        1px solid rgba(255,255,255,.08);
     }
 
     .sidebar-title h2 {
-      font-size: 20px;
+      font-size: 21px;
       margin-bottom: 5px;
     }
 
     .sidebar-title p {
-      color: #78909f;
+      color: var(--muted);
       font-size: 12px;
     }
 
     .profile {
-      margin: 15px 8px;
+      margin: 15px 10px;
+
       padding: 14px;
+
       border-radius: 17px;
-      background: #eaf8ff;
+
+      background:
+        linear-gradient(
+          135deg,
+          rgba(165,108,255,.18),
+          rgba(255,228,92,.05)
+        );
+
+      border:
+        1px solid rgba(165,108,255,.18);
+
       display: flex;
+
       align-items: center;
+
       gap: 12px;
     }
 
     .avatar {
-      width: 45px;
-      height: 45px;
+      width: 46px;
+      height: 46px;
+
       border-radius: 50%;
-      background: #ffe36a;
+
+      background: var(--yellow);
+
+      color: #161020;
+
       display: flex;
+
       align-items: center;
       justify-content: center;
+
       font-size: 21px;
+
+      box-shadow:
+        0 0 22px rgba(255,228,92,.15);
     }
 
     .profile strong {
       display: block;
+
       font-size: 14px;
+
+      color: white;
     }
 
     .online {
-      color: #35b867;
+      color: #8ee6a8;
+
       font-size: 11px;
+
       font-weight: 700;
+
       margin-top: 4px;
     }
 
+    /* CHAT WINDOW */
+
     .chat-box {
-      background: rgba(255,255,255,.95);
-      border: 1px solid #e2eff5;
-      border-radius: 25px;
+      min-height: 620px;
+
+      background:
+        linear-gradient(
+          145deg,
+          rgba(20,15,42,.90),
+          rgba(7,6,18,.90)
+        );
+
+      border:
+        1px solid var(--border);
+
+      border-radius: 24px;
+
       overflow: hidden;
+
       display: flex;
+
       flex-direction: column;
-      box-shadow: 0 15px 45px rgba(27,105,139,.08);
+
+      box-shadow:
+        0 0 65px rgba(104,48,200,.15);
+
+      backdrop-filter: blur(20px);
     }
 
     .chat-top {
-      min-height: 75px;
+      min-height: 78px;
+
       padding: 15px 22px;
-      border-bottom: 1px solid #edf3f6;
+
+      border-bottom:
+        1px solid rgba(255,255,255,.08);
+
       display: flex;
+
       align-items: center;
+
       gap: 13px;
+
+      background:
+        rgba(10,8,24,.55);
     }
 
     .chat-avatar {
-      width: 45px;
-      height: 45px;
+      width: 46px;
+      height: 46px;
+
       border-radius: 50%;
-      background: #dff6ff;
+
+      background:
+        rgba(165,108,255,.18);
+
+      border:
+        1px solid rgba(165,108,255,.40);
+
       display: flex;
+
       align-items: center;
       justify-content: center;
+
       font-size: 21px;
     }
 
     .chat-top strong {
       display: block;
-      font-size: 15px;
+
+      font-size: 16px;
     }
 
     .chat-top small {
-      color: #35b867;
+      color: #8ee6a8;
+
       font-weight: 700;
+
       font-size: 11px;
     }
 
+    /* MESSAGES */
+
     .messages {
       flex: 1;
+
       overflow-y: auto;
-      padding: 25px;
-      background: #fbfeff;
+
+      padding: 28px;
+
+      background:
+        radial-gradient(
+          circle at 50% 35%,
+          rgba(103,47,196,.13),
+          transparent 42%
+        );
     }
 
     .welcome-message {
       text-align: center;
-      margin: 35px auto;
-      max-width: 390px;
+
+      margin: 80px auto;
+
+      max-width: 440px;
     }
 
     .welcome-icon {
-      width: 65px;
-      height: 65px;
-      margin: auto auto 15px;
-      border-radius: 20px;
-      background: #ffe36a;
+      width: 72px;
+      height: 72px;
+
+      margin: auto auto 20px;
+
+      border-radius: 22px;
+
+      background: var(--yellow);
+
+      color: #171020;
+
       display: flex;
+
       align-items: center;
       justify-content: center;
-      font-size: 30px;
+
+      font-size: 32px;
+
+      box-shadow:
+        0 0 35px rgba(255,228,92,.14);
     }
 
     .welcome-message h3 {
-      margin-bottom: 8px;
+      font-size: 23px;
+
+      margin-bottom: 10px;
     }
 
     .welcome-message p {
-      color: #78909f;
-      font-size: 13px;
-      line-height: 1.6;
+      color: var(--muted);
+
+      font-size: 14px;
+
+      line-height: 1.7;
     }
+
+    /* MESSAGE */
 
     .message {
       max-width: 70%;
-      margin-bottom: 14px;
-      padding: 12px 16px;
-      border-radius: 17px;
+
+      margin-bottom: 15px;
+
+      padding: 13px 17px;
+
+      border-radius: 18px;
+
       font-size: 14px;
+
       line-height: 1.5;
     }
 
     .message.mine {
       margin-left: auto;
-      background: #168bd1;
+
       color: white;
+
+      background:
+        linear-gradient(
+          135deg,
+          #8f55e9,
+          #6f3fd0
+        );
+
+      border:
+        1px solid rgba(197,154,255,.35);
+
       border-bottom-right-radius: 5px;
+
+      box-shadow:
+        0 7px 25px rgba(111,63,208,.18);
     }
+
+    /* INPUT */
 
     .input-area {
       padding: 15px;
-      border-top: 1px solid #edf3f6;
+
+      border-top:
+        1px solid rgba(255,255,255,.08);
+
       display: flex;
+
       gap: 10px;
-      background: white;
+
+      background:
+        rgba(5,5,15,.70);
     }
 
     #messageInput {
       flex: 1;
-      border: none;
+
+      border:
+        1px solid rgba(165,108,255,.20);
+
       outline: none;
-      background: #f2f8fb;
+
+      background:
+        rgba(255,255,255,.055);
+
+      color: white;
+
       padding: 14px 16px;
+
       border-radius: 14px;
+
       font-size: 14px;
     }
 
-    #sendButton {
-      width: 50px;
-      border: none;
-      border-radius: 14px;
-      background: #168bd1;
-      color: white;
-      font-size: 20px;
-      cursor: pointer;
+    #messageInput::placeholder {
+      color: #77758a;
     }
+
+    #messageInput:focus {
+      border-color:
+        rgba(165,108,255,.65);
+
+      box-shadow:
+        0 0 18px rgba(165,108,255,.10);
+    }
+
+    #sendButton {
+      width: 52px;
+
+      border: none;
+
+      border-radius: 14px;
+
+      background:
+        linear-gradient(
+          135deg,
+          #a56cff,
+          #7040d3
+        );
+
+      color: white;
+
+      font-size: 20px;
+
+      cursor: pointer;
+
+      box-shadow:
+        0 0 20px rgba(165,108,255,.20);
+
+      transition: .2s;
+    }
+
+    #sendButton:hover {
+      transform: translateY(-1px);
+
+      box-shadow:
+        0 0 30px rgba(165,108,255,.35);
+    }
+
+    /* LOADING */
 
     #loading {
       position: fixed;
+
       inset: 0;
-      background: #f2fbff;
+
+      background:
+        radial-gradient(
+          circle at 50% 50%,
+          #21124b,
+          #070713 65%
+        );
+
       display: flex;
+
       align-items: center;
+
       justify-content: center;
+
       z-index: 100;
+
       font-weight: 900;
-      color: #0b5d91;
+
+      color: white;
+
+      letter-spacing: 1px;
     }
 
-    @media(max-width: 800px) {
+    /* MOBILE */
+
+    @media (max-width: 800px) {
+
+      header {
+        height: 72px;
+
+        padding: 0 18px;
+      }
+
+      .logo {
+        font-size: 22px;
+      }
+
+      .logo-box {
+        width: 40px;
+        height: 40px;
+      }
+
       .user-name {
         display: none;
       }
 
       .chat-layout {
-        height: calc(100vh - 95px);
-        min-height: 0;
+        min-height:
+          calc(100vh - 92px);
+
+        height:
+          calc(100vh - 92px);
+
         margin: 10px auto;
+
         padding: 0 10px;
+
         grid-template-columns: 1fr;
       }
 
@@ -294,47 +632,103 @@
       }
 
       .chat-box {
+        min-height: 0;
+
+        height: 100%;
+
         border-radius: 20px;
       }
 
+      .messages {
+        padding: 18px;
+      }
+
+      .welcome-message {
+        margin: 70px auto 30px;
+      }
+
+      .welcome-message h3 {
+        font-size: 20px;
+      }
+
       .message {
-        max-width: 82%;
+        max-width: 84%;
+      }
+
+      .input-area {
+        padding: 10px;
       }
     }
+
   </style>
 </head>
 
 <body>
 
+  <!-- LOADING -->
+
   <div id="loading">
     Opening ToTalk...
   </div>
 
+
+  <!-- HEADER -->
+
   <header>
+
     <div class="logo">
-      <div class="logo-box">💬</div>
-      ToTalk
+
+      <div class="logo-box">
+        💬
+      </div>
+
+      To<span>Talk</span>
+
     </div>
 
+
     <div class="right-header">
-      <div class="user-name" id="userName">
+
+      <div
+        class="user-name"
+        id="userName"
+      >
         Loading...
       </div>
 
-      <button class="logout" id="logoutBtn">
+      <button
+        class="logout"
+        id="logoutBtn"
+      >
         Logout
       </button>
+
     </div>
+
   </header>
 
+
+  <!-- CHAT -->
+
   <main class="chat-layout">
+
+
+    <!-- SIDEBAR -->
 
     <aside class="sidebar">
 
       <div class="sidebar-title">
-        <h2>Chats</h2>
-        <p>Your conversations</p>
+
+        <h2>
+          Chats
+        </h2>
+
+        <p>
+          Your conversations
+        </p>
+
       </div>
+
 
       <div class="profile">
 
@@ -343,15 +737,26 @@
         </div>
 
         <div>
-          <strong id="sideName">You</strong>
-          <div class="online">● Online</div>
+
+          <strong id="sideName">
+            You
+          </strong>
+
+          <div class="online">
+            ● Online
+          </div>
+
         </div>
 
       </div>
 
     </aside>
 
+
+    <!-- CHAT BOX -->
+
     <section class="chat-box">
+
 
       <div class="chat-top">
 
@@ -360,13 +765,26 @@
         </div>
 
         <div>
-          <strong>ToTalk Chat</strong>
-          <small>● Ready to chat</small>
+
+          <strong>
+            ToTalk Chat
+          </strong>
+
+          <small>
+            ● Ready to chat
+          </small>
+
         </div>
 
       </div>
 
-      <div class="messages" id="messages">
+
+      <!-- MESSAGES -->
+
+      <div
+        class="messages"
+        id="messages"
+      >
 
         <div class="welcome-message">
 
@@ -387,6 +805,9 @@
 
       </div>
 
+
+      <!-- INPUT -->
+
       <div class="input-area">
 
         <input
@@ -396,7 +817,9 @@
           autocomplete="off"
         >
 
-        <button id="sendButton">
+        <button
+          id="sendButton"
+        >
           ➤
         </button>
 
@@ -406,24 +829,22 @@
 
   </main>
 
+
+  <!-- SUPABASE -->
+
   <script>
 
     const SUPABASE_URL =
       "https://qiynczbrhpxwuabwuyiy.supabase.co";
+
 
     const SUPABASE_KEY =
       "sb_publishable_eUPz4c_nYckgINEK-AIWqw_JAXIHozd";
 
 
     /*
-      IMPORTANT:
-      ToTalk uses PKCE.
-
-      Google sends the user back to this page with
-      ?code=...
-
-      We manually exchange that code for the
-      Supabase login session.
+      KEEPING THE CURRENT WORKING
+      GOOGLE LOGIN CONFIGURATION.
     */
 
     const supabaseClient =
@@ -434,73 +855,20 @@
           auth: {
             persistSession: true,
             autoRefreshToken: true,
-            detectSessionInUrl: false,
-            flowType: "pkce"
+            detectSessionInUrl: true,
+            flowType: "implicit"
           }
         }
       );
 
 
+    /*
+      CHECK LOGIN
+    */
+
     async function startChat() {
 
       try {
-
-        /*
-          Check whether Google returned an OAuth code.
-        */
-
-        const params =
-          new URLSearchParams(
-            window.location.search
-          );
-
-        const code =
-          params.get("code");
-
-
-        /*
-          If Google returned a code,
-          exchange it for the Supabase session.
-        */
-
-        if (code) {
-
-          const { error } =
-            await supabaseClient.auth.exchangeCodeForSession(
-              code
-            );
-
-          if (error) {
-
-            console.error(
-              "OAuth code exchange error:",
-              error
-            );
-
-            window.location.replace(
-              "./index.html?login_error=1"
-            );
-
-            return;
-          }
-
-
-          /*
-            Remove the OAuth code from
-            the browser address bar.
-          */
-
-          window.history.replaceState(
-            {},
-            document.title,
-            window.location.pathname
-          );
-        }
-
-
-        /*
-          Now check the actual Supabase session.
-        */
 
         const {
           data,
@@ -509,10 +877,10 @@
           await supabaseClient.auth.getSession();
 
 
-        if (error || !data.session) {
+        if (error) {
 
           console.error(
-            "No session:",
+            "Session error:",
             error
           );
 
@@ -524,9 +892,15 @@
         }
 
 
-        /*
-          Login successful.
-        */
+        if (!data.session) {
+
+          window.location.replace(
+            "./index.html"
+          );
+
+          return;
+        }
+
 
         const user =
           data.session.user;
@@ -564,7 +938,9 @@
         window.location.replace(
           "./index.html"
         );
+
       }
+
     }
 
 
@@ -578,7 +954,10 @@
         "click",
         async () => {
 
-          await supabaseClient.auth.signOut();
+          await supabaseClient
+            .auth
+            .signOut();
+
 
           window.location.replace(
             "./index.html"
@@ -633,7 +1012,9 @@
 
 
       const message =
-        document.createElement("div");
+        document.createElement(
+          "div"
+        );
 
 
       message.className =
@@ -654,6 +1035,7 @@
 
       messages.scrollTop =
         messages.scrollHeight;
+
     }
 
 
@@ -667,7 +1049,9 @@
       "keydown",
       function(event) {
 
-        if (event.key === "Enter") {
+        if (
+          event.key === "Enter"
+        ) {
 
           event.preventDefault();
 
