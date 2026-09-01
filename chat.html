@@ -229,16 +229,18 @@
       line-height: 1.5;
     }
 
-    .message:not(.mine) {
-      background: #eef5f8;
-      color: #263238;
-    }
-
     .message.mine {
       margin-left: auto;
       background: #168bd1;
       color: white;
       border-bottom-right-radius: 5px;
+    }
+
+    .message.theirs {
+      margin-right: auto;
+      background: #eef5f8;
+      color: #173d57;
+      border-bottom-left-radius: 5px;
     }
 
     .input-area {
@@ -447,8 +449,6 @@
 
     function showLoggedInUser(user) {
 
-      currentUser = user;
-
       const name =
         user.user_metadata?.full_name ||
         user.user_metadata?.name ||
@@ -459,8 +459,6 @@
       document.getElementById("sideName").textContent = name;
 
       document.getElementById("loading").style.display = "none";
-
-      loadMessages();
     }
 
 
@@ -623,8 +621,14 @@
 
 
     /*
-      SEND MESSAGE
+      SEND / LOAD MESSAGES
+
+      IMPORTANT:
+      The Google login/authentication code above is unchanged.
+      Messages are stored in the public.messages table in Supabase.
     */
+
+    let currentUser = null;
 
     const input =
       document.getElementById(
@@ -641,11 +645,22 @@
         "messages"
       );
 
-    let currentUser = null;
-
-
     function renderMessage(row) {
+      const message =
+        document.createElement("div");
 
+      message.className =
+        row.sender_id === currentUser.id
+          ? "message mine"
+          : "message theirs";
+
+      message.textContent =
+        row.content;
+
+      messages.appendChild(message);
+    }
+
+    async function loadMessages() {
       const welcome =
         document.querySelector(
           ".welcome-message"
@@ -655,22 +670,6 @@
         welcome.remove();
       }
 
-      const message =
-        document.createElement("div");
-
-      message.className =
-        "message" +
-        (currentUser && row.sender_id === currentUser.id ? " mine" : "");
-
-      message.textContent = row.content;
-
-      messages.appendChild(message);
-
-    }
-
-
-    async function loadMessages() {
-
       const { data, error } =
         await supabaseClient
           .from("messages")
@@ -678,7 +677,7 @@
           .order("created_at", { ascending: true });
 
       if (error) {
-        console.error("Could not load messages:", error);
+        console.error("Load messages error:", error);
         return;
       }
 
@@ -688,21 +687,20 @@
         messages.innerHTML = `
           <div class="welcome-message">
             <div class="welcome-icon">💬</div>
-            <h3>Start a conversation</h3>
-            <p>Your messages will now be saved here.</p>
+            <h3>Welcome to ToTalk</h3>
+            <p>You're in! This is your chat space.<br>Start by writing a message below.</p>
           </div>
         `;
-      } else {
-        data.forEach(renderMessage);
+        return;
       }
+
+      data.forEach(renderMessage);
 
       messages.scrollTop =
         messages.scrollHeight;
     }
 
-
     async function sendMessage() {
-
       const text =
         input.value.trim();
 
@@ -723,9 +721,18 @@
       sendButton.disabled = false;
 
       if (error) {
-        console.error("Could not save message:", error);
+        console.error("Send message error:", error);
         alert("Message could not be saved. Please try again.");
         return;
+      }
+
+      const welcome =
+        document.querySelector(
+          ".welcome-message"
+        );
+
+      if (welcome) {
+        welcome.remove();
       }
 
       renderMessage(data);
@@ -734,31 +741,31 @@
 
       messages.scrollTop =
         messages.scrollHeight;
-
     }
-
 
     sendButton.addEventListener(
       "click",
       sendMessage
     );
 
-
     input.addEventListener(
       "keydown",
       function(event) {
-
         if (event.key === "Enter") {
-
           event.preventDefault();
-
           sendMessage();
-
         }
-
       }
     );
 
+    // When login succeeds, remember the user and load saved messages.
+    const originalShowLoggedInUser = showLoggedInUser;
+
+    showLoggedInUser = function(user) {
+      currentUser = user;
+      originalShowLoggedInUser(user);
+      loadMessages();
+    };
 
     /*
       START
