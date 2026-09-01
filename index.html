@@ -4,77 +4,83 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>ToTalk — Chat Freely</title>
+  <title>ToTalk — Talk. Connect. Enjoy.</title>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
     * {
+      box-sizing: border-box;
       margin: 0;
       padding: 0;
-      box-sizing: border-box;
     }
 
     :root {
-      --blue: #168bd1;
-      --dark-blue: #075b8d;
-      --sky: #e8f8ff;
-      --yellow: #ffe36a;
-      --soft-yellow: #fff9d8;
-      --text: #143b54;
-      --muted: #718a99;
+      --blue: #1596dc;
+      --deep-blue: #075d91;
+      --sky: #e9f8ff;
+      --yellow: #ffe36b;
+      --dark-yellow: #d3a500;
+      --white: #ffffff;
+      --text: #123c55;
+      --muted: #708895;
+    }
+
+    html {
+      scroll-behavior: smooth;
     }
 
     body {
       font-family: Arial, Helvetica, sans-serif;
       color: var(--text);
-      min-height: 100vh;
       background:
-        radial-gradient(circle at 8% 8%, #c8f0ff 0, transparent 27%),
-        radial-gradient(circle at 92% 18%, #fff0a1 0, transparent 25%),
-        linear-gradient(145deg, #f0fbff, #ffffff 55%, #fffdf0);
+        radial-gradient(circle at 5% 5%, #c9f0ff 0, transparent 28%),
+        radial-gradient(circle at 95% 10%, #fff0a0 0, transparent 25%),
+        linear-gradient(145deg, #f3fcff 0%, #ffffff 55%, #fffef2 100%);
+      min-height: 100vh;
       overflow-x: hidden;
     }
 
-    /* NAVIGATION */
+    /* NAVBAR */
 
     nav {
-      max-width: 1200px;
+      width: 100%;
+      max-width: 1180px;
       margin: auto;
-      padding: 22px 6%;
+      padding: 22px 28px;
       display: flex;
-      align-items: center;
       justify-content: space-between;
+      align-items: center;
     }
 
-    .brand {
+    .logo {
       display: flex;
       align-items: center;
-      gap: 11px;
-      font-size: 25px;
+      gap: 12px;
+      font-size: 26px;
       font-weight: 900;
-      color: var(--dark-blue);
+      color: var(--deep-blue);
     }
 
-    .brand-icon {
-      width: 45px;
-      height: 45px;
-      border-radius: 14px;
+    .logo-box {
+      width: 46px;
+      height: 46px;
+      border-radius: 15px;
       background: var(--yellow);
       display: flex;
-      align-items: center;
       justify-content: center;
-      font-size: 22px;
-      box-shadow: 0 8px 20px rgba(215, 177, 24, .18);
+      align-items: center;
+      font-size: 23px;
+      box-shadow: 0 10px 25px rgba(200, 165, 0, .18);
     }
 
-    .brand span {
-      color: #d7a912;
+    .logo span {
+      color: var(--dark-yellow);
     }
 
     .creator {
-      color: var(--muted);
       font-size: 14px;
+      color: var(--muted);
       font-weight: 700;
     }
 
@@ -85,47 +91,43 @@
     /* HERO */
 
     .hero {
-      max-width: 1200px;
+      max-width: 1180px;
       min-height: 650px;
       margin: auto;
-      padding: 55px 6% 80px;
+      padding: 65px 28px 90px;
       display: grid;
-      grid-template-columns: 1fr 0.9fr;
-      gap: 70px;
+      grid-template-columns: 1.05fr .95fr;
+      gap: 65px;
       align-items: center;
     }
 
-    .hero-content {
-      max-width: 650px;
-    }
-
-    .tag {
+    .eyebrow {
       display: inline-flex;
       align-items: center;
-      gap: 8px;
-      background: white;
-      border: 1px solid #dceef5;
+      gap: 9px;
+      background: rgba(255,255,255,.85);
+      border: 1px solid #d9edf5;
+      padding: 11px 17px;
       border-radius: 30px;
-      padding: 10px 16px;
-      color: var(--dark-blue);
       font-size: 13px;
       font-weight: 800;
-      margin-bottom: 24px;
-      box-shadow: 0 8px 25px rgba(30,100,130,.06);
+      color: var(--deep-blue);
+      margin-bottom: 25px;
+      box-shadow: 0 8px 25px rgba(20,100,130,.06);
     }
 
-    .dot {
-      width: 8px;
-      height: 8px;
-      background: #35c66a;
+    .online-dot {
+      width: 9px;
+      height: 9px;
+      background: #32c76a;
       border-radius: 50%;
     }
 
     h1 {
-      font-size: clamp(50px, 7vw, 82px);
-      line-height: .98;
+      font-size: clamp(52px, 7vw, 82px);
+      line-height: .96;
       letter-spacing: -4px;
-      margin-bottom: 25px;
+      margin-bottom: 27px;
     }
 
     h1 .blue {
@@ -133,43 +135,62 @@
     }
 
     h1 .yellow {
-      color: #d9aa16;
+      color: var(--dark-yellow);
     }
 
-    .description {
-      max-width: 570px;
+    .intro {
+      max-width: 610px;
       color: var(--muted);
       font-size: 18px;
       line-height: 1.75;
-      margin-bottom: 32px;
+      margin-bottom: 28px;
     }
 
     .sameer {
-      color: var(--dark-blue);
+      color: var(--deep-blue);
       font-weight: 900;
       border-bottom: 4px solid var(--yellow);
     }
 
-    /* LOGIN BUTTON */
+    /* IMPORTANT MESSAGE */
+
+    .not-contact {
+      max-width: 590px;
+      padding: 17px 19px;
+      border-radius: 17px;
+      background: #fffdf0;
+      border: 1px solid #f3e8a9;
+      color: #756522;
+      font-size: 14px;
+      line-height: 1.55;
+      margin-bottom: 30px;
+    }
+
+    .not-contact strong {
+      color: #5f5111;
+    }
+
+    /* LOGIN */
 
     .login-btn {
       border: none;
       cursor: pointer;
-      padding: 17px 25px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      padding: 17px 27px;
       border-radius: 16px;
       background: var(--blue);
       color: white;
-      display: inline-flex;
-      align-items: center;
-      gap: 12px;
       font-size: 16px;
       font-weight: 900;
-      box-shadow: 0 15px 30px rgba(22,139,209,.24);
+      box-shadow: 0 15px 32px rgba(21,150,220,.25);
       transition: .2s ease;
     }
 
     .login-btn:hover {
-      background: var(--dark-blue);
+      background: var(--deep-blue);
       transform: translateY(-3px);
     }
 
@@ -180,8 +201,8 @@
     }
 
     .google {
-      width: 23px;
-      height: 23px;
+      width: 24px;
+      height: 24px;
       border-radius: 50%;
       background: white;
       color: #4285f4;
@@ -192,11 +213,10 @@
     }
 
     #status {
-      margin-top: 14px;
       min-height: 20px;
+      margin-top: 13px;
       font-size: 13px;
       font-weight: 700;
-      color: var(--dark-blue);
     }
 
     /* CHAT PREVIEW */
@@ -205,226 +225,219 @@
       position: relative;
     }
 
-    .chat-card {
-      background: rgba(255,255,255,.86);
-      border: 2px solid white;
-      border-radius: 32px;
+    .chat-window {
+      background: rgba(255,255,255,.9);
       padding: 11px;
-      box-shadow: 0 30px 75px rgba(22,102,138,.14);
-      backdrop-filter: blur(12px);
+      border: 2px solid white;
+      border-radius: 34px;
+      box-shadow: 0 35px 80px rgba(20,100,135,.15);
     }
 
-    .chat {
+    .chat-inner {
       background: white;
-      border-radius: 24px;
+      border-radius: 25px;
       overflow: hidden;
     }
 
-    .chat-header {
-      padding: 20px;
+    .chat-top {
       display: flex;
       align-items: center;
-      gap: 12px;
-      border-bottom: 1px solid #edf3f6;
+      gap: 13px;
+      padding: 20px;
+      border-bottom: 1px solid #edf2f5;
     }
 
     .avatar {
-      width: 47px;
-      height: 47px;
+      width: 48px;
+      height: 48px;
       border-radius: 50%;
-      background: #dff6ff;
+      background: #def5ff;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 22px;
+      font-size: 23px;
     }
 
-    .person strong {
+    .chat-name strong {
       display: block;
       font-size: 15px;
+      margin-bottom: 4px;
     }
 
-    .person small {
-      color: #36b967;
-      font-weight: 700;
+    .chat-name small {
+      color: #31b963;
+      font-weight: 800;
     }
 
     .messages {
-      padding: 28px 20px;
-      min-height: 340px;
-      background: #f8fdff;
+      min-height: 345px;
+      padding: 27px 20px;
+      background: #f7fcff;
     }
 
-    .message {
-      max-width: 76%;
+    .msg {
+      width: fit-content;
+      max-width: 78%;
       padding: 13px 16px;
       border-radius: 18px;
-      margin-bottom: 14px;
+      margin-bottom: 13px;
       font-size: 14px;
       line-height: 1.5;
     }
 
-    .left {
-      background: #e3f6fd;
+    .msg.left {
+      background: #e2f5fc;
       border-bottom-left-radius: 5px;
     }
 
-    .right {
+    .msg.right {
       margin-left: auto;
       background: var(--blue);
       color: white;
       border-bottom-right-radius: 5px;
     }
 
-    .yellow-message {
-      background: var(--soft-yellow);
-      color: #66591d;
+    .msg.yellow {
+      background: #fff9d9;
+      color: #65591d;
       border-bottom-left-radius: 5px;
     }
 
-    .input-preview {
-      padding: 15px;
-      border-top: 1px solid #edf3f6;
+    .chat-input {
       display: flex;
       gap: 10px;
+      padding: 15px;
+      border-top: 1px solid #edf2f5;
     }
 
     .fake-input {
       flex: 1;
-      background: #f1f8fb;
-      padding: 13px;
+      background: #f2f8fb;
       border-radius: 13px;
-      color: #9aadb7;
+      padding: 13px;
+      color: #9aadb6;
       font-size: 13px;
     }
 
     .send {
-      width: 45px;
+      width: 46px;
       border: none;
       border-radius: 13px;
       background: var(--yellow);
       font-size: 18px;
     }
 
-    .bubble {
+    .floating {
       position: absolute;
       background: white;
+      padding: 13px 17px;
       border-radius: 15px;
-      padding: 12px 16px;
-      box-shadow: 0 15px 35px rgba(22,100,130,.13);
+      box-shadow: 0 16px 35px rgba(20,100,130,.13);
       font-size: 13px;
       font-weight: 900;
     }
 
-    .bubble.one {
+    .floating.one {
       top: -22px;
-      left: -20px;
+      left: -22px;
     }
 
-    .bubble.two {
+    .floating.two {
       right: -20px;
       bottom: 40px;
-      background: var(--soft-yellow);
+      background: #fff9d9;
     }
 
-    /* ABOUT */
+    /* INFO */
 
-    .about {
-      padding: 30px 6% 90px;
+    .info {
+      padding: 20px 28px 90px;
     }
 
-    .about-box {
+    .info-box {
       max-width: 1050px;
       margin: auto;
-      padding: 40px 45px;
+      padding: 42px;
       border-radius: 30px;
-      background: linear-gradient(110deg, #fff8c9, #e2f7ff);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 30px;
-      box-shadow: 0 15px 45px rgba(30,105,135,.08);
+      background: linear-gradient(110deg, #fff8c9, #e3f7ff);
+      box-shadow: 0 18px 50px rgba(20,100,130,.08);
     }
 
-    .about-box h2 {
-      font-size: 29px;
-      margin-bottom: 9px;
+    .info-box h2 {
+      font-size: 30px;
+      margin-bottom: 12px;
     }
 
-    .about-box p {
+    .info-box p {
       color: var(--muted);
-      line-height: 1.6;
+      line-height: 1.75;
+      max-width: 850px;
     }
 
-    .signature {
-      white-space: nowrap;
-      font-size: 27px;
-      font-weight: 900;
-      color: var(--dark-blue);
-    }
-
-    .signature span {
-      color: #d7a912;
+    .creator-line {
+      margin-top: 17px;
+      color: var(--deep-blue) !important;
+      font-weight: 800;
     }
 
     /* FEATURES */
 
     .features {
-      padding: 85px 6% 100px;
-      background: rgba(255,255,255,.7);
+      padding: 85px 28px 100px;
+      background: rgba(255,255,255,.72);
     }
 
-    .heading {
+    .section-title {
+      max-width: 680px;
       text-align: center;
-      max-width: 650px;
-      margin: 0 auto 45px;
+      margin: auto auto 45px;
     }
 
-    .heading small {
+    .section-title small {
       color: var(--blue);
       font-weight: 900;
       letter-spacing: 2px;
-      font-size: 12px;
       text-transform: uppercase;
+      font-size: 12px;
     }
 
-    .heading h2 {
+    .section-title h2 {
       font-size: 42px;
       letter-spacing: -2px;
       margin: 10px 0;
     }
 
-    .heading p {
+    .section-title p {
       color: var(--muted);
-      line-height: 1.6;
+      line-height: 1.65;
     }
 
-    .grid {
+    .feature-grid {
       max-width: 1050px;
       margin: auto;
       display: grid;
-      grid-template-columns: repeat(3,1fr);
+      grid-template-columns: repeat(3, 1fr);
       gap: 20px;
     }
 
     .feature {
-      padding: 30px;
       background: white;
-      border: 1px solid #e3eff4;
+      border: 1px solid #e3eef3;
       border-radius: 24px;
+      padding: 30px;
       transition: .2s ease;
     }
 
     .feature:hover {
       transform: translateY(-6px);
-      box-shadow: 0 20px 45px rgba(30,105,135,.1);
+      box-shadow: 0 20px 45px rgba(20,100,130,.10);
     }
 
-    .icon {
+    .feature-icon {
       width: 53px;
       height: 53px;
       border-radius: 16px;
-      background: var(--soft-yellow);
+      background: #fff8d5;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -432,17 +445,17 @@
       margin-bottom: 19px;
     }
 
-    .feature:nth-child(2) .icon {
-      background: #e4f7ff;
+    .feature:nth-child(2) .feature-icon {
+      background: #e3f7ff;
     }
 
-    .feature:nth-child(3) .icon {
-      background: #edf4ff;
+    .feature:nth-child(3) .feature-icon {
+      background: #eaf1ff;
     }
 
     .feature h3 {
+      margin-bottom: 10px;
       font-size: 19px;
-      margin-bottom: 9px;
     }
 
     .feature p {
@@ -454,10 +467,10 @@
     /* FOOTER */
 
     footer {
-      padding: 30px;
-      text-align: center;
       background: white;
-      color: #78909f;
+      text-align: center;
+      padding: 30px 20px;
+      color: #7b909c;
       font-size: 13px;
     }
 
@@ -469,77 +482,76 @@
 
     @media (max-width: 850px) {
 
+      nav {
+        padding: 18px 20px;
+      }
+
       .creator {
         display: none;
       }
 
       .hero {
         grid-template-columns: 1fr;
-        padding-top: 35px;
+        padding: 45px 20px 75px;
+        gap: 60px;
       }
 
-      .hero-content {
+      .hero-text {
         text-align: center;
-        margin: auto;
       }
 
-      .description {
+      .intro,
+      .not-contact {
         margin-left: auto;
         margin-right: auto;
       }
 
       .preview {
-        max-width: 520px;
         width: 100%;
+        max-width: 540px;
         margin: auto;
       }
 
-      .grid {
+      .feature-grid {
         grid-template-columns: 1fr;
-        max-width: 500px;
+        max-width: 520px;
       }
 
-      .about-box {
-        flex-direction: column;
-        text-align: center;
+      .info-box {
+        padding: 32px 25px;
       }
     }
 
     @media (max-width: 500px) {
 
-      nav {
-        padding: 18px 5%;
+      .logo {
+        font-size: 23px;
       }
 
-      .hero {
-        padding-left: 5%;
-        padding-right: 5%;
+      .logo-box {
+        width: 42px;
+        height: 42px;
       }
 
       h1 {
-        font-size: 53px;
+        font-size: 52px;
+        letter-spacing: -3px;
       }
 
-      .bubble {
+      .intro {
+        font-size: 16px;
+      }
+
+      .floating {
         display: none;
       }
 
-      .about {
-        padding-left: 5%;
-        padding-right: 5%;
+      .section-title h2 {
+        font-size: 34px;
       }
 
-      .about-box {
-        padding: 32px 24px;
-      }
-
-      .features {
-        padding-left: 5%;
-        padding-right: 5%;
-      }
-
-      .heading h2 {
-        font-size: 35px;
+      .messages {
+        min-height: 300px;
       }
     }
   </style>
@@ -547,12 +559,12 @@
 
 <body>
 
-  <!-- NAVBAR -->
+  <!-- NAVIGATION -->
 
   <nav>
 
-    <div class="brand">
-      <div class="brand-icon">💬</div>
+    <div class="logo">
+      <div class="logo-box">💬</div>
       To<span>Talk</span>
     </div>
 
@@ -563,29 +575,38 @@
   </nav>
 
 
-  <!-- HERO -->
+  <!-- MAIN HERO -->
 
   <section class="hero">
 
-    <div class="hero-content">
+    <div class="hero-text">
 
-      <div class="tag">
-        <span class="dot"></span>
-        A simple place to talk
+      <div class="eyebrow">
+        <span class="online-dot"></span>
+        Welcome to ToTalk
       </div>
 
       <h1>
-        Talk freely.<br>
-        Connect <span class="blue">easily.</span><br>
-        Be <span class="yellow">yourself.</span>
+        Talk.<br>
+        Connect.<br>
+        <span class="blue">Enjoy.</span>
       </h1>
 
-      <p class="description">
-        Welcome to ToTalk — a fresh and simple place
-        for conversations, connections and new chats.
-        Built with an idea from
-        <span class="sameer">Sameer</span>.
+      <p class="intro">
+        ToTalk is a simple place made for chatting and
+        connecting with people. Create an account,
+        enter the conversation and enjoy your time here.
       </p>
+
+
+      <!-- CLEARLY NOT A PERSONAL CONTACT PAGE -->
+
+      <div class="not-contact">
+        <strong>Just to be clear:</strong>
+        ToTalk is a chatting platform, not a personal
+        contact page for Sameer. The name Sameer appears
+        because he created this project.
+      </div>
 
 
       <!-- ONE LOGIN BUTTON -->
@@ -607,27 +628,30 @@
 
     <div class="preview">
 
-      <div class="bubble one">
-        💬 Start a conversation
+      <div class="floating one">
+        💬 Ready to chat?
       </div>
 
-      <div class="bubble two">
+      <div class="floating two">
         ✨ ToTalk by Sameer
       </div>
 
-      <div class="chat-card">
+      <div class="chat-window">
 
-        <div class="chat">
+        <div class="chat-inner">
 
-          <div class="chat-header">
+          <div class="chat-top">
 
             <div class="avatar">
               😊
             </div>
 
-            <div class="person">
-              <strong>ToTalk</strong>
+            <div class="chat-name">
+
+              <strong>ToTalk Chat</strong>
+
               <small>● Online</small>
+
             </div>
 
           </div>
@@ -635,26 +659,30 @@
 
           <div class="messages">
 
-            <div class="message left">
-              Hey! Welcome to ToTalk 👋
+            <div class="msg left">
+              Welcome to ToTalk 👋
             </div>
 
-            <div class="message right">
-              Hey! Nice to be here 😊
+            <div class="msg right">
+              Hey! What's up? 😄
             </div>
 
-            <div class="message yellow-message">
-              What should we talk about?
+            <div class="msg left yellow">
+              Nothing much. Let's chat!
             </div>
 
-            <div class="message right">
-              Anything! That's the idea ✨
+            <div class="msg right">
+              That's what ToTalk is for ✨
+            </div>
+
+            <div class="msg left">
+              Sounds good! 🚀
             </div>
 
           </div>
 
 
-          <div class="input-preview">
+          <div class="chat-input">
 
             <div class="fake-input">
               Write a message...
@@ -675,28 +703,26 @@
   </section>
 
 
-  <!-- SAMEER SECTION -->
+  <!-- ABOUT TOTAlK -->
 
-  <section class="about">
+  <section class="info">
 
-    <div class="about-box">
+    <div class="info-box">
 
-      <div>
+      <h2>
+        This is ToTalk.
+      </h2>
 
-        <h2>
-          A place built for conversations.
-        </h2>
+      <p>
+        A place where people can sign in and enjoy
+        conversations without making things complicated.
+        The goal is simple — open ToTalk, find your way
+        into the chat and have a good time.
+      </p>
 
-        <p>
-          ToTalk is created by Sameer with one simple idea:
-          make chatting feel clean, friendly and easy.
-        </p>
-
-      </div>
-
-      <div class="signature">
-        — <span>Sameer</span>
-      </div>
+      <p class="creator-line">
+        Created and designed by Sameer.
+      </p>
 
     </div>
 
@@ -707,33 +733,37 @@
 
   <section class="features">
 
-    <div class="heading">
+    <div class="section-title">
 
-      <small>ToTalk</small>
+      <small>Why ToTalk?</small>
 
       <h2>
-        Everything starts with a conversation.
+        Made around chatting.
       </h2>
 
       <p>
-        No unnecessary distractions. Just a clean
-        space made around chatting.
+        A clean and straightforward experience
+        without unnecessary things getting in the way.
       </p>
 
     </div>
 
 
-    <div class="grid">
+    <div class="feature-grid">
 
       <div class="feature">
 
-        <div class="icon">💬</div>
+        <div class="feature-icon">
+          💬
+        </div>
 
-        <h3>Simple Chat</h3>
+        <h3>
+          Chat
+        </h3>
 
         <p>
-          An easy interface designed to keep
-          conversations comfortable and clear.
+          A simple space designed around
+          conversations and messages.
         </p>
 
       </div>
@@ -741,13 +771,17 @@
 
       <div class="feature">
 
-        <div class="icon">👥</div>
+        <div class="feature-icon">
+          👥
+        </div>
 
-        <h3>Connect</h3>
+        <h3>
+          Connect
+        </h3>
 
         <p>
-          Find conversations and connect with
-          people through ToTalk.
+          Sign in and get into the ToTalk
+          experience with your account.
         </p>
 
       </div>
@@ -755,13 +789,17 @@
 
       <div class="feature">
 
-        <div class="icon">✨</div>
+        <div class="feature-icon">
+          ⚡
+        </div>
 
-        <h3>Made by Sameer</h3>
+        <h3>
+          Keep It Simple
+        </h3>
 
         <p>
-          An independent project that will keep
-          getting better as ToTalk grows.
+          No unnecessary clutter. Just a fresh,
+          friendly place built around chatting.
         </p>
 
       </div>
@@ -774,11 +812,14 @@
   <!-- FOOTER -->
 
   <footer>
-    ToTalk © 2026 · Created by <strong>Sameer</strong>
+
+    ToTalk © 2026 · Created by
+    <strong>Sameer</strong>
+
   </footer>
 
 
-  <!-- LOGIN -->
+  <!-- SUPABASE LOGIN -->
 
   <script>
 
@@ -803,7 +844,17 @@
       document.getElementById("status");
 
 
-    /* GOOGLE LOGIN */
+    /*
+      IMPORTANT:
+      new URL("chat.html", window.location.href)
+      automatically keeps your GitHub Pages /ToTalk/
+      folder.
+
+      Example:
+      https://sameer6466443.github.io/ToTalk/
+      becomes:
+      https://sameer6466443.github.io/ToTalk/chat.html
+    */
 
     loginBtn.addEventListener("click", async () => {
 
@@ -815,6 +866,13 @@
       status.textContent = "";
 
 
+      const chatURL =
+        new URL(
+          "chat.html",
+          window.location.href
+        ).href;
+
+
       const { error } =
         await supabaseClient.auth.signInWithOAuth({
 
@@ -822,8 +880,7 @@
 
           options: {
 
-            redirectTo:
-              window.location.origin + "/chat.html"
+            redirectTo: chatURL
 
           }
 
@@ -835,7 +892,7 @@
         console.error(error);
 
         status.textContent =
-          "Login error. Please try again.";
+          "Unable to start Google login. Please try again.";
 
         loginBtn.disabled = false;
 
@@ -847,9 +904,13 @@
     });
 
 
-    /* IF ALREADY LOGGED IN */
+    /*
+      If someone is already logged in,
+      send them to chat.html instead of
+      showing the homepage again.
+    */
 
-    async function checkSession() {
+    async function checkLogin() {
 
       const {
         data: { session }
@@ -859,15 +920,20 @@
 
       if (session) {
 
-        window.location.href =
-          "chat.html";
+        const chatURL =
+          new URL(
+            "chat.html",
+            window.location.href
+          ).href;
+
+        window.location.replace(chatURL);
 
       }
 
     }
 
 
-    checkSession();
+    checkLogin();
 
   </script>
 
