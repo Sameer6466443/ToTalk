@@ -4,7 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>ToTalk — Start a Conversation</title>
+<title>ToTalk — Talk. Connect. Enjoy.</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
 *{
@@ -14,374 +16,338 @@
 }
 
 body{
-    font-family:Inter,Arial,Helvetica,sans-serif;
-    color:#102f45;
-    background:#f5fbff;
-    overflow-x:hidden;
+    font-family:Arial,Helvetica,sans-serif;
+    background:#f4fbff;
+    color:#12334a;
 }
 
-/* ================= NAV ================= */
+/* NAVBAR */
 
 nav{
-    height:82px;
+    height:78px;
     padding:0 7%;
     display:flex;
     align-items:center;
     justify-content:space-between;
-    background:rgba(255,255,255,.82);
-    backdrop-filter:blur(18px);
-    border-bottom:1px solid rgba(16,47,69,.07);
+    background:rgba(255,255,255,.92);
+    border-bottom:1px solid #dfedf4;
+    position:sticky;
+    top:0;
+    z-index:10;
 }
 
 .logo{
-    font-size:30px;
+    font-size:29px;
     font-weight:900;
     letter-spacing:-1.5px;
 }
 
 .logo span{
-    color:#f2c533;
+    color:#efc12c;
 }
 
-/* ONLY LOGIN BUTTON */
+/* ONE LOGIN BUTTON */
 
-.login{
-    text-decoration:none;
-    background:#102f45;
-    color:#fff;
-    padding:12px 24px;
-    border-radius:50px;
+.login-button{
+    border:none;
+    cursor:pointer;
+    padding:12px 25px;
+    border-radius:30px;
+    background:#12334a;
+    color:white;
     font-size:14px;
     font-weight:800;
     transition:.25s;
 }
 
-.login:hover{
+.login-button:hover{
     transform:translateY(-2px);
-    box-shadow:0 12px 25px rgba(16,47,69,.2);
+    box-shadow:0 10px 25px rgba(18,51,74,.2);
 }
 
-
-/* ================= HERO ================= */
+/* HERO */
 
 .hero{
-    min-height:650px;
+    min-height:610px;
     padding:80px 7%;
-    position:relative;
     display:flex;
     align-items:center;
+    position:relative;
     overflow:hidden;
 
     background:
-    radial-gradient(circle at 15% 20%,#d5f4ff 0,transparent 27%),
-    radial-gradient(circle at 85% 15%,#fff1a5 0,transparent 25%),
-    linear-gradient(135deg,#f9fdff,#eaf8ff);
+        radial-gradient(circle at 10% 20%,#c9f0ff 0,transparent 29%),
+        radial-gradient(circle at 90% 15%,#fff0a5 0,transparent 28%),
+        linear-gradient(135deg,#f9fdff,#e9f8ff);
 }
 
-.hero-grid{
-    max-width:1180px;
+.hero-content{
+    max-width:1150px;
     width:100%;
     margin:auto;
     display:grid;
     grid-template-columns:1fr 1fr;
-    gap:70px;
+    gap:60px;
     align-items:center;
 }
 
-/* LEFT */
+/* HERO TEXT */
 
-.label{
-    display:inline-flex;
-    align-items:center;
-    gap:8px;
-    background:#fff2b2;
-    color:#745b00;
-    border:1px solid #f1dc72;
-    padding:9px 15px;
-    border-radius:50px;
+.badge{
+    display:inline-block;
+    padding:9px 16px;
+    border-radius:30px;
+    background:#fff1a8;
+    color:#715900;
     font-size:13px;
     font-weight:800;
-    margin-bottom:24px;
-}
-
-.label-dot{
-    width:7px;
-    height:7px;
-    border-radius:50%;
-    background:#54bd85;
+    margin-bottom:23px;
 }
 
 h1{
-    font-size:clamp(54px,7vw,84px);
+    font-size:clamp(55px,7vw,84px);
     line-height:.96;
     letter-spacing:-5px;
-    font-weight:900;
-    margin-bottom:27px;
+    margin-bottom:25px;
 }
 
-h1 .blue{
-    color:#237da9;
+.blue{
+    color:#287fa8;
 }
 
-h1 .yellow{
-    color:#e8b91d;
+.yellow{
+    color:#e7b91f;
 }
 
-.hero-text{
-    max-width:530px;
-    color:#607889;
+.description{
+    max-width:550px;
+    color:#607989;
     font-size:18px;
     line-height:1.75;
 }
 
-.creator{
-    margin-top:24px;
+.created{
+    margin-top:23px;
+    color:#7d929f;
     font-size:14px;
-    color:#8195a3;
 }
 
-.creator strong{
-    color:#17354b;
+.created strong{
+    color:#12334a;
 }
 
-
-/* ================= PLAYFUL VISUAL ================= */
+/* CHAT DESIGN */
 
 .visual{
-    height:450px;
-    position:relative;
+    height:410px;
     display:flex;
-    justify-content:center;
     align-items:center;
+    justify-content:center;
+    position:relative;
 }
 
 .sun{
     position:absolute;
-    width:260px;
-    height:260px;
+    width:270px;
+    height:270px;
     border-radius:50%;
-    background:#fff0a0;
+    background:#fff0a2;
 }
 
-.circle{
+.ring{
     position:absolute;
-    width:340px;
-    height:340px;
-    border:1px solid rgba(35,125,169,.16);
+    width:360px;
+    height:360px;
+    border:1px solid rgba(40,127,168,.18);
     border-radius:50%;
 }
-
-.circle-small{
-    position:absolute;
-    width:230px;
-    height:230px;
-    border:1px dashed rgba(35,125,169,.18);
-    border-radius:50%;
-}
-
-/* CHAT WINDOW */
 
 .chat{
-    width:285px;
-    min-height:320px;
     position:relative;
-    z-index:3;
-    background:rgba(255,255,255,.88);
-    border:1px solid rgba(255,255,255,.95);
-    border-radius:32px;
+    z-index:2;
+    width:285px;
     padding:25px;
-    box-shadow:0 30px 70px rgba(38,107,140,.17);
-    backdrop-filter:blur(20px);
+    background:rgba(255,255,255,.9);
+    border:1px solid white;
+    border-radius:30px;
+    box-shadow:0 30px 70px rgba(38,108,142,.18);
 }
 
-.chat-top{
+.chat-header{
     display:flex;
     justify-content:space-between;
     align-items:center;
-    margin-bottom:28px;
+    margin-bottom:25px;
 }
 
 .chat-title{
     font-weight:900;
-    color:#237da9;
+    color:#287fa8;
 }
 
-.online{
+.dot{
     width:9px;
     height:9px;
-    background:#55c88a;
+    background:#54c78a;
     border-radius:50%;
-    box-shadow:0 0 0 6px rgba(85,200,138,.13);
 }
 
-.bubble{
-    padding:13px 16px;
-    border-radius:18px;
-    width:max-content;
-    max-width:210px;
-    font-size:14px;
+.msg{
+    padding:12px 15px;
+    border-radius:17px;
+    font-size:13px;
     line-height:1.4;
-    margin-bottom:14px;
+    max-width:210px;
+    margin-bottom:12px;
 }
 
-.bubble.left{
-    background:#e5f7ff;
-    border-bottom-left-radius:5px;
+.msg.one{
+    background:#e3f6ff;
 }
 
-.bubble.right{
+.msg.two{
+    background:#fff0a4;
     margin-left:auto;
-    background:#fff0a3;
-    border-bottom-right-radius:5px;
 }
 
-.chat-bottom{
-    margin-top:25px;
-    padding:11px 14px;
-    border-radius:14px;
-    background:#f1f8fb;
-    color:#9aabb5;
+.msg.three{
+    background:#e3f6ff;
+}
+
+.input{
+    margin-top:20px;
+    background:#f1f7fa;
+    padding:12px;
+    border-radius:13px;
+    color:#9aaab3;
     font-size:12px;
 }
 
-
-/* FLOATING ELEMENTS */
-
 .float{
     position:absolute;
-    z-index:5;
+    z-index:3;
     padding:12px 15px;
-    border-radius:18px;
-    background:#fff;
-    box-shadow:0 15px 35px rgba(38,107,140,.12);
+    background:white;
+    border-radius:16px;
+    box-shadow:0 12px 30px rgba(40,108,142,.12);
     font-size:12px;
     font-weight:800;
 }
 
 .float.one{
-    top:40px;
-    left:15px;
+    top:35px;
+    left:0;
     transform:rotate(-5deg);
 }
 
 .float.two{
     right:0;
-    bottom:45px;
+    bottom:35px;
+    background:#fff4b9;
     transform:rotate(5deg);
-    background:#fff5bd;
 }
 
-.spark{
-    position:absolute;
-    font-size:27px;
-}
+/* FEATURES */
 
-.spark.one{
-    right:45px;
-    top:30px;
-}
-
-.spark.two{
-    left:25px;
-    bottom:55px;
-}
-
-
-/* ================= SECTION ================= */
-
-.section{
-    padding:95px 7%;
-    background:#fff;
+.features{
+    padding:90px 7%;
+    background:white;
     text-align:center;
 }
 
-.section h2{
-    font-size:clamp(34px,5vw,52px);
-    letter-spacing:-2.5px;
-    margin-bottom:16px;
+.features h2{
+    font-size:43px;
+    letter-spacing:-2px;
+    margin-bottom:14px;
 }
 
-.section-intro{
-    max-width:620px;
+.subtitle{
+    max-width:600px;
     margin:auto;
-    color:#687e8d;
-    font-size:17px;
+    color:#6b8190;
     line-height:1.7;
+    font-size:17px;
 }
-
-
-/* ================= CARDS ================= */
 
 .cards{
     max-width:1050px;
-    margin:50px auto 0;
+    margin:48px auto 0;
     display:grid;
     grid-template-columns:repeat(3,1fr);
     gap:22px;
 }
 
 .card{
-    text-align:left;
     padding:30px;
-    border-radius:25px;
-    border:1px solid #e0edf3;
-    background:#f8fcfe;
+    text-align:left;
+    background:#f7fcff;
+    border:1px solid #e0eef4;
+    border-radius:24px;
     transition:.25s;
 }
 
 .card:hover{
-    transform:translateY(-7px);
-    box-shadow:0 20px 40px rgba(35,125,169,.1);
+    transform:translateY(-6px);
+    box-shadow:0 18px 40px rgba(35,115,150,.1);
 }
 
 .icon{
-    width:55px;
-    height:55px;
+    width:52px;
+    height:52px;
     display:flex;
-    justify-content:center;
     align-items:center;
-    border-radius:17px;
-    background:#fff0a3;
-    font-size:24px;
+    justify-content:center;
+    background:#fff0a5;
+    border-radius:16px;
+    font-size:23px;
     margin-bottom:20px;
 }
 
 .card:nth-child(2) .icon{
-    background:#d9f4ff;
+    background:#d8f4ff;
 }
 
 .card:nth-child(3) .icon{
-    background:#e9f7dc;
+    background:#e6f6dd;
 }
 
 .card h3{
     font-size:20px;
-    margin-bottom:11px;
+    margin-bottom:10px;
 }
 
 .card p{
     color:#6c8290;
-    line-height:1.65;
     font-size:15px;
+    line-height:1.65;
 }
 
-
-/* ================= CREATOR ================= */
+/* CREATOR */
 
 .creator-section{
     padding:80px 7%;
-    background:#eaf8ff;
+    background:#e9f8ff;
 }
 
 .creator-box{
-    max-width:1050px;
+    max-width:1000px;
     margin:auto;
     padding:55px;
-    border-radius:32px;
-    background:
-    radial-gradient(circle at 90% 20%,#fff0a5 0,transparent 25%),
-    white;
-    border:1px solid #dceef5;
+    border-radius:30px;
+    background:white;
+    position:relative;
+    overflow:hidden;
+}
+
+.creator-box:after{
+    content:"";
+    position:absolute;
+    width:170px;
+    height:170px;
+    border-radius:50%;
+    background:#fff0a3;
+    right:-70px;
+    top:-70px;
 }
 
 .creator-box h2{
@@ -392,39 +358,42 @@ h1 .yellow{
 
 .creator-box p{
     max-width:650px;
-    color:#687e8d;
-    line-height:1.75;
+    color:#687f8d;
+    line-height:1.7;
     font-size:17px;
+    position:relative;
+    z-index:2;
 }
 
-.creator-name{
+.sameer{
     display:inline-block;
-    margin-top:22px;
+    margin-top:20px;
     padding:10px 16px;
-    background:#fff1a8;
     border-radius:12px;
-    color:#6c5700;
+    background:#fff1aa;
+    color:#705900;
     font-weight:800;
+    position:relative;
+    z-index:2;
 }
 
-
-/* ================= FOOTER ================= */
+/* FOOTER */
 
 footer{
     padding:35px 7%;
     text-align:center;
-    background:#102f45;
-    color:#cbdce5;
+    background:#12334a;
+    color:#c9dbe5;
 }
 
 .footer-logo{
-    color:#fff;
+    color:white;
     font-size:25px;
     font-weight:900;
 }
 
 .footer-logo span{
-    color:#f2c533;
+    color:#efc12c;
 }
 
 footer p{
@@ -432,13 +401,12 @@ footer p{
     font-size:13px;
 }
 
-footer .sameer{
-    color:#f2c533;
+.footer-sameer{
+    color:#efc12c;
     font-weight:800;
 }
 
-
-/* ================= MOBILE ================= */
+/* MOBILE */
 
 @media(max-width:800px){
 
@@ -450,22 +418,22 @@ footer .sameer{
         padding:65px 5%;
     }
 
-    .hero-grid{
+    .hero-content{
         grid-template-columns:1fr;
         gap:35px;
     }
 
     h1{
         font-size:57px;
-        letter-spacing:-3.5px;
+        letter-spacing:-3px;
     }
 
-    .hero-text{
+    .description{
         font-size:17px;
     }
 
     .visual{
-        height:390px;
+        height:370px;
     }
 
     .sun{
@@ -473,14 +441,9 @@ footer .sameer{
         height:220px;
     }
 
-    .circle{
+    .ring{
         width:290px;
         height:290px;
-    }
-
-    .circle-small{
-        width:200px;
-        height:200px;
     }
 
     .cards{
@@ -509,8 +472,7 @@ footer .sameer{
 
 <body>
 
-
-<!-- ================= NAVIGATION ================= -->
+<!-- NAVIGATION -->
 
 <nav>
 
@@ -518,26 +480,24 @@ footer .sameer{
         To<span>Talk</span>
     </div>
 
-    <!-- ⭐ THE ONLY LOGIN BUTTON ⭐ -->
-
-    <a href="#" class="login" id="loginButton">
+    <!-- THE ONLY LOGIN BUTTON -->
+    <button class="login-button" id="loginButton">
         Login
-    </a>
+    </button>
 
 </nav>
 
 
-<!-- ================= HERO ================= -->
+<!-- HERO -->
 
 <section class="hero">
 
-    <div class="hero-grid">
+    <div class="hero-content">
 
         <div>
 
-            <div class="label">
-                <span class="label-dot"></span>
-                Welcome to ToTalk
+            <div class="badge">
+                ✦ Welcome to ToTalk
             </div>
 
             <h1>
@@ -546,28 +506,26 @@ footer .sameer{
                 <span class="yellow">Enjoy.</span>
             </h1>
 
-            <p class="hero-text">
-                ToTalk is a simple place built around conversations.
-                Come in, start talking, connect with people,
-                and enjoy a cleaner way to chat.
+            <p class="description">
+                A simple place for conversations.
+                Connect with people, start talking,
+                and enjoy an experience built around
+                real conversations.
             </p>
 
-            <p class="creator">
-                An idea created and built by
-                <strong>Sameer</strong>.
+            <p class="created">
+                An idea created by <strong>Sameer</strong>.
             </p>
 
         </div>
 
 
-        <!-- PLAYFUL CHAT VISUAL -->
+        <!-- VISUAL -->
 
         <div class="visual">
 
             <div class="sun"></div>
-
-            <div class="circle"></div>
-            <div class="circle-small"></div>
+            <div class="ring"></div>
 
             <div class="float one">
                 ☀️ Keep it simple
@@ -577,43 +535,31 @@ footer .sameer{
                 💬 Let's talk
             </div>
 
-            <div class="spark one">
-                ✦
-            </div>
-
-            <div class="spark two">
-                ✦
-            </div>
-
             <div class="chat">
 
-                <div class="chat-top">
+                <div class="chat-header">
 
                     <div class="chat-title">
                         ToTalk
                     </div>
 
-                    <div class="online"></div>
+                    <div class="dot"></div>
 
                 </div>
 
-                <div class="bubble left">
+                <div class="msg one">
                     Hey! 👋
                 </div>
 
-                <div class="bubble right">
+                <div class="msg two">
                     Hey! What's up?
                 </div>
 
-                <div class="bubble left">
+                <div class="msg three">
                     Just here to talk 🙂
                 </div>
 
-                <div class="bubble right">
-                    That's what ToTalk is for.
-                </div>
-
-                <div class="chat-bottom">
+                <div class="input">
                     Start a conversation...
                 </div>
 
@@ -626,17 +572,17 @@ footer .sameer{
 </section>
 
 
-<!-- ================= FEATURES ================= -->
+<!-- FEATURES -->
 
-<section class="section">
+<section class="features">
 
     <h2>
-        Made for conversations.
+        Made for talking.
     </h2>
 
-    <p class="section-intro">
-        ToTalk keeps the experience simple and focuses
-        on what actually matters — the conversation.
+    <p class="subtitle">
+        ToTalk keeps things simple so the focus stays
+        where it belongs — on the conversation.
     </p>
 
 
@@ -647,12 +593,12 @@ footer .sameer{
             <div class="icon">💬</div>
 
             <h3>
-                Start talking
+                Start a conversation
             </h3>
 
             <p>
-                Jump into conversations without
-                unnecessary distractions.
+                Get into conversations without
+                unnecessary complications.
             </p>
 
         </div>
@@ -663,12 +609,12 @@ footer .sameer{
             <div class="icon">☁️</div>
 
             <h3>
-                Keep it simple
+                Simple experience
             </h3>
 
             <p>
-                A clean experience that feels easy
-                from the moment you enter.
+                A clean interface designed to feel
+                easy from the moment you enter.
             </p>
 
         </div>
@@ -683,8 +629,8 @@ footer .sameer{
             </h3>
 
             <p>
-                Meet conversations naturally and
-                enjoy your time on ToTalk.
+                Talk, share ideas and discover
+                conversations naturally.
             </p>
 
         </div>
@@ -694,25 +640,24 @@ footer .sameer{
 </section>
 
 
-<!-- ================= SAMEER SECTION ================= -->
+<!-- SAMEER -->
 
 <section class="creator-section">
 
     <div class="creator-box">
 
         <h2>
-            Built from an idea.
+            One idea. ToTalk.
         </h2>
 
         <p>
-            ToTalk started with a simple idea:
-            make a place where conversations can
-            happen without a complicated experience.
-            I'm building it step by step and making
-            it better along the way.
+            ToTalk started with a simple idea from
+            Sameer — create a place where people
+            can connect through conversations without
+            making everything complicated.
         </p>
 
-        <div class="creator-name">
+        <div class="sameer">
             ✦ Created by Sameer
         </div>
 
@@ -721,7 +666,7 @@ footer .sameer{
 </section>
 
 
-<!-- ================= FOOTER ================= -->
+<!-- FOOTER -->
 
 <footer>
 
@@ -733,7 +678,7 @@ footer .sameer{
         Talk. Connect. Enjoy.
     </p>
 
-    <p class="sameer">
+    <p class="footer-sameer">
         Built by Sameer
     </p>
 
@@ -746,18 +691,59 @@ footer .sameer{
 
 <script>
 
-/*
-   LOGIN BUTTON
+/* ================= SUPABASE ================= */
 
-   We will connect this ONE button
-   to your Google/Supabase login next.
-*/
+const SUPABASE_URL =
+"https://qyinczbrhpxwuabwuyiy.supabase.co";
 
-document.getElementById("loginButton").addEventListener("click", function(event){
+const SUPABASE_KEY =
+"sb_publishable_eUPz4c_nYckgINEK-AIWqw_JAXIHozd";
 
-    event.preventDefault();
+const supabaseClient =
+window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+);
 
-    alert("Google Login will be connected here next.");
+
+/* ================= GOOGLE LOGIN ================= */
+
+document
+.getElementById("loginButton")
+.addEventListener("click", async function(){
+
+    const button =
+        document.getElementById("loginButton");
+
+    button.textContent = "Opening Google...";
+    button.disabled = true;
+
+    const { error } =
+        await supabaseClient.auth.signInWithOAuth({
+
+            provider: "google",
+
+            options: {
+
+                redirectTo:
+                "https://sameer6466443.github.io/ToTalk/"
+
+            }
+
+        });
+
+    if(error){
+
+        console.error(error);
+
+        alert(
+            "Login error:\n\n" +
+            error.message
+        );
+
+        button.textContent = "Login";
+        button.disabled = false;
+    }
 
 });
 
