@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>ToTalk Chat</title>
+  <title>Sameer's ToTalk Chat</title>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -332,8 +332,8 @@
     <aside class="sidebar">
 
       <div class="sidebar-title">
-        <h2>Chats</h2>
-        <p>Your conversations</p>
+        <h2>Sameer's Chats</h2>
+        <p>Your ToTalk space</p>
       </div>
 
       <div class="profile">
@@ -358,7 +358,7 @@
         </div>
 
         <div>
-          <strong>ToTalk Chat</strong>
+          <strong>Sameer's ToTalk</strong>
           <small>● Ready to chat</small>
         </div>
 
@@ -373,7 +373,7 @@
           </div>
 
           <h3>
-            Welcome to ToTalk
+            Welcome to Sameer's ToTalk
           </h3>
 
           <p>
@@ -390,7 +390,7 @@
         <input
           type="text"
           id="messageInput"
-          placeholder="Write a message..."
+          placeholder="Write a message to Sameer..."
           autocomplete="off"
         >
 
@@ -413,13 +413,9 @@
     const SUPABASE_KEY =
       "sb_publishable_eUPz4c_nYckgINEK-AIWqw_JAXIHozd";
 
-
-    /*
-      IMPORTANT:
-      We manually handle the OAuth callback here.
-      This fixes the "No login session found" problem.
-    */
-
+    // Use exactly the same settings as index.html.
+    // Implicit flow lets Supabase process the OAuth callback directly
+    // without relying on a PKCE verifier surviving the page change.
     const supabaseClient =
       supabase.createClient(
         SUPABASE_URL,
@@ -428,140 +424,84 @@
           auth: {
             persistSession: true,
             autoRefreshToken: true,
-            detectSessionInUrl: false,
-            flowType: "pkce"
+            detectSessionInUrl: true,
+            flowType: "implicit"
           }
         }
       );
 
+    async function waitForInitialSession() {
+      return new Promise((resolve) => {
+        let finished = false;
+
+        const finish = (session) => {
+          if (finished) return;
+          finished = true;
+          clearTimeout(timer);
+          try { subscription.unsubscribe(); } catch (_) {}
+          resolve(session);
+        };
+
+        const { data: { subscription } } =
+          supabaseClient.auth.onAuthStateChange((event, session) => {
+            if (event === "INITIAL_SESSION" || event === "SIGNED_IN") {
+              finish(session);
+            }
+          });
+
+        const timer = setTimeout(async () => {
+          const { data } = await supabaseClient.auth.getSession();
+          finish(data?.session || null);
+        }, 3000);
+      });
+    }
 
     async function startChat() {
-
       try {
+        const session = await waitForInitialSession();
 
-        /*
-          Google/Supabase sends us back with:
-          ?code=...
-        */
-
-        const params =
-          new URLSearchParams(
-            window.location.search
+        if (!session) {
+          showLoginError(
+            "No active Google login session was found. Please return to Sameer's ToTalk homepage and sign in again."
           );
-
-        const code =
-          params.get("code");
-
-
-        /*
-          If we received an OAuth code,
-          exchange it for the session.
-        */
-
-        if (code) {
-
-          const { error } =
-            await supabaseClient.auth.exchangeCodeForSession(
-              code
-            );
-
-          if (error) {
-
-            console.error(
-              "OAuth code exchange error:",
-              error
-            );
-
-            window.location.replace(
-              "./index.html?login_error=1"
-            );
-
-            return;
-          }
-
-
-          /*
-            Remove ?code=... from the address bar.
-          */
-
-          window.history.replaceState(
-            {},
-            document.title,
-            window.location.pathname
-          );
-        }
-
-
-        /*
-          Now check the actual Supabase session.
-        */
-
-        const {
-          data,
-          error
-        } =
-          await supabaseClient.auth.getSession();
-
-
-        if (error || !data.session) {
-
-          console.error(
-            "No session:",
-            error
-          );
-
-          window.location.replace(
-            "./index.html"
-          );
-
           return;
         }
 
-
-        /*
-          Login successful!
-        */
-
-        const user =
-          data.session.user;
-
-
+        const user = session.user;
         const name =
           user.user_metadata?.full_name ||
           user.user_metadata?.name ||
           user.email?.split("@")[0] ||
-          "Sameer";
+          "Guest";
 
+        document.getElementById("userName").textContent = name;
+        document.getElementById("sideName").textContent = name;
 
-        document.getElementById(
-          "userName"
-        ).textContent = name;
+        if (window.location.search || window.location.hash) {
+          window.history.replaceState({}, document.title, window.location.pathname);
+        }
 
-
-        document.getElementById(
-          "sideName"
-        ).textContent = name;
-
-
-        document.getElementById(
-          "loading"
-        ).style.display = "none";
-
-
+        document.getElementById("loading").style.display = "none";
       } catch (error) {
-
-        console.error(
-          "Login error:",
-          error
-        );
-
-        window.location.replace(
-          "./index.html"
+        console.error("ToTalk login/session error:", error);
+        showLoginError(
+          error?.message ||
+          "Something went wrong while opening Sameer's chat. Please sign in again."
         );
       }
-
     }
 
+    function showLoginError(message) {
+      document.getElementById("loading").style.display = "none";
+      const box = document.getElementById("errorBox");
+      const text = document.getElementById("errorText");
+      if (box && text) {
+        text.textContent = message;
+        box.style.display = "flex";
+      } else {
+        window.location.replace("./index.html");
+      }
+    }
 
     /*
       LOGOUT
