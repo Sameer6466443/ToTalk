@@ -1,7 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
+
   <meta charset="UTF-8">
+
   <meta
     name="viewport"
     content="width=device-width, initial-scale=1.0, viewport-fit=cover"
@@ -9,306 +12,385 @@
 
   <title>ToTalk Sameer</title>
 
+
+  <!-- SUPABASE -->
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
+
   <style>
+
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
     }
 
+
     :root {
-      --bg: #03020b;
-      --panel: rgba(8, 6, 22, 0.94);
-      --panel2: rgba(13, 9, 31, 0.96);
+
+      --black: #020108;
+      --dark: #05020f;
+      --panel: rgba(8, 5, 20, 0.95);
+
       --purple: #914cff;
-      --purple2: #6d2cff;
-      --purple-soft: rgba(145, 76, 255, 0.22);
+      --purple-light: #aa69ff;
+      --purple-dark: #6324ca;
+
       --yellow: #ffe34f;
-      --white: #f7f4ff;
-      --muted: #8d88a6;
-      --green: #55e89a;
-      --border: rgba(145, 76, 255, 0.42);
+
+      --white: #f8f5ff;
+      --muted: #928ba8;
+
+      --green: #52e69a;
+
+      --border: rgba(145, 76, 255, 0.45);
+
     }
+
 
     html,
     body {
+
       width: 100%;
       height: 100%;
+
       overflow: hidden;
+
+      background: var(--black);
+
     }
 
+
     body {
+
       font-family:
         Arial,
         Helvetica,
         sans-serif;
 
       color: var(--white);
+
       background:
+
         radial-gradient(
-          circle at 72% 20%,
-          rgba(119, 42, 196, 0.25),
-          transparent 28%
+          ellipse at 70% 25%,
+          rgba(111, 36, 191, 0.28),
+          transparent 32%
         ),
+
         radial-gradient(
-          circle at 20% 85%,
-          rgba(75, 24, 150, 0.18),
-          transparent 25%
+          ellipse at 15% 85%,
+          rgba(81, 29, 160, 0.20),
+          transparent 30%
         ),
+
         linear-gradient(
           135deg,
-          #020109,
-          #060313 45%,
+          #020108,
+          #070313 50%,
           #020108
         );
 
       min-height: 100dvh;
+
     }
 
-    /* --------------------------------
-       STAR FIELD
-    -------------------------------- */
 
-    body::before,
-    body::after {
-      content: "";
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      z-index: 0;
-    }
+    /* ======================================
+       GLOBAL STARS
+    ====================================== */
 
     body::before {
+
+      content: "";
+
+      position: fixed;
+
+      inset: 0;
+
+      pointer-events: none;
+
+      z-index: 0;
+
       opacity: 0.75;
 
       background-image:
-        radial-gradient(circle, white 1px, transparent 1px),
-        radial-gradient(circle, rgba(255,255,255,.8) 1px, transparent 1px),
-        radial-gradient(circle, rgba(173,119,255,.8) 1px, transparent 1px);
+
+        radial-gradient(
+          circle,
+          rgba(255,255,255,.9) 1px,
+          transparent 1.5px
+        ),
+
+        radial-gradient(
+          circle,
+          rgba(210,190,255,.8) 1px,
+          transparent 1.5px
+        ),
+
+        radial-gradient(
+          circle,
+          rgba(255,255,255,.65) 1px,
+          transparent 1.5px
+        );
 
       background-size:
-        105px 105px,
-        165px 165px,
-        230px 230px;
+        115px 115px,
+        175px 175px,
+        245px 245px;
 
       background-position:
-        20px 15px,
-        80px 60px,
-        120px 100px;
+        15px 25px,
+        70px 90px,
+        130px 45px;
+
     }
 
-    body::after {
-      background:
-        radial-gradient(
-          ellipse at 70% 25%,
-          rgba(148, 60, 255, 0.20),
-          transparent 32%
-        ),
-        radial-gradient(
-          ellipse at 40% 75%,
-          rgba(95, 30, 180, 0.13),
-          transparent 30%
-        );
-    }
 
-    /* --------------------------------
+    /* ======================================
        HEADER
-    -------------------------------- */
+    ====================================== */
 
     header {
+
       position: relative;
-      z-index: 5;
+
+      z-index: 20;
 
       height: 78px;
 
-      padding:
-        0 24px;
-
       display: flex;
+
       align-items: center;
+
       justify-content: space-between;
 
+      padding: 0 24px;
+
       background:
-        rgba(3, 2, 11, 0.94);
+        rgba(3, 2, 10, 0.96);
 
       border-bottom:
         1px solid var(--border);
 
       box-shadow:
         0 0 25px rgba(104, 42, 190, 0.12);
+
     }
+
 
     .brand {
-      font-size: 25px;
+
+      font-size: 26px;
+
       font-weight: 900;
-      letter-spacing: -0.5px;
+
+      letter-spacing: -0.8px;
+
     }
+
 
     .brand-main {
+
       color: var(--white);
+
     }
+
 
     .brand-name {
-      color: #a86cff;
+
+      color: var(--purple-light);
+
     }
+
 
     .header-right {
+
       display: flex;
+
       align-items: center;
+
       gap: 16px;
+
     }
+
 
     #userName {
-      color: #a7a1bd;
-      font-size: 14px;
+
+      color: #aaa3bb;
+
+      font-size: 13px;
+
       font-weight: 700;
+
     }
 
-    #logoutBtn {
-      border: 1px solid var(--border);
-      background: rgba(22, 11, 45, 0.8);
-      color: var(--white);
 
-      padding: 10px 17px;
+    #logoutBtn {
+
+      padding:
+        9px 16px;
 
       border-radius: 10px;
 
-      font-size: 13px;
+      border:
+        1px solid var(--border);
+
+      background:
+        rgba(20, 10, 42, 0.85);
+
+      color: var(--white);
+
+      font-size: 12px;
+
       font-weight: 800;
 
       cursor: pointer;
 
       transition: 0.2s;
+
     }
+
 
     #logoutBtn:hover {
-      border-color: var(--purple);
+
+      border-color:
+        var(--purple-light);
+
       box-shadow:
-        0 0 18px rgba(145, 76, 255, 0.25);
+        0 0 20px rgba(145, 76, 255, 0.25);
+
     }
 
-    /* --------------------------------
-       MAIN LAYOUT
-    -------------------------------- */
+
+    /* ======================================
+       MAIN
+    ====================================== */
 
     .chat-layout {
+
       position: relative;
+
       z-index: 2;
 
       width: 100%;
-      height: calc(100dvh - 78px);
+
+      height:
+        calc(100dvh - 78px);
 
       padding: 16px;
 
       display: grid;
-      grid-template-columns: 235px minmax(0, 1fr);
+
+      grid-template-columns:
+        235px minmax(0, 1fr);
 
       gap: 14px;
+
     }
 
-    /* --------------------------------
+
+    /* ======================================
        SIDEBAR
-    -------------------------------- */
+    ====================================== */
 
     .sidebar {
+
       position: relative;
 
       min-width: 0;
 
-      background:
-        linear-gradient(
-          180deg,
-          rgba(9, 6, 23, 0.96),
-          rgba(3, 2, 12, 0.98)
-        );
+      overflow: hidden;
 
       border:
         1px solid var(--border);
 
       border-radius: 14px;
 
-      overflow: hidden;
-
-      box-shadow:
-        0 0 25px rgba(95, 35, 180, 0.10);
-    }
-
-    .sidebar::after {
-      content: "";
-
-      position: absolute;
-
-      width: 110px;
-      height: 45px;
-
-      left: 35px;
-      bottom: 40px;
-
       background:
-        radial-gradient(
-          ellipse,
-          rgba(151, 63, 255, 0.85),
-          rgba(96, 25, 180, 0.15),
-          transparent 70%
+        linear-gradient(
+          180deg,
+          rgba(9, 6, 23, .97),
+          rgba(3, 2, 12, .98)
         );
 
-      filter: blur(6px);
+      box-shadow:
+        0 0 30px rgba(95, 35, 180, .10);
 
-      transform: rotate(-10deg);
     }
+
 
     .sidebar-title {
-      padding: 22px 20px 18px;
+
+      padding:
+        22px 20px 18px;
 
       border-bottom:
-        1px solid rgba(145, 76, 255, 0.18);
+        1px solid rgba(145,76,255,.18);
+
     }
+
 
     .sidebar-title h2 {
+
       font-size: 18px;
+
       margin-bottom: 7px;
+
     }
+
 
     .sidebar-title p {
+
       color: var(--muted);
+
       font-size: 11px;
+
     }
 
+
     .chat-person {
-      margin: 17px 15px;
+
+      margin:
+        17px 15px;
 
       padding: 13px;
 
+      display: flex;
+
+      align-items: center;
+
+      gap: 11px;
+
       border:
-        1px solid rgba(145, 76, 255, 0.32);
+        1px solid rgba(145,76,255,.32);
 
       border-radius: 12px;
 
       background:
         linear-gradient(
           135deg,
-          rgba(95, 37, 165, 0.35),
-          rgba(27, 12, 59, 0.65)
+          rgba(95,37,165,.35),
+          rgba(27,12,59,.65)
         );
 
-      display: flex;
-      align-items: center;
-      gap: 11px;
     }
 
+
     .avatar {
+
       width: 43px;
       height: 43px;
 
       flex: 0 0 43px;
 
-      border-radius: 50%;
-
       display: flex;
+
       align-items: center;
       justify-content: center;
+
+      border-radius: 50%;
 
       background:
         linear-gradient(
@@ -317,87 +399,110 @@
           #6321d8
         );
 
-      font-weight: 900;
       font-size: 17px;
 
+      font-weight: 900;
+
       box-shadow:
-        0 0 20px rgba(145, 76, 255, 0.45);
+        0 0 20px rgba(145,76,255,.45);
+
     }
+
 
     .person-name {
+
       font-size: 13px;
+
       font-weight: 800;
+
     }
 
+
     .online {
+
       margin-top: 5px;
 
       color: var(--green);
 
       font-size: 10px;
+
       font-weight: 700;
+
     }
 
-    /* --------------------------------
+
+    /* ======================================
        CHAT BOX
-    -------------------------------- */
+    ====================================== */
 
     .chat-box {
+
       position: relative;
 
       min-width: 0;
       min-height: 0;
 
       display: flex;
+
       flex-direction: column;
 
-      background:
-        rgba(3, 2, 12, 0.91);
+      overflow: hidden;
 
       border:
         1px solid var(--border);
 
       border-radius: 14px;
 
-      overflow: hidden;
+      background:
+        rgba(3,2,12,.93);
 
       box-shadow:
-        0 0 35px rgba(98, 38, 190, 0.14);
+        0 0 35px rgba(98,38,190,.14);
+
     }
 
-    /* --------------------------------
-       CHAT TOP
-    -------------------------------- */
+
+    /* ======================================
+       CHAT HEADER
+    ====================================== */
 
     .chat-top {
+
       position: relative;
-      z-index: 3;
+
+      z-index: 5;
 
       min-height: 75px;
 
-      padding: 13px 20px;
+      padding:
+        13px 20px;
 
       display: flex;
+
       align-items: center;
 
       gap: 12px;
 
       background:
-        rgba(8, 5, 20, 0.96);
+        rgba(8,5,20,.97);
 
       border-bottom:
-        1px solid rgba(145, 76, 255, 0.25);
+        1px solid rgba(145,76,255,.25);
+
     }
 
+
     .chat-avatar {
+
       width: 43px;
       height: 43px;
 
-      border-radius: 50%;
-
       display: flex;
+
       align-items: center;
       justify-content: center;
+
+      border-radius: 50%;
 
       background:
         linear-gradient(
@@ -409,39 +514,55 @@
       font-weight: 900;
 
       box-shadow:
-        0 0 18px rgba(145, 76, 255, 0.38);
+        0 0 18px rgba(145,76,255,.38);
+
     }
+
 
     .chat-title {
+
       font-size: 15px;
+
       font-weight: 900;
+
     }
 
+
     .chat-status {
+
       margin-top: 4px;
 
       color: var(--green);
 
       font-size: 10px;
+
       font-weight: 700;
+
     }
 
+
     .top-star {
+
       margin-left: auto;
 
       color: var(--yellow);
 
-      font-size: 24px;
+      font-size: 27px;
+
+      line-height: 1;
 
       text-shadow:
-        0 0 12px rgba(255, 227, 79, 0.75);
+        0 0 12px rgba(255,227,79,.75);
+
     }
 
-    /* --------------------------------
-       SPACE BACKGROUND
-    -------------------------------- */
+
+    /* ======================================
+       SPACE
+    ====================================== */
 
     .space {
+
       position: relative;
 
       flex: 1;
@@ -451,60 +572,117 @@
       overflow: hidden;
 
       background:
+
         radial-gradient(
           ellipse at 58% 27%,
-          rgba(124, 40, 195, 0.32),
+          rgba(124,40,195,.32),
           transparent 30%
         ),
+
         radial-gradient(
           ellipse at 90% 60%,
-          rgba(83, 27, 148, 0.18),
+          rgba(83,27,148,.18),
           transparent 30%
         ),
+
         linear-gradient(
           180deg,
           #03020b,
           #050213 55%,
           #020108
         );
+
     }
 
+
     .space::before {
+
       content: "";
 
       position: absolute;
+
       inset: 0;
 
-      opacity: 0.7;
+      pointer-events: none;
+
+      opacity: .75;
 
       background-image:
-        radial-gradient(circle, #ffffff 1px, transparent 1px),
-        radial-gradient(circle, rgba(255,255,255,.7) 1px, transparent 1px),
-        radial-gradient(circle, rgba(167,104,255,.8) 1px, transparent 1px);
+
+        radial-gradient(
+          circle,
+          rgba(255,255,255,.9) 1px,
+          transparent 1.5px
+        ),
+
+        radial-gradient(
+          circle,
+          rgba(220,200,255,.8) 1px,
+          transparent 1.5px
+        ),
+
+        radial-gradient(
+          circle,
+          rgba(255,255,255,.7) 1px,
+          transparent 1.5px
+        );
 
       background-size:
-        130px 130px,
-        210px 210px,
-        275px 275px;
+        125px 125px,
+        195px 195px,
+        280px 280px;
 
       background-position:
-        20px 10px,
-        75px 50px,
-        120px 90px;
+        15px 20px,
+        80px 60px,
+        140px 100px;
+
     }
 
-    /* --------------------------------
-       MOON
-    -------------------------------- */
 
-    .moon {
+    /* ======================================
+       PURPLE NEBULA
+    ====================================== */
+
+    .nebula {
+
       position: absolute;
 
-      top: 28px;
-      left: 60px;
+      width: 390px;
+      height: 280px;
 
-      width: 74px;
-      height: 74px;
+      top: 75px;
+      left: 30%;
+
+      pointer-events: none;
+
+      background:
+        radial-gradient(
+          ellipse,
+          rgba(153,54,224,.30),
+          rgba(93,29,145,.12),
+          transparent 70%
+        );
+
+      filter:
+        blur(20px);
+
+    }
+
+
+    /* ======================================
+       MOON
+    ====================================== */
+
+    .moon {
+
+      position: absolute;
+
+      top: 27px;
+      left: 58px;
+
+      width: 76px;
+      height: 76px;
 
       border-radius: 50%;
 
@@ -517,37 +695,46 @@
         );
 
       box-shadow:
-        0 0 25px rgba(255, 220, 47, 0.42);
+        0 0 28px rgba(255,220,47,.45);
+
+      z-index: 2;
+
     }
 
+
     .moon::after {
+
       content: "";
 
       position: absolute;
 
-      width: 73px;
-      height: 73px;
+      width: 75px;
+      height: 75px;
 
       left: 22px;
       top: -5px;
 
       border-radius: 50%;
 
-      background: #03020b;
+      background:
+        #03020b;
+
     }
 
-    /* --------------------------------
+
+    /* ======================================
        PLANET
-    -------------------------------- */
+    ====================================== */
 
     .planet {
+
       position: absolute;
 
-      top: 65px;
+      top: 64px;
       right: 40px;
 
-      width: 104px;
-      height: 104px;
+      width: 105px;
+      height: 105px;
 
       border-radius: 50%;
 
@@ -560,22 +747,27 @@
         );
 
       box-shadow:
-        0 0 35px rgba(101, 75, 170, 0.26);
+        0 0 35px rgba(101,75,170,.26);
+
+      z-index: 2;
+
     }
 
+
     .planet::after {
+
       content: "";
 
       position: absolute;
 
-      width: 180px;
-      height: 42px;
+      width: 182px;
+      height: 43px;
 
-      left: -38px;
+      left: -39px;
       top: 30px;
 
       border:
-        1px solid rgba(181, 143, 255, 0.52);
+        1px solid rgba(181,143,255,.52);
 
       border-radius: 50%;
 
@@ -583,40 +775,17 @@
         rotate(-16deg);
 
       box-shadow:
-        0 0 8px rgba(145, 76, 255, 0.22);
+        0 0 8px rgba(145,76,255,.22);
+
     }
 
-    /* --------------------------------
-       NEBULA
-    -------------------------------- */
 
-    .nebula {
-      position: absolute;
-
-      width: 360px;
-      height: 250px;
-
-      top: 80px;
-      left: 32%;
-
-      background:
-        radial-gradient(
-          ellipse,
-          rgba(153, 54, 224, 0.27),
-          rgba(93, 29, 145, 0.13),
-          transparent 70%
-        );
-
-      filter: blur(20px);
-
-      pointer-events: none;
-    }
-
-    /* --------------------------------
+    /* ======================================
        SHOOTING STAR
-    -------------------------------- */
+    ====================================== */
 
     .shooting-star {
+
       position: absolute;
 
       width: 90px;
@@ -629,7 +798,7 @@
         linear-gradient(
           90deg,
           transparent,
-          rgba(255,255,255,.85)
+          rgba(255,255,255,.9)
         );
 
       transform:
@@ -637,94 +806,132 @@
 
       box-shadow:
         0 0 8px rgba(255,255,255,.75);
+
+      z-index: 2;
+
     }
 
-    /* --------------------------------
+
+    /* ======================================
        MESSAGES
-    -------------------------------- */
+    ====================================== */
 
     #messages {
+
       position: absolute;
-      z-index: 2;
+
+      z-index: 4;
 
       inset: 0;
 
       overflow-y: auto;
 
       padding:
-        24px 22px 95px;
+        24px 22px 115px;
 
       display: flex;
+
       flex-direction: column;
 
       gap: 10px;
 
       scroll-behavior: smooth;
+
+      -webkit-overflow-scrolling: touch;
+
     }
+
 
     #messages::-webkit-scrollbar {
+
       width: 5px;
+
     }
+
 
     #messages::-webkit-scrollbar-track {
+
       background: transparent;
+
     }
+
 
     #messages::-webkit-scrollbar-thumb {
-      background: rgba(145, 76, 255, 0.35);
+
+      background:
+        rgba(145,76,255,.38);
+
       border-radius: 10px;
+
     }
 
+
     .welcome-message {
+
       margin: auto;
 
-      max-width: 400px;
+      max-width: 430px;
+
+      padding: 30px;
 
       text-align: center;
 
       color: var(--muted);
 
-      padding: 30px;
     }
+
 
     .welcome-message h3 {
+
       color: var(--white);
 
-      font-size: 19px;
+      font-size: 20px;
 
-      margin-bottom: 9px;
+      margin-bottom: 10px;
+
     }
+
 
     .welcome-message p {
+
       font-size: 12px;
+
       line-height: 1.7;
+
     }
 
+
     .message {
-      max-width: min(70%, 520px);
+
+      max-width:
+        min(70%, 520px);
+
+      align-self: flex-start;
 
       padding:
         11px 15px;
 
       border-radius: 15px;
 
-      font-size: 13px;
-      line-height: 1.5;
-
-      word-wrap: break-word;
-
       background:
-        rgba(19, 13, 40, 0.92);
+        rgba(19,13,40,.94);
 
       border:
-        1px solid rgba(145, 76, 255, 0.24);
+        1px solid rgba(145,76,255,.25);
 
       color: var(--white);
 
-      align-self: flex-start;
+      font-size: 13px;
+
+      line-height: 1.5;
+
+      word-break: break-word;
+
     }
 
+
     .message.mine {
+
       align-self: flex-end;
 
       background:
@@ -735,29 +942,35 @@
         );
 
       border:
-        1px solid rgba(188, 142, 255, 0.45);
+        1px solid rgba(188,142,255,.45);
 
       box-shadow:
-        0 5px 20px rgba(91, 35, 177, 0.22);
+        0 5px 20px rgba(91,35,177,.25);
+
     }
 
+
     .message-time {
+
       display: block;
 
       margin-top: 4px;
 
+      text-align: right;
+
       font-size: 9px;
 
-      opacity: 0.58;
+      opacity: .58;
 
-      text-align: right;
     }
 
-    /* --------------------------------
+
+    /* ======================================
        INPUT
-    -------------------------------- */
+    ====================================== */
 
     .input-area {
+
       position: absolute;
 
       z-index: 10;
@@ -773,25 +986,30 @@
       padding: 7px;
 
       background:
-        rgba(17, 10, 35, 0.94);
+        rgba(17,10,35,.96);
 
       border:
-        1px solid rgba(145, 76, 255, 0.48);
+        1px solid rgba(145,76,255,.50);
 
       border-radius: 14px;
 
       box-shadow:
-        0 0 25px rgba(92, 31, 177, 0.22);
+        0 0 25px rgba(92,31,177,.25);
 
-      backdrop-filter: blur(10px);
+      backdrop-filter:
+        blur(12px);
+
     }
 
+
     #messageInput {
+
       flex: 1;
 
       min-width: 0;
 
       border: none;
+
       outline: none;
 
       background: transparent;
@@ -802,18 +1020,25 @@
         10px 9px;
 
       font-size: 13px;
+
     }
+
 
     #messageInput::placeholder {
+
       color: #77718d;
+
     }
 
+
     #sendButton {
+
+      min-width: 72px;
+
+      padding:
+        0 15px;
+
       border: none;
-
-      min-width: 52px;
-
-      padding: 0 17px;
 
       border-radius: 11px;
 
@@ -827,67 +1052,88 @@
       color: white;
 
       font-size: 12px;
+
       font-weight: 900;
 
       cursor: pointer;
 
       box-shadow:
-        0 0 18px rgba(145, 76, 255, 0.34);
+        0 0 18px rgba(145,76,255,.34);
 
-      transition: 0.2s;
+      transition: .2s;
+
     }
+
 
     #sendButton:hover {
-      transform: translateY(-1px);
+
+      transform:
+        translateY(-1px);
 
       box-shadow:
-        0 0 25px rgba(145, 76, 255, 0.55);
+        0 0 25px rgba(145,76,255,.55);
+
     }
+
 
     #sendButton:disabled {
-      opacity: 0.55;
+
+      opacity: .55;
+
       cursor: wait;
+
       transform: none;
+
     }
 
-    /* --------------------------------
+
+    /* ======================================
        STATUS
-    -------------------------------- */
+    ====================================== */
 
     #status {
+
       position: fixed;
 
-      z-index: 30;
+      z-index: 50;
 
       left: 50%;
-      bottom: 90px;
+      bottom: 92px;
 
-      transform: translateX(-50%);
+      transform:
+        translateX(-50%);
 
-      max-width: calc(100% - 30px);
+      display: none;
 
-      padding: 10px 15px;
+      max-width:
+        calc(100% - 30px);
+
+      padding:
+        10px 15px;
 
       border-radius: 10px;
 
       background:
-        rgba(20, 10, 38, 0.96);
+        rgba(20,10,38,.97);
 
       border:
-        1px solid rgba(145, 76, 255, 0.5);
+        1px solid rgba(145,76,255,.50);
 
       color: #ded7ef;
 
       font-size: 11px;
 
-      display: none;
+      text-align: center;
+
     }
 
-    /* --------------------------------
+
+    /* ======================================
        LOADING
-    -------------------------------- */
+    ====================================== */
 
     #loading {
+
       position: fixed;
 
       inset: 0;
@@ -897,57 +1143,70 @@
       display: flex;
 
       align-items: center;
+
       justify-content: center;
 
       background:
         radial-gradient(
           circle at center,
-          rgba(86, 27, 142, 0.25),
+          rgba(86,27,142,.25),
           #03020b 55%
         );
 
       color: var(--white);
 
       font-size: 14px;
+
       font-weight: 800;
 
       text-align: center;
+
     }
 
+
     .login-error {
-      width: min(430px, calc(100% - 35px));
+
+      width:
+        min(430px, calc(100% - 35px));
 
       padding: 25px;
 
       border:
-        1px solid rgba(145, 76, 255, 0.45);
+        1px solid rgba(145,76,255,.45);
 
       border-radius: 16px;
 
       background:
-        rgba(10, 6, 25, 0.96);
+        rgba(10,6,25,.97);
 
       box-shadow:
-        0 0 35px rgba(90, 30, 180, 0.2);
+        0 0 35px rgba(90,30,180,.20);
+
     }
+
 
     .login-error h2 {
+
       margin-bottom: 10px;
 
-      color: var(--white);
-
       font-size: 20px;
+
     }
 
+
     .login-error p {
+
       color: #a7a0ba;
 
       font-size: 12px;
 
       line-height: 1.7;
+
     }
 
+
     .back-button {
+
       display: inline-block;
 
       margin-top: 17px;
@@ -969,167 +1228,257 @@
       text-decoration: none;
 
       font-size: 12px;
+
       font-weight: 800;
+
     }
 
-    /* --------------------------------
+
+    /* ======================================
        MOBILE
-    -------------------------------- */
+    ====================================== */
 
     @media (max-width: 800px) {
 
       html,
       body {
+
         overflow: hidden;
+
       }
 
+
       header {
+
         height: 64px;
 
         padding:
           0 13px;
+
       }
+
 
       .brand {
+
         font-size: 20px;
+
       }
+
 
       #userName {
+
         display: none;
+
       }
+
 
       #logoutBtn {
+
         padding:
-          8px 12px;
+          8px 13px;
 
         font-size: 11px;
+
       }
+
 
       .chat-layout {
-        height: calc(100dvh - 64px);
 
-        padding:
-          8px;
+        height:
+          calc(100dvh - 64px);
+
+        padding: 8px;
 
         display: block;
+
       }
+
 
       .sidebar {
+
         display: none;
+
       }
 
+
       .chat-box {
+
         width: 100%;
         height: 100%;
 
         border-radius: 13px;
+
       }
 
+
       .chat-top {
+
         min-height: 67px;
 
         padding:
           10px 14px;
+
       }
+
 
       .chat-avatar {
+
         width: 39px;
         height: 39px;
+
       }
+
 
       .chat-title {
+
         font-size: 14px;
+
       }
+
 
       .top-star {
-        font-size: 20px;
+
+        font-size: 22px;
+
       }
 
+
       .moon {
+
         left: 32px;
         top: 25px;
 
         width: 60px;
         height: 60px;
+
       }
 
+
       .moon::after {
+
         width: 59px;
         height: 59px;
 
         left: 18px;
         top: -4px;
+
       }
 
+
       .planet {
+
         right: 18px;
         top: 54px;
 
         width: 78px;
         height: 78px;
+
       }
 
+
       .planet::after {
+
         width: 130px;
         height: 31px;
 
         left: -26px;
         top: 23px;
+
       }
 
+
       .nebula {
+
         width: 250px;
         height: 180px;
 
         left: 25%;
         top: 70px;
+
       }
+
 
       #messages {
+
         padding:
-          18px 14px 85px;
+          18px 14px 105px;
+
       }
+
 
       .message {
+
         max-width: 82%;
+
         font-size: 13px;
+
       }
 
+
       .input-area {
+
         left: 9px;
         right: 9px;
         bottom: 8px;
+
       }
+
 
       #messageInput {
+
         font-size: 13px;
+
       }
 
+
       #sendButton {
-        min-width: 48px;
-        padding: 0 13px;
+
+        min-width: 65px;
+
+        padding:
+          0 12px;
+
       }
+
     }
+
   </style>
+
 </head>
+
 
 <body>
 
-  <!-- LOADING / LOGIN CHECK -->
+
+  <!-- ======================================
+       LOADING
+  ====================================== -->
 
   <div id="loading">
+
     Opening ToTalk...
+
   </div>
 
 
-  <!-- HEADER -->
+  <!-- ======================================
+       HEADER
+  ====================================== -->
 
   <header>
 
     <div class="brand">
-      <span class="brand-main">ToTalk</span>
-      <span class="brand-name">Sameer</span>
+
+      <span class="brand-main">
+        ToTalk
+      </span>
+
+      <span class="brand-name">
+        Sameer
+      </span>
+
     </div>
+
 
     <div class="header-right">
 
@@ -1146,20 +1495,27 @@
   </header>
 
 
-  <!-- CHAT -->
+  <!-- ======================================
+       MAIN
+  ====================================== -->
 
   <main class="chat-layout">
+
 
     <!-- SIDEBAR -->
 
     <aside class="sidebar">
 
       <div class="sidebar-title">
-        <h2>Sameer's Chats</h2>
+
+        <h2>
+          Sameer's Chats
+        </h2>
 
         <p>
           Your personal conversation space
         </p>
+
       </div>
 
 
@@ -1168,6 +1524,7 @@
         <div class="avatar">
           S
         </div>
+
 
         <div>
 
@@ -1189,15 +1546,19 @@
     </aside>
 
 
-    <!-- CHAT BOX -->
+    <!-- CHAT -->
 
     <section class="chat-box">
+
+
+      <!-- CHAT HEADER -->
 
       <div class="chat-top">
 
         <div class="chat-avatar">
           S
         </div>
+
 
         <div>
 
@@ -1211,8 +1572,9 @@
 
         </div>
 
+
         <div class="top-star">
-          *
+          ☆
         </div>
 
       </div>
@@ -1222,11 +1584,15 @@
 
       <div class="space">
 
+
         <div class="nebula"></div>
+
 
         <div class="moon"></div>
 
+
         <div class="planet"></div>
+
 
         <div class="shooting-star"></div>
 
@@ -1266,7 +1632,11 @@
             maxlength="2000"
           >
 
-          <button id="sendButton">
+
+          <button
+            id="sendButton"
+            type="button"
+          >
             Send
           </button>
 
@@ -1286,70 +1656,99 @@
 
   <script>
 
-    /* =========================================
+
+    /* ======================================
        SUPABASE
-    ========================================= */
+    ====================================== */
 
     const SUPABASE_URL =
       "https://qiynczbrhpxwuabwuyiy.supabase.co";
+
 
     const SUPABASE_KEY =
       "sb_publishable_eUPz4c_nYckgINEK-AIWqw_JAXIHozd";
 
 
     /*
-      IMPORTANT:
+      IMPORTANT
 
-      We keep the normal Supabase browser client.
+      The homepage uses Supabase OAuth.
 
-      This matches the homepage Google login.
+      This chat page uses PKCE and manually
+      exchanges the Google OAuth code.
+
+      This makes logout -> login again work
+      correctly instead of depending on an
+      old browser session.
     */
 
     const supabaseClient =
       supabase.createClient(
         SUPABASE_URL,
-        SUPABASE_KEY
+        SUPABASE_KEY,
+        {
+
+          auth: {
+
+            persistSession: true,
+
+            autoRefreshToken: true,
+
+            detectSessionInUrl: false,
+
+            flowType: "pkce"
+
+          }
+
+        }
       );
 
 
-    /* =========================================
+    /* ======================================
        ELEMENTS
-    ========================================= */
+    ====================================== */
 
     const loading =
       document.getElementById(
         "loading"
       );
 
+
     const userName =
       document.getElementById(
         "userName"
       );
+
 
     const sideName =
       document.getElementById(
         "sideName"
       );
 
+
     const logoutBtn =
       document.getElementById(
         "logoutBtn"
       );
+
 
     const messageInput =
       document.getElementById(
         "messageInput"
       );
 
+
     const sendButton =
       document.getElementById(
         "sendButton"
       );
 
+
     const messages =
       document.getElementById(
         "messages"
       );
+
 
     const status =
       document.getElementById(
@@ -1357,43 +1756,58 @@
       );
 
 
-    let currentUser = null;
+    let currentUser =
+      null;
 
-    let authReady = false;
+
+    let authReady =
+      false;
 
 
-    /* =========================================
-       STATUS MESSAGE
-    ========================================= */
+    let realtimeChannel =
+      null;
+
+
+    /* ======================================
+       STATUS
+    ====================================== */
 
     function showStatus(text) {
 
-      status.textContent = text;
+      status.textContent =
+        text;
 
-      status.style.display = "block";
+      status.style.display =
+        "block";
+
 
       clearTimeout(
         showStatus.timer
       );
 
+
       showStatus.timer =
-        setTimeout(() => {
+        setTimeout(
+          () => {
 
-          status.style.display =
-            "none";
+            status.style.display =
+              "none";
 
-        }, 3500);
+          },
+          3500
+        );
 
     }
 
 
-    /* =========================================
+    /* ======================================
        LOGIN ERROR
-    ========================================= */
+    ====================================== */
 
     function showLoginError(text) {
 
       loading.innerHTML = `
+
         <div class="login-error">
 
           <h2>
@@ -1412,20 +1826,25 @@
           </a>
 
         </div>
+
       `;
+
 
       loading.style.display =
         "flex";
+
     }
 
 
-    /* =========================================
-       SHOW USER
-    ========================================= */
+    /* ======================================
+       USER
+    ====================================== */
 
     function showUser(user) {
 
-      currentUser = user;
+      currentUser =
+        user;
+
 
       const name =
         user.user_metadata?.full_name ||
@@ -1433,35 +1852,63 @@
         user.email?.split("@")[0] ||
         "Sameer";
 
+
       userName.textContent =
         name;
+
 
       sideName.textContent =
         name;
 
+
       loading.style.display =
         "none";
 
-      authReady = true;
+
+      authReady =
+        true;
 
     }
 
 
-    /* =========================================
-       CREATE MESSAGE ELEMENT
-    ========================================= */
+    /* ======================================
+       MESSAGE ELEMENT
+    ====================================== */
 
-    function addMessage(
-      messageData
-    ) {
+    function addMessage(messageData) {
 
       const welcome =
         document.getElementById(
           "welcomeMessage"
         );
 
+
       if (welcome) {
+
         welcome.remove();
+
+      }
+
+
+      /*
+        Prevent duplicate realtime
+        messages.
+      */
+
+      if (messageData.id) {
+
+        const existing =
+          document.querySelector(
+            `[data-message-id="${messageData.id}"]`
+          );
+
+
+        if (existing) {
+
+          return;
+
+        }
+
       }
 
 
@@ -1471,22 +1918,29 @@
         );
 
 
-      const mine =
-        currentUser &&
-        messageData.sender_id ===
-          currentUser.id;
-
-
       message.className =
-        mine
+        (
+          currentUser &&
+          messageData.sender_id ===
+            currentUser.id
+        )
           ? "message mine"
           : "message";
+
+
+      if (messageData.id) {
+
+        message.dataset.messageId =
+          messageData.id;
+
+      }
 
 
       const text =
         document.createElement(
           "div"
         );
+
 
       text.textContent =
         messageData.content;
@@ -1496,6 +1950,7 @@
         document.createElement(
           "span"
         );
+
 
       time.className =
         "message-time";
@@ -1507,6 +1962,7 @@
           new Date(
             messageData.created_at
           );
+
 
         time.textContent =
           date.toLocaleTimeString(
@@ -1524,9 +1980,11 @@
         text
       );
 
+
       message.appendChild(
         time
       );
+
 
       messages.appendChild(
         message
@@ -1535,9 +1993,38 @@
     }
 
 
-    /* =========================================
+    /* ======================================
+       SCROLL TO BOTTOM
+    ====================================== */
+
+    function scrollToBottom(
+      smooth = true
+    ) {
+
+      requestAnimationFrame(
+        () => {
+
+          messages.scrollTo({
+
+            top:
+              messages.scrollHeight,
+
+            behavior:
+              smooth
+                ? "smooth"
+                : "auto"
+
+          });
+
+        }
+      );
+
+    }
+
+
+    /* ======================================
        LOAD SAVED MESSAGES
-    ========================================= */
+    ====================================== */
 
     async function loadMessages() {
 
@@ -1565,34 +2052,33 @@
           error
         );
 
+
         showStatus(
           "Messages could not be loaded."
         );
 
+
         return;
+
       }
 
 
-      const welcome =
-        document.getElementById(
-          "welcomeMessage"
-        );
-
-      if (welcome) {
-        welcome.remove();
-      }
+      messages.innerHTML =
+        "";
 
 
-      messages.innerHTML = "";
-
-
-      if (!data || data.length === 0) {
+      if (
+        !data ||
+        data.length === 0
+      ) {
 
         messages.innerHTML = `
+
           <div
             class="welcome-message"
             id="welcomeMessage"
           >
+
             <h3>
               Welcome to ToTalk
             </h3>
@@ -1601,10 +2087,14 @@
               Your conversation space is ready.
               Write a message below to begin.
             </p>
+
           </div>
+
         `;
 
+
         return;
+
       }
 
 
@@ -1619,15 +2109,20 @@
       );
 
 
-      messages.scrollTop =
-        messages.scrollHeight;
+      /*
+        Open chat at newest message.
+      */
+
+      scrollToBottom(
+        false
+      );
 
     }
 
 
-    /* =========================================
+    /* ======================================
        SEND MESSAGE
-    ========================================= */
+    ====================================== */
 
     async function sendMessage() {
 
@@ -1636,22 +2131,30 @@
 
 
       if (!text) {
+
         return;
+
       }
 
 
-      if (!authReady || !currentUser) {
+      if (
+        !authReady ||
+        !currentUser
+      ) {
 
         showStatus(
           "Your login session is not ready."
         );
 
+
         return;
+
       }
 
 
       sendButton.disabled =
         true;
+
 
       sendButton.textContent =
         "Saving";
@@ -1659,18 +2162,17 @@
 
       try {
 
-        /*
-          Get the current session again.
 
-          This makes sure the database request
-          is authenticated.
-        */
+        /* -------------------------------
+           GET CURRENT SESSION
+        ------------------------------- */
 
         const {
           data: sessionData,
           error: sessionError
         } =
-          await supabaseClient.auth.getSession();
+          await supabaseClient.auth
+            .getSession();
 
 
         if (
@@ -1680,16 +2182,13 @@
           !sessionData.session.user
         ) {
 
-          console.error(
-            "Session error:",
-            sessionError
-          );
-
           showStatus(
             "Login session expired. Please sign in again."
           );
 
+
           return;
+
         }
 
 
@@ -1697,12 +2196,13 @@
           sessionData.session.user;
 
 
-        /*
-          THIS IS THE IMPORTANT PART.
+        currentUser =
+          user;
 
-          The message is actually inserted
-          into the Supabase messages table.
-        */
+
+        /* -------------------------------
+           SAVE TO SUPABASE
+        ------------------------------- */
 
         const {
           data,
@@ -1712,11 +2212,13 @@
             .from("messages")
             .insert([
               {
+
                 sender_id:
                   user.id,
 
                 content:
                   text
+
               }
             ])
             .select(
@@ -1732,19 +2234,21 @@
             error
           );
 
+
           showStatus(
             "Message was not saved: " +
             error.message
           );
 
+
           return;
+
         }
 
 
-        /*
-          Only show the message after
-          Supabase successfully saved it.
-        */
+        /* -------------------------------
+           SHOW SAVED MESSAGE
+        ------------------------------- */
 
         addMessage(
           data
@@ -1755,8 +2259,14 @@
           "";
 
 
-        messages.scrollTop =
-          messages.scrollHeight;
+        /*
+          Automatically scroll to
+          newest message.
+        */
+
+        scrollToBottom(
+          true
+        );
 
 
       } catch (error) {
@@ -1766,14 +2276,17 @@
           error
         );
 
+
         showStatus(
           "Something went wrong while saving."
         );
+
 
       } finally {
 
         sendButton.disabled =
           false;
+
 
         sendButton.textContent =
           "Send";
@@ -1783,149 +2296,278 @@
     }
 
 
-    /* =========================================
-       GOOGLE LOGIN / SESSION
-    ========================================= */
+    /* ======================================
+       REAL-TIME MESSAGES
+    ====================================== */
+
+    function startRealtime() {
+
+      /*
+        Remove old channel if one exists.
+      */
+
+      if (realtimeChannel) {
+
+        supabaseClient
+          .removeChannel(
+            realtimeChannel
+          );
+
+      }
+
+
+      realtimeChannel =
+        supabaseClient
+          .channel(
+            "totalk-messages"
+          )
+
+
+          .on(
+
+            "postgres_changes",
+
+            {
+
+              event: "INSERT",
+
+              schema: "public",
+
+              table: "messages"
+
+            },
+
+            (payload) => {
+
+              console.log(
+                "New message:",
+                payload.new
+              );
+
+
+              addMessage(
+                payload.new
+              );
+
+
+              /*
+                Automatically move
+                to the newest message.
+              */
+
+              scrollToBottom(
+                true
+              );
+
+            }
+
+          )
+
+
+          .subscribe();
+
+    }
+
+
+    /* ======================================
+       START CHAT / GOOGLE CALLBACK
+    ====================================== */
 
     async function startChat() {
 
-      let foundSession =
-        false;
+      try {
 
 
-      /*
-        Listen BEFORE checking getSession().
-        This helps when Supabase is still
-        finishing the Google callback.
-      */
+        /*
+          Google/Supabase sends us back
+          to chat.html with:
 
-      supabaseClient.auth.onAuthStateChange(
-        (event, session) => {
+          ?code=........
+        */
 
-          console.log(
-            "Auth event:",
-            event
+        const params =
+          new URLSearchParams(
+            window.location.search
           );
 
 
-          if (
-            session &&
-            session.user
-          ) {
+        const code =
+          params.get("code");
 
-            foundSession =
-              true;
 
-            showUser(
-              session.user
+        /* -------------------------------
+           EXCHANGE GOOGLE CODE
+        ------------------------------- */
+
+        if (code) {
+
+
+          const {
+            data,
+            error
+          } =
+            await supabaseClient.auth
+              .exchangeCodeForSession(
+                code
+              );
+
+
+          if (error) {
+
+            console.error(
+              "OAuth code exchange error:",
+              error
             );
 
-            loadMessages();
+
+            showLoginError(
+              "Google login could not be completed. Please return to the homepage and try again."
+            );
+
+
+            return;
 
           }
 
+
+          /*
+            Remove ?code=... from URL.
+
+            This also prevents the same
+            OAuth code being processed again
+            if the page is refreshed.
+          */
+
+          window.history.replaceState(
+            {},
+            document.title,
+            window.location.pathname
+          );
+
+
         }
-      );
 
 
-      try {
+        /* -------------------------------
+           GET SESSION
+        ------------------------------- */
 
         const {
           data,
           error
         } =
-          await supabaseClient.auth.getSession();
+          await supabaseClient.auth
+            .getSession();
 
 
         if (error) {
 
           console.error(
-            "getSession error:",
+            "Session error:",
             error
           );
 
-        }
 
-
-        if (
-          data &&
-          data.session &&
-          data.session.user
-        ) {
-
-          foundSession =
-            true;
-
-          showUser(
-            data.session.user
+          showLoginError(
+            "ToTalk could not read your login session. Please return to the homepage and try again."
           );
 
-          await loadMessages();
 
           return;
 
         }
 
 
-        /*
-          Give Supabase a little time to
-          finish the Google OAuth callback.
-        */
-
-        setTimeout(
-          async () => {
-
-            if (foundSession) {
-              return;
-            }
+        if (
+          !data ||
+          !data.session ||
+          !data.session.user
+        ) {
 
 
-            const {
-              data: retryData,
-              error: retryError
-            } =
-              await supabaseClient
-                .auth
-                .getSession();
+          /*
+            Give Supabase a short moment
+            in case the browser is still
+            finishing the OAuth callback.
+          */
+
+          setTimeout(
+            async () => {
+
+              const {
+                data: retryData,
+                error: retryError
+              } =
+                await supabaseClient
+                  .auth
+                  .getSession();
 
 
-            if (retryError) {
+              if (
+                !retryError &&
+                retryData?.session?.user
+              ) {
 
-              console.error(
-                "Retry session error:",
-                retryError
+                currentUser =
+                  retryData.session.user;
+
+
+                showUser(
+                  retryData.session.user
+                );
+
+
+                await loadMessages();
+
+
+                startRealtime();
+
+
+                return;
+
+              }
+
+
+              showLoginError(
+                "No active Google login session was found. Please return to the homepage and tap Continue with Google again."
               );
 
-            }
+
+            },
+            1200
+          );
 
 
-            if (
-              retryData &&
-              retryData.session &&
-              retryData.session.user
-            ) {
+          return;
 
-              foundSession =
-                true;
-
-              showUser(
-                retryData.session.user
-              );
-
-              await loadMessages();
-
-              return;
-
-            }
+        }
 
 
-            showLoginError(
-              "No active Google login session was found. Please return to the homepage and tap Continue with Google again."
-            );
+        /* -------------------------------
+           LOGIN SUCCESS
+        ------------------------------- */
 
-          },
-          3000
+        currentUser =
+          data.session.user;
+
+
+        showUser(
+          currentUser
         );
+
+
+        /* -------------------------------
+           LOAD DATABASE MESSAGES
+        ------------------------------- */
+
+        await loadMessages();
+
+
+        /* -------------------------------
+           START REALTIME
+        ------------------------------- */
+
+        startRealtime();
 
 
       } catch (error) {
@@ -1945,18 +2587,79 @@
     }
 
 
-    /* =========================================
+    /* ======================================
        LOGOUT
-    ========================================= */
+    ====================================== */
 
     logoutBtn.addEventListener(
       "click",
       async () => {
 
-        await supabaseClient
-          .auth
-          .signOut();
+        logoutBtn.disabled =
+          true;
 
+
+        logoutBtn.textContent =
+          "Logging out";
+
+
+        /*
+          Stop realtime before logout.
+        */
+
+        if (realtimeChannel) {
+
+          await supabaseClient
+            .removeChannel(
+              realtimeChannel
+            );
+
+          realtimeChannel =
+            null;
+
+        }
+
+
+        /*
+          Sign out completely.
+        */
+
+        const {
+          error
+        } =
+          await supabaseClient.auth
+            .signOut();
+
+
+        if (error) {
+
+          console.error(
+            "Logout error:",
+            error
+          );
+
+
+          logoutBtn.disabled =
+            false;
+
+
+          logoutBtn.textContent =
+            "Logout";
+
+
+          showStatus(
+            "Logout failed. Please try again."
+          );
+
+
+          return;
+
+        }
+
+
+        /*
+          Go back to homepage.
+        */
 
         window.location.replace(
           "./index.html"
@@ -1966,9 +2669,9 @@
     );
 
 
-    /* =========================================
+    /* ======================================
        SEND BUTTON
-    ========================================= */
+    ====================================== */
 
     sendButton.addEventListener(
       "click",
@@ -1976,9 +2679,9 @@
     );
 
 
-    /* =========================================
+    /* ======================================
        ENTER KEY
-    ========================================= */
+    ====================================== */
 
     messageInput.addEventListener(
       "keydown",
@@ -1999,13 +2702,43 @@
     );
 
 
-    /* =========================================
-       START
-    ========================================= */
+    /* ======================================
+       AUTH STATE LISTENER
+    ====================================== */
+
+    supabaseClient.auth
+      .onAuthStateChange(
+        (event, session) => {
+
+          console.log(
+            "Supabase auth event:",
+            event
+          );
+
+
+          if (
+            session &&
+            session.user &&
+            !currentUser
+          ) {
+
+            currentUser =
+              session.user;
+
+          }
+
+        }
+      );
+
+
+    /* ======================================
+       START EVERYTHING
+    ====================================== */
 
     startChat();
 
   </script>
 
 </body>
+
 </html>
