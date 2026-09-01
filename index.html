@@ -1,568 +1,637 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>ToTalk — Talk to Sameer</title>
+  <title>ToTalk — Talk. Connect. Together.</title>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-<style>
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
-}
-
-html{
-    scroll-behavior:smooth;
-}
-
-body{
-    font-family:Arial, Helvetica, sans-serif;
-    min-height:100vh;
-    color:#12324a;
-    background:
-        radial-gradient(circle at 10% 10%, #fff8b8 0, transparent 28%),
-        radial-gradient(circle at 90% 20%, #bdefff 0, transparent 32%),
-        linear-gradient(135deg,#eafaff,#fffde1);
-}
-
-/* NAVBAR */
-
-nav{
-    width:100%;
-    padding:20px 7%;
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    position:relative;
-    z-index:10;
-}
-
-.logo{
-    font-size:28px;
-    font-weight:900;
-    color:#123b56;
-}
-
-.logo span{
-    color:#f5c400;
-}
-
-.nav-login{
-    border:none;
-    background:white;
-    color:#123b56;
-    padding:12px 20px;
-    border-radius:30px;
-    font-weight:bold;
-    cursor:pointer;
-    box-shadow:0 8px 25px rgba(34,80,110,.12);
-}
-
-/* HERO */
-
-.hero{
-    min-height:78vh;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    text-align:center;
-    padding:50px 20px 80px;
-}
-
-.hero-content{
-    max-width:850px;
-}
-
-.badge{
-    display:inline-block;
-    background:rgba(255,255,255,.8);
-    padding:9px 16px;
-    border-radius:50px;
-    font-size:14px;
-    font-weight:bold;
-    margin-bottom:25px;
-    box-shadow:0 8px 25px rgba(30,100,130,.08);
-}
-
-h1{
-    font-size:clamp(48px,9vw,88px);
-    line-height:.95;
-    letter-spacing:-4px;
-    color:#123b56;
-}
-
-h1 span{
-    color:#f2c200;
-}
-
-.hero-text{
-    max-width:620px;
-    margin:25px auto;
-    font-size:18px;
-    line-height:1.7;
-    color:#49687b;
-}
-
-.main-button{
-    border:none;
-    background:#123b56;
-    color:white;
-    padding:16px 28px;
-    border-radius:15px;
-    font-size:16px;
-    font-weight:bold;
-    cursor:pointer;
-    box-shadow:0 15px 35px rgba(18,59,86,.22);
-    transition:.25s;
-}
-
-.main-button:hover{
-    transform:translateY(-3px);
-}
-
-/* CARDS */
-
-.section{
-    padding:30px 7% 90px;
-}
-
-.cards{
-    max-width:1050px;
-    margin:auto;
-    display:grid;
-    grid-template-columns:repeat(3,1fr);
-    gap:20px;
-}
-
-.card{
-    background:rgba(255,255,255,.72);
-    backdrop-filter:blur(15px);
-    border:1px solid rgba(255,255,255,.9);
-    border-radius:25px;
-    padding:30px;
-    box-shadow:0 15px 45px rgba(40,90,120,.10);
-}
-
-.icon{
-    width:50px;
-    height:50px;
-    border-radius:15px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    background:#fff3a6;
-    font-size:24px;
-    margin-bottom:20px;
-}
-
-.card h3{
-    margin-bottom:10px;
-    font-size:20px;
-}
-
-.card p{
-    color:#607887;
-    line-height:1.6;
-}
-
-/* LOGIN AREA */
-
-.login-area{
-    max-width:650px;
-    margin:0 auto 90px;
-    padding:35px;
-    background:rgba(255,255,255,.78);
-    border-radius:30px;
-    text-align:center;
-    box-shadow:0 20px 60px rgba(40,90,120,.12);
-}
-
-.login-area h2{
-    font-size:30px;
-    margin-bottom:10px;
-}
-
-.login-area p{
-    color:#66808e;
-    margin-bottom:25px;
-}
-
-.google-button{
-    width:100%;
-    max-width:350px;
-    padding:15px 20px;
-    border:none;
-    border-radius:14px;
-    background:white;
-    color:#183b51;
-    font-size:16px;
-    font-weight:bold;
-    cursor:pointer;
-    box-shadow:0 8px 25px rgba(0,0,0,.08);
-}
-
-.google-button:hover{
-    transform:translateY(-2px);
-}
-
-/* USER */
-
-#userBox{
-    display:none;
-    margin-top:20px;
-}
-
-.user-email{
-    color:#557180;
-    margin-bottom:15px;
-}
-
-.logout{
-    border:none;
-    background:#123b56;
-    color:white;
-    padding:12px 22px;
-    border-radius:12px;
-    cursor:pointer;
-    font-weight:bold;
-}
-
-/* FOOTER */
-
-footer{
-    text-align:center;
-    padding:35px 20px;
-    color:#66808e;
-    font-size:14px;
-}
-
-footer strong{
-    color:#123b56;
-}
-
-/* MOBILE */
-
-@media(max-width:750px){
-
-    nav{
-        padding:18px 5%;
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
     }
 
-    .logo{
-        font-size:24px;
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      min-height: 100vh;
+      color: #173b56;
+      background:
+        radial-gradient(circle at 8% 10%, #fff2a8 0%, transparent 25%),
+        radial-gradient(circle at 92% 12%, #bcecff 0%, transparent 30%),
+        linear-gradient(135deg, #f8fdff 0%, #e7f8ff 50%, #fffbea 100%);
+      overflow-x: hidden;
     }
 
-    .hero{
-        min-height:70vh;
-        padding:35px 20px 60px;
+    /* NAVBAR */
+
+    nav {
+      width: 100%;
+      max-width: 1150px;
+      margin: auto;
+      padding: 24px 25px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
 
-    h1{
-        letter-spacing:-2px;
+    .logo {
+      font-size: 29px;
+      font-weight: 900;
+      letter-spacing: -1.5px;
     }
 
-    .hero-text{
-        font-size:16px;
+    .logo span {
+      color: #e5b900;
     }
 
-    .cards{
-        grid-template-columns:1fr;
+    .creator {
+      font-size: 13px;
+      color: #678397;
+      background: rgba(255,255,255,.65);
+      padding: 9px 15px;
+      border-radius: 30px;
     }
 
-    .section{
-        padding-left:5%;
-        padding-right:5%;
+    /* HERO */
+
+    .hero {
+      max-width: 1050px;
+      min-height: 620px;
+      margin: auto;
+      padding: 60px 25px 90px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
     }
 
-    .login-area{
-        margin-left:5%;
-        margin-right:5%;
-        padding:28px 20px;
+    .hero-content {
+      max-width: 800px;
     }
-}
-</style>
+
+    .badge {
+      display: inline-block;
+      padding: 9px 17px;
+      border-radius: 50px;
+      background: #fff1a3;
+      color: #705d00;
+      font-size: 13px;
+      font-weight: 800;
+      margin-bottom: 24px;
+      box-shadow: 0 8px 25px rgba(210,180,40,.12);
+    }
+
+    h1 {
+      font-size: clamp(52px, 9vw, 92px);
+      line-height: .93;
+      letter-spacing: -5px;
+      margin-bottom: 28px;
+    }
+
+    h1 .blue {
+      color: #299bcf;
+    }
+
+    h1 .yellow {
+      color: #e2b700;
+    }
+
+    .subtitle {
+      max-width: 650px;
+      margin: auto;
+      color: #5c7587;
+      font-size: 18px;
+      line-height: 1.7;
+    }
+
+    /* LOGIN */
+
+    .login-button {
+      margin-top: 32px;
+      border: none;
+      padding: 17px 28px;
+      border-radius: 16px;
+      background: #173b56;
+      color: white;
+      font-size: 16px;
+      font-weight: 800;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      box-shadow: 0 18px 40px rgba(23,59,86,.20);
+      transition: .25s;
+    }
+
+    .login-button:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 23px 45px rgba(23,59,86,.25);
+    }
+
+    .google-icon {
+      width: 22px;
+      height: 22px;
+      background: white;
+      color: #4285f4;
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 13px;
+      font-weight: 900;
+    }
+
+    #status {
+      margin-top: 15px;
+      color: #698293;
+      font-size: 13px;
+    }
+
+    /* CHAT PREVIEW */
+
+    .preview {
+      max-width: 850px;
+      margin: -20px auto 90px;
+      padding: 0 25px;
+    }
+
+    .chat-window {
+      background: rgba(255,255,255,.76);
+      border: 1px solid rgba(255,255,255,.9);
+      backdrop-filter: blur(18px);
+      border-radius: 30px;
+      padding: 25px;
+      box-shadow: 0 25px 70px rgba(45,105,135,.13);
+    }
+
+    .chat-head {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid #e3edf1;
+    }
+
+    .avatar {
+      width: 46px;
+      height: 46px;
+      border-radius: 15px;
+      background: #fff0a0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 900;
+      color: #705d00;
+    }
+
+    .chat-head strong {
+      display: block;
+    }
+
+    .online {
+      color: #47a879;
+      font-size: 12px;
+      margin-top: 4px;
+    }
+
+    .messages {
+      padding-top: 20px;
+    }
+
+    .message {
+      max-width: 75%;
+      padding: 13px 16px;
+      margin-bottom: 12px;
+      border-radius: 17px;
+      background: #dff6ff;
+      color: #416a80;
+      line-height: 1.5;
+      font-size: 14px;
+    }
+
+    .message.right {
+      margin-left: auto;
+      background: #fff1a8;
+      color: #6c5b08;
+    }
+
+    /* FEATURES */
+
+    .features {
+      max-width: 1050px;
+      margin: auto;
+      padding: 0 25px 80px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+    }
+
+    .feature {
+      background: rgba(255,255,255,.65);
+      border: 1px solid rgba(255,255,255,.9);
+      border-radius: 23px;
+      padding: 27px;
+      box-shadow: 0 12px 35px rgba(45,105,135,.08);
+    }
+
+    .feature-icon {
+      font-size: 26px;
+      margin-bottom: 15px;
+    }
+
+    .feature h3 {
+      margin-bottom: 9px;
+      font-size: 18px;
+    }
+
+    .feature p {
+      color: #688190;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    /* LOGGED IN */
+
+    #loggedIn {
+      display: none;
+      max-width: 500px;
+      margin: 0 auto 80px;
+      padding: 30px;
+      text-align: center;
+      background: rgba(255,255,255,.85);
+      border-radius: 25px;
+      box-shadow: 0 20px 55px rgba(45,105,135,.12);
+    }
+
+    #loggedIn h2 {
+      margin-bottom: 10px;
+    }
+
+    #email {
+      color: #688190;
+      margin-bottom: 20px;
+    }
+
+    .logout {
+      border: none;
+      padding: 12px 22px;
+      border-radius: 12px;
+      background: #173b56;
+      color: white;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    /* FOOTER */
+
+    footer {
+      text-align: center;
+      padding: 35px 20px;
+      color: #728794;
+      font-size: 13px;
+      border-top: 1px solid rgba(80,130,150,.08);
+    }
+
+    /* MOBILE */
+
+    @media (max-width: 750px) {
+
+      nav {
+        padding: 20px;
+      }
+
+      .creator {
+        font-size: 11px;
+      }
+
+      .hero {
+        min-height: 560px;
+        padding: 45px 20px 70px;
+      }
+
+      h1 {
+        letter-spacing: -3px;
+      }
+
+      .subtitle {
+        font-size: 16px;
+      }
+
+      .features {
+        grid-template-columns: 1fr;
+        padding-left: 20px;
+        padding-right: 20px;
+      }
+
+      .preview {
+        padding: 0 20px;
+      }
+
+      .message {
+        max-width: 85%;
+      }
+    }
+  </style>
 </head>
 
 <body>
 
-<!-- NAVBAR -->
+  <!-- NAVIGATION -->
 
-<nav>
+  <nav>
 
     <div class="logo">
-        To<span>Talk</span>
+      To<span>Talk</span>
     </div>
 
-    <button class="nav-login" onclick="goLogin()">
-        Login
-    </button>
+    <div class="creator">
+      Created by Sameer
+    </div>
 
-</nav>
+  </nav>
 
 
-<!-- HERO -->
+  <!-- MAIN HERO -->
 
-<section class="hero">
+  <section class="hero">
 
     <div class="hero-content">
 
-        <div class="badge">
-            💬 A simple place to talk
-        </div>
+      <div class="badge">
+        💬 Welcome to ToTalk
+      </div>
 
-        <h1>
-            Talk.<br>
-            <span>Connect.</span><br>
-            Be yourself.
-        </h1>
+      <h1>
+        Talk.<br>
+        <span class="blue">Connect.</span><br>
+        <span class="yellow">ToTalk.</span>
+      </h1>
 
-        <p class="hero-text">
-            Welcome to ToTalk — a simple space created by Sameer
-            where people can connect, start conversations and
-            simply talk.
-        </p>
+      <p class="subtitle">
+        A simple chat platform created by Sameer.
+        Sign in with Google and get started.
+        Nothing complicated — just a place to connect.
+      </p>
 
-        <button class="main-button" onclick="goLogin()">
-            Start with Google →
-        </button>
+      <!-- ONLY ONE LOGIN BUTTON -->
 
-    </div>
+      <button
+        class="login-button"
+        id="loginButton"
+      >
+        <span class="google-icon">G</span>
+        Continue with Google
+      </button>
 
-</section>
-
-
-<!-- FEATURES -->
-
-<section class="section">
-
-    <div class="cards">
-
-        <div class="card">
-            <div class="icon">💬</div>
-
-            <h3>Just Talk</h3>
-
-            <p>
-                Sometimes you simply want someone to talk to.
-                ToTalk keeps it simple.
-            </p>
-        </div>
-
-
-        <div class="card">
-            <div class="icon">🤝</div>
-
-            <h3>One Conversation</h3>
-
-            <p>
-                No complicated social feed.
-                Just a place made for meaningful conversations.
-            </p>
-        </div>
-
-
-        <div class="card">
-            <div class="icon">✨</div>
-
-            <h3>Made by Sameer</h3>
-
-            <p>
-                ToTalk is an independent project created by
-                Sameer with one simple idea — make talking easier.
-            </p>
-        </div>
+      <div id="status"></div>
 
     </div>
 
-</section>
+  </section>
 
 
-<!-- LOGIN -->
+  <!-- CHAT PREVIEW -->
 
-<section class="login-area" id="login">
+  <section class="preview">
 
-    <h2>Ready to talk?</h2>
+    <div class="chat-window">
 
-    <p>
-        Sign in with Google to enter ToTalk.
-    </p>
+      <div class="chat-head">
 
-    <button class="google-button" id="googleLogin">
-        🔵 Continue with Google
+        <div class="avatar">
+          T
+        </div>
+
+        <div>
+          <strong>ToTalk</strong>
+          <div class="online">● Online</div>
+        </div>
+
+      </div>
+
+      <div class="messages">
+
+        <div class="message">
+          Hey! 👋 Welcome to ToTalk.
+        </div>
+
+        <div class="message right">
+          Hey! Nice to meet you 😄
+        </div>
+
+        <div class="message">
+          Let's start talking!
+        </div>
+
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <!-- FEATURES -->
+
+  <section class="features">
+
+    <div class="feature">
+
+      <div class="feature-icon">💬</div>
+
+      <h3>
+        Start talking
+      </h3>
+
+      <p>
+        Get into a conversation without
+        unnecessary complicated steps.
+      </p>
+
+    </div>
+
+
+    <div class="feature">
+
+      <div class="feature-icon">⚡</div>
+
+      <h3>
+        Keep it simple
+      </h3>
+
+      <p>
+        A clean experience designed around
+        chatting and connecting.
+      </p>
+
+    </div>
+
+
+    <div class="feature">
+
+      <div class="feature-icon">✨</div>
+
+      <h3>
+        Built by Sameer
+      </h3>
+
+      <p>
+        ToTalk is an independent project
+        created and designed by Sameer.
+      </p>
+
+    </div>
+
+  </section>
+
+
+  <!-- LOGGED-IN AREA -->
+
+  <section id="loggedIn">
+
+    <h2>
+      Welcome to ToTalk 👋
+    </h2>
+
+    <p id="email"></p>
+
+    <button
+      class="logout"
+      id="logoutButton"
+    >
+      Log out
     </button>
 
-
-    <div id="userBox">
-
-        <p class="user-email" id="userEmail"></p>
-
-        <button class="logout" id="logoutButton">
-            Logout
-        </button>
-
-    </div>
-
-</section>
+  </section>
 
 
-<!-- FOOTER -->
+  <!-- FOOTER -->
 
-<footer>
+  <footer>
 
-    <p>
-        ToTalk © 2026 · Created by <strong>Sameer</strong>
-    </p>
+    ToTalk © 2026 · Created by Sameer
 
-    <br>
-
-    <p>
-        Talk. Share. Connect.
-    </p>
-
-</footer>
+  </footer>
 
 
-<script>
+  <!-- SUPABASE -->
 
-/* ==============================
-   SUPABASE CONNECTION
-   ============================== */
+  <script>
 
-const SUPABASE_URL =
-"https://qiynczbrhpxwuabwuyiy.supabase.co";
+    const SUPABASE_URL =
+      "https://qyinczbrhpxwuabwuiy.supabase.co";
 
-const SUPABASE_KEY =
-"sb_publishable_eUPz4c_nYckgINEK-AIWqw_JAXIHozd";
+    const SUPABASE_KEY =
+      "sb_publishable_eUPz4c_nYckgINEK-AIWqw_JAXIHozd";
 
-const supabaseClient =
-supabase.createClient(
-    SUPABASE_URL,
-    SUPABASE_KEY
-);
+    const client =
+      window.supabase.createClient(
+        SUPABASE_URL,
+        SUPABASE_KEY
+      );
 
 
-/* ==============================
-   GO TO LOGIN
-   ============================== */
-
-function goLogin(){
+    /* GOOGLE LOGIN */
 
     document
-        .getElementById("login")
-        .scrollIntoView({
-            behavior:"smooth"
-        });
+      .getElementById("loginButton")
+      .addEventListener("click", async () => {
 
-}
+        const status =
+          document.getElementById("status");
 
+        status.textContent =
+          "Opening Google...";
 
-/* ==============================
-   GOOGLE LOGIN
-   ============================== */
+        const { error } =
+          await client.auth.signInWithOAuth({
 
-document
-.getElementById("googleLogin")
-.addEventListener("click", async function(){
+            provider: "google",
 
-    const { error } =
-    await supabaseClient.auth.signInWithOAuth({
+            options: {
 
-        provider:"google",
+              redirectTo:
+                window.location.origin +
+                window.location.pathname
 
-        options:{
-            redirectTo:
-            window.location.origin +
-            window.location.pathname
-        }
+            }
 
-    });
+          });
 
-    if(error){
+        if (error) {
 
-        alert(
+          status.textContent =
             "Login error: " +
-            error.message
-        );
+            error.message;
 
-    }
-
-});
-
-
-/* ==============================
-   CHECK LOGIN
-   ============================== */
-
-async function checkUser(){
-
-    const {
-        data:{
-            session
         }
-    } =
-    await supabaseClient.auth.getSession();
+
+      });
 
 
-    if(session){
+    /* CHECK LOGIN */
 
-        showUser(
-            session.user
+    async function checkLogin() {
+
+      const {
+        data: { session }
+      } = await client.auth.getSession();
+
+      if (session) {
+
+        showLoggedIn(
+          session.user
         );
+
+      }
 
     }
 
-}
 
+    /* SHOW LOGGED-IN USER */
 
-/* ==============================
-   SHOW USER
-   ============================== */
+    function showLoggedIn(user) {
 
-function showUser(user){
+      document
+        .getElementById("loginButton")
+        .style.display = "none";
 
-    document
-        .getElementById("googleLogin")
-        .style.display="none";
+      document
+        .getElementById("status")
+        .textContent = "";
 
-    document
-        .getElementById("userBox")
-        .style.display="block";
+      document
+        .getElementById("loggedIn")
+        .style.display = "block";
 
-    document
-        .getElementById("userEmail")
+      document
+        .getElementById("email")
         .textContent =
-        "Logged in as " +
+        "Signed in as " +
         user.email;
 
-}
+    }
 
 
-/* ==============================
-   LOGOUT
-   ============================== */
+    /* LOGOUT */
 
-document
-.getElementById("logoutButton")
-.addEventListener("click", async function(){
+    document
+      .getElementById("logoutButton")
+      .addEventListener("click", async () => {
 
-    await supabaseClient.auth.signOut();
+        await client.auth.signOut();
 
-    location.reload();
+        location.reload();
 
-});
+      });
 
 
-/* ==============================
-   START
-   ============================== */
+    checkLogin();
 
-checkUser();
-
-</script>
+  </script>
 
 </body>
 </html>
