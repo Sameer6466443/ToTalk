@@ -2,2003 +2,1448 @@
 <html lang="en">
 
 <head>
+<meta charset="UTF-8">
 
-  <meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0">
 
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0"
-  >
+<title>ToTalk Sameer</title>
 
-  <title>ToTalk Sameer</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
+<style>
 
-  <!-- SUPABASE -->
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+:root{
+    --black:#02020a;
+    --dark:#050414;
+    --purple:#9b5cff;
+    --purple2:#bd8aff;
+    --purple3:#6829c9;
+    --yellow:#ffe04a;
+    --white:#ffffff;
+    --gray:#aaa6bd;
+    --green:#62e58a;
+}
 
+/* =========================
+   PAGE
+========================= */
 
-  <style>
+html,
+body{
+    width:100%;
+    min-height:100%;
+}
 
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+body{
+    min-height:100vh;
 
-
-    :root {
-
-      --bg: #03030b;
-
-      --bg2: #08051a;
-
-      --panel: rgba(7, 6, 22, 0.88);
-
-      --panel2: rgba(14, 9, 34, 0.92);
-
-      --purple: #9b55ff;
-
-      --purple2: #b979ff;
-
-      --purple3: #6c32d8;
-
-      --yellow: #ffe047;
-
-      --white: #ffffff;
-
-      --muted: #aaa7bd;
-
-      --green: #67e98b;
-
-      --border: rgba(155, 85, 255, 0.55);
-
-    }
-
-
-    html,
-    body {
-
-      width: 100%;
-
-      min-height: 100%;
-
-    }
-
-
-    body {
-
-      min-height: 100vh;
-
-      font-family:
+    font-family:
         Arial,
         Helvetica,
         sans-serif;
 
-      color: var(--white);
+    color:white;
 
-      background:
-
+    background:
         radial-gradient(
-          circle at 78% 30%,
-          rgba(113, 42, 210, .25),
-          transparent 27%
+            ellipse at 75% 20%,
+            rgba(101,38,185,.30),
+            transparent 30%
         ),
-
         radial-gradient(
-          circle at 18% 82%,
-          rgba(76, 27, 173, .22),
-          transparent 28%
+            ellipse at 15% 80%,
+            rgba(74,27,153,.24),
+            transparent 28%
         ),
-
-        radial-gradient(
-          circle at 90% 100%,
-          rgba(166, 69, 255, .18),
-          transparent 30%
-        ),
-
         linear-gradient(
-          135deg,
-          #020208,
-          #070517 48%,
-          #09051a
+            135deg,
+            #010108,
+            #050313 45%,
+            #09031a
         );
 
-      overflow-x: hidden;
+    overflow-x:hidden;
+}
 
-      position: relative;
+/* =========================
+   STAR FIELD
+========================= */
 
-    }
+body::before{
+    content:"";
 
+    position:fixed;
 
-    /* =========================
-       STAR FIELD
-       ========================= */
+    inset:0;
 
-    body::before {
+    pointer-events:none;
 
-      content: "";
-
-      position: fixed;
-
-      inset: 0;
-
-      pointer-events: none;
-
-      opacity: .85;
-
-      background-image:
+    background-image:
 
         radial-gradient(
-          circle,
-          rgba(255,255,255,.95) 0 1px,
-          transparent 1.5px
+            circle,
+            white 0 1px,
+            transparent 1.5px
         ),
 
         radial-gradient(
-          circle,
-          rgba(184,120,255,.9) 0 1px,
-          transparent 1.5px
+            circle,
+            #c89aff 0 1px,
+            transparent 1.5px
         ),
 
         radial-gradient(
-          circle,
-          rgba(255,255,255,.7) 0 1.2px,
-          transparent 1.8px
+            circle,
+            rgba(255,255,255,.75) 0 1px,
+            transparent 1.5px
         );
 
-      background-size:
-        150px 150px,
-        220px 220px,
-        310px 310px;
+    background-size:
+        135px 135px,
+        210px 210px,
+        285px 285px;
 
-      background-position:
-        10px 20px,
-        70px 110px,
+    background-position:
+        20px 15px,
+        80px 100px,
         130px 40px;
 
-      z-index: 0;
+    opacity:.65;
 
-    }
+    z-index:0;
+}
 
+/* =========================
+   LOADING
+========================= */
 
-    /* =========================
-       EXTRA GALAXY GLOW
-       ========================= */
+#loading{
+    position:fixed;
 
-    body::after {
+    inset:0;
 
-      content: "";
+    z-index:9999;
 
-      position: fixed;
+    display:flex;
 
-      width: 850px;
+    align-items:center;
 
-      height: 320px;
+    justify-content:center;
 
-      right: -160px;
-
-      top: 230px;
-
-      pointer-events: none;
-
-      transform: rotate(-27deg);
-
-      background:
-
+    background:
         radial-gradient(
-          ellipse,
-          rgba(177, 76, 255, .27),
-          rgba(92, 25, 180, .14) 35%,
-          transparent 70%
+            circle at center,
+            #1c0b3e,
+            #020208 70%
         );
 
-      filter: blur(22px);
+    color:white;
 
-      z-index: 0;
+    font-size:18px;
 
-    }
+    font-weight:bold;
+}
 
+/* =========================
+   LOGIN ERROR
+========================= */
 
-    /* =========================
-       LOADING
-       ========================= */
+#loginError{
+    display:none;
 
-    #loading {
+    position:fixed;
 
-      position: fixed;
+    inset:0;
 
-      inset: 0;
+    z-index:9998;
 
-      z-index: 9999;
+    align-items:center;
 
-      display: flex;
+    justify-content:center;
 
-      align-items: center;
+    padding:25px;
 
-      justify-content: center;
+    background:#03030b;
+}
 
-      background:
+.error-box{
+    width:100%;
+    max-width:420px;
 
-        radial-gradient(
-          circle at center,
-          #24104d,
-          #05040d 65%
-        );
+    padding:30px;
 
-      color: white;
+    text-align:center;
 
-      font-size: 18px;
+    border:
+        1px solid
+        rgba(155,92,255,.7);
 
-      font-weight: 800;
+    border-radius:20px;
 
-    }
+    background:
+        rgba(10,6,25,.97);
 
+    box-shadow:
+        0 0 50px
+        rgba(125,55,230,.20);
+}
 
-    /* =========================
-       ERROR
-       ========================= */
+.error-box h2{
+    margin-bottom:12px;
+}
 
-    #loginError {
+.error-box p{
+    color:var(--gray);
 
-      display: none;
+    font-size:14px;
 
-      position: fixed;
+    line-height:1.6;
 
-      inset: 0;
+    margin-bottom:20px;
+}
 
-      z-index: 9998;
+.back-button{
+    border:
+        1px solid
+        var(--purple);
 
-      align-items: center;
+    background:
+        rgba(155,92,255,.12);
 
-      justify-content: center;
+    color:white;
 
-      padding: 25px;
+    padding:
+        11px 22px;
 
-      background:
-        #05040d;
+    border-radius:10px;
 
-    }
+    font-weight:bold;
 
+    cursor:pointer;
+}
 
-    .error-box {
+/* =========================
+   HEADER
+========================= */
 
-      max-width: 430px;
+header{
+    height:98px;
 
-      width: 100%;
+    padding:
+        0 2.4%;
 
-      padding: 30px;
+    display:flex;
 
-      text-align: center;
+    align-items:center;
 
-      border: 1px solid #8d4aff;
+    justify-content:space-between;
 
-      border-radius: 22px;
+    position:relative;
 
-      background:
-        rgba(16, 8, 35, .96);
+    z-index:10;
 
-      box-shadow:
-        0 0 50px rgba(137, 67, 255, .18);
+    background:
+        rgba(2,2,9,.78);
 
-    }
+    border-bottom:
+        1px solid
+        rgba(155,92,255,.38);
 
+    backdrop-filter:
+        blur(10px);
+}
 
-    .error-box h2 {
+.brand{
+    display:flex;
 
-      margin-bottom: 12px;
+    align-items:center;
 
-      color: white;
+    gap:12px;
 
-    }
+    font-size:36px;
 
+    font-weight:900;
 
-    .error-box p {
+    letter-spacing:-1.5px;
+}
 
-      color: var(--muted);
+.brand-icon{
+    width:46px;
+    height:42px;
 
-      line-height: 1.6;
+    display:flex;
 
-      font-size: 14px;
+    align-items:center;
 
-      margin-bottom: 20px;
+    justify-content:center;
 
-    }
+    border-radius:13px;
 
+    background:var(--yellow);
 
-    .back-button {
+    color:#05030b;
 
-      border: 1px solid var(--purple);
+    font-size:19px;
 
-      background:
-        rgba(155, 85, 255, .15);
+    letter-spacing:2px;
 
-      color: white;
+    position:relative;
 
-      padding: 11px 20px;
+    box-shadow:
+        0 0 22px
+        rgba(255,224,74,.18);
+}
 
-      border-radius: 11px;
+.brand-icon::after{
+    content:"";
 
-      font-weight: 800;
+    position:absolute;
 
-      cursor: pointer;
+    bottom:-7px;
 
-    }
+    left:8px;
 
+    width:15px;
 
-    /* =========================
-       HEADER
-       ========================= */
+    height:14px;
 
-    header {
+    background:var(--yellow);
 
-      height: 98px;
+    clip-path:
+        polygon(0 0,100% 0,0 100%);
+}
 
-      padding:
-        0 2.5%;
+.brand-purple{
+    color:var(--purple2);
+}
 
-      display: flex;
+.header-right{
+    display:flex;
 
-      align-items: center;
+    align-items:center;
 
-      justify-content: space-between;
+    gap:20px;
+}
 
-      border-bottom:
-        1px solid rgba(155, 85, 255, .38);
+.username{
+    color:#bcb8c9;
 
-      background:
-        rgba(2, 2, 10, .78);
+    font-size:16px;
+}
 
-      backdrop-filter:
-        blur(12px);
+.logout{
+    color:white;
 
-      position: relative;
+    background:
+        rgba(105,45,190,.08);
 
-      z-index: 10;
+    border:
+        1px solid
+        var(--purple);
 
-    }
+    border-radius:12px;
 
+    padding:
+        12px 20px;
 
-    .brand {
+    font-size:14px;
 
-      display: flex;
+    font-weight:bold;
 
-      align-items: center;
+    cursor:pointer;
+}
 
-      gap: 13px;
+.logout:hover{
+    background:
+        rgba(155,92,255,.18);
+}
 
-      font-size: 36px;
+/* =========================
+   MAIN
+========================= */
 
-      font-weight: 900;
+.layout{
+    width:100%;
 
-      letter-spacing: -1.5px;
+    max-width:1500px;
 
-    }
-
-
-    .brand-icon {
-
-      width: 47px;
-
-      height: 43px;
-
-      border-radius: 13px;
-
-      background:
-        var(--yellow);
-
-      color: #07030e;
-
-      display: flex;
-
-      align-items: center;
-
-      justify-content: center;
-
-      font-size: 22px;
-
-      position: relative;
-
-      box-shadow:
-        0 0 25px rgba(255, 224, 71, .18);
-
-    }
-
-
-    .brand-icon::after {
-
-      content: "";
-
-      position: absolute;
-
-      left: 7px;
-
-      bottom: -7px;
-
-      width: 15px;
-
-      height: 14px;
-
-      background: var(--yellow);
-
-      clip-path:
-        polygon(0 0, 100% 0, 0 100%);
-
-    }
-
-
-    .brand-purple {
-
-      color:
-        var(--purple2);
-
-    }
-
-
-    .header-right {
-
-      display: flex;
-
-      align-items: center;
-
-      gap: 20px;
-
-    }
-
-
-    .username {
-
-      color:
-        #c2bdcf;
-
-      font-size: 16px;
-
-    }
-
-
-    .logout {
-
-      padding:
-        12px 21px;
-
-      border-radius:
-        12px;
-
-      border:
-        1px solid var(--purple);
-
-      background:
-        rgba(117, 49, 205, .08);
-
-      color:
-        white;
-
-      font-size:
-        15px;
-
-      font-weight:
-        800;
-
-      cursor:
-        pointer;
-
-    }
-
-
-    .logout:hover {
-
-      background:
-        rgba(155, 85, 255, .20);
-
-    }
-
-
-    /* =========================
-       MAIN
-       ========================= */
-
-    .layout {
-
-      width:
-        100%;
-
-      max-width:
-        1450px;
-
-      margin:
+    margin:
         18px auto;
 
-      padding:
+    padding:
         0 18px;
 
-      display:
-        grid;
+    display:grid;
 
-      grid-template-columns:
+    grid-template-columns:
         275px 1fr;
 
-      gap:
-        16px;
+    gap:16px;
 
-      position:
-        relative;
+    position:relative;
 
-      z-index:
-        2;
+    z-index:2;
+}
 
-    }
+/* =========================
+   SIDEBAR
+========================= */
 
-
-    /* =========================
-       SIDEBAR
-       ========================= */
-
-    .sidebar {
-
-      min-height:
+.sidebar{
+    min-height:
         calc(100vh - 140px);
 
-      border:
-        1px solid var(--border);
+    border:
+        1px solid
+        rgba(155,92,255,.60);
 
-      border-radius:
-        18px;
+    border-radius:17px;
 
-      background:
+    background:
         linear-gradient(
-          160deg,
-          rgba(12, 8, 29, .95),
-          rgba(3, 3, 13, .94)
+            160deg,
+            rgba(7,5,20,.93),
+            rgba(2,2,10,.94)
         );
 
-      overflow:
-        hidden;
+    position:relative;
 
-      position:
-        relative;
+    overflow:hidden;
 
-      box-shadow:
+    box-shadow:
         0 0 35px
-        rgba(108, 50, 216, .08);
+        rgba(115,49,211,.10);
+}
 
-    }
+.sidebar::after{
+    content:"";
 
+    position:absolute;
 
-    .sidebar::before {
+    width:180px;
+    height:180px;
 
-      content: "";
+    left:-70px;
+    bottom:80px;
 
-      position: absolute;
+    border-radius:50%;
 
-      width: 180px;
-
-      height: 180px;
-
-      left: -80px;
-
-      bottom: 80px;
-
-      border-radius: 50%;
-
-      background:
+    background:
         radial-gradient(
-          circle,
-          rgba(143, 64, 255, .35),
-          transparent 68%
+            circle,
+            rgba(132,50,235,.35),
+            transparent 70%
         );
 
-      filter:
-        blur(15px);
+    filter:blur(15px);
+}
 
-    }
-
-
-    .sidebar-header {
-
-      padding:
+.sidebar-header{
+    padding:
         27px 24px 22px;
 
-      border-bottom:
+    border-bottom:
         1px solid
-        rgba(155, 85, 255, .20);
+        rgba(155,92,255,.18);
 
-      position:
-        relative;
+    position:relative;
 
-      z-index:
-        2;
+    z-index:2;
+}
 
-    }
+.sidebar-header h2{
+    font-size:21px;
 
+    margin-bottom:7px;
+}
 
-    .sidebar-header h2 {
+.sidebar-header p{
+    color:var(--gray);
 
-      font-size:
-        21px;
+    font-size:13px;
+}
 
-      margin-bottom:
-        7px;
+.sidebar-star{
+    position:absolute;
 
-    }
+    right:18px;
 
+    top:25px;
 
-    .sidebar-header p {
+    color:var(--yellow);
 
-      color:
-        var(--muted);
+    font-size:24px;
 
-      font-size:
-        13px;
-
-    }
-
-
-    .small-star {
-
-      position:
-        absolute;
-
-      right:
-        20px;
-
-      top:
-        27px;
-
-      color:
-        var(--yellow);
-
-      font-size:
-        24px;
-
-      text-shadow:
+    text-shadow:
         0 0 14px
-        rgba(255, 224, 71, .65);
+        rgba(255,224,74,.65);
+}
 
-    }
+.chat-contact{
+    margin:20px;
 
+    padding:16px;
 
-    .chat-contact {
-
-      margin:
-        20px;
-
-      padding:
-        16px;
-
-      border:
+    border:
         1px solid
-        rgba(155, 85, 255, .18);
+        rgba(155,92,255,.18);
 
-      border-radius:
-        15px;
+    border-radius:15px;
 
-      background:
+    background:
         linear-gradient(
-          135deg,
-          rgba(101, 45, 180, .23),
-          rgba(26, 13, 55, .60)
+            135deg,
+            rgba(105,43,188,.24),
+            rgba(25,12,52,.62)
         );
 
-      display:
-        flex;
+    display:flex;
 
-      align-items:
-        center;
+    align-items:center;
 
-      gap:
-        13px;
+    gap:13px;
 
-      position:
-        relative;
+    position:relative;
 
-      z-index:
-        2;
+    z-index:2;
+}
 
-    }
+.contact-avatar{
+    width:46px;
+    height:46px;
 
+    border-radius:50%;
 
-    .contact-avatar {
+    display:flex;
 
-      width:
-        46px;
+    align-items:center;
 
-      height:
-        46px;
+    justify-content:center;
 
-      border-radius:
-        50%;
-
-      background:
+    background:
         linear-gradient(
-          135deg,
-          #a764ff,
-          #7335d9
+            135deg,
+            #a969ff,
+            #6d2dd0
         );
 
-      display:
-        flex;
+    font-weight:bold;
 
-      align-items:
-        center;
+    font-size:18px;
 
-      justify-content:
-        center;
-
-      font-weight:
-        900;
-
-      font-size:
-        18px;
-
-      box-shadow:
+    box-shadow:
         0 0 20px
-        rgba(155, 85, 255, .25);
+        rgba(155,92,255,.25);
+}
 
-    }
+.contact-name{
+    font-size:15px;
 
+    font-weight:bold;
+}
 
-    .contact-name {
+.contact-status{
+    color:var(--green);
 
-      font-size:
-        15px;
+    font-size:12px;
 
-      font-weight:
-        800;
+    margin-top:5px;
+}
 
-    }
+/* SIDEBAR GALAXY */
 
+.sidebar-galaxy{
+    position:absolute;
 
-    .contact-status {
+    width:120px;
+    height:55px;
 
-      color:
-        var(--green);
+    left:55px;
+    bottom:280px;
 
-      font-size:
-        12px;
+    border-radius:50%;
 
-      margin-top:
-        5px;
+    background:
+        radial-gradient(
+            ellipse,
+            #f1c8ff,
+            #9b45ef 25%,
+            rgba(115,35,210,.18) 60%,
+            transparent 75%
+        );
 
-    }
+    transform:rotate(-18deg);
 
+    filter:blur(1px);
 
-    /* =========================
-       CHAT PANEL
-       ========================= */
+    box-shadow:
+        0 0 35px
+        rgba(154,62,255,.35);
+}
 
-    .chat {
+/* SIDEBAR PLANET */
 
-      min-height:
+.sidebar-planet{
+    position:absolute;
+
+    width:220px;
+    height:220px;
+
+    left:-95px;
+    bottom:-70px;
+
+    border-radius:50%;
+
+    background:
+        radial-gradient(
+            circle at 35% 25%,
+            #44396c,
+            #100c25 48%,
+            #020208 75%
+        );
+
+    box-shadow:
+        20px -10px 55px
+        rgba(113,50,221,.30);
+}
+
+/* =========================
+   CHAT
+========================= */
+
+.chat{
+    min-height:
         calc(100vh - 140px);
 
-      border:
-        1px solid var(--border);
-
-      border-radius:
-        18px;
-
-      overflow:
-        hidden;
-
-      background:
-        rgba(3, 3, 13, .82);
-
-      position:
-        relative;
-
-      display:
-        flex;
-
-      flex-direction:
-        column;
-
-      box-shadow:
-        0 0 45px
-        rgba(108, 50, 216, .10);
-
-    }
-
-
-    /* =========================
-       CHAT GALAXY
-       ========================= */
-
-    .chat-background {
-
-      position:
-        absolute;
-
-      inset:
-        0;
-
-      overflow:
-        hidden;
-
-      pointer-events:
-        none;
-
-      z-index:
-        0;
-
-      background:
-
-        radial-gradient(
-          circle at 80% 25%,
-          rgba(116, 42, 203, .20),
-          transparent 25%
-        ),
-
-        radial-gradient(
-          circle at 20% 80%,
-          rgba(89, 30, 176, .14),
-          transparent 27%
-        );
-
-    }
-
-
-    .nebula {
-
-      position:
-        absolute;
-
-      width:
-        750px;
-
-      height:
-        250px;
-
-      right:
-        -180px;
-
-      top:
-        140px;
-
-      transform:
-        rotate(-28deg);
-
-      background:
-        radial-gradient(
-          ellipse,
-          rgba(190, 81, 255, .33),
-          rgba(102, 34, 203, .19) 35%,
-          transparent 70%
-        );
-
-      filter:
-        blur(24px);
-
-    }
-
-
-    .planet-one {
-
-      position:
-        absolute;
-
-      width:
-        130px;
-
-      height:
-        130px;
-
-      right:
-        35px;
-
-      top:
-        175px;
-
-      border-radius:
-        50%;
-
-      background:
-
-        radial-gradient(
-          circle at 30% 28%,
-          #5c6590,
-          #161a3a 42%,
-          #03030c 72%
-        );
-
-      box-shadow:
-        -15px 10px 45px
-        rgba(110, 75, 255, .35);
-
-    }
-
-
-    .planet-two {
-
-      position:
-        absolute;
-
-      width:
-        260px;
-
-      height:
-        260px;
-
-      left:
-        -115px;
-
-      bottom:
-        -100px;
-
-      border-radius:
-        50%;
-
-      background:
-
-        radial-gradient(
-          circle at 35% 25%,
-          #4b3d74,
-          #120d2b 48%,
-          #03030c 75%
-        );
-
-      box-shadow:
-        20px -10px 60px
-        rgba(120, 45, 230, .30);
-
-    }
-
-
-    .planet-three {
-
-      position:
-        absolute;
-
-      width:
-        330px;
-
-      height:
-        150px;
-
-      right:
-        -110px;
-
-      bottom:
-        -75px;
-
-      border-radius:
-        50%;
-
-      background:
-        radial-gradient(
-          ellipse at center,
-          #6539a0,
-          #24104b 48%,
-          transparent 72%
-        );
-
-      transform:
-        rotate(-20deg);
-
-      filter:
-        blur(2px);
-
-    }
-
-
-    .orbit {
-
-      position:
-        absolute;
-
-      width:
-        190px;
-
-      height:
-        60px;
-
-      border:
+    border:
         1px solid
-        rgba(185, 121, 255, .42);
+        rgba(155,92,255,.60);
 
-      border-radius:
-        50%;
+    border-radius:17px;
 
-      right:
-        8px;
+    overflow:hidden;
 
-      top:
-        205px;
+    display:flex;
 
-      transform:
-        rotate(-22deg);
+    flex-direction:column;
 
-    }
+    position:relative;
 
+    background:#03030c;
 
-    .shooting-star {
+    box-shadow:
+        0 0 45px
+        rgba(115,49,211,.10);
+}
 
-      position:
-        absolute;
+/* =========================
+   GALAXY BACKGROUND
+========================= */
 
-      width:
-        90px;
+.space{
+    position:absolute;
 
-      height:
-        1px;
+    inset:0;
 
-      right:
-        150px;
+    overflow:hidden;
 
-      top:
-        62%;
+    pointer-events:none;
 
-      transform:
-        rotate(-42deg);
+    z-index:0;
 
-      background:
-        linear-gradient(
-          90deg,
-          transparent,
-          rgba(255,255,255,.9)
-        );
-
-      box-shadow:
-        0 0 7px white;
-
-    }
-
-
-    .tiny-galaxy {
-
-      position:
-        absolute;
-
-      width:
-        85px;
-
-      height:
-        35px;
-
-      left:
-        55px;
-
-      bottom:
-        95px;
-
-      border-radius:
-        50%;
-
-      background:
+    background:
         radial-gradient(
-          ellipse,
-          #f2caff,
-          #a34fff 25%,
-          rgba(118,44,220,.25) 60%,
-          transparent 72%
+            ellipse at 76% 28%,
+            rgba(121,43,213,.18),
+            transparent 25%
+        ),
+        radial-gradient(
+            ellipse at 25% 75%,
+            rgba(78,29,173,.12),
+            transparent 30%
+        );
+}
+
+/* PURPLE NEBULA */
+
+.nebula{
+    position:absolute;
+
+    width:850px;
+    height:300px;
+
+    right:-220px;
+    top:120px;
+
+    transform:rotate(-27deg);
+
+    background:
+        radial-gradient(
+            ellipse,
+            rgba(193,82,255,.38),
+            rgba(113,35,207,.20) 35%,
+            transparent 72%
         );
 
-      transform:
-        rotate(-18deg);
+    filter:blur(25px);
+}
 
-      filter:
-        blur(1px);
+/* SMALL PLANET */
 
-      box-shadow:
-        0 0 35px
-        rgba(160, 67, 255, .35);
+.planet-small{
+    position:absolute;
 
-    }
+    width:135px;
+    height:135px;
 
+    right:35px;
+    top:165px;
 
-    /* =========================
-       CHAT HEADER
-       ========================= */
+    border-radius:50%;
 
-    .chat-header {
+    background:
+        radial-gradient(
+            circle at 30% 25%,
+            #667092,
+            #1b1e3d 43%,
+            #03030c 74%
+        );
 
-      height:
-        90px;
+    box-shadow:
+        -12px 12px 45px
+        rgba(104,62,230,.40);
+}
 
-      padding:
+/* BOTTOM PLANET */
+
+.planet-large{
+    position:absolute;
+
+    width:350px;
+    height:350px;
+
+    right:-140px;
+    bottom:-190px;
+
+    border-radius:50%;
+
+    background:
+        radial-gradient(
+            circle at 35% 25%,
+            #583a83,
+            #1b1039 45%,
+            #03030c 75%
+        );
+
+    box-shadow:
+        -15px -15px 65px
+        rgba(140,59,255,.40);
+}
+
+/* RING */
+
+.ring{
+    position:absolute;
+
+    width:220px;
+    height:70px;
+
+    right:-5px;
+    top:195px;
+
+    border:
+        1px solid
+        rgba(181,117,255,.55);
+
+    border-radius:50%;
+
+    transform:rotate(-22deg);
+}
+
+/* MOON */
+
+.moon-decoration{
+    position:absolute;
+
+    width:90px;
+    height:90px;
+
+    left:70px;
+    top:110px;
+
+    border-radius:50%;
+
+    background:
+        radial-gradient(
+            circle at 35% 30%,
+            #fff5a8,
+            #ffd933 45%,
+            #c99a17 75%
+        );
+
+    box-shadow:
+        0 0 30px
+        rgba(255,224,74,.25);
+}
+
+.moon-decoration::after{
+    content:"";
+
+    position:absolute;
+
+    width:83px;
+    height:83px;
+
+    top:-10px;
+    left:18px;
+
+    border-radius:50%;
+
+    background:#03030c;
+}
+
+/* SHOOTING STAR */
+
+.shooting-star{
+    position:absolute;
+
+    width:110px;
+    height:1px;
+
+    right:150px;
+    bottom:270px;
+
+    transform:rotate(-40deg);
+
+    background:
+        linear-gradient(
+            90deg,
+            transparent,
+            white
+        );
+
+    box-shadow:
+        0 0 8px white;
+}
+
+/* =========================
+   CHAT HEADER
+========================= */
+
+.chat-header{
+    height:90px;
+
+    padding:
         0 35px;
 
-      display:
-        flex;
+    display:flex;
 
-      align-items:
-        center;
+    align-items:center;
 
-      justify-content:
-        space-between;
+    justify-content:space-between;
 
-      border-bottom:
+    position:relative;
+
+    z-index:5;
+
+    background:
+        rgba(3,3,13,.72);
+
+    backdrop-filter:
+        blur(10px);
+
+    border-bottom:
         1px solid
-        rgba(155, 85, 255, .22);
+        rgba(155,92,255,.22);
+}
 
-      background:
-        rgba(4, 3, 14, .72);
+.chat-person{
+    display:flex;
 
-      backdrop-filter:
-        blur(12px);
+    align-items:center;
 
-      position:
-        relative;
+    gap:14px;
+}
 
-      z-index:
-        5;
+.person-avatar{
+    width:47px;
+    height:47px;
 
-    }
+    border-radius:50%;
 
+    display:flex;
 
-    .chat-person {
+    align-items:center;
 
-      display:
-        flex;
+    justify-content:center;
 
-      align-items:
-        center;
-
-      gap:
-        14px;
-
-    }
-
-
-    .person-avatar {
-
-      width:
-        47px;
-
-      height:
-        47px;
-
-      border-radius:
-        50%;
-
-      display:
-        flex;
-
-      align-items:
-        center;
-
-      justify-content:
-        center;
-
-      background:
+    background:
         linear-gradient(
-          135deg,
-          #a965ff,
-          #7031d1
+            135deg,
+            #a867ff,
+            #6c2fd0
         );
 
-      font-size:
-        18px;
+    font-weight:bold;
 
-      font-weight:
-        900;
+    font-size:18px;
 
-      box-shadow:
+    box-shadow:
         0 0 22px
-        rgba(155, 85, 255, .25);
+        rgba(155,92,255,.28);
+}
 
-    }
+.person-name{
+    font-size:18px;
 
+    font-weight:bold;
+}
 
-    .person-name {
+.person-online{
+    color:var(--green);
 
-      font-size:
-        18px;
+    font-size:13px;
 
-      font-weight:
-        800;
+    margin-top:5px;
+}
 
-    }
+.star-button{
+    color:var(--yellow);
 
+    font-size:28px;
 
-    .person-online {
-
-      margin-top:
-        5px;
-
-      color:
-        var(--green);
-
-      font-size:
-        13px;
-
-    }
-
-
-    .header-stars {
-
-      color:
-        var(--yellow);
-
-      font-size:
-        25px;
-
-      text-shadow:
+    text-shadow:
         0 0 15px
-        rgba(255, 224, 71, .6);
+        rgba(255,224,74,.55);
+}
 
-    }
+/* =========================
+   MESSAGES
+========================= */
 
+.messages{
+    flex:1;
 
-    /* =========================
-       MESSAGES
-       ========================= */
+    overflow-y:auto;
 
-    .messages {
+    padding:35px;
 
-      flex:
-        1;
+    position:relative;
 
-      overflow-y:
-        auto;
+    z-index:3;
 
-      padding:
-        35px;
+    display:flex;
 
-      position:
-        relative;
+    flex-direction:column;
+}
 
-      z-index:
-        2;
+/* EMPTY CHAT */
 
-      display:
-        flex;
+.empty-space{
+    margin:auto;
 
-      flex-direction:
-        column;
+    text-align:center;
 
-    }
+    max-width:650px;
+}
 
+.empty-space h1{
+    font-size:32px;
 
-    .welcome {
+    line-height:1.25;
 
-      margin:
-        auto;
+    margin-bottom:12px;
+}
 
-      text-align:
-        center;
+.empty-space h1 span{
+    color:var(--purple2);
 
-      max-width:
-        650px;
+    text-shadow:
+        0 0 22px
+        rgba(155,92,255,.28);
+}
 
-    }
+.empty-space p{
+    color:#aaa6bd;
 
+    font-size:16px;
 
-    .moon {
+    line-height:1.7;
+}
 
-      width:
-        54px;
+.cosmic-symbol{
+    margin:
+        0 auto 25px;
 
-      height:
-        54px;
+    font-size:45px;
 
-      margin:
-        0 auto 24px;
+    color:var(--yellow);
 
-      border-radius:
-        50%;
+    text-shadow:
+        0 0 25px
+        rgba(255,224,74,.55);
+}
 
-      background:
-        var(--yellow);
+.cosmic-line{
+    width:300px;
 
-      position:
-        relative;
+    height:1px;
 
-      box-shadow:
-        0 0 35px
-        rgba(255, 224, 71, .28);
-
-    }
-
-
-    .moon::after {
-
-      content:
-        "";
-
-      position:
-        absolute;
-
-      width:
-        50px;
-
-      height:
-        50px;
-
-      border-radius:
-        50%;
-
-      top:
-        -7px;
-
-      left:
-        14px;
-
-      background:
-        #080618;
-
-    }
-
-
-    .welcome h1 {
-
-      font-size:
-        31px;
-
-      margin-bottom:
-        13px;
-
-      line-height:
-        1.25;
-
-    }
-
-
-    .welcome h1 span {
-
-      color:
-        var(--purple2);
-
-      text-shadow:
-        0 0 20px
-        rgba(155, 85, 255, .25);
-
-    }
-
-
-    .welcome p {
-
-      color:
-        #aaa7bd;
-
-      font-size:
-        16px;
-
-      line-height:
-        1.7;
-
-    }
-
-
-    .universe-line {
-
-      margin:
+    margin:
         27px auto 0;
 
-      width:
-        300px;
-
-      height:
-        1px;
-
-      background:
+    background:
         linear-gradient(
-          90deg,
-          transparent,
-          var(--purple),
-          transparent
+            90deg,
+            transparent,
+            var(--purple),
+            transparent
         );
 
-      position:
-        relative;
+    position:relative;
+}
 
-    }
+.cosmic-line::after{
+    content:"✦";
 
+    position:absolute;
 
-    .universe-line::after {
+    left:50%;
+    top:50%;
 
-      content:
-        "✦";
+    transform:
+        translate(-50%,-50%);
 
-      position:
-        absolute;
-
-      left:
-        50%;
-
-      top:
-        50%;
-
-      transform:
-        translate(-50%, -50%);
-
-      color:
-        var(--purple2);
-
-      font-size:
-        22px;
-
-      background:
-        #080619;
-
-      padding:
+    padding:
         0 12px;
 
-    }
+    background:#050414;
 
+    color:var(--purple2);
 
-    /* =========================
-       MESSAGES
-       ========================= */
+    font-size:20px;
+}
 
-    .message {
+/* =========================
+   MESSAGE
+========================= */
 
-      max-width:
-        70%;
+.message{
+    max-width:70%;
 
-      padding:
+    padding:
         13px 17px;
 
-      margin-bottom:
-        12px;
+    margin-bottom:12px;
 
-      border-radius:
-        16px;
+    border-radius:16px;
 
-      line-height:
-        1.5;
+    line-height:1.5;
 
-      font-size:
-        14px;
+    font-size:14px;
+}
 
-      position:
-        relative;
+.message.mine{
+    margin-left:auto;
 
-    }
-
-
-    .message.mine {
-
-      margin-left:
-        auto;
-
-      background:
+    background:
         linear-gradient(
-          135deg,
-          #8f4fe9,
-          #6731c7
+            135deg,
+            #9251ee,
+            #642dc3
         );
 
-      border:
+    border:
         1px solid
-        rgba(198, 153, 255, .35);
+        rgba(203,164,255,.30);
 
-      border-bottom-right-radius:
-        4px;
+    border-bottom-right-radius:4px;
 
-      box-shadow:
+    box-shadow:
         0 8px 25px
-        rgba(103, 49, 199, .20);
+        rgba(100,45,195,.20);
+}
 
-    }
+/* =========================
+   INPUT
+========================= */
 
-
-    /* =========================
-       INPUT
-       ========================= */
-
-    .input-area {
-
-      padding:
+.input-area{
+    padding:
         15px 20px 20px;
 
-      position:
-        relative;
+    position:relative;
 
-      z-index:
-        5;
+    z-index:5;
 
-      background:
-        rgba(3, 3, 12, .86);
+    background:
+        rgba(3,3,12,.88);
 
-      border-top:
+    border-top:
         1px solid
-        rgba(155, 85, 255, .22);
+        rgba(155,92,255,.22);
+}
 
-    }
+.input-box{
+    display:flex;
 
+    align-items:center;
 
-    .input-box {
+    gap:12px;
 
-      display:
-        flex;
-
-      align-items:
-        center;
-
-      gap:
-        12px;
-
-      border:
-        1px solid
-        rgba(155, 85, 255, .50);
-
-      border-radius:
-        16px;
-
-      padding:
+    padding:
         6px 7px 6px 16px;
 
-      background:
+    border:
+        1px solid
+        rgba(155,92,255,.52);
+
+    border-radius:16px;
+
+    background:
         linear-gradient(
-          135deg,
-          rgba(30, 18, 58, .88),
-          rgba(10, 7, 26, .90)
+            135deg,
+            rgba(28,16,56,.90),
+            rgba(8,5,22,.94)
+        );
+}
+
+.smile{
+    font-size:23px;
+
+    color:#c2bed0;
+}
+
+#messageInput{
+    flex:1;
+
+    min-width:0;
+
+    border:none;
+
+    outline:none;
+
+    background:transparent;
+
+    color:white;
+
+    font-size:16px;
+
+    padding:13px 5px;
+}
+
+#messageInput::placeholder{
+    color:#858095;
+}
+
+#sendButton{
+    width:53px;
+    height:53px;
+
+    border:none;
+
+    border-radius:50%;
+
+    background:
+        linear-gradient(
+            135deg,
+            #a967ff,
+            #6c31d2
         );
 
-      box-shadow:
-        inset 0 0 20px
-        rgba(155, 85, 255, .04);
+    color:white;
 
-    }
+    font-size:22px;
 
+    cursor:pointer;
 
-    .smile {
+    box-shadow:
+        0 0 25px
+        rgba(155,92,255,.30);
+}
 
-      font-size:
-        22px;
+/* =========================
+   MOBILE
+========================= */
 
-      color:
-        #c3bfd0;
+@media(max-width:800px){
 
-    }
-
-
-    #messageInput {
-
-      flex:
-        1;
-
-      min-width:
-        0;
-
-      border:
-        none;
-
-      outline:
-        none;
-
-      background:
-        transparent;
-
-      color:
-        white;
-
-      font-size:
-        16px;
-
-      padding:
-        13px 5px;
-
-    }
-
-
-    #messageInput::placeholder {
-
-      color:
-        #858196;
-
-    }
-
-
-    #sendButton {
-
-      width:
-        52px;
-
-      height:
-        52px;
-
-      border:
-        none;
-
-      border-radius:
-        50%;
-
-      background:
-        linear-gradient(
-          135deg,
-          #a965ff,
-          #6f35d2
-        );
-
-      color:
-        white;
-
-      font-size:
-        21px;
-
-      cursor:
-        pointer;
-
-      box-shadow:
-        0 0 22px
-        rgba(155, 85, 255, .28);
-
-    }
-
-
-    #sendButton:hover {
-
-      transform:
-        scale(1.04);
-
-    }
-
-
-    /* =========================
-       MOBILE
-       ========================= */
-
-    @media (max-width: 800px) {
-
-      header {
-
-        height:
-          75px;
+    header{
+        height:74px;
 
         padding:
-          0 16px;
+            0 15px;
+    }
 
-      }
+    .brand{
+        font-size:23px;
+    }
 
+    .brand-icon{
+        width:38px;
+        height:36px;
 
-      .brand {
+        font-size:16px;
+    }
 
-        font-size:
-          23px;
+    .username{
+        display:none;
+    }
 
-      }
-
-
-      .brand-icon {
-
-        width:
-          39px;
-
-        height:
-          37px;
-
-        font-size:
-          18px;
-
-      }
-
-
-      .username {
-
-        display:
-          none;
-
-      }
-
-
-      .logout {
-
+    .logout{
         padding:
-          9px 13px;
+            9px 13px;
 
-        font-size:
-          12px;
+        font-size:12px;
+    }
 
-      }
-
-
-      .layout {
-
-        display:
-          block;
+    .layout{
+        display:block;
 
         margin:
-          10px auto;
+            10px auto;
 
         padding:
-          0 9px;
+            0 8px;
+    }
 
-      }
+    .sidebar{
+        display:none;
+    }
 
-
-      .sidebar {
-
-        display:
-          none;
-
-      }
-
-
-      .chat {
+    .chat{
+        height:
+            calc(100vh - 94px);
 
         min-height:
-          calc(100vh - 95px);
+            calc(100vh - 94px);
 
-        height:
-          calc(100vh - 95px);
-
-        border-radius:
-          16px;
-
-      }
-
-
-      .chat-header {
-
-        height:
-          70px;
-
-        padding:
-          0 16px;
-
-      }
-
-
-      .person-avatar {
-
-        width:
-          40px;
-
-        height:
-          40px;
-
-      }
-
-
-      .person-name {
-
-        font-size:
-          14px;
-
-      }
-
-
-      .person-online {
-
-        font-size:
-          11px;
-
-      }
-
-
-      .header-stars {
-
-        font-size:
-          21px;
-
-      }
-
-
-      .messages {
-
-        padding:
-          18px;
-
-      }
-
-
-      .welcome {
-
-        margin:
-          auto 0;
-
-      }
-
-
-      .welcome h1 {
-
-        font-size:
-          23px;
-
-      }
-
-
-      .welcome p {
-
-        font-size:
-          13px;
-
-      }
-
-
-      .planet-one {
-
-        width:
-          85px;
-
-        height:
-          85px;
-
-        right:
-          20px;
-
-        top:
-          130px;
-
-      }
-
-
-      .planet-three {
-
-        width:
-          240px;
-
-        height:
-          120px;
-
-      }
-
-
-      .input-area {
-
-        padding:
-          10px;
-
-      }
-
-
-      .input-box {
-
-        padding-left:
-          11px;
-
-      }
-
-
-      #messageInput {
-
-        font-size:
-          14px;
-
-      }
-
-
-      #sendButton {
-
-        width:
-          45px;
-
-        height:
-          45px;
-
-      }
-
+        border-radius:15px;
     }
 
-  </style>
+    .chat-header{
+        height:70px;
 
+        padding:
+            0 15px;
+    }
+
+    .person-avatar{
+        width:40px;
+        height:40px;
+    }
+
+    .person-name{
+        font-size:14px;
+    }
+
+    .person-online{
+        font-size:11px;
+    }
+
+    .messages{
+        padding:18px;
+    }
+
+    .empty-space h1{
+        font-size:23px;
+    }
+
+    .empty-space p{
+        font-size:13px;
+    }
+
+    .moon-decoration{
+        width:60px;
+        height:60px;
+
+        left:35px;
+        top:95px;
+    }
+
+    .planet-small{
+        width:80px;
+        height:80px;
+
+        right:15px;
+        top:115px;
+    }
+
+    .planet-large{
+        width:220px;
+        height:220px;
+
+        right:-100px;
+        bottom:-120px;
+    }
+
+    .nebula{
+        width:550px;
+        height:220px;
+
+        right:-230px;
+    }
+
+    .input-area{
+        padding:
+            9px;
+    }
+
+    #messageInput{
+        font-size:14px;
+    }
+
+    #sendButton{
+        width:45px;
+        height:45px;
+    }
+
+}
+
+</style>
 </head>
 
 
 <body>
 
 
-  <!-- =========================
-       LOADING
-       ========================= -->
+<!-- =========================
+     LOADING
+========================= -->
 
-  <div id="loading">
-    Entering the universe...
-  </div>
+<div id="loading">
+    Entering Sameer's universe...
+</div>
 
 
-  <!-- =========================
-       LOGIN ERROR
-       ========================= -->
+<!-- =========================
+     LOGIN ERROR
+========================= -->
 
-  <div id="loginError">
+<div id="loginError">
 
     <div class="error-box">
 
-      <h2>
-        Login problem
-      </h2>
+        <h2>Login problem</h2>
 
-      <p id="errorText">
-        Google sign-in completed, but ToTalk could not restore your session.
-      </p>
+        <p id="errorText">
+            We could not restore your Google login.
+        </p>
 
-      <button
-        class="back-button"
-        onclick="window.location.replace('./index.html')"
-      >
-        Back to ToTalk
-      </button>
+        <button
+            class="back-button"
+            onclick="window.location.replace('./index.html')"
+        >
+            Back to ToTalk
+        </button>
 
     </div>
 
-  </div>
+</div>
 
 
-  <!-- =========================
-       HEADER
-       ========================= -->
+<!-- =========================
+     HEADER
+========================= -->
 
-  <header>
+<header>
 
     <div class="brand">
 
-      <div class="brand-icon">
-        •••
-      </div>
+        <div class="brand-icon">
+            •••
+        </div>
 
-      <div>
-        ToTalk
-        <span class="brand-purple">
-          Sameer
-        </span>
-      </div>
+        <div>
+            ToTalk
+            <span class="brand-purple">
+                Sameer
+            </span>
+        </div>
 
     </div>
 
 
     <div class="header-right">
 
-      <div
-        class="username"
-        id="userName"
-      >
-        Sameer
-      </div>
+        <div
+            class="username"
+            id="userName"
+        >
+            Sameer
+        </div>
 
-      <button
-        class="logout"
-        id="logoutBtn"
-      >
-        ⇥ Logout
-      </button>
+        <button
+            class="logout"
+            id="logoutBtn"
+        >
+            ⇥ Logout
+        </button>
 
     </div>
 
-  </header>
+</header>
 
 
-  <!-- =========================
-       MAIN
-       ========================= -->
+<!-- =========================
+     MAIN
+========================= -->
 
-  <main class="layout">
+<main class="layout">
 
 
     <!-- SIDEBAR -->
 
     <aside class="sidebar">
 
-      <div class="sidebar-header">
+        <div class="sidebar-header">
 
-        <h2>
-          Sameer's Chats
-        </h2>
+            <h2>
+                Sameer's Chats
+            </h2>
 
-        <p>
-          Your personal conversation space
-        </p>
+            <p>
+                Your personal conversation space
+            </p>
 
-        <div class="small-star">
-          ✦
-        </div>
-
-      </div>
-
-
-      <div class="chat-contact">
-
-        <div class="contact-avatar">
-          S
-        </div>
-
-        <div>
-
-          <div class="contact-name">
-            Sameer
-          </div>
-
-          <div class="contact-status">
-            ● Ready to chat
-          </div>
+            <div class="sidebar-star">
+                ✦
+            </div>
 
         </div>
 
-      </div>
+
+        <div class="chat-contact">
+
+            <div class="contact-avatar">
+                S
+            </div>
+
+            <div>
+
+                <div class="contact-name">
+                    Sameer
+                </div>
+
+                <div class="contact-status">
+                    ● Ready to chat
+                </div>
+
+            </div>
+
+        </div>
 
 
-      <div class="tiny-galaxy"></div>
+        <div class="sidebar-galaxy"></div>
+
+        <div class="sidebar-planet"></div>
 
     </aside>
 
@@ -2008,501 +1453,470 @@
     <section class="chat">
 
 
-      <!-- GALAXY BACKGROUND -->
+        <!-- UNIVERSE -->
 
-      <div class="chat-background">
+        <div class="space">
 
-        <div class="nebula"></div>
+            <div class="nebula"></div>
 
-        <div class="planet-one"></div>
+            <div class="moon-decoration"></div>
 
-        <div class="planet-two"></div>
+            <div class="planet-small"></div>
 
-        <div class="planet-three"></div>
+            <div class="planet-large"></div>
 
-        <div class="orbit"></div>
+            <div class="ring"></div>
 
-        <div class="shooting-star"></div>
+            <div class="shooting-star"></div>
 
-      </div>
+        </div>
 
 
-      <!-- CHAT HEADER -->
+        <!-- CHAT HEADER -->
 
-      <div class="chat-header">
+        <div class="chat-header">
 
-        <div class="chat-person">
+            <div class="chat-person">
 
-          <div class="person-avatar">
-            S
-          </div>
+                <div class="person-avatar">
+                    S
+                </div>
 
-          <div>
+                <div>
 
-            <div class="person-name">
-              Sameer's ToTalk
+                    <div class="person-name">
+                        Sameer's ToTalk
+                    </div>
+
+                    <div class="person-online">
+                        ● Online
+                    </div>
+
+                </div>
+
             </div>
 
-            <div class="person-online">
-              ● Online
+
+            <div class="star-button">
+                ☆
             </div>
 
-          </div>
+        </div>
+
+
+        <!-- MESSAGES -->
+
+        <div
+            class="messages"
+            id="messages"
+        >
+
+            <div class="empty-space">
+
+                <div class="cosmic-symbol">
+                    ☾
+                </div>
+
+                <h1>
+                    Welcome to
+                    <span>
+                        Sameer's ToTalk
+                    </span>
+                </h1>
+
+                <p>
+                    You're signed in.
+                    This is Sameer's personal chat space.
+                </p>
+
+                <div class="cosmic-line"></div>
+
+            </div>
 
         </div>
 
 
-        <div class="header-stars">
-          ☆
-        </div>
+        <!-- INPUT -->
 
-      </div>
+        <div class="input-area">
 
+            <div class="input-box">
 
-      <!-- MESSAGES -->
+                <div class="smile">
+                    ☺
+                </div>
 
-      <div
-        class="messages"
-        id="messages"
-      >
+                <input
+                    id="messageInput"
+                    type="text"
+                    placeholder="Write a message..."
+                    autocomplete="off"
+                >
 
-        <div class="welcome">
+                <button
+                    id="sendButton"
+                    aria-label="Send message"
+                >
+                    ➤
+                </button>
 
-          <div class="moon"></div>
-
-          <h1>
-            Welcome to
-            <span>
-              Sameer's ToTalk
-            </span>
-          </h1>
-
-          <p>
-            You're signed in.
-            This is Sameer's personal chat space.
-          </p>
-
-          <div class="universe-line"></div>
+            </div>
 
         </div>
 
-      </div>
-
-
-      <!-- INPUT -->
-
-      <div class="input-area">
-
-        <div class="input-box">
-
-          <div class="smile">
-            ☺
-          </div>
-
-          <input
-            id="messageInput"
-            type="text"
-            placeholder="Write a message..."
-            autocomplete="off"
-          >
-
-          <button
-            id="sendButton"
-            aria-label="Send message"
-          >
-            ➤
-          </button>
-
-        </div>
-
-      </div>
 
     </section>
 
-  </main>
+</main>
 
 
-  <!-- =========================
-       JAVASCRIPT
-       ========================= -->
+<script>
 
-  <script>
+/* =====================================================
+   SUPABASE
+===================================================== */
 
-    /* =========================
-       SUPABASE SETTINGS
-       ========================= */
+const SUPABASE_URL =
+    "https://qiynczbrhpxwuabwuyiy.supabase.co";
 
-    const SUPABASE_URL =
-      "https://qiynczbrhpxwuabwuyiy.supabase.co";
-
-
-    const SUPABASE_KEY =
-      "sb_publishable_eUPz4c_nYckgINEK-AIWqw_JAXIHozd";
+const SUPABASE_KEY =
+    "sb_publishable_eUPz4c_nYckgINEK-AIWqw_JAXIHozd";
 
 
-    /* =========================
-       SUPABASE CLIENT
+/* =====================================================
+   CLIENT
 
-       IMPORTANT:
-       This matches the Google
-       PKCE login used by the
-       homepage.
-       ========================= */
+   IMPORTANT:
+   Google login is handled by Supabase automatically.
+   We DO NOT manually exchange the Google code here.
 
-    const supabaseClient =
-      supabase.createClient(
+   This prevents the login callback from being
+   processed twice.
+===================================================== */
+
+const supabaseClient =
+    supabase.createClient(
         SUPABASE_URL,
         SUPABASE_KEY,
         {
-          auth: {
-            persistSession: true,
-            autoRefreshToken: true,
-            detectSessionInUrl: false,
-            flowType: "pkce"
-          }
+            auth:{
+                persistSession:true,
+                autoRefreshToken:true,
+                detectSessionInUrl:true,
+                flowType:"pkce"
+            }
         }
-      );
+    );
 
 
-    /* =========================
-       SHOW ERROR
-       ========================= */
+/* =====================================================
+   ELEMENTS
+===================================================== */
 
-    function showLoginError(message) {
+const loading =
+    document.getElementById("loading");
 
-      document.getElementById(
-        "loading"
-      ).style.display = "none";
+const loginError =
+    document.getElementById("loginError");
 
+const errorText =
+    document.getElementById("errorText");
 
-      document.getElementById(
-        "errorText"
-      ).textContent = message;
-
-
-      document.getElementById(
-        "loginError"
-      ).style.display = "flex";
-
-    }
+const userName =
+    document.getElementById("userName");
 
 
-    /* =========================
-       LOGIN / SESSION
-       ========================= */
+/* =====================================================
+   SHOW LOGGED IN USER
+===================================================== */
 
-    async function startChat() {
+function showUser(user){
 
-      try {
+    const name =
+        user?.user_metadata?.full_name ||
+        user?.user_metadata?.name ||
+        user?.email?.split("@")[0] ||
+        "Sameer";
+
+    userName.textContent = name;
+
+    loading.style.display = "none";
+
+}
+
+
+/* =====================================================
+   LOGIN ERROR
+===================================================== */
+
+function showError(message){
+
+    console.error(message);
+
+    loading.style.display = "none";
+
+    errorText.textContent =
+        message;
+
+    loginError.style.display =
+        "flex";
+
+}
+
+
+/* =====================================================
+   START CHAT
+===================================================== */
+
+async function startChat(){
+
+    try{
 
         /*
-          Google PKCE returns:
+         * Supabase detects the Google
+         * callback URL automatically.
+         */
 
-          ?code=XXXXXXXX
-
-          We exchange that code
-          for the Supabase session.
-        */
-
-        const url =
-          new URL(window.location.href);
-
-
-        const code =
-          url.searchParams.get("code");
-
-
-        const authError =
-          url.searchParams.get("error");
-
-
-        if (authError) {
-
-          showLoginError(
-            "Google sign-in returned an error. Please go back and try again."
-          );
-
-          return;
-
-        }
-
-
-        /*
-          Exchange OAuth code.
-        */
-
-        if (code) {
-
-          const result =
+        const sessionResult =
             await supabaseClient
-              .auth
-              .exchangeCodeForSession(
-                code
-              );
+                .auth
+                .getSession();
 
 
-          if (result.error) {
+        if(
+            sessionResult.error
+        ){
 
-            console.error(
-              "Code exchange error:",
-              result.error
-            );
-
-
-            showLoginError(
-              "Google sign-in completed, but ToTalk could not complete the login session. Please go back and try Google sign-in again."
+            showError(
+                "ToTalk could not read your login session. Please return to the homepage and try Google sign-in again."
             );
 
             return;
+        }
 
-          }
+
+        let session =
+            sessionResult.data.session;
 
 
-          /*
-            Remove ?code= from
-            the address bar.
-          */
+        /*
+         * Sometimes the OAuth callback
+         * needs a moment to finish.
+         */
 
-          window.history.replaceState(
-            {},
-            document.title,
-            window.location.pathname
-          );
+        if(!session){
 
+            await new Promise(
+                resolve =>
+                    setTimeout(
+                        resolve,
+                        1200
+                    )
+            );
+
+
+            const retry =
+                await supabaseClient
+                    .auth
+                    .getSession();
+
+
+            session =
+                retry.data.session;
         }
 
 
         /*
-          Get current session.
-        */
+         * If still no session,
+         * return to homepage.
+         */
 
-        const {
-          data,
-          error
-        } =
-          await supabaseClient
-            .auth
-            .getSession();
+        if(!session){
 
+            window.location.replace(
+                "./index.html"
+            );
 
-        if (error) {
-
-          console.error(
-            "Session error:",
-            error
-          );
-
-
-          showLoginError(
-            "ToTalk could not read your login session."
-          );
-
-          return;
-
+            return;
         }
 
 
-        if (!data.session) {
-
-          /*
-            Not logged in.
-            Return to homepage.
-          */
-
-          window.location.replace(
-            "./index.html"
-          );
-
-          return;
-
-        }
-
-
-        /*
-          Logged in successfully.
-        */
-
-        const user =
-          data.session.user;
-
-
-        const name =
-          user.user_metadata?.full_name ||
-          user.user_metadata?.name ||
-          user.email?.split("@")[0] ||
-          "Sameer";
-
-
-        document.getElementById(
-          "userName"
-        ).textContent = name;
-
-
-        document.getElementById(
-          "loading"
-        ).style.display = "none";
-
-
-        console.log(
-          "ToTalk login successful:",
-          user.email
+        showUser(
+            session.user
         );
 
-      }
 
-      catch (error) {
+    }catch(error){
 
         console.error(
-          "Unexpected login error:",
-          error
+            "ToTalk auth error:",
+            error
         );
 
-
-        showLoginError(
-          "Something went wrong while opening ToTalk. Please go back and try again."
+        showError(
+            "Something went wrong while opening ToTalk. Please return to the homepage and try again."
         );
-
-      }
 
     }
 
-
-    /* =========================
-       LOGOUT
-       ========================= */
-
-    document
-      .getElementById("logoutBtn")
-      .addEventListener(
-        "click",
-        async function() {
-
-          await supabaseClient
-            .auth
-            .signOut();
+}
 
 
-          window.location.replace(
-            "./index.html"
-          );
+/* =====================================================
+   AUTH STATE LISTENER
+===================================================== */
+
+supabaseClient
+    .auth
+    .onAuthStateChange(
+        function(event, session){
+
+            console.log(
+                "Auth event:",
+                event
+            );
+
+
+            if(session){
+
+                showUser(
+                    session.user
+                );
+
+            }
 
         }
-      );
+    );
 
 
-    /* =========================
-       MESSAGE SYSTEM
-       ========================= */
+/* =====================================================
+   LOGOUT
+===================================================== */
 
-    const messageInput =
-      document.getElementById(
+document
+    .getElementById("logoutBtn")
+    .addEventListener(
+        "click",
+        async function(){
+
+            await supabaseClient
+                .auth
+                .signOut();
+
+            window.location.replace(
+                "./index.html"
+            );
+
+        }
+    );
+
+
+/* =====================================================
+   MESSAGES
+===================================================== */
+
+const messageInput =
+    document.getElementById(
         "messageInput"
-      );
+    );
 
-
-    const sendButton =
-      document.getElementById(
+const sendButton =
+    document.getElementById(
         "sendButton"
-      );
+    );
 
-
-    const messages =
-      document.getElementById(
+const messages =
+    document.getElementById(
         "messages"
-      );
+    );
 
 
-    function sendMessage() {
+function sendMessage(){
 
-      const text =
+    const text =
         messageInput.value.trim();
 
 
-      if (!text) {
+    if(!text){
         return;
-      }
-
-
-      /*
-        Remove welcome screen
-        after first message.
-      */
-
-      const welcome =
-        document.querySelector(
-          ".welcome"
-        );
-
-
-      if (welcome) {
-        welcome.remove();
-      }
-
-
-      /*
-        Create message.
-      */
-
-      const message =
-        document.createElement(
-          "div"
-        );
-
-
-      message.className =
-        "message mine";
-
-
-      message.textContent =
-        text;
-
-
-      messages.appendChild(
-        message
-      );
-
-
-      messageInput.value = "";
-
-
-      messages.scrollTop =
-        messages.scrollHeight;
-
     }
 
 
-    sendButton.addEventListener(
-      "click",
-      sendMessage
+    /*
+     * Remove the welcome
+     * screen after sending.
+     */
+
+    const welcome =
+        document.querySelector(
+            ".empty-space"
+        );
+
+
+    if(welcome){
+        welcome.remove();
+    }
+
+
+    const message =
+        document.createElement(
+            "div"
+        );
+
+
+    message.className =
+        "message mine";
+
+
+    message.textContent =
+        text;
+
+
+    messages.appendChild(
+        message
     );
 
 
-    messageInput.addEventListener(
-      "keydown",
-      function(event) {
+    messageInput.value = "";
 
-        if (
-          event.key === "Enter"
-        ) {
 
-          event.preventDefault();
+    messages.scrollTop =
+        messages.scrollHeight;
 
-          sendMessage();
+}
+
+
+sendButton.addEventListener(
+    "click",
+    sendMessage
+);
+
+
+messageInput.addEventListener(
+    "keydown",
+    function(event){
+
+        if(
+            event.key === "Enter"
+        ){
+
+            event.preventDefault();
+
+            sendMessage();
 
         }
 
-      }
-    );
+    }
+);
 
 
-    /* =========================
-       START TO TALK
-       ========================= */
+/* =====================================================
+   START
+===================================================== */
 
-    startChat();
+startChat();
 
-  </script>
+</script>
 
 </body>
-
 </html>
