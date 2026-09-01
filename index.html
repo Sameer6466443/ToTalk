@@ -4,537 +4,887 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>ToTalk — Created by Sameer</title>
+  <title>ToTalk — Sameer</title>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
     * {
-      box-sizing: border-box;
       margin: 0;
       padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --blue: #1688d8;
+      --blue-dark: #07558f;
+      --sky: #dff6ff;
+      --yellow: #ffe66d;
+      --yellow-soft: #fff8c9;
+      --white: #ffffff;
+      --text: #123b59;
+      --muted: #66849a;
+    }
+
+    html {
+      scroll-behavior: smooth;
     }
 
     body {
       font-family: Arial, Helvetica, sans-serif;
-      background:
-        radial-gradient(circle at 10% 10%, #fff6a8 0, transparent 25%),
-        radial-gradient(circle at 90% 20%, #aeeaff 0, transparent 30%),
-        linear-gradient(135deg, #e9fbff, #fffde8);
-      color: #16324f;
-      min-height: 100vh;
+      color: var(--text);
+      background: #eefaff;
       overflow-x: hidden;
     }
 
-    /* NAVBAR */
+    /* =========================
+       BACKGROUND
+    ========================= */
+
+    .background {
+      position: fixed;
+      inset: 0;
+      z-index: -5;
+      overflow: hidden;
+      background:
+        linear-gradient(180deg, #dff7ff 0%, #f8fdff 55%, #fffde8 100%);
+    }
+
+    .bubble {
+      position: absolute;
+      border-radius: 50%;
+      opacity: .55;
+      filter: blur(1px);
+    }
+
+    .bubble.one {
+      width: 280px;
+      height: 280px;
+      background: #b8ecff;
+      top: -100px;
+      left: -90px;
+    }
+
+    .bubble.two {
+      width: 230px;
+      height: 230px;
+      background: #fff09a;
+      right: -70px;
+      top: 180px;
+    }
+
+    .bubble.three {
+      width: 190px;
+      height: 190px;
+      background: #bcefff;
+      left: 35%;
+      bottom: -80px;
+    }
+
+    /* =========================
+       NAVBAR
+    ========================= */
 
     nav {
       width: 100%;
-      padding: 20px 7%;
+      padding: 22px 7%;
       display: flex;
-      align-items: center;
       justify-content: space-between;
+      align-items: center;
       position: relative;
       z-index: 10;
     }
 
-    .logo {
+    .brand {
       display: flex;
       align-items: center;
-      gap: 10px;
-      font-size: 25px;
-      font-weight: 900;
-      color: #145da0;
+      gap: 12px;
     }
 
-    .logo-icon {
-      width: 43px;
-      height: 43px;
-      border-radius: 14px;
-      background: #ffe45c;
+    .brand-icon {
+      width: 45px;
+      height: 45px;
+      border-radius: 15px;
+      background: var(--yellow);
       display: flex;
-      align-items: center;
       justify-content: center;
+      align-items: center;
       font-size: 23px;
-      box-shadow: 0 8px 20px rgba(20, 93, 160, 0.15);
+      box-shadow: 0 8px 20px rgba(220, 181, 28, .2);
     }
 
-    .creator {
-      font-size: 13px;
-      font-weight: 700;
-      color: #52718d;
+    .brand-name {
+      font-size: 24px;
+      font-weight: 900;
+      color: var(--blue-dark);
     }
 
-    /* HERO */
+    .brand-name span {
+      color: #f0bd16;
+    }
+
+    .creator-line {
+      font-size: 14px;
+      font-weight: 800;
+      color: #4c7188;
+    }
+
+    .creator-line strong {
+      color: var(--blue);
+    }
+
+    /* =========================
+       HERO
+    ========================= */
 
     .hero {
-      width: 100%;
-      min-height: 650px;
-      padding: 55px 7% 80px;
-      display: flex;
+      max-width: 1250px;
+      min-height: 680px;
+      margin: auto;
+      padding: 60px 7% 90px;
+      display: grid;
+      grid-template-columns: 1.05fr .95fr;
       align-items: center;
-      justify-content: space-between;
-      gap: 50px;
-      position: relative;
+      gap: 70px;
     }
 
-    .hero-text {
-      max-width: 600px;
+    .hero-left {
       position: relative;
       z-index: 2;
     }
 
-    .badge {
-      display: inline-block;
-      padding: 9px 16px;
+    .small-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255,255,255,.8);
+      border: 1px solid rgba(22,136,216,.12);
+      padding: 10px 16px;
       border-radius: 30px;
-      background: rgba(255, 255, 255, 0.8);
-      border: 1px solid rgba(20, 93, 160, 0.12);
+      color: var(--blue-dark);
       font-size: 13px;
       font-weight: 800;
-      color: #1976b9;
-      margin-bottom: 22px;
-      box-shadow: 0 8px 25px rgba(20, 93, 160, 0.08);
+      margin-bottom: 25px;
+      box-shadow: 0 8px 25px rgba(30,120,160,.08);
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      background: #43c66c;
+      border-radius: 50%;
+      box-shadow: 0 0 0 5px rgba(67,198,108,.12);
     }
 
     h1 {
-      font-size: clamp(45px, 7vw, 78px);
-      line-height: 0.98;
-      letter-spacing: -3px;
-      margin-bottom: 25px;
-      color: #123b5d;
+      font-size: clamp(50px, 7vw, 82px);
+      line-height: .95;
+      letter-spacing: -4px;
+      color: var(--text);
+      margin-bottom: 28px;
     }
 
-    h1 span {
-      color: #1596d1;
+    h1 .blue {
+      color: var(--blue);
     }
 
-    .hero-description {
+    h1 .yellow {
+      color: #e4ae10;
+    }
+
+    .hero-text {
+      max-width: 590px;
+      color: var(--muted);
       font-size: 18px;
       line-height: 1.7;
-      color: #56738b;
-      max-width: 520px;
-      margin-bottom: 32px;
+      margin-bottom: 30px;
     }
 
-    /* LOGIN BUTTON */
+    .sameer-highlight {
+      display: inline-block;
+      color: var(--blue-dark);
+      font-weight: 900;
+      border-bottom: 4px solid var(--yellow);
+    }
+
+    /* =========================
+       LOGIN
+    ========================= */
 
     .login-button {
       border: none;
-      cursor: pointer;
-      padding: 17px 30px;
-      border-radius: 17px;
-      background: #ffe04f;
-      color: #18344e;
-      font-size: 17px;
+      background: var(--blue);
+      color: white;
+      padding: 18px 27px;
+      border-radius: 16px;
+      font-size: 16px;
       font-weight: 900;
-      box-shadow: 0 12px 25px rgba(240, 193, 38, 0.25);
-      transition: 0.2s ease;
+      cursor: pointer;
+      box-shadow: 0 15px 30px rgba(22,136,216,.25);
+      transition: .2s;
     }
 
     .login-button:hover {
       transform: translateY(-3px);
-      box-shadow: 0 17px 30px rgba(240, 193, 38, 0.3);
+      background: var(--blue-dark);
+      box-shadow: 0 20px 35px rgba(22,136,216,.3);
     }
 
     .login-button:active {
-      transform: scale(0.97);
+      transform: scale(.97);
     }
 
     .login-button:disabled {
-      opacity: 0.65;
+      opacity: .65;
       cursor: wait;
     }
 
-    /* GAME CARD */
+    #status {
+      min-height: 22px;
+      margin-top: 15px;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--blue-dark);
+    }
 
-    .game-area {
-      width: 440px;
-      max-width: 100%;
+    /* =========================
+       GAME PANEL
+    ========================= */
+
+    .game-wrapper {
       position: relative;
     }
 
-    .game-card {
-      background: rgba(255,255,255,0.82);
-      border: 2px solid rgba(255,255,255,0.9);
-      border-radius: 35px;
-      padding: 28px;
-      box-shadow: 0 25px 70px rgba(26, 104, 151, 0.16);
-      backdrop-filter: blur(12px);
-      position: relative;
-      overflow: hidden;
-    }
-
-    .game-card::before {
-      content: "";
+    .floating-label {
       position: absolute;
-      width: 170px;
-      height: 170px;
-      background: #b9edff;
-      border-radius: 50%;
-      top: -80px;
-      right: -60px;
+      z-index: 5;
+      background: white;
+      padding: 12px 17px;
+      border-radius: 15px;
+      font-size: 13px;
+      font-weight: 900;
+      box-shadow: 0 15px 30px rgba(25,90,130,.13);
     }
 
-    .game-top {
+    .label-one {
+      top: -22px;
+      left: -20px;
+    }
+
+    .label-two {
+      right: -18px;
+      bottom: 30px;
+      background: var(--yellow-soft);
+    }
+
+    .game-panel {
+      background: rgba(255,255,255,.72);
+      border: 2px solid rgba(255,255,255,.9);
+      border-radius: 35px;
+      padding: 15px;
+      box-shadow: 0 30px 80px rgba(21,103,145,.16);
+      backdrop-filter: blur(15px);
+    }
+
+    .game-inner {
+      border-radius: 27px;
+      overflow: hidden;
+      background: white;
+    }
+
+    .game-header {
+      height: 65px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 25px;
-      position: relative;
-      z-index: 2;
+      padding: 0 22px;
+      border-bottom: 1px solid #e7f1f6;
     }
 
-    .game-title {
-      font-weight: 900;
-      font-size: 20px;
-    }
-
-    .level {
-      background: #e9f9ff;
-      color: #1389c3;
-      padding: 7px 12px;
-      border-radius: 20px;
-      font-size: 12px;
+    .game-header-left {
+      display: flex;
+      align-items: center;
+      gap: 9px;
       font-weight: 900;
     }
 
-    .game-screen {
-      background: linear-gradient(145deg, #8eddf8, #d8f7ff);
-      border-radius: 25px;
-      padding: 30px 20px;
-      text-align: center;
-      min-height: 230px;
-      position: relative;
-      overflow: hidden;
+    .game-dots {
+      display: flex;
+      gap: 5px;
     }
 
-    .sun {
-      position: absolute;
-      width: 75px;
-      height: 75px;
+    .game-dots i {
+      width: 8px;
+      height: 8px;
       border-radius: 50%;
-      background: #ffe35b;
-      top: 22px;
-      right: 28px;
-      box-shadow: 0 0 35px rgba(255, 227, 91, 0.7);
+      background: #b6e9fa;
+    }
+
+    .game-body {
+      min-height: 420px;
+      padding: 35px 25px;
+      background:
+        radial-gradient(circle at 20% 20%, white 0 4px, transparent 5px),
+        radial-gradient(circle at 80% 30%, white 0 5px, transparent 6px),
+        linear-gradient(145deg, #83d8f5, #d8f8ff 70%, #fff7ae);
+      position: relative;
     }
 
     .cloud {
       position: absolute;
-      width: 90px;
-      height: 32px;
-      background: white;
+      background: rgba(255,255,255,.82);
+      width: 95px;
+      height: 30px;
       border-radius: 30px;
-      left: 25px;
-      top: 35px;
-      opacity: 0.85;
+      top: 55px;
+      left: 35px;
     }
 
-    .cloud::before,
-    .cloud::after {
+    .cloud:before,
+    .cloud:after {
       content: "";
       position: absolute;
       background: white;
       border-radius: 50%;
     }
 
-    .cloud::before {
+    .cloud:before {
       width: 42px;
       height: 42px;
-      left: 15px;
-      bottom: 5px;
+      left: 13px;
+      bottom: 4px;
     }
 
-    .cloud::after {
+    .cloud:after {
       width: 50px;
       height: 50px;
-      right: 12px;
+      right: 10px;
       bottom: 2px;
     }
 
-    .character {
-      font-size: 75px;
-      position: relative;
-      z-index: 2;
-      margin-top: 42px;
-      animation: float 3s ease-in-out infinite;
+    .sun {
+      position: absolute;
+      width: 78px;
+      height: 78px;
+      border-radius: 50%;
+      background: #ffe45b;
+      right: 32px;
+      top: 30px;
+      box-shadow: 0 0 35px rgba(255,224,65,.65);
     }
 
-    @keyframes float {
+    .player {
+      position: relative;
+      z-index: 2;
+      text-align: center;
+      padding-top: 65px;
+    }
+
+    .player-character {
+      font-size: 95px;
+      animation: bounce 3s ease-in-out infinite;
+    }
+
+    @keyframes bounce {
       0%,100% {
         transform: translateY(0);
       }
       50% {
-        transform: translateY(-10px);
+        transform: translateY(-12px);
       }
     }
 
-    .game-message {
-      position: relative;
-      z-index: 2;
+    .player h2 {
+      margin-top: 15px;
+      color: #115477;
+      font-size: 27px;
+    }
+
+    .player p {
+      color: #578199;
+      font-size: 14px;
       margin-top: 8px;
-      font-weight: 900;
-      color: #15547a;
     }
 
-    .game-stats {
-      display: flex;
-      gap: 12px;
+    .sameer-card {
+      display: inline-block;
       margin-top: 18px;
+      background: white;
+      padding: 11px 18px;
+      border-radius: 14px;
+      font-size: 13px;
+      font-weight: 900;
+      box-shadow: 0 10px 25px rgba(27,112,151,.12);
     }
 
-    .stat {
+    .sameer-card span {
+      color: var(--blue);
+    }
+
+    .game-footer {
+      display: flex;
+      gap: 10px;
+      padding: 17px;
+      background: white;
+    }
+
+    .game-stat {
       flex: 1;
-      background: #fff;
-      border-radius: 17px;
-      padding: 14px;
+      background: #f2fbff;
+      border-radius: 14px;
+      padding: 12px;
       text-align: center;
     }
 
-    .stat strong {
+    .game-stat strong {
       display: block;
-      font-size: 20px;
-      color: #167eb5;
+      color: var(--blue-dark);
+      font-size: 17px;
     }
 
-    .stat small {
-      color: #7790a1;
+    .game-stat small {
+      color: #7993a4;
       font-weight: 700;
     }
 
-    /* FEATURES */
+    /* =========================
+       INTRO STRIP
+    ========================= */
+
+    .intro {
+      padding: 30px 7% 80px;
+    }
+
+    .intro-box {
+      max-width: 1100px;
+      margin: auto;
+      background: linear-gradient(110deg, #fff8bf, #e4f8ff);
+      border-radius: 30px;
+      padding: 38px 45px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 30px;
+      border: 1px solid rgba(255,255,255,.8);
+      box-shadow: 0 18px 50px rgba(43,110,140,.09);
+    }
+
+    .intro-box h2 {
+      font-size: 29px;
+      margin-bottom: 8px;
+    }
+
+    .intro-box p {
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .sameer-name {
+      white-space: nowrap;
+      font-size: 24px;
+      font-weight: 900;
+      color: var(--blue-dark);
+    }
+
+    .sameer-name span {
+      color: #e1af12;
+    }
+
+    /* =========================
+       FEATURES
+    ========================= */
 
     .features {
-      padding: 70px 7% 90px;
-      background: rgba(255,255,255,0.48);
+      padding: 80px 7% 100px;
+      background: rgba(255,255,255,.52);
     }
 
-    .section-title {
+    .section-heading {
       text-align: center;
-      margin-bottom: 45px;
+      max-width: 650px;
+      margin: auto auto 45px;
     }
 
-    .section-title h2 {
-      font-size: 40px;
-      color: #163d5c;
-      margin-bottom: 10px;
+    .section-heading .mini {
+      color: var(--blue);
+      font-size: 13px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 2px;
     }
 
-    .section-title p {
-      color: #71899b;
+    .section-heading h2 {
+      font-size: 43px;
+      letter-spacing: -1.5px;
+      margin: 10px 0;
+    }
+
+    .section-heading p {
+      color: var(--muted);
+      line-height: 1.6;
     }
 
     .feature-grid {
       max-width: 1100px;
       margin: auto;
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 22px;
+      grid-template-columns: repeat(3,1fr);
+      gap: 20px;
     }
 
     .feature {
-      background: rgba(255,255,255,0.85);
+      background: rgba(255,255,255,.88);
       border-radius: 25px;
-      padding: 28px;
-      border: 1px solid rgba(20,93,160,0.08);
-      box-shadow: 0 12px 35px rgba(31,105,142,0.08);
-      transition: 0.2s ease;
+      padding: 30px;
+      border: 1px solid #e5f0f5;
+      transition: .2s;
     }
 
     .feature:hover {
-      transform: translateY(-5px);
+      transform: translateY(-6px);
+      box-shadow: 0 20px 45px rgba(29,106,139,.1);
     }
 
     .feature-icon {
-      width: 52px;
-      height: 52px;
-      border-radius: 16px;
-      background: #fff2a1;
+      width: 55px;
+      height: 55px;
+      border-radius: 17px;
+      background: var(--yellow-soft);
       display: flex;
       align-items: center;
       justify-content: center;
       font-size: 25px;
-      margin-bottom: 18px;
+      margin-bottom: 20px;
+    }
+
+    .feature:nth-child(2) .feature-icon {
+      background: #e2f7ff;
+    }
+
+    .feature:nth-child(3) .feature-icon {
+      background: #e8f2ff;
     }
 
     .feature h3 {
-      margin-bottom: 9px;
-      color: #214c6c;
+      margin-bottom: 10px;
+      font-size: 20px;
     }
 
     .feature p {
-      color: #71899b;
-      line-height: 1.6;
+      color: var(--muted);
       font-size: 14px;
+      line-height: 1.7;
     }
 
-    /* FOOTER */
+    /* =========================
+       FINAL CTA
+    ========================= */
+
+    .final {
+      padding: 80px 7% 100px;
+      text-align: center;
+    }
+
+    .final-box {
+      max-width: 850px;
+      margin: auto;
+      background: var(--blue);
+      color: white;
+      border-radius: 35px;
+      padding: 65px 30px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 25px 60px rgba(22,136,216,.22);
+    }
+
+    .final-box:before,
+    .final-box:after {
+      content: "";
+      position: absolute;
+      border-radius: 50%;
+      background: rgba(255,255,255,.1);
+    }
+
+    .final-box:before {
+      width: 200px;
+      height: 200px;
+      left: -80px;
+      top: -80px;
+    }
+
+    .final-box:after {
+      width: 250px;
+      height: 250px;
+      right: -100px;
+      bottom: -120px;
+    }
+
+    .final-box h2 {
+      font-size: 42px;
+      margin-bottom: 12px;
+      position: relative;
+    }
+
+    .final-box p {
+      opacity: .88;
+      margin-bottom: 25px;
+      position: relative;
+    }
+
+    .final-name {
+      font-weight: 900;
+      color: var(--yellow);
+    }
+
+    /* =========================
+       FOOTER
+    ========================= */
 
     footer {
-      padding: 30px 7%;
       text-align: center;
-      color: #7890a1;
+      padding: 30px 7%;
+      background: #f8fdff;
+      color: #7590a1;
       font-size: 13px;
     }
 
     footer strong {
-      color: #2179ad;
+      color: var(--blue);
     }
 
-    /* STATUS */
+    /* =========================
+       MOBILE
+    ========================= */
 
-    #status {
-      margin-top: 18px;
-      font-size: 14px;
-      font-weight: 700;
-      color: #28749c;
-      min-height: 20px;
-    }
+    @media(max-width:850px) {
 
-    /* MOBILE */
-
-    @media (max-width: 850px) {
-      .hero {
-        flex-direction: column;
-        text-align: center;
-        padding-top: 35px;
+      .creator-line {
+        display: none;
       }
 
-      .hero-description {
+      .hero {
+        grid-template-columns: 1fr;
+        padding-top: 35px;
+        gap: 55px;
+      }
+
+      .hero-left {
+        text-align: center;
+      }
+
+      .hero-text {
         margin-left: auto;
         margin-right: auto;
       }
 
-      .game-area {
+      .game-wrapper {
+        max-width: 500px;
+        margin: auto;
         width: 100%;
-        max-width: 480px;
       }
 
       .feature-grid {
         grid-template-columns: 1fr;
+        max-width: 500px;
       }
 
-      .creator {
-        display: none;
+      .intro-box {
+        flex-direction: column;
+        text-align: center;
       }
     }
 
-    @media (max-width: 500px) {
+    @media(max-width:500px) {
+
       nav {
-        padding: 17px 5%;
+        padding: 18px 5%;
       }
 
       .hero {
-        padding-left: 5%;
-        padding-right: 5%;
-      }
-
-      .features {
         padding-left: 5%;
         padding-right: 5%;
       }
 
       h1 {
-        letter-spacing: -2px;
+        font-size: 54px;
       }
 
-      .game-card {
-        padding: 18px;
+      .game-body {
+        min-height: 370px;
+      }
+
+      .floating-label {
+        display: none;
+      }
+
+      .game-footer {
+        gap: 6px;
+      }
+
+      .game-stat {
+        padding: 9px 4px;
+      }
+
+      .final-box h2 {
+        font-size: 33px;
+      }
+
+      .intro {
+        padding-left: 5%;
+        padding-right: 5%;
+      }
+
+      .features,
+      .final {
+        padding-left: 5%;
+        padding-right: 5%;
       }
     }
   </style>
 </head>
 
+
 <body>
 
+  <div class="background">
+    <div class="bubble one"></div>
+    <div class="bubble two"></div>
+    <div class="bubble three"></div>
+  </div>
+
+
+  <!-- NAVIGATION -->
+
   <nav>
-    <div class="logo">
-      <div class="logo-icon">💬</div>
-      ToTalk
+
+    <div class="brand">
+
+      <div class="brand-icon">
+        💬
+      </div>
+
+      <div class="brand-name">
+        To<span>Talk</span>
+      </div>
+
     </div>
 
-    <div class="creator">
-      Created by Sameer
+    <div class="creator-line">
+      A project by <strong>Sameer</strong>
     </div>
+
   </nav>
 
 
-  <main>
+  <!-- HERO -->
 
-    <section class="hero">
+  <section class="hero">
 
-      <div class="hero-text">
+    <div class="hero-left">
 
-        <div class="badge">
-          ✨ Welcome to ToTalk
-        </div>
-
-        <h1>
-          Talk.<br>
-          Connect.<br>
-          <span>Have Fun.</span>
-        </h1>
-
-        <p class="hero-description">
-          A simple place to connect, chat and enjoy conversations.
-          Jump in, meet people and make every conversation count.
-        </p>
-
-        <!-- ONLY ONE LOGIN BUTTON -->
-        <button class="login-button" id="loginBtn">
-          🔵 Continue with Google
-        </button>
-
-        <div id="status"></div>
-
+      <div class="small-tag">
+        <span class="dot"></span>
+        ToTalk is ready
       </div>
 
+      <h1>
+        Your world.<br>
+        Your <span class="blue">talk.</span><br>
+        Your <span class="yellow">game.</span>
+      </h1>
 
-      <div class="game-area">
+      <p class="hero-text">
+        Welcome to ToTalk — a fresh place built by
+        <span class="sameer-highlight">Sameer</span>
+        where conversations and a playful experience come together.
+      </p>
 
-        <div class="game-card">
+      <!-- ONLY LOGIN BUTTON -->
 
-          <div class="game-top">
-            <div class="game-title">
-              🎮 ToTalk World
+      <button class="login-button" id="loginBtn">
+        🔵 Continue with Google
+      </button>
+
+      <div id="status"></div>
+
+    </div>
+
+
+    <!-- GAME PREVIEW -->
+
+    <div class="game-wrapper">
+
+      <div class="floating-label label-one">
+        🎮 ToTalk World
+      </div>
+
+      <div class="floating-label label-two">
+        ⭐ Created by Sameer
+      </div>
+
+      <div class="game-panel">
+
+        <div class="game-inner">
+
+          <div class="game-header">
+
+            <div class="game-header-left">
+              🕹️ ToTalk
             </div>
 
-            <div class="level">
-              ONLINE
+            <div class="game-dots">
+              <i></i>
+              <i></i>
+              <i></i>
             </div>
+
           </div>
 
-          <div class="game-screen">
 
-            <div class="sun"></div>
+          <div class="game-body">
+
             <div class="cloud"></div>
 
-            <div class="character">
-              🧑‍💻
-            </div>
+            <div class="sun"></div>
 
-            <div class="game-message">
-              Ready to enter ToTalk?
+            <div class="player">
+
+              <div class="player-character">
+                🧑‍🚀
+              </div>
+
+              <h2>
+                Welcome, Player!
+              </h2>
+
+              <p>
+                Your next conversation is waiting.
+              </p>
+
+              <div class="sameer-card">
+                Built with ✨ by <span>Sameer</span>
+              </div>
+
             </div>
 
           </div>
 
-          <div class="game-stats">
 
-            <div class="stat">
+          <div class="game-footer">
+
+            <div class="game-stat">
               <strong>💬</strong>
-              <small>Chat</small>
+              <small>Talk</small>
             </div>
 
-            <div class="stat">
+            <div class="game-stat">
               <strong>🌎</strong>
               <small>Connect</small>
             </div>
 
-            <div class="stat">
-              <strong>⭐</strong>
-              <small>Enjoy</small>
+            <div class="game-stat">
+              <strong>🎮</strong>
+              <small>Play</small>
             </div>
 
           </div>
@@ -543,60 +893,155 @@
 
       </div>
 
-    </section>
+    </div>
+
+  </section>
 
 
-    <section class="features">
+  <!-- SAMEER INTRO -->
 
-      <div class="section-title">
-        <h2>Welcome to your space</h2>
-        <p>Simple, fresh and made for conversations.</p>
+  <section class="intro">
+
+    <div class="intro-box">
+
+      <div>
+        <h2>Welcome to ToTalk.</h2>
+
+        <p>
+          Designed and created with an idea from
+          <strong>Sameer</strong>.
+          More is coming.
+        </p>
       </div>
 
-      <div class="feature-grid">
+      <div class="sameer-name">
+        — <span>Sameer</span>
+      </div>
 
-        <div class="feature">
-          <div class="feature-icon">💬</div>
-          <h3>Start Talking</h3>
-          <p>
-            Enter ToTalk and start conversations without unnecessary
-            complications.
-          </p>
+    </div>
+
+  </section>
+
+
+  <!-- FEATURES -->
+
+  <section class="features">
+
+    <div class="section-heading">
+
+      <div class="mini">
+        Inside ToTalk
+      </div>
+
+      <h2>
+        Simple. Social. Fun.
+      </h2>
+
+      <p>
+        No complicated homepage. Just enter ToTalk
+        and start your experience.
+      </p>
+
+    </div>
+
+
+    <div class="feature-grid">
+
+      <div class="feature">
+
+        <div class="feature-icon">
+          💬
         </div>
 
-        <div class="feature">
-          <div class="feature-icon">🎮</div>
-          <h3>Have Fun</h3>
-          <p>
-            A playful interface designed to make the experience feel
-            more like a game.
-          </p>
-        </div>
+        <h3>
+          Talk
+        </h3>
 
-        <div class="feature">
-          <div class="feature-icon">🌟</div>
-          <h3>Be Yourself</h3>
-          <p>
-            Your conversation space should feel simple, friendly and
-            easy to use.
-          </p>
-        </div>
+        <p>
+          Start conversations and enjoy a simple,
+          clean chat experience.
+        </p>
 
       </div>
 
-    </section>
 
-  </main>
+      <div class="feature">
 
+        <div class="feature-icon">
+          🎮
+        </div>
+
+        <h3>
+          Game Feel
+        </h3>
+
+        <p>
+          A playful interface that feels more alive
+          than an ordinary website.
+        </p>
+
+      </div>
+
+
+      <div class="feature">
+
+        <div class="feature-icon">
+          🚀
+        </div>
+
+        <h3>
+          More Coming
+        </h3>
+
+        <p>
+          ToTalk is only getting started.
+          More features can be added as the project grows.
+        </p>
+
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <!-- FINAL -->
+
+  <section class="final">
+
+    <div class="final-box">
+
+      <h2>
+        Ready to enter ToTalk?
+      </h2>
+
+      <p>
+        Sign in with Google and enter the world created by
+        <span class="final-name">Sameer</span>.
+      </p>
+
+      <p>
+        ↑ Use the login button at the top to begin.
+      </p>
+
+    </div>
+
+  </section>
+
+
+  <!-- FOOTER -->
 
   <footer>
-    ToTalk © 2026 · Created by <strong>Sameer</strong>
+
+    ToTalk © 2026 · Created by
+    <strong>Sameer</strong>
+
   </footer>
 
 
-  <script>
+  <!-- SUPABASE LOGIN -->
 
-    /* SUPABASE CONNECTION */
+  <script>
 
     const SUPABASE_URL =
       "https://qiynczbrhpxwuabwuyiy.supabase.co";
@@ -604,17 +1049,12 @@
     const SUPABASE_KEY =
       "sb_publishable_eUPz4c_nYckgINEK-AIWqw_JAXIHozd";
 
-    const { createClient } =
-      supabase;
-
     const supabaseClient =
-      createClient(
+      supabase.createClient(
         SUPABASE_URL,
         SUPABASE_KEY
       );
 
-
-    /* LOGIN */
 
     const loginBtn =
       document.getElementById("loginBtn");
@@ -626,9 +1066,12 @@
     loginBtn.addEventListener("click", async () => {
 
       loginBtn.disabled = true;
-      loginBtn.textContent = "Connecting to Google...";
+
+      loginBtn.textContent =
+        "Connecting to Google...";
 
       statusText.textContent = "";
+
 
       try {
 
@@ -657,9 +1100,10 @@
         console.error(error);
 
         statusText.textContent =
-          "Login could not start. Please check the Supabase Google settings.";
+          "Google login could not start. Please try again.";
 
         loginBtn.disabled = false;
+
         loginBtn.textContent =
           "🔵 Continue with Google";
 
@@ -667,8 +1111,6 @@
 
     });
 
-
-    /* CHECK LOGIN */
 
     async function checkUser() {
 
@@ -679,19 +1121,22 @@
 
       if (session && session.user) {
 
+        const name =
+          session.user.user_metadata?.name ||
+          "Sameer";
+
         loginBtn.textContent =
           "✅ Logged in";
 
         loginBtn.disabled = true;
 
         statusText.textContent =
-          "Welcome to ToTalk, " +
-          (session.user.user_metadata?.name || "Sameer") +
-          "!";
+          "Welcome to ToTalk, " + name + "!";
 
       }
 
     }
+
 
     checkUser();
 
