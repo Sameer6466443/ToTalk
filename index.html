@@ -1,537 +1,689 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>ToTalk — Talk to Sameer</title>
+<title>ToTalk — Talk. Connect. Be You.</title>
 
-  <!-- Supabase -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+:root{
+    --blue:#55b9e8;
+    --blue-dark:#17638d;
+    --blue-soft:#eaf8ff;
+    --yellow:#ffd84d;
+    --yellow-soft:#fff5bf;
+    --dark:#123047;
+    --muted:#668095;
+    --white:#ffffff;
+}
+
+body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
+    color:var(--dark);
+    min-height:100vh;
+    overflow-x:hidden;
+    background:
+        radial-gradient(circle at 85% 10%,#fff2a8 0,transparent 23%),
+        radial-gradient(circle at 5% 80%,#bceaff 0,transparent 28%),
+        linear-gradient(135deg,#f4fcff 0%,#e8f8ff 48%,#fffde9 100%);
+}
+
+/* BACKGROUND */
+
+.blob{
+    position:fixed;
+    border-radius:50%;
+    filter:blur(2px);
+    z-index:-1;
+}
+
+.blob.one{
+    width:340px;
+    height:340px;
+    background:rgba(255,216,77,.22);
+    top:-140px;
+    right:-100px;
+}
+
+.blob.two{
+    width:280px;
+    height:280px;
+    background:rgba(85,185,232,.16);
+    bottom:-120px;
+    left:-100px;
+}
+
+/* NAV */
+
+nav{
+    width:100%;
+    padding:25px 7%;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+
+.logo{
+    font-size:30px;
+    font-weight:900;
+    letter-spacing:-1.5px;
+}
+
+.logo .to{
+    color:var(--dark);
+}
+
+.logo .talk{
+    color:var(--blue-dark);
+}
+
+.logo-dot{
+    display:inline-block;
+    width:9px;
+    height:9px;
+    border-radius:50%;
+    background:var(--yellow);
+    margin-left:3px;
+    margin-bottom:3px;
+}
+
+.nav-pill{
+    padding:9px 15px;
+    border-radius:30px;
+    background:rgba(255,255,255,.65);
+    border:1px solid rgba(255,255,255,.9);
+    color:#58748a;
+    font-size:13px;
+    font-weight:700;
+}
+
+/* MAIN */
+
+main{
+    max-width:1180px;
+    min-height:calc(100vh - 90px);
+    margin:auto;
+    padding:55px 7% 70px;
+    display:flex;
+    align-items:center;
+}
+
+.hero{
+    width:100%;
+    display:grid;
+    grid-template-columns:1.1fr .9fr;
+    gap:70px;
+    align-items:center;
+}
+
+/* LEFT */
+
+.eyebrow{
+    display:inline-flex;
+    align-items:center;
+    gap:9px;
+    padding:8px 14px;
+    border-radius:30px;
+    background:rgba(255,255,255,.72);
+    border:1px solid rgba(255,255,255,.9);
+    box-shadow:0 8px 25px rgba(30,100,140,.07);
+    font-size:13px;
+    font-weight:800;
+    color:var(--blue-dark);
+    margin-bottom:25px;
+}
+
+.eyebrow-dot{
+    width:8px;
+    height:8px;
+    background:#54c58a;
+    border-radius:50%;
+}
+
+h1{
+    font-size:clamp(52px,7vw,86px);
+    line-height:.94;
+    letter-spacing:-5px;
+    margin-bottom:28px;
+}
+
+.line-blue{
+    color:var(--blue-dark);
+}
+
+.line-yellow{
+    color:#d9a900;
+}
+
+.description{
+    max-width:560px;
+    color:var(--muted);
+    font-size:18px;
+    line-height:1.75;
+}
+
+/* VISUAL */
+
+.visual{
+    position:relative;
+    min-height:480px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}
+
+.orbit{
+    width:350px;
+    height:350px;
+    border:1px solid rgba(85,185,232,.25);
+    border-radius:50%;
+    position:absolute;
+}
+
+.orbit:before{
+    content:"";
+    position:absolute;
+    width:14px;
+    height:14px;
+    border-radius:50%;
+    background:var(--yellow);
+    top:25px;
+    left:55px;
+    box-shadow:0 0 0 9px rgba(255,216,77,.15);
+}
+
+.orbit.two{
+    width:430px;
+    height:430px;
+    border-color:rgba(255,216,77,.18);
+}
+
+.center-card{
+    width:285px;
+    height:330px;
+    background:rgba(255,255,255,.78);
+    backdrop-filter:blur(20px);
+    border:1px solid rgba(255,255,255,.95);
+    border-radius:38px;
+    box-shadow:
+        0 35px 80px rgba(37,112,150,.18),
+        inset 0 1px 0 rgba(255,255,255,.9);
+    position:relative;
+    z-index:2;
+    padding:30px;
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
+}
+
+.mini-top{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+
+.mini-logo{
+    font-weight:900;
+    color:var(--blue-dark);
+}
+
+.status{
+    width:10px;
+    height:10px;
+    background:#58c98d;
+    border-radius:50%;
+    box-shadow:0 0 0 6px rgba(88,201,141,.12);
+}
+
+.chat-bubble{
+    width:92px;
+    height:92px;
+    border-radius:30px;
+    background:linear-gradient(145deg,#9bdfff,#fff0a0);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:42px;
+    margin:auto;
+    box-shadow:0 18px 35px rgba(68,160,200,.16);
+}
+
+.center-card h3{
+    font-size:23px;
+    text-align:center;
+    margin-bottom:8px;
+}
+
+.center-card p{
+    text-align:center;
+    font-size:13px;
+    line-height:1.6;
+    color:var(--muted);
+}
+
+/* FLOATING CARDS */
+
+.float{
+    position:absolute;
+    z-index:4;
+    background:rgba(255,255,255,.85);
+    backdrop-filter:blur(12px);
+    border:1px solid rgba(255,255,255,.9);
+    border-radius:18px;
+    padding:13px 16px;
+    box-shadow:0 15px 35px rgba(40,110,145,.13);
+    font-size:12px;
+    font-weight:800;
+}
+
+.float.a{
+    top:65px;
+    left:10px;
+}
+
+.float.b{
+    right:0;
+    bottom:75px;
+}
+
+.float-icon{
+    margin-right:7px;
+}
+
+/* LOGIN */
+
+.login-area{
+    margin-top:38px;
+}
+
+.google-button{
+    border:0;
+    cursor:pointer;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:13px;
+    min-width:245px;
+    padding:17px 25px;
+    border-radius:17px;
+    background:#123047;
+    color:white;
+    font-size:16px;
+    font-weight:800;
+    box-shadow:
+        0 15px 30px rgba(18,48,71,.18);
+    transition:all .2s ease;
+}
+
+.google-button:hover{
+    transform:translateY(-3px);
+    box-shadow:0 20px 38px rgba(18,48,71,.24);
+}
+
+.google-button:active{
+    transform:translateY(0);
+}
+
+.google-icon{
+    width:20px;
+    height:20px;
+    background:white;
+    border-radius:50%;
+    padding:3px;
+}
+
+.login-note{
+    margin-top:13px;
+    font-size:11px;
+    color:#8196a5;
+}
+
+/* LOGGED IN */
+
+#loggedIn{
+    display:none;
+}
+
+.logged-card{
+    margin-top:30px;
+    max-width:420px;
+    padding:20px;
+    border-radius:18px;
+    background:rgba(255,255,255,.72);
+}
+
+.user-email{
+    margin:10px 0;
+    font-size:14px;
+    word-break:break-all;
+    color:var(--blue-dark);
+    font-weight:700;
+}
+
+.logout{
+    border:0;
+    background:var(--yellow-soft);
+    color:#705900;
+    padding:9px 15px;
+    border-radius:10px;
+    font-weight:700;
+    cursor:pointer;
+}
+
+/* FOOTER */
+
+footer{
+    text-align:center;
+    padding:20px;
+    color:#7890a0;
+    font-size:12px;
+}
+
+footer strong{
+    color:var(--blue-dark);
+}
+
+/* MOBILE */
+
+@media(max-width:850px){
+
+    nav{
+        padding:20px 5%;
     }
 
-    body {
-      font-family: Arial, Helvetica, sans-serif;
-      min-height: 100vh;
-      color: #16324f;
-      background:
-        radial-gradient(circle at 15% 15%, rgba(255, 239, 137, 0.8), transparent 28%),
-        radial-gradient(circle at 90% 20%, rgba(157, 224, 255, 0.8), transparent 30%),
-        linear-gradient(135deg, #eaf9ff, #fffbe1);
-      overflow-x: hidden;
+    .nav-pill{
+        display:none;
     }
 
-    /* NAVBAR */
-
-    nav {
-      width: 100%;
-      padding: 22px 7%;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      position: relative;
-      z-index: 10;
+    main{
+        padding:35px 5% 50px;
+        display:block;
     }
 
-    .logo {
-      font-size: 30px;
-      font-weight: 900;
-      color: #1769aa;
-      letter-spacing: -1px;
+    .hero{
+        grid-template-columns:1fr;
+        gap:20px;
     }
 
-    .logo span {
-      color: #f5c400;
+    h1{
+        font-size:57px;
+        letter-spacing:-3.5px;
     }
 
-    .nav-login {
-      border: none;
-      background: rgba(255,255,255,0.75);
-      color: #1769aa;
-      padding: 11px 20px;
-      border-radius: 30px;
-      font-weight: 700;
-      cursor: pointer;
-      box-shadow: 0 8px 25px rgba(40,120,170,0.12);
+    .description{
+        font-size:16px;
+        line-height:1.65;
     }
 
-    /* HERO */
-
-    .hero {
-      min-height: calc(100vh - 90px);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 40px 7% 80px;
+    .visual{
+        min-height:400px;
+        margin-top:15px;
     }
 
-    .hero-content {
-      width: 100%;
-      max-width: 1050px;
-      display: grid;
-      grid-template-columns: 1.15fr 0.85fr;
-      gap: 60px;
-      align-items: center;
+    .orbit{
+        width:280px;
+        height:280px;
     }
 
-    .tag {
-      display: inline-block;
-      padding: 9px 15px;
-      background: rgba(255,255,255,0.75);
-      border: 1px solid rgba(23,105,170,0.12);
-      border-radius: 50px;
-      color: #1769aa;
-      font-weight: 700;
-      font-size: 14px;
-      margin-bottom: 22px;
+    .orbit.two{
+        width:330px;
+        height:330px;
     }
 
-    h1 {
-      font-size: clamp(48px, 7vw, 78px);
-      line-height: 0.98;
-      letter-spacing: -4px;
-      margin-bottom: 25px;
-      color: #143b5d;
+    .center-card{
+        width:245px;
+        height:290px;
     }
 
-    h1 .blue {
-      color: #1677bd;
+    .float.a{
+        left:0;
+        top:45px;
     }
 
-    h1 .yellow {
-      color: #e6b800;
+    .float.b{
+        right:0;
+        bottom:45px;
     }
 
-    .hero-text {
-      max-width: 590px;
-      font-size: 19px;
-      line-height: 1.7;
-      color: #4b6478;
-      margin-bottom: 32px;
+    .google-button{
+        width:100%;
     }
-
-    /* LOGIN CARD */
-
-    .login-card {
-      background: rgba(255,255,255,0.82);
-      backdrop-filter: blur(18px);
-      border: 1px solid rgba(255,255,255,0.9);
-      border-radius: 30px;
-      padding: 38px;
-      box-shadow: 0 25px 70px rgba(38, 111, 155, 0.18);
-      text-align: center;
-    }
-
-    .bubble {
-      width: 72px;
-      height: 72px;
-      margin: 0 auto 22px;
-      border-radius: 24px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: linear-gradient(135deg, #8edbff, #fff19a);
-      font-size: 34px;
-      box-shadow: 0 12px 30px rgba(30,130,190,0.15);
-    }
-
-    .login-card h2 {
-      font-size: 27px;
-      margin-bottom: 10px;
-      color: #163d5d;
-    }
-
-    .login-card p {
-      color: #6a7d8d;
-      line-height: 1.6;
-      margin-bottom: 25px;
-    }
-
-    .google-btn {
-      width: 100%;
-      border: none;
-      border-radius: 16px;
-      padding: 16px 18px;
-      background: #ffffff;
-      color: #183b58;
-      font-size: 16px;
-      font-weight: 800;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 12px;
-      box-shadow: 0 8px 25px rgba(30,100,150,0.12);
-      transition: 0.2s ease;
-    }
-
-    .google-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 14px 30px rgba(30,100,150,0.18);
-    }
-
-    .google-icon {
-      width: 21px;
-      height: 21px;
-    }
-
-    .small-text {
-      margin-top: 18px;
-      font-size: 12px;
-      color: #81919e;
-    }
-
-    /* LOGGED IN */
-
-    #loggedIn {
-      display: none;
-    }
-
-    .user-email {
-      background: #eefaff;
-      padding: 13px;
-      border-radius: 13px;
-      margin: 18px 0;
-      font-size: 14px;
-      word-break: break-word;
-    }
-
-    .logout-btn {
-      width: 100%;
-      border: none;
-      border-radius: 14px;
-      padding: 13px;
-      background: #fff0a6;
-      color: #665300;
-      font-weight: 800;
-      cursor: pointer;
-    }
-
-    /* DECORATION */
-
-    .sun {
-      position: fixed;
-      width: 180px;
-      height: 180px;
-      right: -70px;
-      top: 80px;
-      background: rgba(255,224,70,0.32);
-      border-radius: 50%;
-      z-index: -1;
-    }
-
-    .cloud {
-      position: fixed;
-      width: 210px;
-      height: 70px;
-      left: -80px;
-      bottom: 80px;
-      background: rgba(255,255,255,0.55);
-      border-radius: 100px;
-      z-index: -1;
-    }
-
-    .cloud::before,
-    .cloud::after {
-      content: "";
-      position: absolute;
-      background: rgba(255,255,255,0.55);
-      border-radius: 50%;
-    }
-
-    .cloud::before {
-      width: 90px;
-      height: 90px;
-      left: 40px;
-      bottom: 20px;
-    }
-
-    .cloud::after {
-      width: 65px;
-      height: 65px;
-      left: 110px;
-      bottom: 25px;
-    }
-
-    /* FOOTER */
-
-    footer {
-      text-align: center;
-      padding: 25px;
-      color: #6d8191;
-      font-size: 13px;
-    }
-
-    footer strong {
-      color: #1769aa;
-    }
-
-    /* MOBILE */
-
-    @media (max-width: 800px) {
-
-      nav {
-        padding: 18px 5%;
-      }
-
-      .logo {
-        font-size: 26px;
-      }
-
-      .nav-login {
-        padding: 9px 15px;
-      }
-
-      .hero {
-        padding: 30px 5% 50px;
-      }
-
-      .hero-content {
-        grid-template-columns: 1fr;
-        gap: 35px;
-      }
-
-      h1 {
-        font-size: 53px;
-        letter-spacing: -3px;
-      }
-
-      .hero-text {
-        font-size: 17px;
-      }
-
-      .login-card {
-        padding: 28px 22px;
-      }
-    }
-  </style>
+}
+</style>
 </head>
 
 <body>
 
-  <div class="sun"></div>
-  <div class="cloud"></div>
+<div class="blob one"></div>
+<div class="blob two"></div>
 
-  <!-- NAVIGATION -->
-
-  <nav>
+<nav>
     <div class="logo">
-      To<span>Talk</span>
+        <span class="to">To</span><span class="talk">Talk</span><span class="logo-dot"></span>
     </div>
 
-    <button class="nav-login" onclick="loginWithGoogle()">
-      Login
-    </button>
-  </nav>
+    <div class="nav-pill">
+        Created by Sameer
+    </div>
+</nav>
 
+<main>
 
-  <!-- HERO -->
+<section class="hero">
 
-  <main class="hero">
+    <!-- LEFT SIDE -->
 
-    <div class="hero-content">
+    <div>
 
-      <div>
-
-        <div class="tag">
-          A simple place to connect
+        <div class="eyebrow">
+            <span class="eyebrow-dot"></span>
+            A simple space to connect
         </div>
 
         <h1>
-          Talk.<br>
-          <span class="blue">Connect.</span><br>
-          <span class="yellow">ToTalk.</span>
+            Talk.<br>
+            <span class="line-blue">Connect.</span><br>
+            <span class="line-yellow">ToTalk.</span>
         </h1>
 
-        <p class="hero-text">
-          Welcome to ToTalk — a simple space created by Sameer
-          where you can reach out, start a conversation and connect
-          without unnecessary complications.
+        <p class="description">
+            A simple place made by Sameer for starting conversations,
+            sharing thoughts and making a genuine connection —
+            without making things complicated.
         </p>
 
-      </div>
+        <!-- ONLY ONE LOGIN BUTTON -->
 
+        <div class="login-area" id="loginBox">
 
-      <!-- LOGIN -->
+            <button class="google-button" onclick="loginWithGoogle()">
 
-      <div class="login-card">
+                <svg class="google-icon" viewBox="0 0 24 24">
+                    <path fill="#4285F4"
+                    d="M21.35 12.27c0-.68-.06-1.34-.18-1.97H12v3.73h5.24a4.48 4.48 0 0 1-1.94 2.94v2.45h3.14c1.84-1.69 2.91-4.18 2.91-7.15z"/>
+                    <path fill="#34A853"
+                    d="M12 21.5c2.63 0 4.84-.87 6.45-2.36l-3.14-2.45c-.87.58-1.98.93-3.31.93-2.54 0-4.69-1.72-5.46-4.03H3.3v2.53A9.74 9.74 0 0 0 12 21.5z"/>
+                    <path fill="#FBBC05"
+                    d="M6.54 13.59A5.86 5.86 0 0 1 6.23 12c0-.55.1-1.09.31-1.59V7.88H3.3A9.75 9.75 0 0 0 2.25 12c0 1.57.38 3.06 1.05 4.12l3.24-2.53z"/>
+                    <path fill="#EA4335"
+                    d="M12 6.38c1.43 0 2.72.49 3.73 1.45l2.8-2.8C16.83 3.4 14.63 2.5 12 2.5a9.74 9.74 0 0 0-8.7 5.38l3.24 2.53C7.31 8.1 9.46 6.38 12 6.38z"/>
+                </svg>
 
-        <!-- NOT LOGGED IN -->
+                Continue with Google
 
-        <div id="loginBox">
+            </button>
 
-          <div class="bubble">
-            💬
-          </div>
-
-          <h2>
-            Ready to talk?
-          </h2>
-
-          <p>
-            Sign in with Google to continue to ToTalk.
-          </p>
-
-          <button class="google-btn" onclick="loginWithGoogle()">
-
-            <svg class="google-icon" viewBox="0 0 24 24">
-              <path fill="#4285F4"
-                d="M21.35 12.27c0-.68-.06-1.34-.18-1.97H12v3.73h5.24a4.48 4.48 0 0 1-1.94 2.94v2.45h3.14c1.84-1.69 2.91-4.18 2.91-7.15z"/>
-              <path fill="#34A853"
-                d="M12 21.5c2.63 0 4.84-.87 6.45-2.36l-3.14-2.45c-.87.58-1.98.93-3.31.93-2.54 0-4.69-1.72-5.46-4.03H3.3v2.53A9.74 9.74 0 0 0 12 21.5z"/>
-              <path fill="#FBBC05"
-                d="M6.54 13.59A5.86 5.86 0 0 1 6.23 12c0-.55.1-1.09.31-1.59V7.88H3.3A9.75 9.75 0 0 0 2.25 12c0 1.57.38 3.06 1.05 4.12l3.24-2.53z"/>
-              <path fill="#EA4335"
-                d="M12 6.38c1.43 0 2.72.49 3.73 1.45l2.8-2.8C16.83 3.4 14.63 2.5 12 2.5a9.74 9.74 0 0 0-8.7 5.38l3.24 2.53C7.31 8.1 9.46 6.38 12 6.38z"/>
-            </svg>
-
-            Continue with Google
-
-          </button>
-
-          <div class="small-text">
-            Secure sign-in powered by Google
-          </div>
+            <div class="login-note">
+                Secure sign-in powered by Google
+            </div>
 
         </div>
 
 
-        <!-- LOGGED IN -->
+        <!-- AFTER LOGIN -->
 
         <div id="loggedIn">
 
-          <div class="bubble">
-            ✓
-          </div>
+            <div class="logged-card">
 
-          <h2>
-            You're in!
-          </h2>
+                <strong>You're connected to ToTalk ✓</strong>
 
-          <p>
-            Welcome to ToTalk.
-          </p>
+                <div class="user-email" id="userEmail"></div>
 
-          <div class="user-email" id="userEmail"></div>
+                <button class="logout" onclick="logout()">
+                    Sign out
+                </button>
 
-          <button class="logout-btn" onclick="logout()">
-            Sign out
-          </button>
+            </div>
 
         </div>
 
-      </div>
+    </div>
+
+
+    <!-- RIGHT SIDE VISUAL -->
+
+    <div class="visual">
+
+        <div class="orbit"></div>
+        <div class="orbit two"></div>
+
+        <div class="float a">
+            <span class="float-icon">☀️</span>
+            Keep it simple
+        </div>
+
+        <div class="float b">
+            <span class="float-icon">💬</span>
+            Start a conversation
+        </div>
+
+        <div class="center-card">
+
+            <div class="mini-top">
+                <div class="mini-logo">ToTalk</div>
+                <div class="status"></div>
+            </div>
+
+            <div class="chat-bubble">
+                💬
+            </div>
+
+            <div>
+                <h3>
+                    Your conversation<br>starts here.
+                </h3>
+
+                <p>
+                    One place. One connection.<br>
+                    Just talk.
+                </p>
+            </div>
+
+        </div>
 
     </div>
 
-  </main>
+</section>
 
+</main>
 
-  <footer>
+<footer>
     ToTalk © 2026 · Created by <strong>Sameer</strong>
-  </footer>
+</footer>
 
 
-  <script>
+<script>
 
-    /*
-      SUPABASE CONFIGURATION
-    */
+/* SUPABASE */
 
-    const SUPABASE_URL =
-      "https://qyinczbrhpxwuabwuyiy.supabase.co";
+const SUPABASE_URL =
+"https://qyinczbrhpxwuabwuyiy.supabase.co";
 
-    const SUPABASE_KEY =
-      "sb_publishable_eUPz4c_nYckgINEK-AIWqw_JAXIHozd";
+const SUPABASE_KEY =
+"sb_publishable_eUPz4c_nYckgINEK-AIWqw_JAXIHozd";
 
-    const supabaseClient =
-      window.supabase.createClient(
-        SUPABASE_URL,
-        SUPABASE_KEY
-      );
+const supabaseClient =
+window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+);
 
 
-    /*
-      GOOGLE LOGIN
-    */
+/* GOOGLE LOGIN */
 
-    async function loginWithGoogle() {
+async function loginWithGoogle(){
 
-      const redirectUrl =
-        window.location.origin +
-        "/ToTalk/";
+    const redirectUrl =
+        window.location.origin + "/ToTalk/";
 
-      const { error } =
+    const { error } =
         await supabaseClient.auth.signInWithOAuth({
 
-          provider: "google",
+            provider:"google",
 
-          options: {
-            redirectTo: redirectUrl
-          }
+            options:{
+                redirectTo:redirectUrl
+            }
 
         });
 
-      if (error) {
+    if(error){
         alert("Login error: " + error.message);
-      }
     }
+}
 
 
-    /*
-      CHECK LOGIN
-    */
+/* CHECK LOGIN */
 
-    async function checkUser() {
+async function checkUser(){
 
-      const {
-        data: { session }
-      } = await supabaseClient.auth.getSession();
+    const {
+        data:{session}
+    } = await supabaseClient.auth.getSession();
 
-      if (session && session.user) {
+    if(session && session.user){
 
         document.getElementById("loginBox").style.display =
-          "none";
+            "none";
 
         document.getElementById("loggedIn").style.display =
-          "block";
+            "block";
 
         document.getElementById("userEmail").textContent =
-          session.user.email;
-
-      }
+            session.user.email;
     }
+}
 
 
-    /*
-      LOGOUT
-    */
+/* LOGOUT */
 
-    async function logout() {
+async function logout(){
 
-      await supabaseClient.auth.signOut();
+    await supabaseClient.auth.signOut();
 
-      document.getElementById("loggedIn").style.display =
+    document.getElementById("loggedIn").style.display =
         "none";
 
-      document.getElementById("loginBox").style.display =
+    document.getElementById("loginBox").style.display =
         "block";
-    }
+}
 
 
-    /*
-      RUN
-    */
+/* START */
 
-    checkUser();
+checkUser();
 
-  </script>
+</script>
 
 </body>
 </html>
