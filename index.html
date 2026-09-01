@@ -17,246 +17,383 @@
 
     body {
       font-family: Arial, Helvetica, sans-serif;
+      background: #eaf7ff;
+      color: #12304a;
       min-height: 100vh;
-      color: #ffffff;
-      background:
-        radial-gradient(circle at 15% 15%, #4338ca 0%, transparent 28%),
-        radial-gradient(circle at 85% 20%, #0ea5e9 0%, transparent 25%),
-        radial-gradient(circle at 50% 90%, #7c3aed 0%, transparent 30%),
-        #070711;
       overflow-x: hidden;
     }
 
-    body::before {
-      content: "";
+    /* Decorative circles */
+    .bubble {
       position: fixed;
-      inset: 0;
-      background: linear-gradient(
-        120deg,
-        rgba(255,255,255,0.03),
-        transparent 40%,
-        rgba(255,255,255,0.02)
-      );
+      border-radius: 50%;
+      z-index: 0;
       pointer-events: none;
     }
 
+    .bubble.one {
+      width: 280px;
+      height: 280px;
+      background: #bdeeff;
+      top: -100px;
+      right: -70px;
+    }
+
+    .bubble.two {
+      width: 180px;
+      height: 180px;
+      background: #fff0a8;
+      bottom: 70px;
+      left: -80px;
+    }
+
+    /* Navigation */
     nav {
-      width: 100%;
-      padding: 24px 7%;
+      position: relative;
+      z-index: 5;
+      padding: 22px 7%;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      position: relative;
-      z-index: 2;
     }
 
     .logo {
-      font-size: 27px;
+      font-size: 30px;
       font-weight: 900;
+      color: #087ea4;
       letter-spacing: -1px;
     }
 
     .logo span {
-      color: #8b7cff;
+      color: #f5b700;
     }
 
     .creator {
-      color: rgba(255,255,255,0.65);
-      font-size: 14px;
-    }
-
-    .hero {
-      min-height: 72vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      text-align: center;
-      padding: 60px 20px 35px;
-      position: relative;
-      z-index: 1;
-    }
-
-    .hero-content {
-      max-width: 850px;
-    }
-
-    .badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
+      background: white;
       padding: 9px 15px;
-      border-radius: 100px;
-      background: rgba(255,255,255,0.08);
-      border: 1px solid rgba(255,255,255,0.12);
-      color: #c7c2ff;
+      border-radius: 50px;
+      color: #5d7180;
       font-size: 13px;
-      font-weight: 700;
-      margin-bottom: 25px;
-      backdrop-filter: blur(12px);
+      box-shadow: 0 5px 20px rgba(0, 90, 130, 0.08);
     }
 
-    .dot {
-      width: 7px;
-      height: 7px;
-      background: #7cfc9a;
-      border-radius: 50%;
-      box-shadow: 0 0 12px #7cfc9a;
+    /* Hero */
+    .hero {
+      position: relative;
+      z-index: 2;
+      max-width: 1100px;
+      margin: auto;
+      min-height: 65vh;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 60px 30px;
+      gap: 50px;
+    }
+
+    .hero-text {
+      flex: 1;
+    }
+
+    .small-label {
+      display: inline-block;
+      background: #fff4b8;
+      color: #8c6900;
+      padding: 9px 15px;
+      border-radius: 50px;
+      font-size: 13px;
+      font-weight: 800;
+      margin-bottom: 22px;
     }
 
     h1 {
-      font-size: clamp(48px, 9vw, 92px);
-      line-height: 0.98;
+      font-size: clamp(50px, 8vw, 86px);
+      line-height: .95;
       letter-spacing: -5px;
-      margin-bottom: 27px;
+      margin-bottom: 25px;
     }
 
-    h1 .gradient {
-      background: linear-gradient(90deg, #a78bfa, #38bdf8);
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
+    h1 .blue {
+      color: #087ea4;
     }
 
-    .subtitle {
-      max-width: 650px;
-      margin: auto;
-      color: rgba(255,255,255,0.68);
-      font-size: 19px;
-      line-height: 1.7;
-      margin-bottom: 34px;
+    h1 .yellow {
+      color: #f5b700;
     }
 
+    .description {
+      color: #607888;
+      font-size: 18px;
+      line-height: 1.65;
+      max-width: 590px;
+      margin-bottom: 30px;
+    }
+
+    /* Login button */
     .login-btn {
       display: inline-flex;
       align-items: center;
       justify-content: center;
       gap: 12px;
+      padding: 17px 25px;
+      background: #087ea4;
+      color: white;
       border: none;
-      padding: 17px 27px;
       border-radius: 15px;
-      background: #ffffff;
-      color: #11111b;
       font-size: 16px;
       font-weight: 800;
       cursor: pointer;
-      transition: 0.25s ease;
-      box-shadow: 0 15px 45px rgba(0,0,0,0.3);
+      box-shadow: 0 12px 25px rgba(8, 126, 164, .25);
+      transition: .25s;
     }
 
     .login-btn:hover {
-      transform: translateY(-3px) scale(1.02);
-      box-shadow: 0 20px 55px rgba(0,0,0,0.4);
+      transform: translateY(-3px);
+      background: #066d8e;
     }
 
-    .google-icon {
+    .google {
       width: 20px;
       height: 20px;
+      background: white;
+      border-radius: 50%;
+      padding: 2px;
     }
 
     #message {
-      min-height: 22px;
-      margin-top: 17px;
-      color: rgba(255,255,255,0.65);
-      font-size: 14px;
+      margin-top: 15px;
+      min-height: 20px;
+      color: #607888;
+      font-size: 13px;
     }
 
+    /* Pineapple */
+    .pineapple-area {
+      flex: .75;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .pineapple {
+      width: 250px;
+      height: 310px;
+      position: relative;
+      filter: drop-shadow(0 25px 25px rgba(0, 80, 110, .16));
+      animation: float 4s ease-in-out infinite;
+    }
+
+    .leaves {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 130px;
+      height: 100px;
+    }
+
+    .leaf {
+      position: absolute;
+      width: 35px;
+      height: 85px;
+      background: #32a852;
+      border-radius: 100% 0 100% 0;
+      transform-origin: bottom center;
+    }
+
+    .leaf:nth-child(1) {
+      left: 48px;
+      transform: rotate(-5deg);
+    }
+
+    .leaf:nth-child(2) {
+      left: 25px;
+      transform: rotate(-30deg);
+      height: 75px;
+    }
+
+    .leaf:nth-child(3) {
+      left: 70px;
+      transform: rotate(28deg);
+      height: 75px;
+    }
+
+    .leaf:nth-child(4) {
+      left: 45px;
+      transform: rotate(-52deg);
+      height: 65px;
+      background: #238c43;
+    }
+
+    .leaf:nth-child(5) {
+      left: 55px;
+      transform: rotate(50deg);
+      height: 65px;
+      background: #238c43;
+    }
+
+    .fruit {
+      position: absolute;
+      top: 70px;
+      left: 20px;
+      width: 210px;
+      height: 220px;
+      background: #ffc928;
+      border-radius: 48% 48% 45% 45%;
+      border: 5px solid #f1b900;
+      overflow: hidden;
+    }
+
+    .pattern {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background:
+        linear-gradient(45deg, transparent 43%, #dca900 44%, #dca900 48%, transparent 49%),
+        linear-gradient(-45deg, transparent 43%, #dca900 44%, #dca900 48%, transparent 49%);
+      background-size: 45px 45px;
+      opacity: .8;
+    }
+
+    .pineapple-face {
+      position: absolute;
+      left: 50%;
+      top: 53%;
+      transform: translate(-50%, -50%);
+      font-size: 58px;
+    }
+
+    @keyframes float {
+      0%, 100% {
+        transform: translateY(0);
+      }
+      50% {
+        transform: translateY(-13px);
+      }
+    }
+
+    /* Features */
     .features {
+      position: relative;
+      z-index: 2;
       max-width: 1050px;
-      margin: 0 auto;
-      padding: 25px 20px 70px;
+      margin: auto;
+      padding: 25px 25px 60px;
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 18px;
-      position: relative;
-      z-index: 1;
     }
 
-    .feature {
-      padding: 27px;
+    .card {
+      background: rgba(255,255,255,.88);
+      border: 1px solid rgba(8,126,164,.08);
       border-radius: 22px;
-      background: rgba(255,255,255,0.055);
-      border: 1px solid rgba(255,255,255,0.1);
-      backdrop-filter: blur(18px);
-      transition: 0.25s ease;
+      padding: 27px;
+      box-shadow: 0 10px 30px rgba(8, 90, 130, .07);
+      transition: .25s;
     }
 
-    .feature:hover {
+    .card:hover {
       transform: translateY(-5px);
-      background: rgba(255,255,255,0.08);
-      border-color: rgba(255,255,255,0.18);
+      box-shadow: 0 16px 35px rgba(8, 90, 130, .12);
     }
 
-    .feature-icon {
-      font-size: 28px;
-      margin-bottom: 18px;
+    .icon {
+      width: 48px;
+      height: 48px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #fff4bd;
+      border-radius: 15px;
+      font-size: 24px;
+      margin-bottom: 17px;
     }
 
-    .feature h3 {
+    .card h3 {
+      margin-bottom: 9px;
       font-size: 18px;
-      margin-bottom: 10px;
     }
 
-    .feature p {
-      color: rgba(255,255,255,0.57);
+    .card p {
+      color: #708491;
       line-height: 1.55;
       font-size: 14px;
     }
 
-    .creator-card {
+    /* Bottom message */
+    .about {
+      position: relative;
+      z-index: 2;
       max-width: 850px;
-      margin: 0 auto 60px;
-      padding: 32px;
-      text-align: center;
+      margin: 0 auto 55px;
+      padding: 30px;
+      background: #087ea4;
+      color: white;
       border-radius: 25px;
-      background: rgba(255,255,255,0.045);
-      border: 1px solid rgba(255,255,255,0.09);
-      backdrop-filter: blur(18px);
+      text-align: center;
+      box-shadow: 0 15px 35px rgba(8,126,164,.18);
     }
 
-    .creator-card p {
-      color: rgba(255,255,255,0.6);
+    .about h2 {
+      margin-bottom: 10px;
+      font-size: 25px;
+    }
+
+    .about p {
+      color: rgba(255,255,255,.8);
       line-height: 1.6;
-      font-size: 15px;
-    }
-
-    .creator-card strong {
-      color: #ffffff;
+      font-size: 14px;
     }
 
     footer {
       text-align: center;
-      padding: 25px 20px 35px;
-      color: rgba(255,255,255,0.38);
+      padding: 25px;
+      color: #78909e;
       font-size: 13px;
     }
 
-    @media (max-width: 700px) {
+    @media (max-width: 750px) {
 
       nav {
-        padding: 20px;
+        padding: 18px 20px;
       }
 
       .creator {
-        font-size: 12px;
+        font-size: 11px;
+      }
+
+      .hero {
+        flex-direction: column;
+        text-align: center;
+        padding-top: 35px;
+      }
+
+      .description {
+        margin-left: auto;
+        margin-right: auto;
+        font-size: 16px;
       }
 
       h1 {
         letter-spacing: -3px;
       }
 
-      .subtitle {
-        font-size: 16px;
+      .pineapple-area {
+        order: -1;
+      }
+
+      .pineapple {
+        transform: scale(.72);
+        margin-top: -35px;
+        margin-bottom: -35px;
       }
 
       .features {
         grid-template-columns: 1fr;
       }
 
-      .feature {
-        padding: 23px;
-      }
-
-      .creator-card {
+      .about {
         margin-left: 20px;
         margin-right: 20px;
       }
@@ -266,35 +403,43 @@
 
 <body>
 
+  <div class="bubble one"></div>
+  <div class="bubble two"></div>
+
   <nav>
-    <div class="logo">To<span>Talk</span></div>
-    <div class="creator">Created by Sameer</div>
+    <div class="logo">
+      To<span>Talk</span>
+    </div>
+
+    <div class="creator">
+      Created by Sameer ✨
+    </div>
   </nav>
 
 
   <section class="hero">
 
-    <div class="hero-content">
+    <div class="hero-text">
 
-      <div class="badge">
-        <span class="dot"></span>
-        A simple place to talk
+      <div class="small-label">
+        🍍 A little space to talk
       </div>
 
       <h1>
-        You talk.<br>
-        <span class="gradient">I listen.</span>
+        Talk.<br>
+        <span class="blue">Share.</span><br>
+        <span class="yellow">Connect.</span>
       </h1>
 
-      <p class="subtitle">
-        Welcome to ToTalk — a personal project created by Sameer
-        to make starting a conversation simple, comfortable,
-        and just a little more human.
+      <p class="description">
+        Welcome to ToTalk — a personal project by Sameer.
+        A simple place where you can sign in, reach out,
+        and start a genuine conversation.
       </p>
 
       <button class="login-btn" onclick="loginWithGoogle()">
 
-        <svg class="google-icon" viewBox="0 0 24 24">
+        <svg class="google" viewBox="0 0 24 24">
           <path fill="#4285F4"
             d="M21.35 12.23c0-.72-.06-1.41-.18-2.08H12v3.94h5.24a4.48 4.48 0 0 1-1.94 2.94v2.45h3.14c1.84-1.69 2.91-4.18 2.91-7.25z"/>
           <path fill="#34A853"
@@ -313,49 +458,77 @@
 
     </div>
 
+
+    <div class="pineapple-area">
+
+      <div class="pineapple">
+
+        <div class="leaves">
+          <div class="leaf"></div>
+          <div class="leaf"></div>
+          <div class="leaf"></div>
+          <div class="leaf"></div>
+          <div class="leaf"></div>
+        </div>
+
+        <div class="fruit">
+          <div class="pattern"></div>
+          <div class="pineapple-face">😊</div>
+        </div>
+
+      </div>
+
+    </div>
+
   </section>
 
 
   <section class="features">
 
-    <div class="feature">
-      <div class="feature-icon">💬</div>
+    <div class="card">
+      <div class="icon">💬</div>
       <h3>Just talk</h3>
       <p>
-        No complicated process. Sign in and start a conversation.
+        Sometimes starting a conversation is all you need.
+        Keep it simple and just talk.
       </p>
     </div>
 
-    <div class="feature">
-      <div class="feature-icon">🤝</div>
-      <h3>One-to-one</h3>
+    <div class="card">
+      <div class="icon">🌊</div>
+      <h3>Keep it comfortable</h3>
       <p>
-        ToTalk is built around a simple connection between you and Sameer.
+        ToTalk is designed to feel friendly, simple,
+        and easy to use.
       </p>
     </div>
 
-    <div class="feature">
-      <div class="feature-icon">✨</div>
+    <div class="card">
+      <div class="icon">🍍</div>
       <h3>Made by Sameer</h3>
       <p>
-        An original project designed to make reaching out feel easy.
+        A personal project built by Sameer around
+        one simple idea — making it easier to reach out.
       </p>
     </div>
 
   </section>
 
 
-  <div class="creator-card">
+  <section class="about">
+
+    <h2>Welcome to ToTalk 🍍</h2>
+
     <p>
-      <strong>ToTalk</strong> isn't a therapy service or a replacement
-      for professional help. It's simply a personal project by
-      <strong>Sameer</strong> for having a genuine conversation.
+      This isn't a therapy service or a replacement for professional help.
+      It's simply Sameer's personal project for having a genuine conversation.
     </p>
-  </div>
+
+  </section>
 
 
   <footer>
-    ToTalk © 2026 · Created by Sameer
+    ToTalk © 2026 · Created by Sameer · Talk. Share. Connect.
   </footer>
 
 
