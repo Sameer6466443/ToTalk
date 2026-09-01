@@ -6,7 +6,6 @@
 
   <title>ToTalk — Talk to Sameer</title>
 
-  <!-- Supabase -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
@@ -17,17 +16,15 @@
     }
 
     :root {
-      --blue: #3478f6;
-      --blue-light: #60a5fa;
-      --navy: #07111f;
-      --text: #f8fbff;
-      --muted: #91a4bb;
-      --card: rgba(255,255,255,0.055);
-      --border: rgba(255,255,255,0.10);
-    }
-
-    html {
-      scroll-behavior: smooth;
+      --blue: #1769e0;
+      --blue-light: #4da3ff;
+      --yellow: #ffd43b;
+      --yellow-light: #ffe98a;
+      --navy: #061426;
+      --text: #ffffff;
+      --muted: #9bb0c9;
+      --card: rgba(255,255,255,0.06);
+      --border: rgba(255,255,255,0.12);
     }
 
     body {
@@ -35,82 +32,76 @@
       font-family: Arial, Helvetica, sans-serif;
       color: var(--text);
       background:
-        radial-gradient(circle at 15% 20%, rgba(52,120,246,.20), transparent 28%),
-        radial-gradient(circle at 85% 15%, rgba(96,165,250,.13), transparent 25%),
-        radial-gradient(circle at 50% 100%, rgba(37,99,235,.16), transparent 35%),
+        radial-gradient(circle at 10% 15%, rgba(23,105,224,.28), transparent 30%),
+        radial-gradient(circle at 90% 10%, rgba(255,212,59,.12), transparent 25%),
+        radial-gradient(circle at 50% 100%, rgba(23,105,224,.18), transparent 35%),
         var(--navy);
       overflow-x: hidden;
     }
 
-    /* Background glow */
-
     .glow {
       position: fixed;
-      width: 500px;
-      height: 500px;
+      width: 450px;
+      height: 450px;
       border-radius: 50%;
-      background: rgba(52,120,246,.08);
-      filter: blur(80px);
+      filter: blur(90px);
       pointer-events: none;
-      z-index: 0;
     }
 
     .glow-one {
       top: -250px;
-      left: -200px;
+      left: -180px;
+      background: rgba(23,105,224,.18);
     }
 
     .glow-two {
       right: -250px;
       bottom: -250px;
+      background: rgba(255,212,59,.10);
     }
 
-    /* Navigation */
-
     nav {
-      position: relative;
-      z-index: 5;
       max-width: 1200px;
       margin: auto;
       padding: 25px 30px;
       display: flex;
       align-items: center;
       justify-content: space-between;
+      position: relative;
+      z-index: 5;
     }
 
     .logo {
-      font-size: 29px;
+      font-size: 30px;
       font-weight: 900;
       letter-spacing: -1.5px;
     }
 
     .logo span {
-      color: var(--blue-light);
+      color: var(--yellow);
     }
 
     .nav-pill {
       padding: 9px 15px;
       border: 1px solid var(--border);
-      background: rgba(255,255,255,.045);
+      background: rgba(255,255,255,.05);
       border-radius: 100px;
       color: var(--muted);
       font-size: 13px;
       backdrop-filter: blur(15px);
     }
 
-    /* Hero */
-
     .hero {
-      position: relative;
-      z-index: 2;
       max-width: 1200px;
       min-height: 680px;
       margin: auto;
-      padding: 80px 30px 70px;
+      padding: 70px 30px;
       display: grid;
       grid-template-columns: 1.15fr .85fr;
       align-items: center;
       gap: 70px;
+      position: relative;
+      z-index: 2;
     }
 
     .eyebrow {
@@ -119,9 +110,9 @@
       gap: 9px;
       padding: 9px 14px;
       border-radius: 100px;
-      background: rgba(52,120,246,.10);
-      border: 1px solid rgba(96,165,250,.20);
-      color: #a9caff;
+      background: rgba(255,212,59,.09);
+      border: 1px solid rgba(255,212,59,.22);
+      color: var(--yellow-light);
       font-size: 13px;
       font-weight: 700;
       margin-bottom: 25px;
@@ -131,8 +122,8 @@
       width: 7px;
       height: 7px;
       border-radius: 50%;
-      background: #57e389;
-      box-shadow: 0 0 12px #57e389;
+      background: var(--yellow);
+      box-shadow: 0 0 12px rgba(255,212,59,.8);
     }
 
     h1 {
@@ -147,8 +138,8 @@
       background: linear-gradient(
         90deg,
         #ffffff,
-        #7db4ff,
-        #4f8df7
+        var(--yellow),
+        #4da3ff
       );
       -webkit-background-clip: text;
       background-clip: text;
@@ -163,28 +154,27 @@
       margin-bottom: 34px;
     }
 
-    /* Login */
-
     .login-btn {
       display: inline-flex;
       align-items: center;
       justify-content: center;
       gap: 12px;
       padding: 17px 25px;
-      border: 1px solid rgba(255,255,255,.15);
+      border: none;
       border-radius: 14px;
-      background: #ffffff;
-      color: #101828;
+      background: var(--yellow);
+      color: #071426;
       font-size: 15px;
-      font-weight: 800;
+      font-weight: 900;
       cursor: pointer;
-      box-shadow: 0 15px 40px rgba(0,0,0,.25);
+      box-shadow: 0 12px 35px rgba(255,212,59,.18);
       transition: .25s ease;
     }
 
     .login-btn:hover {
       transform: translateY(-3px);
-      box-shadow: 0 20px 50px rgba(0,0,0,.35);
+      background: #ffe066;
+      box-shadow: 0 18px 45px rgba(255,212,59,.25);
     }
 
     .google-icon {
@@ -199,25 +189,23 @@
       font-size: 13px;
     }
 
-    /* Conversation visual */
-
     .visual {
-      position: relative;
       height: 440px;
       display: flex;
       align-items: center;
       justify-content: center;
+      position: relative;
     }
 
     .orb {
       position: absolute;
-      width: 310px;
-      height: 310px;
+      width: 320px;
+      height: 320px;
       border-radius: 50%;
       background: radial-gradient(
         circle,
-        rgba(52,120,246,.28),
-        rgba(52,120,246,.03) 65%,
+        rgba(23,105,224,.30),
+        rgba(255,212,59,.07) 50%,
         transparent 70%
       );
       animation: pulse 4s ease-in-out infinite;
@@ -229,10 +217,10 @@
       padding: 25px;
       border-radius: 25px;
       background: rgba(255,255,255,.065);
-      border: 1px solid rgba(255,255,255,.12);
+      border: 1px solid rgba(255,255,255,.13);
       backdrop-filter: blur(25px);
       box-shadow:
-        0 30px 70px rgba(0,0,0,.35),
+        0 30px 70px rgba(0,0,0,.4),
         inset 0 1px rgba(255,255,255,.08);
       animation: float 5s ease-in-out infinite;
     }
@@ -253,7 +241,8 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      background: linear-gradient(135deg, #3478f6, #60a5fa);
+      background: linear-gradient(135deg, var(--yellow), #ffb800);
+      color: #061426;
       font-weight: 900;
     }
 
@@ -273,7 +262,7 @@
       padding: 13px 15px;
       border-radius: 15px;
       background: rgba(255,255,255,.07);
-      color: #b9c8d9;
+      color: #c0cede;
       font-size: 13px;
       line-height: 1.5;
       margin-bottom: 12px;
@@ -281,7 +270,7 @@
 
     .bubble-message.you {
       margin-left: auto;
-      background: #3478f6;
+      background: var(--blue);
       color: white;
       border-bottom-right-radius: 5px;
     }
@@ -299,7 +288,7 @@
     .typing span {
       width: 5px;
       height: 5px;
-      background: #6e8299;
+      background: var(--yellow);
       border-radius: 50%;
       animation: typing 1.2s infinite;
     }
@@ -312,17 +301,15 @@
       animation-delay: .3s;
     }
 
-    /* Features */
-
     .features {
-      position: relative;
-      z-index: 2;
       max-width: 1100px;
       margin: auto;
       padding: 30px 30px 80px;
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 18px;
+      position: relative;
+      z-index: 2;
     }
 
     .feature {
@@ -336,11 +323,11 @@
 
     .feature:hover {
       transform: translateY(-5px);
-      border-color: rgba(96,165,250,.25);
+      border-color: rgba(255,212,59,.3);
     }
 
     .feature-number {
-      color: #6ea8ff;
+      color: var(--yellow);
       font-size: 12px;
       font-weight: 800;
       margin-bottom: 22px;
@@ -357,11 +344,7 @@
       line-height: 1.6;
     }
 
-    /* About */
-
     .about {
-      position: relative;
-      z-index: 2;
       max-width: 850px;
       margin: 0 auto 70px;
       padding: 35px;
@@ -370,10 +353,12 @@
       background:
         linear-gradient(
           135deg,
-          rgba(52,120,246,.13),
-          rgba(255,255,255,.035)
+          rgba(23,105,224,.14),
+          rgba(255,212,59,.045)
         );
-      border: 1px solid rgba(96,165,250,.14);
+      border: 1px solid rgba(255,212,59,.13);
+      position: relative;
+      z-index: 2;
     }
 
     .about h2 {
@@ -388,16 +373,14 @@
     }
 
     footer {
-      position: relative;
-      z-index: 2;
       text-align: center;
       padding: 30px;
       color: #53677c;
       font-size: 13px;
       border-top: 1px solid rgba(255,255,255,.05);
+      position: relative;
+      z-index: 2;
     }
-
-    /* Animations */
 
     @keyframes float {
       0%, 100% {
@@ -430,8 +413,6 @@
         transform: translateY(-4px);
       }
     }
-
-    /* Mobile */
 
     @media (max-width: 800px) {
 
@@ -499,9 +480,6 @@
   <div class="glow glow-one"></div>
   <div class="glow glow-two"></div>
 
-
-  <!-- Navigation -->
-
   <nav>
 
     <div class="logo">
@@ -514,8 +492,6 @@
 
   </nav>
 
-
-  <!-- Hero -->
 
   <section class="hero">
 
@@ -535,7 +511,6 @@
         Welcome to ToTalk — a personal project created by Sameer.
         Sign in and start a simple, genuine conversation.
       </p>
-
 
       <button class="login-btn" onclick="loginWithGoogle()">
 
@@ -559,8 +534,6 @@
     </div>
 
 
-    <!-- Conversation visual -->
-
     <div class="visual">
 
       <div class="orb"></div>
@@ -579,7 +552,6 @@
           </div>
 
         </div>
-
 
         <div class="bubble-message them">
           Hey, what's on your mind?
@@ -605,8 +577,6 @@
 
   </section>
 
-
-  <!-- Features -->
 
   <section class="features">
 
@@ -669,8 +639,6 @@
   </section>
 
 
-  <!-- About -->
-
   <section class="about">
 
     <h2>
@@ -692,8 +660,6 @@
   </footer>
 
 
-  <!-- Supabase Login -->
-
   <script>
 
     const SUPABASE_URL =
@@ -701,7 +667,6 @@
 
     const SUPABASE_KEY =
       "sb_publishable_eUPz4c_nYckgINEK-AIWqw_JAXIHozd";
-
 
     const supabaseClient =
       window.supabase.createClient(
@@ -718,7 +683,6 @@
       message.textContent =
         "Opening Google login...";
 
-
       const { error } =
         await supabaseClient.auth.signInWithOAuth({
 
@@ -729,7 +693,6 @@
           }
 
         });
-
 
       if (error) {
 
