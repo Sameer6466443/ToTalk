@@ -15,20 +15,10 @@
       box-sizing: border-box;
     }
 
-    :root {
-      --blue: #168bd1;
-      --blue-dark: #0b5d91;
-      --sky: #e9f9ff;
-      --yellow: #ffe36a;
-      --text: #173d57;
-      --muted: #78909f;
-      --white: #ffffff;
-    }
-
     body {
       font-family: Arial, Helvetica, sans-serif;
       min-height: 100vh;
-      color: var(--text);
+      color: #173d57;
       background:
         radial-gradient(circle at 5% 5%, #c9f0ff, transparent 25%),
         radial-gradient(circle at 95% 95%, #fff3a6, transparent 25%),
@@ -38,12 +28,11 @@
     header {
       height: 75px;
       padding: 0 5%;
-      background: rgba(255,255,255,.88);
+      background: rgba(255,255,255,.92);
       border-bottom: 1px solid #e4f0f5;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      backdrop-filter: blur(12px);
     }
 
     .logo {
@@ -52,13 +41,13 @@
       gap: 10px;
       font-size: 24px;
       font-weight: 900;
-      color: var(--blue-dark);
+      color: #0b5d91;
     }
 
     .logo-box {
       width: 42px;
       height: 42px;
-      background: var(--yellow);
+      background: #ffe36a;
       border-radius: 13px;
       display: flex;
       align-items: center;
@@ -75,21 +64,17 @@
     .user-name {
       font-size: 14px;
       font-weight: 800;
-      color: var(--muted);
+      color: #78909f;
     }
 
     .logout {
       border: none;
       background: #edf8fd;
-      color: var(--blue-dark);
+      color: #0b5d91;
       padding: 10px 15px;
       border-radius: 11px;
       font-weight: 800;
       cursor: pointer;
-    }
-
-    .logout:hover {
-      background: #dff3fc;
     }
 
     .chat-layout {
@@ -104,7 +89,7 @@
     }
 
     .sidebar {
-      background: rgba(255,255,255,.9);
+      background: rgba(255,255,255,.92);
       border: 1px solid #e2eff5;
       border-radius: 25px;
       overflow: hidden;
@@ -122,21 +107,12 @@
     }
 
     .sidebar-title p {
-      color: var(--muted);
+      color: #78909f;
       font-size: 12px;
     }
 
-    .search {
-      margin: 15px;
-      background: #f3f9fc;
-      border-radius: 13px;
-      padding: 12px 14px;
-      color: #91a5b1;
-      font-size: 13px;
-    }
-
     .profile {
-      margin: 8px;
+      margin: 15px 8px;
       padding: 14px;
       border-radius: 17px;
       background: #eaf8ff;
@@ -149,7 +125,7 @@
       width: 45px;
       height: 45px;
       border-radius: 50%;
-      background: var(--yellow);
+      background: #ffe36a;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -169,7 +145,7 @@
     }
 
     .chat-box {
-      background: rgba(255,255,255,.92);
+      background: rgba(255,255,255,.95);
       border: 1px solid #e2eff5;
       border-radius: 25px;
       overflow: hidden;
@@ -213,9 +189,7 @@
       flex: 1;
       overflow-y: auto;
       padding: 25px;
-      background:
-        radial-gradient(circle at 10% 10%, #f2fbff, transparent 30%),
-        #fbfeff;
+      background: #fbfeff;
     }
 
     .welcome-message {
@@ -229,7 +203,7 @@
       height: 65px;
       margin: auto auto 15px;
       border-radius: 20px;
-      background: var(--yellow);
+      background: #ffe36a;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -241,7 +215,7 @@
     }
 
     .welcome-message p {
-      color: var(--muted);
+      color: #78909f;
       font-size: 13px;
       line-height: 1.6;
     }
@@ -257,15 +231,9 @@
 
     .message.mine {
       margin-left: auto;
-      background: var(--blue);
+      background: #168bd1;
       color: white;
       border-bottom-right-radius: 5px;
-    }
-
-    .message.theirs {
-      background: #e7f7fd;
-      color: #315a70;
-      border-bottom-left-radius: 5px;
     }
 
     .input-area {
@@ -284,25 +252,16 @@
       padding: 14px 16px;
       border-radius: 14px;
       font-size: 14px;
-      color: var(--text);
-    }
-
-    #messageInput:focus {
-      box-shadow: 0 0 0 2px #c7edff;
     }
 
     #sendButton {
       width: 50px;
       border: none;
       border-radius: 14px;
-      background: var(--blue);
+      background: #168bd1;
       color: white;
       font-size: 20px;
       cursor: pointer;
-    }
-
-    #sendButton:hover {
-      background: var(--blue-dark);
     }
 
     #loading {
@@ -314,14 +273,10 @@
       justify-content: center;
       z-index: 100;
       font-weight: 900;
-      color: var(--blue-dark);
+      color: #0b5d91;
     }
 
     @media(max-width: 800px) {
-      header {
-        padding: 0 4%;
-      }
-
       .user-name {
         display: none;
       }
@@ -340,10 +295,6 @@
 
       .chat-box {
         border-radius: 20px;
-      }
-
-      .messages {
-        padding: 18px;
       }
 
       .message {
@@ -385,10 +336,6 @@
         <p>Your conversations</p>
       </div>
 
-      <div class="search">
-        🔎 Search chats
-      </div>
-
       <div class="profile">
 
         <div class="avatar">
@@ -396,13 +343,8 @@
         </div>
 
         <div>
-          <strong id="sideName">
-            You
-          </strong>
-
-          <div class="online">
-            ● Online
-          </div>
+          <strong id="sideName">You</strong>
+          <div class="online">● Online</div>
         </div>
 
       </div>
@@ -472,6 +414,18 @@
     const SUPABASE_KEY =
       "sb_publishable_eUPz4c_nYckgINEK-AIWqw_JAXIHozd";
 
+
+    /*
+      IMPORTANT:
+      ToTalk uses PKCE.
+
+      Google sends the user back to this page with
+      ?code=...
+
+      We manually exchange that code for the
+      Supabase login session.
+    */
+
     const supabaseClient =
       supabase.createClient(
         SUPABASE_URL,
@@ -480,52 +434,125 @@
           auth: {
             persistSession: true,
             autoRefreshToken: true,
-            detectSessionInUrl: true,
-            flowType: "implicit"
+            detectSessionInUrl: false,
+            flowType: "pkce"
           }
         }
       );
 
-    let currentUser = null;
 
-    async function checkLogin() {
+    async function startChat() {
 
       try {
 
+        /*
+          Check whether Google returned an OAuth code.
+        */
+
+        const params =
+          new URLSearchParams(
+            window.location.search
+          );
+
+        const code =
+          params.get("code");
+
+
+        /*
+          If Google returned a code,
+          exchange it for the Supabase session.
+        */
+
+        if (code) {
+
+          const { error } =
+            await supabaseClient.auth.exchangeCodeForSession(
+              code
+            );
+
+          if (error) {
+
+            console.error(
+              "OAuth code exchange error:",
+              error
+            );
+
+            window.location.replace(
+              "./index.html?login_error=1"
+            );
+
+            return;
+          }
+
+
+          /*
+            Remove the OAuth code from
+            the browser address bar.
+          */
+
+          window.history.replaceState(
+            {},
+            document.title,
+            window.location.pathname
+          );
+        }
+
+
+        /*
+          Now check the actual Supabase session.
+        */
+
         const {
-          data: { session },
+          data,
           error
         } =
           await supabaseClient.auth.getSession();
 
-        if (error || !session) {
 
-          window.location.href =
-            "index.html";
+        if (error || !data.session) {
+
+          console.error(
+            "No session:",
+            error
+          );
+
+          window.location.replace(
+            "./index.html"
+          );
 
           return;
         }
 
-        currentUser =
-          session.user;
+
+        /*
+          Login successful.
+        */
+
+        const user =
+          data.session.user;
+
 
         const name =
-          currentUser.user_metadata?.full_name ||
-          currentUser.user_metadata?.name ||
-          currentUser.email?.split("@")[0] ||
+          user.user_metadata?.full_name ||
+          user.user_metadata?.name ||
+          user.email?.split("@")[0] ||
           "Sameer";
+
 
         document.getElementById(
           "userName"
         ).textContent = name;
 
+
         document.getElementById(
           "sideName"
         ).textContent = name;
 
+
         document.getElementById(
           "loading"
         ).style.display = "none";
+
 
       } catch (error) {
 
@@ -534,10 +561,16 @@
           error
         );
 
-        window.location.href =
-          "index.html";
+        window.location.replace(
+          "./index.html"
+        );
       }
     }
+
+
+    /*
+      LOGOUT
+    */
 
     document
       .getElementById("logoutBtn")
@@ -547,68 +580,88 @@
 
           await supabaseClient.auth.signOut();
 
-          window.location.href =
-            "index.html";
+          window.location.replace(
+            "./index.html"
+          );
 
         }
       );
+
+
+    /*
+      SEND MESSAGE
+    */
 
     const input =
       document.getElementById(
         "messageInput"
       );
 
+
     const sendButton =
       document.getElementById(
         "sendButton"
       );
+
 
     const messages =
       document.getElementById(
         "messages"
       );
 
+
     function sendMessage() {
 
       const text =
         input.value.trim();
 
+
       if (!text) {
         return;
       }
+
 
       const welcome =
         document.querySelector(
           ".welcome-message"
         );
 
+
       if (welcome) {
         welcome.remove();
       }
 
+
       const message =
         document.createElement("div");
+
 
       message.className =
         "message mine";
 
+
       message.textContent =
         text;
+
 
       messages.appendChild(
         message
       );
 
+
       input.value = "";
+
 
       messages.scrollTop =
         messages.scrollHeight;
     }
 
+
     sendButton.addEventListener(
       "click",
       sendMessage
     );
+
 
     input.addEventListener(
       "keydown",
@@ -625,7 +678,12 @@
       }
     );
 
-    checkLogin();
+
+    /*
+      START
+    */
+
+    startChat();
 
   </script>
 
