@@ -4,11 +4,20 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ToTalk Sameer</title>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
-*{box-sizing:border-box;margin:0;padding:0}
-html{scroll-behavior:smooth}
+*{
+  box-sizing:border-box;
+  margin:0;
+  padding:0;
+}
+
+html{
+  scroll-behavior:smooth;
+}
+
 body{
   font-family:Inter,Arial,sans-serif;
   min-height:100vh;
@@ -17,75 +26,144 @@ body{
   overflow-x:hidden;
 }
 
-/* Galaxy background */
+/* =========================
+   GALAXY BACKGROUND
+========================= */
+
 .space{
-  position:fixed;inset:0;z-index:-5;
+  position:fixed;
+  inset:0;
+  z-index:-5;
   background:
     radial-gradient(circle at 78% 30%,rgba(132,74,255,.32),transparent 23%),
     radial-gradient(circle at 58% 72%,rgba(48,92,255,.22),transparent 28%),
     radial-gradient(circle at 20% 15%,rgba(186,87,255,.13),transparent 22%),
     linear-gradient(180deg,#02030a,#07091b 55%,#02030b);
 }
-.stars,.stars:before,.stars:after{
-  content:"";position:absolute;inset:0;
+
+.stars,
+.stars:before,
+.stars:after{
+  content:"";
+  position:absolute;
+  inset:0;
+
   background-image:
     radial-gradient(#fff 1px,transparent 1px),
     radial-gradient(#fff .8px,transparent .8px),
     radial-gradient(#c6b6ff 1px,transparent 1px);
-  background-size:97px 97px,151px 151px,211px 211px;
-  background-position:10px 20px,40px 80px,90px 10px;
+
+  background-size:
+    97px 97px,
+    151px 151px,
+    211px 211px;
+
+  background-position:
+    10px 20px,
+    40px 80px,
+    90px 10px;
+
   opacity:.55;
 }
-.stars:before{transform:scale(1.5);opacity:.18}
-.stars:after{transform:scale(.75);opacity:.5}
 
-/* Nebula */
+.stars:before{
+  transform:scale(1.5);
+  opacity:.18;
+}
+
+.stars:after{
+  transform:scale(.75);
+  opacity:.5;
+}
+
 .nebula{
   position:absolute;
-  width:900px;height:500px;
-  right:-180px;top:180px;
+  width:900px;
+  height:500px;
+  right:-180px;
+  top:180px;
   border-radius:50%;
   transform:rotate(-22deg);
+
   background:
-    radial-gradient(ellipse at center,
+    radial-gradient(
+      ellipse at center,
       rgba(240,170,255,.45) 0%,
       rgba(145,76,255,.25) 24%,
       rgba(48,73,255,.12) 47%,
-      transparent 70%);
+      transparent 70%
+    );
+
   filter:blur(18px);
 }
 
-/* Main layout */
-.page{max-width:1180px;margin:auto;padding:0 28px}
+/* =========================
+   PAGE
+========================= */
+
+.page{
+  max-width:1180px;
+  margin:auto;
+  padding:0 28px;
+}
+
+/* =========================
+   HEADER
+========================= */
+
 header{
-  height:88px;display:flex;align-items:center;
+  height:88px;
+  display:flex;
+  align-items:center;
   justify-content:space-between;
   border-bottom:1px solid rgba(255,255,255,.1);
 }
+
 .logo{
-  font-size:28px;font-weight:900;letter-spacing:-1.5px;
+  font-size:28px;
+  font-weight:900;
+  letter-spacing:-1.5px;
 }
-.logo span{color:#a879ff}
+
+.logo span{
+  color:#a879ff;
+}
+
 .topline{
-  color:#bbb;font-size:13px;font-weight:700;
+  color:#bbb;
+  font-size:13px;
+  font-weight:700;
 }
+
+/* =========================
+   HERO
+========================= */
+
 .hero{
   min-height:680px;
-  display:grid;grid-template-columns:1fr 1fr;
-  align-items:center;gap:50px;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  align-items:center;
+  gap:50px;
   padding:70px 0 90px;
 }
+
 .eyebrow{
-  color:#ad82ff;text-transform:uppercase;
-  font-size:12px;font-weight:900;letter-spacing:2.5px;
+  color:#ad82ff;
+  text-transform:uppercase;
+  font-size:12px;
+  font-weight:900;
+  letter-spacing:2.5px;
   margin-bottom:20px;
 }
+
 h1{
   font-size:clamp(62px,8vw,104px);
   line-height:.84;
   letter-spacing:-6px;
   font-weight:950;
 }
+
 h1 .sameer{
   display:block;
   color:#a879ff;
@@ -93,52 +171,164 @@ h1 .sameer{
   font-style:italic;
   letter-spacing:-5px;
 }
+
 .tagline{
   margin:30px 0 13px;
-  font-size:22px;font-weight:800;
+  font-size:22px;
+  font-weight:800;
 }
+
 .description{
   max-width:520px;
   color:#a9a9b8;
   line-height:1.7;
   font-size:16px;
 }
+
+/* =========================
+   LOGIN BUTTON
+========================= */
+
 .login-btn{
   margin-top:30px;
-  display:flex;align-items:center;gap:14px;
-  padding:15px 22px;
+
+  width:235px;
+  min-height:58px;
+
+  display:flex;
+  align-items:center;
+  gap:14px;
+
+  padding:12px 18px;
+
   border-radius:16px;
   border:1px solid rgba(170,125,255,.8);
+
   background:rgba(12,12,28,.72);
+
   color:white;
-  box-shadow:0 0 28px rgba(126,78,255,.18);
-  font-size:15px;font-weight:900;
+
+  box-shadow:
+    0 0 28px rgba(126,78,255,.18);
+
+  font-size:15px;
+  font-weight:900;
+
   cursor:pointer;
-  transition:.2s;
+
+  transition:
+    transform .25s ease,
+    background .25s ease,
+    box-shadow .25s ease,
+    border-color .25s ease;
 }
+
 .login-btn:hover{
   transform:translateY(-2px);
+
   background:#17112c;
-  box-shadow:0 0 40px rgba(151,99,255,.35);
+
+  box-shadow:
+    0 0 40px rgba(151,99,255,.35);
 }
+
+.login-btn:active{
+  transform:scale(.98);
+}
+
+.login-btn:disabled{
+  cursor:wait;
+  opacity:.9;
+  transform:none;
+}
+
 .google{
-  width:34px;height:34px;border-radius:50%;
-  background:#fff;color:#4285f4;
-  display:flex;align-items:center;justify-content:center;
-  font-weight:900;font-size:18px;
+  width:34px;
+  height:34px;
+  flex:0 0 34px;
+
+  border-radius:50%;
+
+  background:#fff;
+  color:#4285f4;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  font-weight:900;
+  font-size:18px;
 }
-#status{min-height:18px;margin-top:12px;color:#ff8eae;font-size:12px}
+
+.login-arrow{
+  margin-left:auto;
+  font-size:20px;
+}
+
+#status{
+  min-height:20px;
+  margin-top:12px;
+  color:#ff8eae;
+  font-size:12px;
+}
+
+/* =========================
+   LOGIN LOADING
+========================= */
+
+.login-loading{
+  display:flex;
+  align-items:center;
+  gap:11px;
+}
+
+.loader{
+  width:18px;
+  height:18px;
+
+  border-radius:50%;
+
+  border:2px solid rgba(255,255,255,.25);
+  border-top-color:#a879ff;
+
+  animation:
+    spin .8s linear infinite;
+}
+
+@keyframes spin{
+  to{
+    transform:rotate(360deg);
+  }
+}
+
+/* =========================
+   MOON SCENE
+========================= */
+
+.scene{
+  position:relative;
+  height:560px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
 
 /* Moon */
-.scene{
-  position:relative;height:560px;
-  display:flex;align-items:center;justify-content:center;
-}
+
 .moon{
-  width:330px;height:330px;border-radius:50%;
+  width:330px;
+  height:330px;
+
+  border-radius:50%;
+
   position:relative;
-  animation:moonRotate 28s linear infinite;
+
+  animation:
+    moonRotate 28s linear infinite;
+
   transform-origin:center center;
+
   background:
     radial-gradient(circle at 32% 28%,#e7e4ef 0 2%,transparent 2.5%),
     radial-gradient(circle at 65% 25%,#aaa8b7 0 7%,transparent 7.5%),
@@ -147,217 +337,673 @@ h1 .sameer{
     radial-gradient(circle at 48% 45%,#c6c4ce 0 12%,transparent 12.5%),
     radial-gradient(circle at 35% 80%,#8f8e9c 0 4%,transparent 4.5%),
     radial-gradient(circle,#e0dde6,#8d8b99);
+
   box-shadow:
     -28px -22px 45px rgba(255,255,255,.28) inset,
     25px 20px 55px rgba(0,0,0,.7) inset,
     0 0 70px rgba(207,182,255,.18);
 }
+
 .moon:after{
   content:"";
-  position:absolute;inset:0;border-radius:50%;
-  background:linear-gradient(115deg,transparent 35%,rgba(0,0,0,.55) 78%);
-}
-.ring{
-  position:absolute;width:440px;height:145px;
-  border:1px solid rgba(185,151,255,.25);
+  position:absolute;
+  inset:0;
+
   border-radius:50%;
+
+  background:
+    linear-gradient(
+      115deg,
+      transparent 35%,
+      rgba(0,0,0,.55) 78%
+    );
+}
+
+/* Orbit rings */
+
+.ring{
+  position:absolute;
+
+  width:440px;
+  height:145px;
+
+  border:
+    1px solid rgba(185,151,255,.25);
+
+  border-radius:50%;
+
   transform:rotate(-18deg);
 }
-.ring2{
-  width:510px;height:180px;
-  border-color:rgba(255,255,255,.08);
-}
-.orb{
-  position:absolute;border-radius:50%;
-  background:#b98aff;
-  box-shadow:0 0 25px #9a65ff;
-}
-.orb.one{width:9px;height:9px;top:50px;right:70px}
-.orb.two{width:5px;height:5px;bottom:90px;left:55px;background:#fff}
-.orb.three{width:7px;height:7px;top:155px;left:20px}
 
-/* Bottom cards */
+.ring2{
+  width:510px;
+  height:180px;
+
+  border-color:
+    rgba(255,255,255,.08);
+}
+
+/* Small stars/orbs */
+
+.orb{
+  position:absolute;
+  border-radius:50%;
+
+  background:#b98aff;
+
+  box-shadow:
+    0 0 25px #9a65ff;
+}
+
+.orb.one{
+  width:9px;
+  height:9px;
+  top:50px;
+  right:70px;
+}
+
+.orb.two{
+  width:5px;
+  height:5px;
+  bottom:90px;
+  left:55px;
+  background:#fff;
+}
+
+.orb.three{
+  width:7px;
+  height:7px;
+  top:155px;
+  left:20px;
+}
+
+@keyframes moonRotate{
+  from{
+    transform:rotate(0deg);
+  }
+
+  to{
+    transform:rotate(360deg);
+  }
+}
+
+/* =========================
+   CARDS
+========================= */
+
 .section{
   border-top:1px solid rgba(255,255,255,.1);
   padding:55px 0 70px;
 }
+
 .section-title{
-  color:#a879ff;text-transform:uppercase;
-  font-size:12px;letter-spacing:2px;font-weight:900;
+  color:#a879ff;
+
+  text-transform:uppercase;
+
+  font-size:12px;
+  letter-spacing:2px;
+  font-weight:900;
+
   margin-bottom:25px;
 }
+
 .cards{
-  display:grid;grid-template-columns:repeat(3,1fr);gap:16px;
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:16px;
 }
+
 .card{
-  min-height:180px;padding:27px;
-  border:1px solid rgba(255,255,255,.09);
+  min-height:180px;
+
+  padding:27px;
+
+  border:
+    1px solid rgba(255,255,255,.09);
+
   border-radius:22px;
-  background:rgba(10,11,25,.72);
+
+  background:
+    rgba(10,11,25,.72);
+
   backdrop-filter:blur(8px);
+
+  transition:
+    transform .25s ease,
+    border-color .25s ease,
+    box-shadow .25s ease;
 }
+
+.card:hover{
+  transform:translateY(-4px);
+
+  border-color:
+    rgba(168,121,255,.35);
+
+  box-shadow:
+    0 15px 45px rgba(82,38,160,.18);
+}
+
+/* No emoji icons */
+
 .icon{
-  width:48px;height:48px;border-radius:15px;
-  display:flex;align-items:center;justify-content:center;
-  background:rgba(139,91,255,.16);
-  font-size:23px;margin-bottom:22px;
+  width:48px;
+  height:48px;
+
+  border-radius:15px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  background:
+    rgba(139,91,255,.16);
+
+  margin-bottom:22px;
+
+  position:relative;
 }
-.card h3{font-size:18px;margin-bottom:9px}
-.card p{color:#999aaa;font-size:14px;line-height:1.6}
+
+.icon:before{
+  content:"";
+
+  width:18px;
+  height:18px;
+
+  border-radius:50%;
+
+  border:
+    2px solid #a879ff;
+
+  box-shadow:
+    0 0 15px rgba(168,121,255,.7);
+}
+
+.icon:after{
+  content:"";
+
+  position:absolute;
+
+  width:5px;
+  height:5px;
+
+  border-radius:50%;
+
+  background:#fff;
+
+  box-shadow:
+    0 0 10px #fff;
+}
+
+.card h3{
+  font-size:18px;
+  margin-bottom:9px;
+}
+
+.card p{
+  color:#999aaa;
+  font-size:14px;
+  line-height:1.6;
+}
+
+/* =========================
+   FOOTER
+========================= */
 
 footer{
   padding:28px 0 35px;
-  border-top:1px solid rgba(255,255,255,.08);
-  color:#77788a;font-size:12px;text-align:center;
-}
-footer strong{color:#a879ff}
 
-@keyframes moonRotate{
-  from{transform:rotate(0deg)}
-  to{transform:rotate(360deg)}
+  border-top:
+    1px solid rgba(255,255,255,.08);
+
+  color:#77788a;
+
+  font-size:12px;
+
+  text-align:center;
 }
+
+footer strong{
+  color:#a879ff;
+}
+
+/* =========================
+   SMOOTH PAGE ENTER
+========================= */
+
+body{
+  opacity:0;
+  animation:pageEnter .65s ease forwards;
+}
+
+@keyframes pageEnter{
+  from{
+    opacity:0;
+  }
+
+  to{
+    opacity:1;
+  }
+}
+
+/* =========================
+   MOBILE
+========================= */
 
 @media(max-width:800px){
-  .page{padding:0 19px}
-  header{height:72px}
-  .topline{display:none}
+
+  .page{
+    padding:0 19px;
+  }
+
+  header{
+    height:72px;
+  }
+
+  .topline{
+    display:none;
+  }
+
   .hero{
     grid-template-columns:1fr;
-    padding:55px 0 50px;
+
+    min-height:auto;
+
+    padding:
+      55px 0 50px;
+
     gap:20px;
   }
-  h1{font-size:66px;letter-spacing:-4px}
-  h1 .sameer{letter-spacing:-3px}
-  .tagline{font-size:19px}
-  .scene{height:400px}
-  .moon{width:250px;height:250px}
-  .ring{width:350px;height:115px}
-  .ring2{width:390px;height:135px}
-  .cards{grid-template-columns:1fr}
-  .card{min-height:auto}
+
+  h1{
+    font-size:66px;
+    letter-spacing:-4px;
+  }
+
+  h1 .sameer{
+    letter-spacing:-3px;
+  }
+
+  .tagline{
+    font-size:19px;
+  }
+
+  .description{
+    font-size:15px;
+  }
+
+  .login-btn{
+    width:100%;
+    max-width:300px;
+  }
+
+  .scene{
+    height:400px;
+  }
+
+  .moon{
+    width:250px;
+    height:250px;
+  }
+
+  .ring{
+    width:350px;
+    height:115px;
+  }
+
+  .ring2{
+    width:390px;
+    height:135px;
+  }
+
+  .cards{
+    grid-template-columns:1fr;
+  }
+
+  .card{
+    min-height:auto;
+  }
+}
+
+@media(max-width:420px){
+
+  .page{
+    padding:0 16px;
+  }
+
+  header{
+    height:65px;
+  }
+
+  .logo{
+    font-size:23px;
+  }
+
+  .hero{
+    padding-top:42px;
+  }
+
+  h1{
+    font-size:58px;
+  }
+
+  .tagline{
+    font-size:18px;
+    line-height:1.35;
+  }
+
+  .scene{
+    height:340px;
+  }
+
+  .moon{
+    width:220px;
+    height:220px;
+  }
+
+  .ring{
+    width:310px;
+    height:105px;
+  }
+
+  .ring2{
+    width:350px;
+    height:120px;
+  }
 }
 </style>
 </head>
 
 <body>
-<div class="space"><div class="stars"></div><div class="nebula"></div></div>
 
-<div class="page">
-<header>
-  <div class="logo">ToTalk <span>Sameer</span></div>
-  <div class="topline">Sameer's personal chat space ✦</div>
-</header>
-
-<main>
-<section class="hero">
-  <div>
-    <div class="eyebrow">Welcome to ToTalk Sameer</div>
-
-    <h1>
-      ToTalk
-      <span class="sameer">Sameer</span>
-    </h1>
-
-    <div class="tagline">My space. My conversations. You’re welcome here.</div>
-
-    <p class="description">
-      ToTalk Sameer is a simple personal space to chat, connect,
-      and have a real conversation with Sameer. Sign in with Google
-      and enter Sameer's chat.
-    </p>
-
-    <button class="login-btn" id="loginBtn">
-      <span class="google">G</span>
-      <span>Continue with Google</span>
-      <span style="margin-left:auto;font-size:20px">→</span>
-    </button>
-
-    <div id="status"></div>
-  </div>
-
-  <div class="scene">
-    <div class="ring"></div>
-    <div class="ring ring2"></div>
-    <div class="moon"></div>
-    <div class="orb one"></div>
-    <div class="orb two"></div>
-    <div class="orb three"></div>
-  </div>
-</section>
-
-<section class="section">
-  <div class="section-title">Inside Sameer's space</div>
-
-  <div class="cards">
-    <div class="card">
-      <div class="icon">💬</div>
-      <h3>Just Talk</h3>
-      <p>A simple place for conversations with Sameer, without unnecessary distractions.</p>
-    </div>
-
-    <div class="card">
-      <div class="icon">🌙</div>
-      <h3>Any Time</h3>
-      <p>Come in, say hello, and enjoy a calm little corner of Sameer's online space.</p>
-    </div>
-
-    <div class="card">
-      <div class="icon">✦</div>
-      <h3>Made by Sameer</h3>
-      <p>ToTalk is Sameer's own personal chat website, created for connecting through conversation.</p>
-    </div>
-  </div>
-</section>
-</main>
-
-<footer>
-  ToTalk <strong>Sameer</strong> · Made by Sameer · © 2026
-</footer>
+<!-- Galaxy -->
+<div class="space">
+  <div class="stars"></div>
+  <div class="nebula"></div>
 </div>
 
+<div class="page">
+
+  <!-- Header -->
+  <header>
+    <div class="logo">
+      ToTalk <span>Sameer</span>
+    </div>
+
+    <div class="topline">
+      Sameer's personal chat space
+    </div>
+  </header>
+
+  <main>
+
+    <!-- Hero -->
+    <section class="hero">
+
+      <div>
+
+        <div class="eyebrow">
+          Welcome to ToTalk Sameer
+        </div>
+
+        <h1>
+          ToTalk
+          <span class="sameer">
+            Sameer
+          </span>
+        </h1>
+
+        <div class="tagline">
+          My space. My conversations. You’re welcome here.
+        </div>
+
+        <p class="description">
+          ToTalk Sameer is a simple personal space to chat,
+          connect, and have a real conversation with Sameer.
+          Sign in with Google and enter Sameer's chat.
+        </p>
+
+        <!-- Google Login -->
+        <button
+          class="login-btn"
+          id="loginBtn"
+          type="button"
+        >
+          <span class="google">G</span>
+
+          <span id="loginText">
+            Continue with Google
+          </span>
+
+          <span
+            class="login-arrow"
+            id="loginArrow"
+          >
+            →
+          </span>
+        </button>
+
+        <div id="status"></div>
+
+      </div>
+
+      <!-- Moon -->
+      <div class="scene">
+
+        <div class="ring"></div>
+
+        <div class="ring ring2"></div>
+
+        <div class="moon"></div>
+
+        <div class="orb one"></div>
+
+        <div class="orb two"></div>
+
+        <div class="orb three"></div>
+
+      </div>
+
+    </section>
+
+    <!-- Cards -->
+    <section class="section">
+
+      <div class="section-title">
+        Inside Sameer's space
+      </div>
+
+      <div class="cards">
+
+        <div class="card">
+
+          <div class="icon"></div>
+
+          <h3>
+            Just Talk
+          </h3>
+
+          <p>
+            A simple place for conversations with Sameer,
+            without unnecessary distractions.
+          </p>
+
+        </div>
+
+        <div class="card">
+
+          <div class="icon"></div>
+
+          <h3>
+            Any Time
+          </h3>
+
+          <p>
+            Come in, say hello, and enjoy a calm little
+            corner of Sameer's online space.
+          </p>
+
+        </div>
+
+        <div class="card">
+
+          <div class="icon"></div>
+
+          <h3>
+            Made by Sameer
+          </h3>
+
+          <p>
+            ToTalk is Sameer's own personal chat website,
+            created for connecting through conversation.
+          </p>
+
+        </div>
+
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    ToTalk <strong>Sameer</strong>
+    · Made by Sameer · © 2026
+  </footer>
+
+</div>
+
+
 <script>
-const SUPABASE_URL="https://qiynczbrhpxwuabwuyiy.supabase.co";
-const SUPABASE_KEY="sb_publishable_eUPz4c_nYckgINEK-AIWqw_JAXIHozd";
 
-const supabaseClient=supabase.createClient(
-  SUPABASE_URL,
-  SUPABASE_KEY,
-  {
-    auth:{
-      persistSession:true,
-      autoRefreshToken:true,
-      detectSessionInUrl:true,
-      flowType:"pkce"
-    }
-  }
-);
+/* =========================================
+   DO NOT CHANGE THESE SUPABASE SETTINGS
+========================================= */
 
-document.getElementById("loginBtn").addEventListener("click",async()=>{
-  const btn=document.getElementById("loginBtn");
-  const status=document.getElementById("status");
+const SUPABASE_URL =
+  "https://qiynczbrhpxwuabwuyiy.supabase.co";
 
-  btn.disabled=true;
-  btn.innerHTML='<span class="google">G</span><span>Opening Sameer\'s Chat...</span>';
-  status.textContent="";
+const SUPABASE_KEY =
+  "sb_publishable_eUPz4c_nYckgINEK-AIWqw_JAXIHozd";
 
-  try{
-    const redirectURL=new URL("./chat.html",window.location.href).href;
 
-    const {error}=await supabaseClient.auth.signInWithOAuth({
-      provider:"google",
-      options:{
-        redirectTo:redirectURL
+/* =========================================
+   SUPABASE CLIENT
+   KEEPING PKCE LOGIN
+========================================= */
+
+const supabaseClient =
+  supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY,
+    {
+      auth:{
+        persistSession:true,
+        autoRefreshToken:true,
+        detectSessionInUrl:true,
+        flowType:"pkce"
       }
-    });
+    }
+  );
 
-    if(error) throw error;
-  }catch(error){
-    console.error(error);
-    status.textContent=error.message || "Unable to start Google login.";
-    btn.disabled=false;
-    btn.innerHTML='<span class="google">G</span><span>Continue with Google</span><span style="margin-left:auto;font-size:20px">→</span>';
-  }
-});
+
+/* =========================================
+   GOOGLE LOGIN
+========================================= */
+
+document
+  .getElementById("loginBtn")
+  .addEventListener("click", async () => {
+
+    const btn =
+      document.getElementById("loginBtn");
+
+    const loginText =
+      document.getElementById("loginText");
+
+    const loginArrow =
+      document.getElementById("loginArrow");
+
+    const status =
+      document.getElementById("status");
+
+
+    /* Prevent double clicks */
+
+    btn.disabled = true;
+
+    /* Smooth loading state */
+
+    loginText.innerHTML = `
+      <span class="login-loading">
+        <span class="loader"></span>
+        Signing you in...
+      </span>
+    `;
+
+    loginArrow.style.display = "none";
+
+    status.textContent = "";
+
+
+    try{
+
+      /*
+        IMPORTANT:
+        This is the same redirect structure
+        used by the working ToTalk login.
+      */
+
+      const redirectURL =
+        new URL(
+          "./chat.html",
+          window.location.href
+        ).href;
+
+
+      const { error } =
+        await supabaseClient.auth.signInWithOAuth({
+
+          provider:"google",
+
+          options:{
+            redirectTo:redirectURL
+          }
+
+        });
+
+
+      if(error){
+        throw error;
+      }
+
+    }catch(error){
+
+      console.error(
+        "Google login error:",
+        error
+      );
+
+
+      status.textContent =
+        error.message ||
+        "Unable to start Google login.";
+
+
+      btn.disabled = false;
+
+
+      loginText.textContent =
+        "Continue with Google";
+
+      loginArrow.style.display =
+        "block";
+    }
+
+  });
+
 </script>
 
 </body>
