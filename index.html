@@ -3,253 +3,385 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ToTalk — Talk. Share. Connect.</title>
+
+  <title>ToTalk — Talk to Sameer</title>
 
   <style>
     * {
-      box-sizing: border-box;
       margin: 0;
       padding: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
     }
 
     body {
       font-family: Arial, Helvetica, sans-serif;
-      background:
-        radial-gradient(circle at top left, #dff7ff 0%, transparent 35%),
-        radial-gradient(circle at bottom right, #e9ddff 0%, transparent 35%),
-        #f7f9fc;
-      color: #172033;
-      min-height: 100vh;
+      color: #151827;
+      background: #f7f8fc;
+      overflow-x: hidden;
     }
 
-    .navbar {
+    /* ---------- NAVBAR ---------- */
+
+    nav {
       width: 100%;
       padding: 22px 7%;
       display: flex;
       justify-content: space-between;
       align-items: center;
+      position: relative;
+      z-index: 10;
     }
 
     .logo {
-      font-size: 28px;
+      font-size: 27px;
       font-weight: 800;
       letter-spacing: -1px;
-      color: #111827;
     }
 
     .logo span {
-      color: #6c63ff;
+      color: #665cff;
     }
 
-    .nav-button {
+    .nav-link {
       text-decoration: none;
-      color: white;
-      background: #111827;
-      padding: 11px 20px;
-      border-radius: 999px;
+      color: #151827;
       font-size: 14px;
       font-weight: 700;
+      padding: 11px 19px;
+      border-radius: 50px;
+      background: white;
+      border: 1px solid #e6e7ef;
     }
+
+    /* ---------- HERO ---------- */
 
     .hero {
-      max-width: 1100px;
-      margin: 55px auto 0;
-      padding: 20px;
-      text-align: center;
+      min-height: 82vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 60px 20px 90px;
+      position: relative;
     }
 
-    .badge {
+    .glow-one,
+    .glow-two {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.35;
+      pointer-events: none;
+    }
+
+    .glow-one {
+      width: 300px;
+      height: 300px;
+      background: #c9c5ff;
+      top: 20px;
+      left: -100px;
+    }
+
+    .glow-two {
+      width: 300px;
+      height: 300px;
+      background: #b9efff;
+      bottom: 0;
+      right: -100px;
+    }
+
+    .hero-content {
+      max-width: 900px;
+      text-align: center;
+      position: relative;
+      z-index: 2;
+    }
+
+    .small-tag {
       display: inline-block;
       padding: 9px 16px;
-      border-radius: 999px;
       background: white;
-      border: 1px solid #e4e8f0;
-      color: #6259e8;
+      border: 1px solid #e5e6ee;
+      border-radius: 50px;
       font-size: 13px;
       font-weight: 700;
-      margin-bottom: 25px;
-      box-shadow: 0 8px 30px rgba(30, 40, 70, 0.06);
+      color: #665cff;
+      margin-bottom: 27px;
+      box-shadow: 0 8px 25px rgba(30, 35, 60, 0.06);
     }
 
     h1 {
-      font-size: clamp(48px, 9vw, 88px);
+      font-size: clamp(52px, 9vw, 94px);
       line-height: 0.98;
-      letter-spacing: -4px;
-      max-width: 850px;
-      margin: auto;
-      color: #111827;
+      letter-spacing: -5px;
+      font-weight: 850;
+      margin-bottom: 27px;
     }
 
     h1 span {
-      color: #6c63ff;
+      color: #665cff;
     }
 
-    .subtitle {
+    .hero-text {
       max-width: 650px;
-      margin: 28px auto;
+      margin: auto;
       font-size: 19px;
       line-height: 1.7;
-      color: #667085;
+      color: #687084;
     }
 
-    .buttons {
+    .hero-buttons {
+      margin-top: 35px;
       display: flex;
       justify-content: center;
       gap: 14px;
       flex-wrap: wrap;
-      margin-top: 30px;
     }
 
-    .primary {
+    .primary-button {
       text-decoration: none;
-      background: #6c63ff;
       color: white;
-      padding: 16px 30px;
+      background: #665cff;
+      padding: 16px 29px;
       border-radius: 14px;
-      font-size: 16px;
       font-weight: 700;
-      box-shadow: 0 12px 30px rgba(108, 99, 255, 0.25);
+      font-size: 16px;
+      box-shadow: 0 15px 35px rgba(102, 92, 255, 0.25);
       transition: 0.2s;
     }
 
-    .primary:hover {
-      transform: translateY(-2px);
-      opacity: 0.92;
+    .primary-button:hover {
+      transform: translateY(-3px);
     }
 
-    .secondary {
+    .secondary-button {
       text-decoration: none;
+      color: #151827;
       background: white;
-      color: #172033;
-      padding: 16px 30px;
+      padding: 16px 29px;
       border-radius: 14px;
-      font-size: 16px;
       font-weight: 700;
-      border: 1px solid #e3e7ef;
+      font-size: 16px;
+      border: 1px solid #e1e3eb;
     }
 
-    .preview {
-      max-width: 900px;
-      margin: 70px auto 0;
-      padding: 12px;
+    /* ---------- INTRO CARD ---------- */
+
+    .intro {
+      max-width: 1000px;
+      margin: 0 auto 90px;
+      padding: 20px;
+    }
+
+    .intro-card {
+      background: white;
       border-radius: 28px;
-      background: rgba(255,255,255,0.7);
-      border: 1px solid rgba(220,225,235,0.8);
-      box-shadow: 0 30px 80px rgba(40, 50, 90, 0.12);
-    }
-
-    .window {
-      background: #ffffff;
-      border-radius: 20px;
-      padding: 25px;
-      text-align: left;
-    }
-
-    .dots {
-      display: flex;
-      gap: 7px;
-      margin-bottom: 25px;
-    }
-
-    .dot {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      background: #d8dce5;
-    }
-
-    .message-area {
+      padding: 50px;
+      border: 1px solid #e7e8ef;
+      box-shadow: 0 25px 70px rgba(30, 35, 60, 0.08);
       display: grid;
-      gap: 14px;
+      grid-template-columns: 1fr 1fr;
+      gap: 40px;
+      align-items: center;
     }
 
-    .message {
-      max-width: 70%;
-      padding: 14px 17px;
-      border-radius: 16px;
-      background: #f1f3f8;
-      color: #596273;
-      line-height: 1.5;
+    .intro-label {
+      color: #665cff;
+      font-size: 13px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 13px;
     }
 
-    .message.right {
-      margin-left: auto;
-      background: #6c63ff;
-      color: white;
+    .intro h2 {
+      font-size: 39px;
+      line-height: 1.1;
+      letter-spacing: -1.5px;
+      margin-bottom: 17px;
     }
+
+    .intro p {
+      color: #70788a;
+      line-height: 1.7;
+      font-size: 16px;
+    }
+
+    .quote-box {
+      background: #f5f4ff;
+      border-radius: 22px;
+      padding: 32px;
+    }
+
+    .quote {
+      font-size: 24px;
+      line-height: 1.4;
+      font-weight: 700;
+      color: #24203f;
+    }
+
+    .quote-name {
+      margin-top: 18px;
+      color: #665cff;
+      font-weight: 700;
+      font-size: 14px;
+    }
+
+    /* ---------- FEATURES ---------- */
 
     .features {
-      max-width: 1000px;
-      margin: 80px auto;
+      max-width: 1050px;
+      margin: 0 auto;
       padding: 20px;
+    }
+
+    .section-title {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    .section-title h2 {
+      font-size: 40px;
+      letter-spacing: -1.5px;
+      margin-bottom: 12px;
+    }
+
+    .section-title p {
+      color: #737b8d;
+    }
+
+    .cards {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 20px;
     }
 
     .card {
-      background: rgba(255,255,255,0.85);
-      border: 1px solid #e7eaf0;
+      background: white;
+      padding: 30px;
       border-radius: 22px;
-      padding: 28px;
-      box-shadow: 0 12px 35px rgba(30, 40, 70, 0.06);
+      border: 1px solid #e6e7ee;
+      transition: 0.2s;
     }
 
-    .icon {
-      font-size: 30px;
-      margin-bottom: 18px;
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 18px 45px rgba(30, 35, 60, 0.08);
+    }
+
+    .card-icon {
+      font-size: 29px;
+      margin-bottom: 20px;
     }
 
     .card h3 {
-      font-size: 18px;
+      font-size: 19px;
       margin-bottom: 10px;
     }
 
     .card p {
-      color: #737b8c;
-      line-height: 1.6;
+      color: #747c8d;
       font-size: 14px;
+      line-height: 1.7;
     }
+
+    /* ---------- CTA ---------- */
+
+    .cta {
+      max-width: 950px;
+      margin: 100px auto;
+      padding: 20px;
+    }
+
+    .cta-box {
+      background: #151827;
+      color: white;
+      border-radius: 30px;
+      text-align: center;
+      padding: 65px 30px;
+    }
+
+    .cta-box h2 {
+      font-size: 46px;
+      letter-spacing: -2px;
+      margin-bottom: 16px;
+    }
+
+    .cta-box p {
+      color: #b9becb;
+      max-width: 550px;
+      margin: 0 auto;
+      line-height: 1.7;
+    }
+
+    .cta-button {
+      display: inline-block;
+      margin-top: 28px;
+      background: #665cff;
+      color: white;
+      text-decoration: none;
+      padding: 16px 30px;
+      border-radius: 14px;
+      font-weight: 700;
+    }
+
+    /* ---------- FOOTER ---------- */
 
     footer {
       text-align: center;
-      padding: 35px 20px 50px;
-      color: #8a91a0;
+      padding: 40px 20px 55px;
+      color: #858c9d;
       font-size: 13px;
     }
 
-    @media (max-width: 700px) {
-      .navbar {
+    footer strong {
+      color: #151827;
+    }
+
+    /* ---------- MOBILE ---------- */
+
+    @media (max-width: 750px) {
+
+      nav {
         padding: 18px 5%;
       }
 
-      .logo {
-        font-size: 24px;
-      }
-
       .hero {
-        margin-top: 35px;
+        min-height: 75vh;
+        padding-top: 40px;
       }
 
       h1 {
-        letter-spacing: -2px;
+        font-size: 54px;
+        letter-spacing: -3px;
       }
 
-      .subtitle {
+      .hero-text {
         font-size: 16px;
       }
 
-      .features {
+      .intro-card {
         grid-template-columns: 1fr;
-        margin-top: 55px;
+        padding: 30px;
       }
 
-      .preview {
-        margin-top: 50px;
+      .intro h2 {
+        font-size: 31px;
       }
 
-      .message {
-        max-width: 85%;
+      .cards {
+        grid-template-columns: 1fr;
+      }
+
+      .section-title h2 {
+        font-size: 32px;
+      }
+
+      .cta-box h2 {
+        font-size: 35px;
       }
     }
   </style>
@@ -257,87 +389,212 @@
 
 <body>
 
-  <nav class="navbar">
+  <!-- NAVIGATION -->
+
+  <nav>
     <div class="logo">To<span>Talk</span></div>
-    <a href="#" class="nav-button">Sign in</a>
+
+    <a href="#contact" class="nav-link">
+      Talk to Sameer
+    </a>
   </nav>
 
-  <main class="hero">
 
-    <div class="badge">✦ A private space for real conversations</div>
+  <!-- HERO -->
 
-    <h1>
-      Talk freely.<br>
-      <span>Connect deeply.</span>
-    </h1>
+  <section class="hero">
 
-    <p class="subtitle">
-     Welcome to Sameer's space—come talk to Sameer." to share and connect with the people
-    </p>
+    <div class="glow-one"></div>
+    <div class="glow-two"></div>
 
-    <div class="buttons">
-      <a href="#" class="primary">Get Started →</a>
-      <a href="#features" class="secondary">Learn More</a>
-    </div>
+    <div class="hero-content">
 
-    <div class="preview">
-      <div class="window">
+      <div class="small-tag">
+        ✦ Welcome to ToTalk
+      </div>
 
-        <div class="dots">
-          <div class="dot"></div>
-          <div class="dot"></div>
-          <div class="dot"></div>
-        </div>
+      <h1>
+        A place to<br>
+        <span>talk to Sameer.</span>
+      </h1>
 
-        <div class="message-area">
-          <div class="message">
-            Hey! How was your day?
-          </div>
+      <p class="hero-text">
+        Sometimes you just want a simple place to say something,
+        share an idea, ask a question, or start a conversation.
+        That's what ToTalk is for.
+      </p>
 
-          <div class="message right">
-            Pretty good 😊 I've got something to tell you.
-          </div>
+      <div class="hero-buttons">
 
-          <div class="message">
-            I'm listening. Tell me everything.
-          </div>
-        </div>
+        <a href="#contact" class="primary-button">
+          Talk to Sameer →
+        </a>
+
+        <a href="#about" class="secondary-button">
+          About ToTalk
+        </a>
 
       </div>
-    </div>
 
-  </main>
-
-  <section class="features" id="features">
-
-    <div class="card">
-      <div class="icon">💬</div>
-      <h3>Simple conversations</h3>
-      <p>
-        Keep conversations easy, focused and enjoyable.
-      </p>
-    </div>
-
-    <div class="card">
-      <div class="icon">🔒</div>
-      <h3>Private by design</h3>
-      <p>
-        Your conversations should feel like your own private space.
-      </p>
-    </div>
-
-    <div class="card">
-      <div class="icon">🤝</div>
-      <h3>Stay connected</h3>
-      <p>
-        Share thoughts and stay close to the people you care about.
-      </p>
     </div>
 
   </section>
 
+
+  <!-- ABOUT -->
+
+  <section class="intro" id="about">
+
+    <div class="intro-card">
+
+      <div>
+
+        <div class="intro-label">
+          About ToTalk
+        </div>
+
+        <h2>
+          Built by Sameer, simply to connect.
+        </h2>
+
+        <p>
+          ToTalk is my own little corner of the internet.
+          I created it as a simple way for people to reach me
+          and have a conversation.
+        </p>
+
+        <br>
+
+        <p>
+          No complicated social network. No pretending to be
+          something it isn't. Just a straightforward place
+          where you can talk to me.
+        </p>
+
+      </div>
+
+      <div class="quote-box">
+
+        <div class="quote">
+          “You don't always need a reason to talk.
+          Sometimes, you just want to connect.”
+        </div>
+
+        <div class="quote-name">
+          — Sameer · Creator of ToTalk
+        </div>
+
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <!-- FEATURES -->
+
+  <section class="features">
+
+    <div class="section-title">
+
+      <h2>Why ToTalk?</h2>
+
+      <p>
+        Simple by choice.
+      </p>
+
+    </div>
+
+
+    <div class="cards">
+
+      <div class="card">
+
+        <div class="card-icon">💬</div>
+
+        <h3>Just talk</h3>
+
+        <p>
+          Have something on your mind?
+          Start a conversation with Sameer
+          without making things complicated.
+        </p>
+
+      </div>
+
+
+      <div class="card">
+
+        <div class="card-icon">✨</div>
+
+        <h3>Your words matter</h3>
+
+        <p>
+          Share an idea, thought, question,
+          suggestion, or simply say hello.
+        </p>
+
+      </div>
+
+
+      <div class="card">
+
+        <div class="card-icon">🔗</div>
+
+        <h3>One simple connection</h3>
+
+        <p>
+          ToTalk isn't about connecting everyone
+          to everyone. It's about giving you a way
+          to reach me.
+        </p>
+
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <!-- FINAL CTA -->
+
+  <section class="cta" id="contact">
+
+    <div class="cta-box">
+
+      <h2>
+        Want to talk?
+      </h2>
+
+      <p>
+        I'm Sameer, and this is ToTalk.
+        If you have something to say,
+        I'd love to hear from you.
+      </p>
+
+      <a href="#" class="cta-button">
+        Start a conversation →
+      </a>
+
+    </div>
+
+  </section>
+
+
+  <!-- FOOTER -->
+
   <footer>
-    © 2026 ToTalk · Talk. Share. Connect.
+
+    <p>
+      ToTalk © 2026 · Created by <strong>Sameer</strong>
+    </p>
+
+    <br>
+
+    <p>
+      Talk. Share. Connect.
+    </p>
+
   </footer>
 
 </body>
