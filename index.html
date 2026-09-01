@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ToTalk</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #f4f7fb;
+    }
+
+    .container {
+      width: 90%;
+      max-width: 420px;
+      background: white;
+      padding: 35px 25px;
+      border-radius: 20px;
+      text-align: center;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+    }
+
+    h1 {
+      font-size: 42px;
+      margin-bottom: 10px;
+    }
+
+    .tagline {
+      color: #666;
+      margin-bottom: 30px;
+      line-height: 1.5;
+    }
+
+    button {
+      width: 100%;
+      padding: 15px;
+      border: none;
+      border-radius: 12px;
+      font-size: 16px;
+      cursor: pointer;
+      background: #111;
+      color: white;
+    }
+
+    button:hover {
+      opacity: 0.9;
+    }
+
+    .small {
+      margin-top: 20px;
+      font-size: 13px;
+      color: #999;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="container">
+    <h1>ToTalk</h1>
+
+    <p class="tagline">
+      Our private space to talk, share, and connect.
+    </p>
+
+    <button onclick="alert('Login will be connected next!')">
+      Continue to ToTalk
+    </button>
+
+    <p class="small">
+      Private • Friends only
+    </p>
+  </div>
+
+</body>
+</html>
