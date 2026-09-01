@@ -1,2 +1,2 @@
 # ToTalk
-To Connect With Sameer Only 
+To Connect With Sameer 
