@@ -1,675 +1,792 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>ToTalk Chat</title>
+<meta charset="UTF-8">
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0">
 
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+<title>ToTalk Chat</title>
 
-    :root {
-      --blue: #168bd1;
-      --blue-dark: #0b5d91;
-      --sky: #e9f9ff;
-      --yellow: #ffe36a;
-      --text: #173d57;
-      --muted: #78909f;
-      --white: #ffffff;
-    }
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-    body {
-      font-family: Arial, Helvetica, sans-serif;
-      min-height: 100vh;
-      color: var(--text);
-      background:
-        radial-gradient(circle at 5% 5%, #c9f0ff, transparent 25%),
-        radial-gradient(circle at 95% 95%, #fff3a6, transparent 25%),
-        linear-gradient(135deg, #eefbff, #fffef1);
-    }
+<style>
 
-    /* HEADER */
+*{
+  box-sizing:border-box;
+  margin:0;
+  padding:0;
+}
 
-    header {
-      height: 75px;
-      padding: 0 5%;
-      background: rgba(255,255,255,.88);
-      border-bottom: 1px solid #e4f0f5;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      backdrop-filter: blur(12px);
-    }
+:root{
+  --blue:#1596dc;
+  --deep:#075d91;
+  --yellow:#ffe36b;
+  --text:#173d57;
+  --muted:#78909f;
+}
 
-    .logo {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-size: 24px;
-      font-weight: 900;
-      color: var(--blue-dark);
-    }
+body{
+  font-family:Arial,Helvetica,sans-serif;
+  min-height:100vh;
+  color:var(--text);
+  background:
+    radial-gradient(circle at 5% 5%,#c9f0ff,transparent 25%),
+    radial-gradient(circle at 95% 95%,#fff3a6,transparent 25%),
+    linear-gradient(135deg,#eefbff,#fffef1);
+}
 
-    .logo-box {
-      width: 42px;
-      height: 42px;
-      background: var(--yellow);
-      border-radius: 13px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 21px;
-    }
+#loading{
+  position:fixed;
+  inset:0;
+  background:#eefbff;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex-direction:column;
+  gap:12px;
+  z-index:1000;
+  color:var(--deep);
+  font-weight:900;
+}
 
-    .right-header {
-      display: flex;
-      align-items: center;
-      gap: 15px;
-    }
+.loader{
+  width:38px;
+  height:38px;
+  border:4px solid #d7eff9;
+  border-top-color:var(--blue);
+  border-radius:50%;
+  animation:spin .8s linear infinite;
+}
 
-    .user-name {
-      font-size: 14px;
-      font-weight: 800;
-      color: var(--muted);
-    }
+@keyframes spin{
+  to{transform:rotate(360deg);}
+}
 
-    .logout {
-      border: none;
-      background: #edf8fd;
-      color: var(--blue-dark);
-      padding: 10px 15px;
-      border-radius: 11px;
-      font-weight: 800;
-      cursor: pointer;
-    }
+header{
+  height:75px;
+  padding:0 5%;
+  background:rgba(255,255,255,.9);
+  border-bottom:1px solid #e4f0f5;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
 
-    .logout:hover {
-      background: #dff3fc;
-    }
+.logo{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  font-size:24px;
+  font-weight:900;
+  color:var(--deep);
+}
 
-    /* MAIN */
+.logo-box{
+  width:42px;
+  height:42px;
+  border-radius:13px;
+  background:var(--yellow);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:21px;
+}
 
-    .chat-layout {
-      max-width: 1150px;
-      height: calc(100vh - 115px);
-      min-height: 600px;
-      margin: 20px auto;
-      padding: 0 20px;
-      display: grid;
-      grid-template-columns: 300px 1fr;
-      gap: 18px;
-    }
+.right-header{
+  display:flex;
+  align-items:center;
+  gap:15px;
+}
 
-    /* SIDEBAR */
+.user-name{
+  font-size:14px;
+  font-weight:800;
+  color:var(--muted);
+}
 
-    .sidebar {
-      background: rgba(255,255,255,.9);
-      border: 1px solid #e2eff5;
-      border-radius: 25px;
-      overflow: hidden;
-      box-shadow: 0 15px 45px rgba(27,105,139,.08);
-    }
+.logout{
+  border:0;
+  background:#edf8fd;
+  color:var(--deep);
+  padding:10px 15px;
+  border-radius:11px;
+  font-weight:800;
+  cursor:pointer;
+}
 
-    .sidebar-title {
-      padding: 22px;
-      border-bottom: 1px solid #edf3f6;
-    }
+.chat-layout{
+  max-width:1150px;
+  height:calc(100vh - 115px);
+  min-height:600px;
+  margin:20px auto;
+  padding:0 20px;
+  display:grid;
+  grid-template-columns:300px 1fr;
+  gap:18px;
+}
 
-    .sidebar-title h2 {
-      font-size: 20px;
-      margin-bottom: 5px;
-    }
+.sidebar,
+.chat-box{
+  background:rgba(255,255,255,.92);
+  border:1px solid #e2eff5;
+  border-radius:25px;
+  box-shadow:0 15px 45px rgba(27,105,139,.08);
+}
 
-    .sidebar-title p {
-      color: var(--muted);
-      font-size: 12px;
-    }
+.sidebar{
+  overflow:hidden;
+}
 
-    .search {
-      margin: 15px;
-      background: #f3f9fc;
-      border-radius: 13px;
-      padding: 12px 14px;
-      color: #91a5b1;
-      font-size: 13px;
-    }
+.sidebar-title{
+  padding:22px;
+  border-bottom:1px solid #edf3f6;
+}
 
-    .profile {
-      margin: 8px;
-      padding: 14px;
-      border-radius: 17px;
-      background: #eaf8ff;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
+.sidebar-title h2{
+  font-size:20px;
+  margin-bottom:5px;
+}
 
-    .avatar {
-      width: 45px;
-      height: 45px;
-      border-radius: 50%;
-      background: var(--yellow);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 21px;
-    }
+.sidebar-title p{
+  color:var(--muted);
+  font-size:12px;
+}
 
-    .profile strong {
-      display: block;
-      font-size: 14px;
-    }
+.search{
+  margin:15px;
+  background:#f3f9fc;
+  border-radius:13px;
+  padding:12px 14px;
+  color:#91a5b1;
+  font-size:13px;
+}
 
-    .online {
-      color: #35b867;
-      font-size: 11px;
-      font-weight: 700;
-      margin-top: 4px;
-    }
+.profile{
+  margin:8px;
+  padding:14px;
+  border-radius:17px;
+  background:#eaf8ff;
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
 
-    /* CHAT */
+.avatar{
+  width:45px;
+  height:45px;
+  border-radius:50%;
+  background:var(--yellow);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:21px;
+}
 
-    .chat-box {
-      background: rgba(255,255,255,.92);
-      border: 1px solid #e2eff5;
-      border-radius: 25px;
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-      box-shadow: 0 15px 45px rgba(27,105,139,.08);
-    }
+.profile strong{
+  display:block;
+  font-size:14px;
+}
 
-    .chat-top {
-      min-height: 75px;
-      padding: 15px 22px;
-      border-bottom: 1px solid #edf3f6;
-      display: flex;
-      align-items: center;
-      gap: 13px;
-    }
+.online{
+  color:#35b867;
+  font-size:11px;
+  font-weight:700;
+  margin-top:4px;
+}
 
-    .chat-avatar {
-      width: 45px;
-      height: 45px;
-      border-radius: 50%;
-      background: #dff6ff;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 21px;
-    }
+.chat-box{
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+}
 
-    .chat-top strong {
-      display: block;
-      font-size: 15px;
-    }
+.chat-top{
+  min-height:75px;
+  padding:15px 22px;
+  border-bottom:1px solid #edf3f6;
+  display:flex;
+  align-items:center;
+  gap:13px;
+}
 
-    .chat-top small {
-      color: #35b867;
-      font-weight: 700;
-      font-size: 11px;
-    }
+.chat-avatar{
+  width:45px;
+  height:45px;
+  border-radius:50%;
+  background:#dff6ff;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:21px;
+}
 
-    /* MESSAGES */
+.chat-top strong{
+  display:block;
+  font-size:15px;
+}
 
-    .messages {
-      flex: 1;
-      overflow-y: auto;
-      padding: 25px;
-      background:
-        radial-gradient(circle at 10% 10%, #f2fbff, transparent 30%),
-        #fbfeff;
-    }
+.chat-top small{
+  color:#35b867;
+  font-weight:700;
+  font-size:11px;
+}
 
-    .welcome-message {
-      text-align: center;
-      margin: 35px auto;
-      max-width: 390px;
-    }
+.messages{
+  flex:1;
+  overflow-y:auto;
+  padding:25px;
+  background:#fbfeff;
+}
 
-    .welcome-icon {
-      width: 65px;
-      height: 65px;
-      margin: auto auto 15px;
-      border-radius: 20px;
-      background: var(--yellow);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 30px;
-    }
+.welcome-message{
+  text-align:center;
+  margin:35px auto;
+  max-width:390px;
+}
 
-    .welcome-message h3 {
-      margin-bottom: 8px;
-    }
+.welcome-icon{
+  width:65px;
+  height:65px;
+  margin:auto auto 15px;
+  border-radius:20px;
+  background:var(--yellow);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:30px;
+}
 
-    .welcome-message p {
-      color: var(--muted);
-      font-size: 13px;
-      line-height: 1.6;
-    }
+.welcome-message h3{
+  margin-bottom:8px;
+}
 
-    .message {
-      max-width: 70%;
-      margin-bottom: 14px;
-      padding: 12px 16px;
-      border-radius: 17px;
-      font-size: 14px;
-      line-height: 1.5;
-    }
+.welcome-message p{
+  color:var(--muted);
+  font-size:13px;
+  line-height:1.6;
+}
 
-    .message.mine {
-      margin-left: auto;
-      background: var(--blue);
-      color: white;
-      border-bottom-right-radius: 5px;
-    }
+.message{
+  max-width:70%;
+  width:max-content;
+  margin-bottom:14px;
+  padding:12px 16px;
+  border-radius:17px;
+  font-size:14px;
+  line-height:1.5;
+}
 
-    .message.theirs {
-      background: #e7f7fd;
-      color: #315a70;
-      border-bottom-left-radius: 5px;
-    }
+.message.mine{
+  margin-left:auto;
+  background:var(--blue);
+  color:white;
+  border-bottom-right-radius:5px;
+}
 
-    /* INPUT */
+.message.theirs{
+  background:#e7f7fd;
+  color:#315a70;
+  border-bottom-left-radius:5px;
+}
 
-    .input-area {
-      padding: 15px;
-      border-top: 1px solid #edf3f6;
-      display: flex;
-      gap: 10px;
-      background: white;
-    }
+.input-area{
+  padding:15px;
+  border-top:1px solid #edf3f6;
+  display:flex;
+  gap:10px;
+  background:white;
+}
 
-    #messageInput {
-      flex: 1;
-      border: none;
-      outline: none;
-      background: #f2f8fb;
-      padding: 14px 16px;
-      border-radius: 14px;
-      font-size: 14px;
-      color: var(--text);
-    }
+#messageInput{
+  flex:1;
+  border:0;
+  outline:0;
+  background:#f2f8fb;
+  padding:14px 16px;
+  border-radius:14px;
+  font-size:14px;
+}
 
-    #messageInput:focus {
-      box-shadow: 0 0 0 2px #c7edff;
-    }
+#sendButton{
+  width:50px;
+  border:0;
+  border-radius:14px;
+  background:var(--blue);
+  color:white;
+  font-size:20px;
+  cursor:pointer;
+}
 
-    #sendButton {
-      width: 50px;
-      border: none;
-      border-radius: 14px;
-      background: var(--blue);
-      color: white;
-      font-size: 20px;
-      cursor: pointer;
-    }
+@media(max-width:800px){
 
-    #sendButton:hover {
-      background: var(--blue-dark);
-    }
+  .user-name{
+    display:none;
+  }
 
-    #sendButton:disabled {
-      opacity: .5;
-    }
+  .chat-layout{
+    height:calc(100vh - 95px);
+    min-height:0;
+    margin:10px auto;
+    padding:0 10px;
+    grid-template-columns:1fr;
+  }
 
-    /* LOADING */
+  .sidebar{
+    display:none;
+  }
 
-    #loading {
-      position: fixed;
-      inset: 0;
-      background: #f2fbff;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 100;
-      font-weight: 900;
-      color: var(--blue-dark);
-    }
+  .chat-box{
+    border-radius:20px;
+  }
 
-    /* MOBILE */
+  .messages{
+    padding:18px;
+  }
 
-    @media(max-width: 800px) {
+  .message{
+    max-width:82%;
+  }
 
-      header {
-        padding: 0 4%;
-      }
+}
 
-      .user-name {
-        display: none;
-      }
+</style>
 
-      .chat-layout {
-        height: calc(100vh - 95px);
-        min-height: 0;
-        margin: 10px auto;
-        padding: 0 10px;
-        grid-template-columns: 1fr;
-      }
-
-      .sidebar {
-        display: none;
-      }
-
-      .chat-box {
-        border-radius: 20px;
-      }
-
-      .messages {
-        padding: 18px;
-      }
-
-      .message {
-        max-width: 82%;
-      }
-    }
-  </style>
 </head>
 
 <body>
 
-  <!-- LOADING -->
+<div id="loading">
 
-  <div id="loading">
+  <div class="loader"></div>
+
+  <div id="loadingText">
     Opening ToTalk...
   </div>
 
+</div>
 
-  <!-- HEADER -->
 
-  <header>
+<header>
 
-    <div class="logo">
-      <div class="logo-box">💬</div>
-      ToTalk
+  <div class="logo">
+
+    <div class="logo-box">
+      💬
     </div>
 
-    <div class="right-header">
+    ToTalk
 
-      <div class="user-name" id="userName">
-        Loading...
+  </div>
+
+
+  <div class="right-header">
+
+    <div
+      class="user-name"
+      id="userName">
+      Loading...
+    </div>
+
+    <button
+      class="logout"
+      id="logoutBtn">
+      Logout
+    </button>
+
+  </div>
+
+</header>
+
+
+<main class="chat-layout">
+
+
+  <aside class="sidebar">
+
+    <div class="sidebar-title">
+
+      <h2>Chats</h2>
+
+      <p>
+        Your ToTalk space
+      </p>
+
+    </div>
+
+
+    <div class="search">
+      🔎 Search chats
+    </div>
+
+
+    <div class="profile">
+
+      <div class="avatar">
+        😊
       </div>
 
-      <button class="logout" id="logoutBtn">
-        Logout
+      <div>
+
+        <strong id="sideName">
+          You
+        </strong>
+
+        <div class="online">
+          ● Online
+        </div>
+
+      </div>
+
+    </div>
+
+  </aside>
+
+
+  <section class="chat-box">
+
+
+    <div class="chat-top">
+
+      <div class="chat-avatar">
+        💬
+      </div>
+
+      <div>
+
+        <strong>
+          ToTalk Chat
+        </strong>
+
+        <small>
+          ● Ready to chat
+        </small>
+
+      </div>
+
+    </div>
+
+
+    <div
+      class="messages"
+      id="messages">
+
+      <div class="welcome-message">
+
+        <div class="welcome-icon">
+          💬
+        </div>
+
+        <h3>
+          Welcome to ToTalk
+        </h3>
+
+        <p>
+          You're in! Start your conversation
+          by writing a message below.
+        </p>
+
+      </div>
+
+    </div>
+
+
+    <div class="input-area">
+
+      <input
+        type="text"
+        id="messageInput"
+        placeholder="Write a message..."
+        autocomplete="off">
+
+      <button id="sendButton">
+        ➤
       </button>
 
     </div>
 
-  </header>
+
+  </section>
+
+</main>
 
 
-  <!-- CHAT -->
+<script>
 
-  <main class="chat-layout">
+const SUPABASE_URL =
+"https://qiynczbrhpxwuabwuyiy.supabase.co";
 
-    <!-- SIDEBAR -->
+const SUPABASE_KEY =
+"sb_publishable_eUPz4c_nYckgINEK-AIWqw_JAXIHozd";
 
-    <aside class="sidebar">
-
-      <div class="sidebar-title">
-        <h2>Chats</h2>
-        <p>Your conversations</p>
-      </div>
-
-      <div class="search">
-        🔎 Search chats
-      </div>
-
-      <div class="profile">
-
-        <div class="avatar">
-          😊
-        </div>
-
-        <div>
-          <strong id="sideName">
-            You
-          </strong>
-
-          <div class="online">
-            ● Online
-          </div>
-        </div>
-
-      </div>
-
-    </aside>
+const supabaseClient =
+supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_KEY,
+  {
+    auth:{
+      persistSession:true,
+      autoRefreshToken:true,
+      detectSessionInUrl:true
+    }
+  }
+);
 
 
-    <!-- CHAT WINDOW -->
-
-    <section class="chat-box">
-
-      <div class="chat-top">
-
-        <div class="chat-avatar">
-          💬
-        </div>
-
-        <div>
-          <strong>ToTalk Chat</strong>
-          <small>● Ready to chat</small>
-        </div>
-
-      </div>
+let currentUser = null;
 
 
-      <div class="messages" id="messages">
+function showLoading(text){
 
-        <div class="welcome-message">
+  document.getElementById(
+    "loadingText"
+  ).textContent = text;
 
-          <div class="welcome-icon">
-            💬
-          </div>
-
-          <h3>
-            Welcome to ToTalk
-          </h3>
-
-          <p>
-            You're in! This is your chat space.
-            Start by writing a message below.
-          </p>
-
-        </div>
-
-      </div>
+}
 
 
-      <div class="input-area">
+function openChat(user){
 
-        <input
-          type="text"
-          id="messageInput"
-          placeholder="Write a message..."
-          autocomplete="off"
-        >
+  currentUser = user;
 
-        <button id="sendButton">
-          ➤
-        </button>
+  const name =
+    user.user_metadata?.full_name ||
+    user.user_metadata?.name ||
+    user.email?.split("@")[0] ||
+    "Sameer";
 
-      </div>
+  document.getElementById(
+    "userName"
+  ).textContent = name;
 
-    </section>
+  document.getElementById(
+    "sideName"
+  ).textContent = name;
 
-  </main>
+  document.getElementById(
+    "loading"
+  ).style.display = "none";
+
+}
 
 
-  <script>
+async function checkLogin(){
 
-    /* SUPABASE */
+  showLoading("Checking your login...");
 
-    const SUPABASE_URL =
-      "https://qiynczbrhpxwuabwuyiy.supabase.co";
+  /*
+    Give Supabase JS time to process the
+    Google OAuth callback.
+  */
 
-    const SUPABASE_KEY =
-      "sb_publishable_eUPz4c_nYckgINEK-AIWqw_JAXIHozd";
+  await new Promise(
+    resolve => setTimeout(resolve,1000)
+  );
 
-    const supabaseClient =
-      supabase.createClient(
-        SUPABASE_URL,
-        SUPABASE_KEY
+
+  const {
+    data,
+    error
+  } =
+  await supabaseClient.auth.getSession();
+
+
+  if(error){
+
+    console.error(
+      "Session error:",
+      error
+    );
+
+    showLoading(
+      "Login could not be verified."
+    );
+
+    setTimeout(() => {
+
+      window.location.replace(
+        "./index.html"
       );
 
+    },1500);
 
-    let currentUser = null;
-
-
-    /* CHECK LOGIN */
-
-    async function checkLogin() {
-
-      const {
-        data: { session },
-        error
-      } = await supabaseClient.auth.getSession();
+    return;
+  }
 
 
-      if (error || !session) {
+  if(data && data.session){
 
-        window.location.href =
-          "index.html";
+    openChat(
+      data.session.user
+    );
 
-        return;
-
-      }
-
-
-      currentUser = session.user;
+    return;
+  }
 
 
-      const name =
-        currentUser.user_metadata?.full_name ||
-        currentUser.user_metadata?.name ||
-        currentUser.email?.split("@")[0] ||
-        "Sameer";
+  /*
+    One more check in case the OAuth
+    callback is still being processed.
+  */
+
+  await new Promise(
+    resolve => setTimeout(resolve,1500)
+  );
 
 
-      document.getElementById("userName").textContent =
-        name;
-
-      document.getElementById("sideName").textContent =
-        name;
+  const second =
+    await supabaseClient.auth.getSession();
 
 
-      document.getElementById("loading").style.display =
-        "none";
+  if(second.data.session){
+
+    openChat(
+      second.data.session.user
+    );
+
+    return;
+  }
+
+
+  showLoading(
+    "No login session found."
+  );
+
+
+  setTimeout(() => {
+
+    window.location.replace(
+      "./index.html"
+    );
+
+  },1500);
+
+}
+
+
+supabaseClient.auth.onAuthStateChange(
+  (event, session) => {
+
+    console.log(
+      "Auth event:",
+      event
+    );
+
+    if(session && !currentUser){
+
+      openChat(
+        session.user
+      );
 
     }
 
-
-    /* LOGOUT */
-
-    document
-      .getElementById("logoutBtn")
-      .addEventListener("click", async () => {
-
-        await supabaseClient.auth.signOut();
-
-        window.location.href =
-          "index.html";
-
-      });
+  }
+);
 
 
-    /* SEND MESSAGE */
+document
+.getElementById("logoutBtn")
+.addEventListener(
+  "click",
+  async () => {
 
-    const input =
-      document.getElementById("messageInput");
+    await supabaseClient.auth.signOut();
 
-    const sendButton =
-      document.getElementById("sendButton");
+    window.location.replace(
+      "./index.html"
+    );
 
-    const messages =
-      document.getElementById("messages");
-
-
-    function sendMessage() {
-
-      const text =
-        input.value.trim();
+  }
+);
 
 
-      if (!text) {
-        return;
-      }
+const input =
+document.getElementById(
+  "messageInput"
+);
+
+const sendButton =
+document.getElementById(
+  "sendButton"
+);
+
+const messages =
+document.getElementById(
+  "messages"
+);
 
 
-      /* Remove welcome message */
+function sendMessage(){
 
-      const welcome =
-        document.querySelector(".welcome-message");
+  const text =
+    input.value.trim();
 
-      if (welcome) {
-        welcome.remove();
-      }
-
-
-      /* Create message */
-
-      const message =
-        document.createElement("div");
-
-      message.className =
-        "message mine";
-
-      message.textContent =
-        text;
+  if(!text){
+    return;
+  }
 
 
-      messages.appendChild(message);
+  const welcome =
+    document.querySelector(
+      ".welcome-message"
+    );
+
+  if(welcome){
+    welcome.remove();
+  }
 
 
-      /* Clear input */
+  const message =
+    document.createElement(
+      "div"
+    );
 
-      input.value = "";
+  message.className =
+    "message mine";
+
+  message.textContent =
+    text;
+
+  messages.appendChild(
+    message
+  );
+
+  input.value = "";
+
+  messages.scrollTop =
+    messages.scrollHeight;
+
+}
 
 
-      /* Scroll */
+sendButton.addEventListener(
+  "click",
+  sendMessage
+);
 
-      messages.scrollTop =
-        messages.scrollHeight;
+
+input.addEventListener(
+  "keydown",
+  event => {
+
+    if(event.key === "Enter"){
+
+      event.preventDefault();
+
+      sendMessage();
 
     }
 
-
-    sendButton.addEventListener(
-      "click",
-      sendMessage
-    );
+  }
+);
 
 
-    input.addEventListener(
-      "keydown",
-      function(event) {
+/* START */
 
-        if (event.key === "Enter") {
+checkLogin();
 
-          event.preventDefault();
-
-          sendMessage();
-
-        }
-
-      }
-    );
-
-
-    /* START */
-
-    checkLogin();
-
-  </script>
+</script>
 
 </body>
 </html>
