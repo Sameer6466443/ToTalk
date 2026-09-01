@@ -1,2 +1,2 @@
 # ToTalk
-A Private Space to Chat,Share and Connect 
+To Connect With Sameer Only 
