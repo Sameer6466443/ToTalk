@@ -1,709 +1,894 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>ToTalk — Talk to Sameer</title>
+<title>ToTalk — Created by Sameer</title>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
+<style>
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --navy: #050816;
+    --navy2: #08112b;
+    --blue: #3155ff;
+    --blue2: #1829a8;
+    --pink: #e83e8c;
+    --pink2: #a51d61;
+    --white: #ffffff;
+    --muted: #98a3bd;
+    --border: rgba(255,255,255,0.10);
+}
+
+body {
+    min-height: 100vh;
+    font-family: Arial, Helvetica, sans-serif;
+    color: var(--white);
+    background:
+        radial-gradient(circle at 15% 15%, rgba(49,85,255,0.22), transparent 30%),
+        radial-gradient(circle at 85% 20%, rgba(232,62,140,0.13), transparent 28%),
+        linear-gradient(135deg, var(--navy), var(--navy2));
+    overflow-x: hidden;
+}
+
+/* Background glow */
+
+.glow {
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(100px);
+    pointer-events: none;
+}
+
+.glow1 {
+    width: 350px;
+    height: 350px;
+    background: rgba(49,85,255,0.12);
+    top: -150px;
+    left: -150px;
+}
+
+.glow2 {
+    width: 320px;
+    height: 320px;
+    background: rgba(232,62,140,0.08);
+    right: -150px;
+    bottom: -120px;
+}
+
+
+/* NAVBAR */
+
+nav {
+    max-width: 1150px;
+    margin: auto;
+    padding: 28px 25px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    position: relative;
+    z-index: 5;
+}
+
+.logo {
+    font-size: 30px;
+    font-weight: 900;
+    letter-spacing: -1.5px;
+}
+
+.logo span {
+    color: var(--pink);
+}
+
+.nav-text {
+    padding: 9px 15px;
+    border: 1px solid var(--border);
+    border-radius: 50px;
+
+    background: rgba(255,255,255,0.04);
+
+    color: var(--muted);
+    font-size: 12px;
+}
+
+
+/* HERO */
+
+.hero {
+    max-width: 1150px;
+    min-height: 650px;
+
+    margin: auto;
+    padding: 70px 25px;
+
+    display: grid;
+    grid-template-columns: 1.1fr 0.9fr;
+
+    align-items: center;
+    gap: 70px;
+
+    position: relative;
+    z-index: 2;
+}
+
+.badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+
+    padding: 9px 14px;
+
+    border-radius: 50px;
+
+    background: rgba(49,85,255,0.08);
+    border: 1px solid rgba(49,85,255,0.22);
+
+    color: #9daaff;
+
+    font-size: 12px;
+    font-weight: bold;
+
+    margin-bottom: 25px;
+}
+
+.dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+
+    background: var(--pink);
+
+    box-shadow: 0 0 12px rgba(232,62,140,0.8);
+}
+
+
+h1 {
+    font-size: clamp(55px, 7vw, 88px);
+    line-height: 0.98;
+
+    letter-spacing: -5px;
+
+    margin-bottom: 28px;
+}
+
+.gradient {
+    background: linear-gradient(
+        90deg,
+        #ffffff,
+        #7b8cff,
+        #e83e8c
+    );
+
+    -webkit-background-clip: text;
+    background-clip: text;
+
+    color: transparent;
+}
+
+.description {
+    max-width: 590px;
+
+    color: var(--muted);
+
+    font-size: 17px;
+    line-height: 1.7;
+
+    margin-bottom: 34px;
+}
+
+
+/* GOOGLE BUTTON */
+
+.login-btn {
+    display: inline-flex;
+
+    align-items: center;
+    justify-content: center;
+
+    gap: 12px;
+
+    padding: 17px 25px;
+
+    border: none;
+    border-radius: 14px;
+
+    background: linear-gradient(
+        135deg,
+        #3155ff,
+        #2439d6
+    );
+
+    color: white;
+
+    font-size: 15px;
+    font-weight: 800;
+
+    cursor: pointer;
+
+    box-shadow:
+        0 15px 40px rgba(49,85,255,0.22);
+
+    transition: 0.25s;
+}
+
+.login-btn:hover {
+    transform: translateY(-3px);
+
+    box-shadow:
+        0 20px 50px rgba(49,85,255,0.35);
+}
+
+.google-icon {
+    width: 20px;
+    height: 20px;
+}
+
+#message {
+    margin-top: 15px;
+    min-height: 20px;
+
+    color: var(--muted);
+    font-size: 13px;
+}
+
+
+/* CHAT VISUAL */
+
+.visual {
+    height: 440px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    position: relative;
+}
+
+.orb {
+    position: absolute;
+
+    width: 330px;
+    height: 330px;
+
+    border-radius: 50%;
+
+    background:
+        radial-gradient(
+            circle,
+            rgba(49,85,255,0.25),
+            rgba(232,62,140,0.07) 50%,
+            transparent 70%
+        );
+
+    animation: pulse 4s infinite;
+}
+
+.chat-card {
+    position: relative;
+
+    width: 345px;
+
+    padding: 25px;
+
+    border-radius: 25px;
+
+    background: rgba(10,17,42,0.72);
+
+    border: 1px solid rgba(255,255,255,0.11);
+
+    backdrop-filter: blur(25px);
+
+    box-shadow:
+        0 35px 80px rgba(0,0,0,0.45),
+        inset 0 1px rgba(255,255,255,0.06);
+
+    animation: float 5s ease-in-out infinite;
+}
+
+.chat-top {
+    display: flex;
+    align-items: center;
+
+    gap: 12px;
+
+    padding-bottom: 20px;
+
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+
+    margin-bottom: 22px;
+}
+
+.avatar {
+    width: 45px;
+    height: 45px;
+
+    border-radius: 14px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background:
+        linear-gradient(
+            135deg,
+            var(--blue),
+            var(--pink)
+        );
+
+    font-weight: 900;
+}
+
+.person strong {
+    display: block;
+    font-size: 14px;
+
+    margin-bottom: 3px;
+}
+
+.person small {
+    color: #66738f;
+    font-size: 11px;
+}
+
+.bubble {
+    max-width: 85%;
+
+    padding: 13px 15px;
+
+    border-radius: 15px;
+
+    background: rgba(255,255,255,0.06);
+
+    color: #b9c3d8;
+
+    font-size: 13px;
+
+    line-height: 1.5;
+
+    margin-bottom: 12px;
+}
+
+.bubble.you {
+    margin-left: auto;
+
+    background: linear-gradient(
+        135deg,
+        var(--blue),
+        #2639bd
+    );
+
+    color: white;
+
+    border-bottom-right-radius: 5px;
+}
+
+.bubble.them {
+    border-bottom-left-radius: 5px;
+}
+
+.typing {
+    display: flex;
+    gap: 4px;
+
+    padding: 8px 3px;
+}
+
+.typing span {
+    width: 5px;
+    height: 5px;
+
+    border-radius: 50%;
+
+    background: var(--pink);
+
+    animation: typing 1.2s infinite;
+}
+
+.typing span:nth-child(2) {
+    animation-delay: 0.15s;
+}
+
+.typing span:nth-child(3) {
+    animation-delay: 0.3s;
+}
+
+
+/* FEATURES */
+
+.features {
+    max-width: 1100px;
+
+    margin: auto;
+
+    padding: 20px 25px 80px;
+
+    display: grid;
+
+    grid-template-columns: repeat(3,1fr);
+
+    gap: 18px;
+
+    position: relative;
+    z-index: 2;
+}
+
+.feature {
+    padding: 28px;
+
+    border-radius: 22px;
+
+    background: rgba(255,255,255,0.035);
+
+    border: 1px solid var(--border);
+
+    backdrop-filter: blur(15px);
+
+    transition: 0.25s;
+}
+
+.feature:hover {
+    transform: translateY(-5px);
+
+    border-color: rgba(232,62,140,0.3);
+}
+
+.number {
+    color: var(--pink);
+
+    font-size: 11px;
+
+    font-weight: 900;
+
+    margin-bottom: 20px;
+}
+
+.feature h3 {
+    font-size: 19px;
+
+    margin-bottom: 10px;
+}
+
+.feature p {
+    color: #7f8aa5;
+
+    font-size: 14px;
+
+    line-height: 1.6;
+}
+
+
+/* ABOUT */
+
+.about {
+    max-width: 850px;
+
+    margin: 0 auto 70px;
+
+    padding: 38px;
+
+    text-align: center;
+
+    border-radius: 25px;
+
+    background:
+        linear-gradient(
+            135deg,
+            rgba(49,85,255,0.09),
+            rgba(232,62,140,0.06)
+        );
+
+    border: 1px solid rgba(255,255,255,0.08);
+
+    position: relative;
+    z-index: 2;
+}
+
+.about h2 {
+    font-size: 28px;
+    margin-bottom: 13px;
+}
+
+.about p {
+    color: #8793ac;
+
+    line-height: 1.7;
+
+    font-size: 14px;
+}
+
+
+/* FOOTER */
+
+footer {
+    text-align: center;
+
+    padding: 30px;
+
+    color: #4e5b73;
+
+    font-size: 12px;
+
+    border-top: 1px solid rgba(255,255,255,0.05);
+}
+
+
+/* ANIMATIONS */
+
+@keyframes float {
+
+    0%,100% {
+        transform: translateY(0);
     }
 
-    :root {
-      --blue: #1769e0;
-      --blue-light: #4da3ff;
-      --yellow: #ffd43b;
-      --yellow-light: #ffe98a;
-      --navy: #061426;
-      --text: #ffffff;
-      --muted: #9bb0c9;
-      --card: rgba(255,255,255,0.06);
-      --border: rgba(255,255,255,0.12);
+    50% {
+        transform: translateY(-12px);
+    }
+}
+
+@keyframes pulse {
+
+    0%,100% {
+        transform: scale(1);
+        opacity: .7;
     }
 
-    body {
-      min-height: 100vh;
-      font-family: Arial, Helvetica, sans-serif;
-      color: var(--text);
-      background:
-        radial-gradient(circle at 10% 15%, rgba(23,105,224,.28), transparent 30%),
-        radial-gradient(circle at 90% 10%, rgba(255,212,59,.12), transparent 25%),
-        radial-gradient(circle at 50% 100%, rgba(23,105,224,.18), transparent 35%),
-        var(--navy);
-      overflow-x: hidden;
+    50% {
+        transform: scale(1.08);
+        opacity: 1;
+    }
+}
+
+@keyframes typing {
+
+    0%,60%,100% {
+        transform: translateY(0);
     }
 
-    .glow {
-      position: fixed;
-      width: 450px;
-      height: 450px;
-      border-radius: 50%;
-      filter: blur(90px);
-      pointer-events: none;
+    30% {
+        transform: translateY(-4px);
     }
+}
 
-    .glow-one {
-      top: -250px;
-      left: -180px;
-      background: rgba(23,105,224,.18);
-    }
 
-    .glow-two {
-      right: -250px;
-      bottom: -250px;
-      background: rgba(255,212,59,.10);
-    }
+/* MOBILE */
+
+@media(max-width:800px) {
 
     nav {
-      max-width: 1200px;
-      margin: auto;
-      padding: 25px 30px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      position: relative;
-      z-index: 5;
-    }
-
-    .logo {
-      font-size: 30px;
-      font-weight: 900;
-      letter-spacing: -1.5px;
-    }
-
-    .logo span {
-      color: var(--yellow);
-    }
-
-    .nav-pill {
-      padding: 9px 15px;
-      border: 1px solid var(--border);
-      background: rgba(255,255,255,.05);
-      border-radius: 100px;
-      color: var(--muted);
-      font-size: 13px;
-      backdrop-filter: blur(15px);
+        padding: 20px;
     }
 
     .hero {
-      max-width: 1200px;
-      min-height: 680px;
-      margin: auto;
-      padding: 70px 30px;
-      display: grid;
-      grid-template-columns: 1.15fr .85fr;
-      align-items: center;
-      gap: 70px;
-      position: relative;
-      z-index: 2;
-    }
+        grid-template-columns: 1fr;
 
-    .eyebrow {
-      display: inline-flex;
-      align-items: center;
-      gap: 9px;
-      padding: 9px 14px;
-      border-radius: 100px;
-      background: rgba(255,212,59,.09);
-      border: 1px solid rgba(255,212,59,.22);
-      color: var(--yellow-light);
-      font-size: 13px;
-      font-weight: 700;
-      margin-bottom: 25px;
-    }
+        text-align: center;
 
-    .status-dot {
-      width: 7px;
-      height: 7px;
-      border-radius: 50%;
-      background: var(--yellow);
-      box-shadow: 0 0 12px rgba(255,212,59,.8);
+        padding: 55px 20px 40px;
+
+        gap: 25px;
     }
 
     h1 {
-      max-width: 720px;
-      font-size: clamp(52px, 7vw, 88px);
-      line-height: .98;
-      letter-spacing: -5px;
-      margin-bottom: 27px;
-    }
-
-    h1 .gradient {
-      background: linear-gradient(
-        90deg,
-        #ffffff,
-        var(--yellow),
-        #4da3ff
-      );
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
+        letter-spacing: -3px;
     }
 
     .description {
-      max-width: 610px;
-      color: var(--muted);
-      font-size: 18px;
-      line-height: 1.7;
-      margin-bottom: 34px;
-    }
-
-    .login-btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 12px;
-      padding: 17px 25px;
-      border: none;
-      border-radius: 14px;
-      background: var(--yellow);
-      color: #071426;
-      font-size: 15px;
-      font-weight: 900;
-      cursor: pointer;
-      box-shadow: 0 12px 35px rgba(255,212,59,.18);
-      transition: .25s ease;
-    }
-
-    .login-btn:hover {
-      transform: translateY(-3px);
-      background: #ffe066;
-      box-shadow: 0 18px 45px rgba(255,212,59,.25);
-    }
-
-    .google-icon {
-      width: 20px;
-      height: 20px;
-    }
-
-    #message {
-      margin-top: 15px;
-      min-height: 20px;
-      color: var(--muted);
-      font-size: 13px;
+        margin-left: auto;
+        margin-right: auto;
     }
 
     .visual {
-      height: 440px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      position: relative;
-    }
-
-    .orb {
-      position: absolute;
-      width: 320px;
-      height: 320px;
-      border-radius: 50%;
-      background: radial-gradient(
-        circle,
-        rgba(23,105,224,.30),
-        rgba(255,212,59,.07) 50%,
-        transparent 70%
-      );
-      animation: pulse 4s ease-in-out infinite;
+        height: 350px;
     }
 
     .chat-card {
-      position: relative;
-      width: 340px;
-      padding: 25px;
-      border-radius: 25px;
-      background: rgba(255,255,255,.065);
-      border: 1px solid rgba(255,255,255,.13);
-      backdrop-filter: blur(25px);
-      box-shadow:
-        0 30px 70px rgba(0,0,0,.4),
-        inset 0 1px rgba(255,255,255,.08);
-      animation: float 5s ease-in-out infinite;
-    }
-
-    .chat-top {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding-bottom: 20px;
-      border-bottom: 1px solid rgba(255,255,255,.08);
-      margin-bottom: 22px;
-    }
-
-    .avatar {
-      width: 43px;
-      height: 43px;
-      border-radius: 14px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: linear-gradient(135deg, var(--yellow), #ffb800);
-      color: #061426;
-      font-weight: 900;
-    }
-
-    .person strong {
-      display: block;
-      font-size: 14px;
-      margin-bottom: 3px;
-    }
-
-    .person small {
-      color: #7e93aa;
-      font-size: 12px;
-    }
-
-    .bubble-message {
-      max-width: 85%;
-      padding: 13px 15px;
-      border-radius: 15px;
-      background: rgba(255,255,255,.07);
-      color: #c0cede;
-      font-size: 13px;
-      line-height: 1.5;
-      margin-bottom: 12px;
-    }
-
-    .bubble-message.you {
-      margin-left: auto;
-      background: var(--blue);
-      color: white;
-      border-bottom-right-radius: 5px;
-    }
-
-    .bubble-message.them {
-      border-bottom-left-radius: 5px;
-    }
-
-    .typing {
-      display: flex;
-      gap: 4px;
-      padding: 8px 3px;
-    }
-
-    .typing span {
-      width: 5px;
-      height: 5px;
-      background: var(--yellow);
-      border-radius: 50%;
-      animation: typing 1.2s infinite;
-    }
-
-    .typing span:nth-child(2) {
-      animation-delay: .15s;
-    }
-
-    .typing span:nth-child(3) {
-      animation-delay: .3s;
+        width: 320px;
     }
 
     .features {
-      max-width: 1100px;
-      margin: auto;
-      padding: 30px 30px 80px;
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 18px;
-      position: relative;
-      z-index: 2;
-    }
+        grid-template-columns: 1fr;
 
-    .feature {
-      padding: 28px;
-      border-radius: 22px;
-      background: var(--card);
-      border: 1px solid var(--border);
-      backdrop-filter: blur(15px);
-      transition: .25s ease;
-    }
-
-    .feature:hover {
-      transform: translateY(-5px);
-      border-color: rgba(255,212,59,.3);
-    }
-
-    .feature-number {
-      color: var(--yellow);
-      font-size: 12px;
-      font-weight: 800;
-      margin-bottom: 22px;
-    }
-
-    .feature h3 {
-      font-size: 19px;
-      margin-bottom: 10px;
-    }
-
-    .feature p {
-      color: #8195aa;
-      font-size: 14px;
-      line-height: 1.6;
+        padding-left: 20px;
+        padding-right: 20px;
     }
 
     .about {
-      max-width: 850px;
-      margin: 0 auto 70px;
-      padding: 35px;
-      text-align: center;
-      border-radius: 25px;
-      background:
-        linear-gradient(
-          135deg,
-          rgba(23,105,224,.14),
-          rgba(255,212,59,.045)
-        );
-      border: 1px solid rgba(255,212,59,.13);
-      position: relative;
-      z-index: 2;
-    }
-
-    .about h2 {
-      font-size: 27px;
-      margin-bottom: 12px;
-    }
-
-    .about p {
-      color: #8ca0b5;
-      line-height: 1.65;
-      font-size: 14px;
-    }
-
-    footer {
-      text-align: center;
-      padding: 30px;
-      color: #53677c;
-      font-size: 13px;
-      border-top: 1px solid rgba(255,255,255,.05);
-      position: relative;
-      z-index: 2;
-    }
-
-    @keyframes float {
-      0%, 100% {
-        transform: translateY(0);
-      }
-
-      50% {
-        transform: translateY(-12px);
-      }
-    }
-
-    @keyframes pulse {
-      0%, 100% {
-        transform: scale(1);
-        opacity: .7;
-      }
-
-      50% {
-        transform: scale(1.08);
-        opacity: 1;
-      }
-    }
-
-    @keyframes typing {
-      0%, 60%, 100% {
-        transform: translateY(0);
-      }
-
-      30% {
-        transform: translateY(-4px);
-      }
-    }
-
-    @media (max-width: 800px) {
-
-      nav {
-        padding: 20px;
-      }
-
-      .hero {
-        min-height: auto;
-        grid-template-columns: 1fr;
-        text-align: center;
-        padding: 55px 20px 40px;
-        gap: 25px;
-      }
-
-      h1 {
-        letter-spacing: -3px;
-      }
-
-      .description {
-        margin-left: auto;
-        margin-right: auto;
-        font-size: 16px;
-      }
-
-      .visual {
-        height: 350px;
-      }
-
-      .chat-card {
-        width: 320px;
-      }
-
-      .features {
-        grid-template-columns: 1fr;
-        padding-left: 20px;
-        padding-right: 20px;
-      }
-
-      .about {
         margin-left: 20px;
         margin-right: 20px;
-      }
     }
+}
 
-    @media (max-width: 420px) {
+@media(max-width:420px) {
 
-      .nav-pill {
-        font-size: 11px;
-      }
-
-      h1 {
+    h1 {
         font-size: 51px;
-      }
-
-      .chat-card {
-        width: 290px;
-      }
     }
-  </style>
+
+    .chat-card {
+        width: 290px;
+    }
+}
+
+</style>
 </head>
+
 
 <body>
 
-  <div class="glow glow-one"></div>
-  <div class="glow glow-two"></div>
+<div class="glow glow1"></div>
+<div class="glow glow2"></div>
 
-  <nav>
+
+<nav>
 
     <div class="logo">
-      To<span>Talk</span>
+        To<span>Talk</span>
     </div>
 
-    <div class="nav-pill">
-      Created by Sameer
+    <div class="nav-text">
+        Created by Sameer
     </div>
 
-  </nav>
+</nav>
 
 
-  <section class="hero">
+<section class="hero">
 
     <div>
 
-      <div class="eyebrow">
-        <span class="status-dot"></span>
-        A simple place to talk
-      </div>
+        <div class="badge">
+            <span class="dot"></span>
+            A simple place to talk
+        </div>
 
-      <h1>
-        Some things<br>
-        are better <span class="gradient">talked about.</span>
-      </h1>
 
-      <p class="description">
-        Welcome to ToTalk — a personal project created by Sameer.
-        Sign in and start a simple, genuine conversation.
-      </p>
+        <h1>
+            Some things<br>
+            are better <span class="gradient">talked about.</span>
+        </h1>
 
-      <button class="login-btn" onclick="loginWithGoogle()">
 
-        <svg class="google-icon" viewBox="0 0 24 24">
-          <path fill="#4285F4"
-            d="M21.35 12.23c0-.72-.06-1.41-.18-2.08H12v3.94h5.24a4.48 4.48 0 0 1-1.94 2.94v2.45h3.14c1.84-1.69 2.91-4.18 2.91-7.25z"/>
-          <path fill="#34A853"
-            d="M12 21.96c2.63 0 4.84-.87 6.45-2.36l-3.14-2.45c-.87.58-1.98.93-3.31.93-2.55 0-4.71-1.72-5.49-4.03H3.27v2.53A9.74 9.74 0 0 0 12 21.96z"/>
-          <path fill="#FBBC05"
-            d="M6.51 14.05A5.85 5.85 0 0 1 6.2 12c0-.71.12-1.4.31-2.05V7.42H3.27A9.74 9.74 0 0 0 2.25 12c0 1.57.38 3.05 1.02 4.38l3.24-2.33z"/>
-          <path fill="#EA4335"
-            d="M12 5.92c1.43 0 2.72.49 3.73 1.46l2.8-2.8C16.84 2.93 14.63 2.04 12 2.04a9.74 9.74 0 0 0-8.73 5.38l3.24 2.53C7.29 7.64 9.45 5.92 12 5.92z"/>
-        </svg>
+        <p class="description">
+            Welcome to ToTalk — a personal project created by Sameer.
+            Sign in and start a simple, genuine conversation.
+        </p>
 
-        Continue with Google
 
-      </button>
+        <button class="login-btn" onclick="loginWithGoogle()">
 
-      <div id="message"></div>
+            <svg class="google-icon" viewBox="0 0 24 24">
+
+                <path fill="#4285F4"
+                d="M21.35 12.23c0-.72-.06-1.41-.18-2.08H12v3.94h5.24a4.48 4.48 0 0 1-1.94 2.94v2.45h3.14c1.84-1.69 2.91-4.18 2.91-7.25z"/>
+
+                <path fill="#34A853"
+                d="M12 21.96c2.63 0 4.84-.87 6.45-2.36l-3.14-2.45c-.87.58-1.98.93-3.31.93-2.55 0-4.71-1.72-5.49-4.03H3.27v2.53A9.74 9.74 0 0 0 12 21.96z"/>
+
+                <path fill="#FBBC05"
+                d="M6.51 14.05A5.85 5.85 0 0 1 6.2 12c0-.71.12-1.4.31-2.05V7.42H3.27A9.74 9.74 0 0 0 2.25 12c0 1.57.38 3.05 1.02 4.38l3.24-2.33z"/>
+
+                <path fill="#EA4335"
+                d="M12 5.92c1.43 0 2.72.49 3.73 1.46l2.8-2.8C16.84 2.93 14.63 2.04 12 2.04a9.74 9.74 0 0 0-8.73 5.38l3.24 2.53C7.29 7.64 9.45 5.92 12 5.92z"/>
+
+            </svg>
+
+            Continue with Google
+
+        </button>
+
+
+        <div id="message"></div>
 
     </div>
+
 
 
     <div class="visual">
 
-      <div class="orb"></div>
+        <div class="orb"></div>
 
-      <div class="chat-card">
 
-        <div class="chat-top">
+        <div class="chat-card">
 
-          <div class="avatar">
-            S
-          </div>
+            <div class="chat-top">
 
-          <div class="person">
-            <strong>Sameer</strong>
-            <small>ToTalk · Conversation</small>
-          </div>
+                <div class="avatar">
+                    S
+                </div>
+
+                <div class="person">
+
+                    <strong>
+                        Sameer
+                    </strong>
+
+                    <small>
+                        ToTalk · Conversation
+                    </small>
+
+                </div>
+
+            </div>
+
+
+            <div class="bubble them">
+                Hey, what's on your mind?
+            </div>
+
+
+            <div class="bubble you">
+                I just wanted someone to talk to.
+            </div>
+
+
+            <div class="bubble them">
+                You're in the right place.
+            </div>
+
+
+            <div class="typing">
+
+                <span></span>
+                <span></span>
+                <span></span>
+
+            </div>
 
         </div>
-
-        <div class="bubble-message them">
-          Hey, what's on your mind?
-        </div>
-
-        <div class="bubble-message you">
-          I just wanted someone to talk to.
-        </div>
-
-        <div class="bubble-message them">
-          You're in the right place.
-        </div>
-
-        <div class="typing">
-          <span></span>
-          <span></span>
-          <span></span>
-        </div>
-
-      </div>
 
     </div>
 
-  </section>
+</section>
 
 
-  <section class="features">
 
-    <div class="feature">
-
-      <div class="feature-number">
-        01 — SIMPLE
-      </div>
-
-      <h3>
-        Just start talking.
-      </h3>
-
-      <p>
-        No complicated process. Sign in and
-        start a conversation when you feel
-        like reaching out.
-      </p>
-
-    </div>
+<section class="features">
 
 
     <div class="feature">
 
-      <div class="feature-number">
-        02 — PERSONAL
-      </div>
+        <div class="number">
+            01 — SIMPLE
+        </div>
 
-      <h3>
-        One genuine connection.
-      </h3>
+        <h3>
+            Just start talking.
+        </h3>
 
-      <p>
-        ToTalk is designed around a simple
-        one-to-one conversation between
-        you and Sameer.
-      </p>
+        <p>
+            No complicated process. Sign in and
+            start a conversation when you feel
+            like reaching out.
+        </p>
 
     </div>
+
 
 
     <div class="feature">
 
-      <div class="feature-number">
-        03 — ORIGINAL
-      </div>
+        <div class="number">
+            02 — PERSONAL
+        </div>
 
-      <h3>
-        Built by Sameer.
-      </h3>
+        <h3>
+            One genuine connection.
+        </h3>
 
-      <p>
-        ToTalk is an independent personal
-        project created with one goal:
-        making it easier to reach out.
-      </p>
+        <p>
+            ToTalk is designed around a simple
+            one-to-one conversation between
+            you and Sameer.
+        </p>
 
     </div>
 
-  </section>
 
 
-  <section class="about">
+    <div class="feature">
+
+        <div class="number">
+            03 — ORIGINAL
+        </div>
+
+        <h3>
+            Built by Sameer.
+        </h3>
+
+        <p>
+            ToTalk is an independent personal
+            project created with one goal:
+            making it easier to reach out.
+        </p>
+
+    </div>
+
+
+</section>
+
+
+
+<section class="about">
 
     <h2>
-      Welcome to ToTalk.
+        Welcome to ToTalk.
     </h2>
 
     <p>
-      ToTalk is a personal project by Sameer.
-      It isn't a therapy service or a replacement
-      for professional help — it's simply a place
-      to start a genuine conversation.
+        ToTalk is a personal project by Sameer.
+        It isn't a therapy service or a replacement
+        for professional help — it's simply a place
+        to start a genuine conversation.
     </p>
 
-  </section>
+</section>
 
 
-  <footer>
+
+<footer>
+
     ToTalk © 2026 · Created by Sameer
-  </footer>
+
+</footer>
 
 
-  <script>
 
-    const SUPABASE_URL =
-      "https://qyinczbrhpxwuabwuiy.supabase.co";
+<script>
 
-    const SUPABASE_KEY =
-      "sb_publishable_eUPz4c_nYckgINEK-AIWqw_JAXIHozd";
+const SUPABASE_URL =
+"https://qyinczbrhpxwuabwuiy.supabase.co";
 
-    const supabaseClient =
-      window.supabase.createClient(
-        SUPABASE_URL,
-        SUPABASE_KEY
-      );
+const SUPABASE_KEY =
+"sb_publishable_eUPz4c_nYckgINEK-AIWqw_JAXIHozd";
+
+const supabaseClient =
+window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+);
 
 
-    async function loginWithGoogle() {
+async function loginWithGoogle() {
 
-      const message =
-        document.getElementById("message");
+    const message =
+    document.getElementById("message");
 
-      message.textContent =
-        "Opening Google login...";
+    message.textContent =
+    "Opening Google login...";
 
-      const { error } =
-        await supabaseClient.auth.signInWithOAuth({
 
-          provider: "google",
+    const { error } =
+    await supabaseClient.auth.signInWithOAuth({
 
-          options: {
+        provider: "google",
+
+        options: {
             redirectTo: window.location.origin
-          }
+        }
 
-        });
+    });
 
-      if (error) {
+
+    if (error) {
 
         message.textContent =
-          "Login error: " + error.message;
-
-      }
+        "Login error: " + error.message;
 
     }
 
-  </script>
+}
+
+</script>
 
 </body>
 </html>
