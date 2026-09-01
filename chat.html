@@ -1,240 +1,3 @@
-
-105357.jpg
-105358.jpg
-Then on this 
-
-Yes — this screenshot is actually good news. The Google login is reaching the correct Google consent screen for your Supabase project, and the second screenshot confirms your new ToTalk Sameer galaxy homepage is live.
-
-The important part is what happens after you press “Continue.”
-
-Please do this now
-On the Google screen in your first screenshot, tap Continue.
-
-Wait for it to redirect.
-
-Do not press the Google button again.
-
-Send me a screenshot of whatever appears next.
-
-If it returns to ToTalk and shows “No login session found”, send that screenshot too.
-
-What I can tell from these screenshots
-Your flow is now getting this far:
-
-ToTalk Sameer → Continue with Google → Google consent → Continue → ???
-
-So Google OAuth itself is working. The remaining problem is almost certainly the session being created/received after Google redirects back to your site, not the Google Client ID or Google consent configuration.
-
-Supabase's current documentation confirms that the browser PKCE flow returns to your site with an authorization code, which must be exchanged for a session; detectSessionInUrl: true can perform that automatically. 
-
-Don't change anything in Google Cloud or Supabase yet. Send me the screenshot of the page you get immediately after tapping Continue. Then I'll tell you exactly what needs fixing.
-
-
-It redirect to https://sameer6466443.github.io/ToTalk/index.html
-
-Now we know the exact problem. Your Google login is working, but your current chat.html is using the PKCE/manual callback flow, while your homepage is using the normal browser OAuth flow. Your current chat code then checks for a session and redirects to index.html when it doesn't find one. 
-
-
-Supabase's current documentation says the implicit flow is the default for JavaScript browser apps, and detectSessionInUrl: true lets the browser automatically process the OAuth result. 
-
-I made the corrected chat.html
-Download the fixed chat.html
-
-Do exactly this
-Download the file above.
-
-Open your GitHub repository ToTalk.
-
-Open chat.html.
-
-Tap the pencil/Edit button.
-
-Delete everything in chat.html.
-
-Paste the entire contents of ToTalk-chat-final-fix.html.
-
-Commit the change.
-
-Wait about 1–2 minutes for GitHub Pages.
-
-Open your ToTalk homepage.
-
-Tap Continue with Google.
-
-Tap Continue on the Google screen.
-
-What should happen
-It should go:
-
-ToTalk Sameer → Google → Continue → ToTalk chat
-
-and should NOT send you back to index.html.
-
-Also, do not change your Google Cloud or Supabase settings now. Your screenshot proves Google is reaching the correct Supabase authorization screen.
-
-Supabase JavaScript initialization documentation
-
-Supabase authentication flow documentation 
-
-
-
-
-ToTalk-chat-final-fix.html
-HTML
-
-
-105359.jpg
-
-105363.jpg
-
-105364.jpg
-
-105365.jpg
-
-105366.jpg
-
-105367.jpg
-
-105368.jpg
-
-105369.jpg
-
-105370.jpg
-
-105372.jpg
-
-105373.jpg
-
-105374.jpg
-
-105375.jpg
-
-105376.jpg
-
-105377.jpg
-
-105378.jpg
-
-105379.jpg
-
-105380.jpg
-
-105381.jpg
-
-105382.jpg
-
-105383.jpg
-
-
-Pasted text(1).txt
-Document
-This will work on not 
-
-Done. 👍 I made the new file from the exact chat.html you gave me, keeping the Google login section unchanged and adding Supabase message saving/loading separately.
-
-Download this file:
-Download ToTalk chat — safe persistent version
-
-Important: Don't upload it yet if you're unsure. Just download it first.
-
-When you have it, tell me “downloaded”, and I'll guide you through replacing chat.html on GitHub one step at a time. 
-
-
-
-
-ToTalk-chat-persistent-safe.html
-HTML
-
-
-I delete the old one and paste the new you give it to me then i click commit change what I do now 
-
-Great. 👍 If you already deleted the old chat.html, pasted the new file's code, and clicked Commit changes, then you're done with GitHub for now.
-
-Now do this:
-Open your ToTalk website:
-https://sameer6466443.github.io/ToTalk/
-
-Click Continue with Google.
-
-Sign in normally.
-
-When the chat page opens, send a simple message like:
-Hello
-
-Do not refresh yet.
-
-Then send me a screenshot of the chat page after the message appears.
-
-We'll test it together before doing anything else.
-
-
-105384.jpg
-
-I see the problem. The new version did not work — Google login is failing again. Don't worry; your Supabase/Google settings are not something we need to change right now.
-
-We're going to restore the exact working chat.html first.
-
-Do this now
-Download this file:
-
-Download the original working chat.html
-
-Then on GitHub:
-
-Open ToTalk → chat.html
-
-Tap the pencil/edit button.
-
-Select all the code and delete it.
-
-Paste the code from the downloaded file.
-
-Tap Commit changes.
-
-Stop there. Don't test anything else yet.
-
-After you commit it, send me a screenshot. We'll make sure Google login works again before touching message persistence. 
-
-
-
-
-ToTalk-chat-working-original.html
-HTML
-
-
-No file chosen
-Library
-/
-ToTalk-chat-final-fix.html
-ToTalk-ch…fix.html
-
-
-
-
-1
-2
-3
-4
-5
-6
-7
-8
-9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-20
-21
-22
-23
-24
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -252,10 +15,611 @@ ToTalk-ch…fix.html
       box-sizing: border-box;
     }
 
+    :root {
+      --blue: #168bd1;
+      --blue-dark: #0b5d91;
+      --sky: #e9f9ff;
+      --yellow: #ffe36a;
+      --text: #173d57;
+      --muted: #78909f;
+      --white: #ffffff;
+    }
+
     body {
       font-family: Arial, Helvetica, sans-serif;
       min-height: 100vh;
-      color: #173d57;
+      color: var(--text);
       background:
         radial-gradient(circle at 5% 5%, #c9f0ff, transparent 25%),
         radial-gradient(circle at 95% 95%, #fff3a6, transparent 25%),
+        linear-gradient(135deg, #eefbff, #fffef1);
+    }
+
+    header {
+      height: 75px;
+      padding: 0 5%;
+      background: rgba(255,255,255,.88);
+      border-bottom: 1px solid #e4f0f5;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      backdrop-filter: blur(12px);
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 24px;
+      font-weight: 900;
+      color: var(--blue-dark);
+    }
+
+    .logo-box {
+      width: 42px;
+      height: 42px;
+      background: var(--yellow);
+      border-radius: 13px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 21px;
+    }
+
+    .right-header {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .user-name {
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--muted);
+    }
+
+    .logout {
+      border: none;
+      background: #edf8fd;
+      color: var(--blue-dark);
+      padding: 10px 15px;
+      border-radius: 11px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .logout:hover {
+      background: #dff3fc;
+    }
+
+    .chat-layout {
+      max-width: 1150px;
+      height: calc(100vh - 115px);
+      min-height: 600px;
+      margin: 20px auto;
+      padding: 0 20px;
+      display: grid;
+      grid-template-columns: 300px 1fr;
+      gap: 18px;
+    }
+
+    .sidebar {
+      background: rgba(255,255,255,.9);
+      border: 1px solid #e2eff5;
+      border-radius: 25px;
+      overflow: hidden;
+      box-shadow: 0 15px 45px rgba(27,105,139,.08);
+    }
+
+    .sidebar-title {
+      padding: 22px;
+      border-bottom: 1px solid #edf3f6;
+    }
+
+    .sidebar-title h2 {
+      font-size: 20px;
+      margin-bottom: 5px;
+    }
+
+    .sidebar-title p {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .search {
+      margin: 15px;
+      background: #f3f9fc;
+      border-radius: 13px;
+      padding: 12px 14px;
+      color: #91a5b1;
+      font-size: 13px;
+    }
+
+    .profile {
+      margin: 8px;
+      padding: 14px;
+      border-radius: 17px;
+      background: #eaf8ff;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .avatar {
+      width: 45px;
+      height: 45px;
+      border-radius: 50%;
+      background: var(--yellow);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 21px;
+    }
+
+    .profile strong {
+      display: block;
+      font-size: 14px;
+    }
+
+    .online {
+      color: #35b867;
+      font-size: 11px;
+      font-weight: 700;
+      margin-top: 4px;
+    }
+
+    .chat-box {
+      background: rgba(255,255,255,.92);
+      border: 1px solid #e2eff5;
+      border-radius: 25px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 15px 45px rgba(27,105,139,.08);
+    }
+
+    .chat-top {
+      min-height: 75px;
+      padding: 15px 22px;
+      border-bottom: 1px solid #edf3f6;
+      display: flex;
+      align-items: center;
+      gap: 13px;
+    }
+
+    .chat-avatar {
+      width: 45px;
+      height: 45px;
+      border-radius: 50%;
+      background: #dff6ff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 21px;
+    }
+
+    .chat-top strong {
+      display: block;
+      font-size: 15px;
+    }
+
+    .chat-top small {
+      color: #35b867;
+      font-weight: 700;
+      font-size: 11px;
+    }
+
+    .messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 25px;
+      background:
+        radial-gradient(circle at 10% 10%, #f2fbff, transparent 30%),
+        #fbfeff;
+    }
+
+    .welcome-message {
+      text-align: center;
+      margin: 35px auto;
+      max-width: 390px;
+    }
+
+    .welcome-icon {
+      width: 65px;
+      height: 65px;
+      margin: auto auto 15px;
+      border-radius: 20px;
+      background: var(--yellow);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 30px;
+    }
+
+    .welcome-message h3 {
+      margin-bottom: 8px;
+    }
+
+    .welcome-message p {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .message {
+      max-width: 70%;
+      margin-bottom: 14px;
+      padding: 12px 16px;
+      border-radius: 17px;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .message.mine {
+      margin-left: auto;
+      background: var(--blue);
+      color: white;
+      border-bottom-right-radius: 5px;
+    }
+
+    .message.theirs {
+      background: #e7f7fd;
+      color: #315a70;
+      border-bottom-left-radius: 5px;
+    }
+
+    .input-area {
+      padding: 15px;
+      border-top: 1px solid #edf3f6;
+      display: flex;
+      gap: 10px;
+      background: white;
+    }
+
+    #messageInput {
+      flex: 1;
+      border: none;
+      outline: none;
+      background: #f2f8fb;
+      padding: 14px 16px;
+      border-radius: 14px;
+      font-size: 14px;
+      color: var(--text);
+    }
+
+    #messageInput:focus {
+      box-shadow: 0 0 0 2px #c7edff;
+    }
+
+    #sendButton {
+      width: 50px;
+      border: none;
+      border-radius: 14px;
+      background: var(--blue);
+      color: white;
+      font-size: 20px;
+      cursor: pointer;
+    }
+
+    #sendButton:hover {
+      background: var(--blue-dark);
+    }
+
+    #loading {
+      position: fixed;
+      inset: 0;
+      background: #f2fbff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      font-weight: 900;
+      color: var(--blue-dark);
+    }
+
+    @media(max-width: 800px) {
+      header {
+        padding: 0 4%;
+      }
+
+      .user-name {
+        display: none;
+      }
+
+      .chat-layout {
+        height: calc(100vh - 95px);
+        min-height: 0;
+        margin: 10px auto;
+        padding: 0 10px;
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        display: none;
+      }
+
+      .chat-box {
+        border-radius: 20px;
+      }
+
+      .messages {
+        padding: 18px;
+      }
+
+      .message {
+        max-width: 82%;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div id="loading">
+    Opening ToTalk...
+  </div>
+
+  <header>
+    <div class="logo">
+      <div class="logo-box">💬</div>
+      ToTalk
+    </div>
+
+    <div class="right-header">
+      <div class="user-name" id="userName">
+        Loading...
+      </div>
+
+      <button class="logout" id="logoutBtn">
+        Logout
+      </button>
+    </div>
+  </header>
+
+  <main class="chat-layout">
+
+    <aside class="sidebar">
+
+      <div class="sidebar-title">
+        <h2>Chats</h2>
+        <p>Your conversations</p>
+      </div>
+
+      <div class="search">
+        🔎 Search chats
+      </div>
+
+      <div class="profile">
+
+        <div class="avatar">
+          😊
+        </div>
+
+        <div>
+          <strong id="sideName">
+            You
+          </strong>
+
+          <div class="online">
+            ● Online
+          </div>
+        </div>
+
+      </div>
+
+    </aside>
+
+    <section class="chat-box">
+
+      <div class="chat-top">
+
+        <div class="chat-avatar">
+          💬
+        </div>
+
+        <div>
+          <strong>ToTalk Chat</strong>
+          <small>● Ready to chat</small>
+        </div>
+
+      </div>
+
+      <div class="messages" id="messages">
+
+        <div class="welcome-message">
+
+          <div class="welcome-icon">
+            💬
+          </div>
+
+          <h3>
+            Welcome to ToTalk
+          </h3>
+
+          <p>
+            You're in! This is your chat space.
+            Start by writing a message below.
+          </p>
+
+        </div>
+
+      </div>
+
+      <div class="input-area">
+
+        <input
+          type="text"
+          id="messageInput"
+          placeholder="Write a message..."
+          autocomplete="off"
+        >
+
+        <button id="sendButton">
+          ➤
+        </button>
+
+      </div>
+
+    </section>
+
+  </main>
+
+  <script>
+
+    const SUPABASE_URL =
+      "https://qiynczbrhpxwuabwuyiy.supabase.co";
+
+    const SUPABASE_KEY =
+      "sb_publishable_eUPz4c_nYckgINEK-AIWqw_JAXIHozd";
+
+    const supabaseClient =
+      supabase.createClient(
+        SUPABASE_URL,
+        SUPABASE_KEY
+      );
+
+    let currentUser = null;
+
+    async function checkLogin() {
+
+      try {
+
+        const {
+          data: { session },
+          error
+        } =
+          await supabaseClient.auth.getSession();
+
+        if (error || !session) {
+
+          window.location.href =
+            "index.html";
+
+          return;
+        }
+
+        currentUser =
+          session.user;
+
+        const name =
+          currentUser.user_metadata?.full_name ||
+          currentUser.user_metadata?.name ||
+          currentUser.email?.split("@")[0] ||
+          "Sameer";
+
+        document.getElementById(
+          "userName"
+        ).textContent = name;
+
+        document.getElementById(
+          "sideName"
+        ).textContent = name;
+
+        document.getElementById(
+          "loading"
+        ).style.display = "none";
+
+      } catch (error) {
+
+        console.error(
+          "Login error:",
+          error
+        );
+
+        window.location.href =
+          "index.html";
+      }
+    }
+
+    document
+      .getElementById("logoutBtn")
+      .addEventListener(
+        "click",
+        async () => {
+
+          await supabaseClient.auth.signOut();
+
+          window.location.href =
+            "index.html";
+
+        }
+      );
+
+    const input =
+      document.getElementById(
+        "messageInput"
+      );
+
+    const sendButton =
+      document.getElementById(
+        "sendButton"
+      );
+
+    const messages =
+      document.getElementById(
+        "messages"
+      );
+
+    function sendMessage() {
+
+      const text =
+        input.value.trim();
+
+      if (!text) {
+        return;
+      }
+
+      const welcome =
+        document.querySelector(
+          ".welcome-message"
+        );
+
+      if (welcome) {
+        welcome.remove();
+      }
+
+      const message =
+        document.createElement("div");
+
+      message.className =
+        "message mine";
+
+      message.textContent =
+        text;
+
+      messages.appendChild(
+        message
+      );
+
+      input.value = "";
+
+      messages.scrollTop =
+        messages.scrollHeight;
+    }
+
+    sendButton.addEventListener(
+      "click",
+      sendMessage
+    );
+
+    input.addEventListener(
+      "keydown",
+      function(event) {
+
+        if (event.key === "Enter") {
+
+          event.preventDefault();
+
+          sendMessage();
+
+        }
+
+      }
+    );
+
+    checkLogin();
+
+  </script>
+
+</body>
+</html>
