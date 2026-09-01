@@ -1,172 +1,772 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ToTalk Sameer Chat</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<style>
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:Arial,sans-serif;background:#050611;color:#fff;min-height:100vh}
-header{height:72px;padding:0 22px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #22243a;background:#070816}
-.logo{font-size:23px;font-weight:900}.logo span{color:#a879ff}
-.logout{border:1px solid #34364e;background:#111326;color:#fff;border-radius:10px;padding:9px 14px;font-weight:800;cursor:pointer}
-.layout{max-width:1100px;height:calc(100vh - 105px);min-height:520px;margin:16px auto;padding:0 16px;display:grid;grid-template-columns:250px 1fr;gap:16px}
-.side,.chat{background:#0a0c1b;border:1px solid #25283e;border-radius:20px;overflow:hidden}
-.side{padding:22px}.side h2{font-size:18px}.side p{color:#777b91;font-size:12px;margin-top:5px}
-.profile{margin-top:28px;padding:15px;border-radius:15px;background:#111329;display:flex;align-items:center;gap:12px}
-.avatar{width:42px;height:42px;border-radius:50%;background:#a879ff;color:#090a15;display:flex;align-items:center;justify-content:center;font-weight:900}
-.online{color:#8fdfaa;font-size:11px;margin-top:3px}
-.chat{display:flex;flex-direction:column}
-.chathead{padding:18px 20px;border-bottom:1px solid #25283e;display:flex;align-items:center;gap:12px}
-.chathead strong{font-size:15px}.chathead small{display:block;color:#8fdfaa;margin-top:4px}
-.messages{flex:1;padding:22px;overflow:auto}
-.welcome{text-align:center;max-width:430px;margin:90px auto;color:#9b9fb3}
-.welcome .big{font-size:42px;margin-bottom:14px}
-.welcome h2{color:#fff;margin-bottom:8px}
-.message{max-width:75%;padding:11px 15px;margin-bottom:12px;border-radius:16px;background:#171a30;line-height:1.5}
-.mine{margin-left:auto;background:#7e55d9}
-.input{display:flex;gap:10px;padding:14px;border-top:1px solid #25283e}
-input{flex:1;background:#111329;border:1px solid #2b2e48;color:#fff;padding:13px 15px;border-radius:12px;outline:none}
-.send{width:50px;border:0;border-radius:12px;background:#a879ff;color:#090a15;font-weight:900;font-size:18px;cursor:pointer}
-#error{display:none;position:fixed;left:15px;right:15px;bottom:15px;background:#35121b;border:1px solid #a9435c;color:#ffdce4;padding:15px;border-radius:14px;font-size:13px;line-height:1.5;z-index:20}
-#error b{display:block;margin-bottom:5px}
-@media(max-width:700px){.layout{grid-template-columns:1fr;height:calc(100vh - 90px);min-height:0}.side{display:none}.welcome{margin:70px auto}.user{display:none}}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>ToTalk Chat</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      min-height: 100vh;
+      color: #173d57;
+      background:
+        radial-gradient(circle at 5% 5%, #c9f0ff, transparent 25%),
+        radial-gradient(circle at 95% 95%, #fff3a6, transparent 25%),
+        linear-gradient(135deg, #eefbff, #fffef1);
+    }
+
+    header {
+      height: 75px;
+      padding: 0 5%;
+      background: rgba(255,255,255,.92);
+      border-bottom: 1px solid #e4f0f5;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 24px;
+      font-weight: 900;
+      color: #0b5d91;
+    }
+
+    .logo-box {
+      width: 42px;
+      height: 42px;
+      background: #ffe36a;
+      border-radius: 13px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 21px;
+    }
+
+    .right-header {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .user-name {
+      font-size: 14px;
+      font-weight: 800;
+      color: #78909f;
+    }
+
+    .logout {
+      border: none;
+      background: #edf8fd;
+      color: #0b5d91;
+      padding: 10px 15px;
+      border-radius: 11px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .chat-layout {
+      max-width: 1150px;
+      height: calc(100vh - 115px);
+      min-height: 600px;
+      margin: 20px auto;
+      padding: 0 20px;
+      display: grid;
+      grid-template-columns: 300px 1fr;
+      gap: 18px;
+    }
+
+    .sidebar {
+      background: rgba(255,255,255,.92);
+      border: 1px solid #e2eff5;
+      border-radius: 25px;
+      overflow: hidden;
+      box-shadow: 0 15px 45px rgba(27,105,139,.08);
+    }
+
+    .sidebar-title {
+      padding: 22px;
+      border-bottom: 1px solid #edf3f6;
+    }
+
+    .sidebar-title h2 {
+      font-size: 20px;
+      margin-bottom: 5px;
+    }
+
+    .sidebar-title p {
+      color: #78909f;
+      font-size: 12px;
+    }
+
+    .profile {
+      margin: 15px 8px;
+      padding: 14px;
+      border-radius: 17px;
+      background: #eaf8ff;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .avatar {
+      width: 45px;
+      height: 45px;
+      border-radius: 50%;
+      background: #ffe36a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 21px;
+    }
+
+    .profile strong {
+      display: block;
+      font-size: 14px;
+    }
+
+    .online {
+      color: #35b867;
+      font-size: 11px;
+      font-weight: 700;
+      margin-top: 4px;
+    }
+
+    .chat-box {
+      background: rgba(255,255,255,.95);
+      border: 1px solid #e2eff5;
+      border-radius: 25px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 15px 45px rgba(27,105,139,.08);
+    }
+
+    .chat-top {
+      min-height: 75px;
+      padding: 15px 22px;
+      border-bottom: 1px solid #edf3f6;
+      display: flex;
+      align-items: center;
+      gap: 13px;
+    }
+
+    .chat-avatar {
+      width: 45px;
+      height: 45px;
+      border-radius: 50%;
+      background: #dff6ff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 21px;
+    }
+
+    .chat-top strong {
+      display: block;
+      font-size: 15px;
+    }
+
+    .chat-top small {
+      color: #35b867;
+      font-weight: 700;
+      font-size: 11px;
+    }
+
+    .messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 25px;
+      background: #fbfeff;
+    }
+
+    .welcome-message {
+      text-align: center;
+      margin: 35px auto;
+      max-width: 390px;
+    }
+
+    .welcome-icon {
+      width: 65px;
+      height: 65px;
+      margin: auto auto 15px;
+      border-radius: 20px;
+      background: #ffe36a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 30px;
+    }
+
+    .welcome-message h3 {
+      margin-bottom: 8px;
+    }
+
+    .welcome-message p {
+      color: #78909f;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .message {
+      max-width: 70%;
+      margin-bottom: 14px;
+      padding: 12px 16px;
+      border-radius: 17px;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .message:not(.mine) {
+      background: #eef5f8;
+      color: #263238;
+    }
+
+    .message.mine {
+      margin-left: auto;
+      background: #168bd1;
+      color: white;
+      border-bottom-right-radius: 5px;
+    }
+
+    .input-area {
+      padding: 15px;
+      border-top: 1px solid #edf3f6;
+      display: flex;
+      gap: 10px;
+      background: white;
+    }
+
+    #messageInput {
+      flex: 1;
+      border: none;
+      outline: none;
+      background: #f2f8fb;
+      padding: 14px 16px;
+      border-radius: 14px;
+      font-size: 14px;
+    }
+
+    #sendButton {
+      width: 50px;
+      border: none;
+      border-radius: 14px;
+      background: #168bd1;
+      color: white;
+      font-size: 20px;
+      cursor: pointer;
+    }
+
+    #loading {
+      position: fixed;
+      inset: 0;
+      background: #f2fbff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      font-weight: 900;
+      color: #0b5d91;
+    }
+
+    @media(max-width: 800px) {
+      .user-name {
+        display: none;
+      }
+
+      .chat-layout {
+        height: calc(100vh - 95px);
+        min-height: 0;
+        margin: 10px auto;
+        padding: 0 10px;
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        display: none;
+      }
+
+      .chat-box {
+        border-radius: 20px;
+      }
+
+      .message {
+        max-width: 82%;
+      }
+    }
+  </style>
 </head>
+
 <body>
-<header>
-  <div class="logo">ToTalk <span>Sameer</span></div>
-  <div>
-    <span class="user" id="userName" style="color:#8d91a8;font-size:13px;margin-right:12px">Loading...</span>
-    <button class="logout" id="logoutBtn">Logout</button>
+
+  <div id="loading">
+    Opening ToTalk...
   </div>
-</header>
 
-<div class="layout">
-  <aside class="side">
-    <h2>Sameer's Chats</h2>
-    <p>Your personal conversation space</p>
-    <div class="profile">
-      <div class="avatar">S</div>
-      <div><strong>Sameer</strong><div class="online">● Ready to chat</div></div>
-    </div>
-  </aside>
-
-  <section class="chat">
-    <div class="chathead">
-      <div class="avatar">S</div>
-      <div><strong>Sameer's ToTalk</strong><small>● Online</small></div>
+  <header>
+    <div class="logo">
+      <div class="logo-box">💬</div>
+      ToTalk
     </div>
 
-    <div class="messages" id="messages">
-      <div class="welcome">
-        <div class="big">🌙</div>
-        <h2>Welcome to Sameer's ToTalk</h2>
-        <p>You're signed in. This is Sameer's personal chat space.</p>
+    <div class="right-header">
+      <div class="user-name" id="userName">
+        Loading...
       </div>
+
+      <button class="logout" id="logoutBtn">
+        Logout
+      </button>
     </div>
+  </header>
 
-    <div class="input">
-      <input id="messageInput" placeholder="Write a message to Sameer..." autocomplete="off">
-      <button class="send" id="sendButton">➤</button>
-    </div>
-  </section>
-</div>
+  <main class="chat-layout">
 
-<div id="error"><b>Login problem</b><span id="errorText"></span></div>
+    <aside class="sidebar">
 
-<script>
-const SUPABASE_URL="https://qiynczbrhpxwuabwuyiy.supabase.co";
-const SUPABASE_KEY="sb_publishable_eUPz4c_nYckgINEK-AIWqw_JAXIHozd";
+      <div class="sidebar-title">
+        <h2>Chats</h2>
+        <p>Your conversations</p>
+      </div>
 
-const supabaseClient=supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{
-  auth:{
-    persistSession:true,
-    autoRefreshToken:true,
-    detectSessionInUrl:true,
-    flowType:"pkce"
-  }
-});
+      <div class="profile">
+        <div class="avatar">
+          😊
+        </div>
 
-function showError(message){
-  document.getElementById("errorText").textContent=message;
-  document.getElementById("error").style.display="block";
-  console.error(message);
-}
+        <div>
+          <strong id="sideName">You</strong>
+          <div class="online">● Online</div>
+        </div>
+      </div>
 
-function showUser(session){
-  if(!session){ showError("Supabase did not return a session."); return; }
-  const user=session.user;
-  const name=user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split("@")[0] || "You";
-  document.getElementById("userName").textContent=name;
-}
+    </aside>
 
-async function init(){
-  try{
-    const params=new URLSearchParams(window.location.search);
-    const authError=params.get("error_description") || params.get("error");
-    if(authError){
-      showError(decodeURIComponent(authError.replace(/\+/g," ")));
-      return;
+    <section class="chat-box">
+
+      <div class="chat-top">
+
+        <div class="chat-avatar">
+          💬
+        </div>
+
+        <div>
+          <strong>ToTalk Chat</strong>
+          <small>● Ready to chat</small>
+        </div>
+
+      </div>
+
+      <div class="messages" id="messages">
+
+        <div class="welcome-message">
+
+          <div class="welcome-icon">
+            💬
+          </div>
+
+          <h3>
+            Welcome to ToTalk
+          </h3>
+
+          <p>
+            You're in! This is your chat space.
+            Start by writing a message below.
+          </p>
+
+        </div>
+
+      </div>
+
+      <div class="input-area">
+
+        <input
+          type="text"
+          id="messageInput"
+          placeholder="Write a message..."
+          autocomplete="off"
+        >
+
+        <button id="sendButton">
+          ➤
+        </button>
+
+      </div>
+
+    </section>
+
+  </main>
+
+
+  <script>
+
+    const SUPABASE_URL =
+      "https://qiynczbrhpxwuabwuyiy.supabase.co";
+
+    const SUPABASE_KEY =
+      "sb_publishable_eUPz4c_nYckgINEK-AIWqw_JAXIHozd";
+
+    /*
+      ToTalk uses the browser OAuth flow.
+
+      The homepage creates the Supabase client with the normal
+      browser flow. The old chat page was using PKCE manually,
+      which did not match the homepage and caused the user to be
+      sent back to index.html.
+
+      This page now lets Supabase automatically read the OAuth
+      result from the URL and create/persist the session.
+    */
+
+    const supabaseClient =
+      supabase.createClient(
+        SUPABASE_URL,
+        SUPABASE_KEY,
+        {
+          auth: {
+            persistSession: true,
+            autoRefreshToken: true,
+            detectSessionInUrl: true,
+            flowType: "implicit"
+          }
+        }
+      );
+
+
+    function showLoggedInUser(user) {
+
+      currentUser = user;
+
+      const name =
+        user.user_metadata?.full_name ||
+        user.user_metadata?.name ||
+        user.email?.split("@")[0] ||
+        "Sameer";
+
+      document.getElementById("userName").textContent = name;
+      document.getElementById("sideName").textContent = name;
+
+      document.getElementById("loading").style.display = "none";
+
+      loadMessages();
     }
 
-    const {data,error}=await supabaseClient.auth.getSession();
-    if(error){ showError("getSession error: "+error.message); return; }
 
-    if(data.session){
-      showUser(data.session);
-      return;
+    function showLoginError(message) {
+
+      const loading =
+        document.getElementById("loading");
+
+      loading.innerHTML = `
+        <div style="
+          max-width:520px;
+          margin:0 auto;
+          padding:28px;
+          border:1px solid rgba(255,255,255,.15);
+          border-radius:18px;
+          background:rgba(10,10,25,.8);
+        ">
+          <h2 style="margin-top:0;">Login problem</h2>
+          <p style="opacity:.8;line-height:1.6;">
+            ${message}
+          </p>
+          <a
+            href="./index.html"
+            style="
+              display:inline-block;
+              margin-top:12px;
+              padding:12px 18px;
+              border-radius:12px;
+              text-decoration:none;
+              background:#fff;
+              color:#111;
+              font-weight:700;
+            "
+          >
+            Back to ToTalk
+          </a>
+        </div>
+      `;
     }
 
-    // Supabase may still be processing the OAuth callback.
-    const result=await new Promise(resolve=>{
-      let done=false;
-      const finish=session=>{
-        if(done)return;
-        done=true;
-        clearTimeout(timer);
-        try{sub.unsubscribe()}catch(e){}
-        resolve(session);
-      };
-      const {data:{subscription:sub}}=supabaseClient.auth.onAuthStateChange((event,session)=>{
-        if(event==="INITIAL_SESSION" || event==="SIGNED_IN") finish(session);
-      });
-      const timer=setTimeout(async()=>{
-        const {data}=await supabaseClient.auth.getSession();
-        finish(data?.session||null);
-      },5000);
-    });
 
-    if(result) showUser(result);
-    else showError("Google login returned to chat.html, but no Supabase session was found. Do not start a second login tab. If this appears, send me the exact URL shown in your browser.");
-  }catch(e){
-    showError(e?.message || String(e));
-  }
-}
+    async function startChat() {
 
-document.getElementById("logoutBtn").onclick=async()=>{
-  await supabaseClient.auth.signOut();
-  window.location.replace("./index.html");
-};
+      try {
 
-function sendMessage(){
-  const input=document.getElementById("messageInput");
-  const text=input.value.trim();
-  if(!text)return;
-  const welcome=document.querySelector(".welcome");
-  if(welcome)welcome.remove();
-  const div=document.createElement("div");
-  div.className="message mine";
-  div.textContent=text;
-  document.getElementById("messages").appendChild(div);
-  input.value="";
-  document.getElementById("messages").scrollTop=document.getElementById("messages").scrollHeight;
-}
-document.getElementById("sendButton").onclick=sendMessage;
-document.getElementById("messageInput").addEventListener("keydown",e=>{if(e.key==="Enter")sendMessage()});
+        /*
+          IMPORTANT:
+          The listener is registered before getSession() so we
+          don't miss the OAuth SIGNED_IN event while Supabase is
+          processing the Google callback.
+        */
 
-init();
-</script>
+        let signedIn = false;
+
+        supabaseClient.auth.onAuthStateChange(
+          (event, session) => {
+
+            console.log("Supabase auth event:", event);
+
+            if (session && session.user) {
+              signedIn = true;
+              showLoggedInUser(session.user);
+            }
+          }
+        );
+
+
+        /*
+          If a session already exists, use it immediately.
+        */
+
+        const {
+          data,
+          error
+        } =
+          await supabaseClient.auth.getSession();
+
+        if (error) {
+          console.error(
+            "Session check error:",
+            error
+          );
+        }
+
+        if (data?.session?.user) {
+          signedIn = true;
+          showLoggedInUser(data.session.user);
+          return;
+        }
+
+
+        /*
+          Give Supabase a moment to finish processing the OAuth
+          result from Google's redirect.
+        */
+
+        setTimeout(async () => {
+
+          if (signedIn) return;
+
+          const {
+            data: retryData,
+            error: retryError
+          } =
+            await supabaseClient.auth.getSession();
+
+          if (retryError) {
+            console.error(
+              "Final session check error:",
+              retryError
+            );
+          }
+
+          if (retryData?.session?.user) {
+            showLoggedInUser(
+              retryData.session.user
+            );
+            return;
+          }
+
+          showLoginError(
+            "Google sign-in completed, but ToTalk did not receive the login session. Please go back and try the Google button once more."
+          );
+
+        }, 2500);
+
+      } catch (error) {
+
+        console.error(
+          "Login error:",
+          error
+        );
+
+        showLoginError(
+          "ToTalk could not finish the Google sign-in. Please go back and try again."
+        );
+      }
+    }
+
+
+    /*
+      LOGOUT
+    */
+
+
+    document
+      .getElementById("logoutBtn")
+      .addEventListener(
+        "click",
+        async () => {
+
+          await supabaseClient.auth.signOut();
+
+          window.location.replace(
+            "./index.html"
+          );
+
+        }
+      );
+
+
+    /*
+      SEND MESSAGE
+    */
+
+    const input =
+      document.getElementById(
+        "messageInput"
+      );
+
+    const sendButton =
+      document.getElementById(
+        "sendButton"
+      );
+
+    const messages =
+      document.getElementById(
+        "messages"
+      );
+
+    let currentUser = null;
+
+
+    function renderMessage(row) {
+
+      const welcome =
+        document.querySelector(
+          ".welcome-message"
+        );
+
+      if (welcome) {
+        welcome.remove();
+      }
+
+      const message =
+        document.createElement("div");
+
+      message.className =
+        "message" +
+        (currentUser && row.sender_id === currentUser.id ? " mine" : "");
+
+      message.textContent = row.content;
+
+      messages.appendChild(message);
+
+    }
+
+
+    async function loadMessages() {
+
+      const { data, error } =
+        await supabaseClient
+          .from("messages")
+          .select("id, sender_id, content, created_at")
+          .order("created_at", { ascending: true });
+
+      if (error) {
+        console.error("Could not load messages:", error);
+        return;
+      }
+
+      messages.innerHTML = "";
+
+      if (!data || data.length === 0) {
+        messages.innerHTML = `
+          <div class="welcome-message">
+            <div class="welcome-icon">💬</div>
+            <h3>Start a conversation</h3>
+            <p>Your messages will now be saved here.</p>
+          </div>
+        `;
+      } else {
+        data.forEach(renderMessage);
+      }
+
+      messages.scrollTop =
+        messages.scrollHeight;
+    }
+
+
+    async function sendMessage() {
+
+      const text =
+        input.value.trim();
+
+      if (!text || !currentUser) return;
+
+      sendButton.disabled = true;
+
+      const { data, error } =
+        await supabaseClient
+          .from("messages")
+          .insert({
+            sender_id: currentUser.id,
+            content: text
+          })
+          .select("id, sender_id, content, created_at")
+          .single();
+
+      sendButton.disabled = false;
+
+      if (error) {
+        console.error("Could not save message:", error);
+        alert("Message could not be saved. Please try again.");
+        return;
+      }
+
+      renderMessage(data);
+
+      input.value = "";
+
+      messages.scrollTop =
+        messages.scrollHeight;
+
+    }
+
+
+    sendButton.addEventListener(
+      "click",
+      sendMessage
+    );
+
+
+    input.addEventListener(
+      "keydown",
+      function(event) {
+
+        if (event.key === "Enter") {
+
+          event.preventDefault();
+
+          sendMessage();
+
+        }
+
+      }
+    );
+
+
+    /*
+      START
+    */
+
+    startChat();
+
+  </script>
+
 </body>
 </html>
