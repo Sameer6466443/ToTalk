@@ -6,25 +6,22 @@
 
   <title>ToTalk — Talk to Sameer</title>
 
+  <!-- Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
   <style>
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
-    }
-
-    html {
-      scroll-behavior: smooth;
+      font-family: Arial, Helvetica, sans-serif;
     }
 
     body {
-      font-family: Arial, Helvetica, sans-serif;
-      color: #151827;
-      background: #f7f8fc;
-      overflow-x: hidden;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #f4f7ff, #ffffff);
+      color: #172033;
     }
-
-    /* ---------- NAVBAR ---------- */
 
     nav {
       width: 100%;
@@ -32,356 +29,129 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      position: relative;
-      z-index: 10;
     }
 
     .logo {
-      font-size: 27px;
+      font-size: 28px;
       font-weight: 800;
-      letter-spacing: -1px;
-    }
-
-    .logo span {
       color: #665cff;
     }
 
-    .nav-link {
-      text-decoration: none;
-      color: #151827;
+    .nav-name {
       font-size: 14px;
-      font-weight: 700;
-      padding: 11px 19px;
-      border-radius: 50px;
-      background: white;
-      border: 1px solid #e6e7ef;
+      color: #667085;
     }
-
-    /* ---------- HERO ---------- */
 
     .hero {
-      min-height: 82vh;
+      min-height: 75vh;
       display: flex;
-      align-items: center;
       justify-content: center;
-      padding: 60px 20px 90px;
-      position: relative;
-    }
-
-    .glow-one,
-    .glow-two {
-      position: absolute;
-      border-radius: 50%;
-      filter: blur(80px);
-      opacity: 0.35;
-      pointer-events: none;
-    }
-
-    .glow-one {
-      width: 300px;
-      height: 300px;
-      background: #c9c5ff;
-      top: 20px;
-      left: -100px;
-    }
-
-    .glow-two {
-      width: 300px;
-      height: 300px;
-      background: #b9efff;
-      bottom: 0;
-      right: -100px;
-    }
-
-    .hero-content {
-      max-width: 900px;
+      align-items: center;
       text-align: center;
-      position: relative;
-      z-index: 2;
+      padding: 50px 20px;
     }
 
-    .small-tag {
+    .hero-box {
+      max-width: 720px;
+    }
+
+    .tag {
       display: inline-block;
       padding: 9px 16px;
-      background: white;
-      border: 1px solid #e5e6ee;
-      border-radius: 50px;
-      font-size: 13px;
-      font-weight: 700;
+      background: #eeeeff;
       color: #665cff;
-      margin-bottom: 27px;
-      box-shadow: 0 8px 25px rgba(30, 35, 60, 0.06);
+      border-radius: 50px;
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 25px;
     }
 
     h1 {
-      font-size: clamp(52px, 9vw, 94px);
-      line-height: 0.98;
-      letter-spacing: -5px;
-      font-weight: 850;
-      margin-bottom: 27px;
+      font-size: clamp(45px, 9vw, 78px);
+      line-height: 1;
+      margin-bottom: 22px;
     }
 
     h1 span {
       color: #665cff;
     }
 
-    .hero-text {
-      max-width: 650px;
-      margin: auto;
-      font-size: 19px;
-      line-height: 1.7;
-      color: #687084;
+    .subtitle {
+      font-size: 20px;
+      line-height: 1.6;
+      color: #667085;
+      margin-bottom: 35px;
     }
 
-    .hero-buttons {
-      margin-top: 35px;
-      display: flex;
-      justify-content: center;
-      gap: 14px;
-      flex-wrap: wrap;
-    }
-
-    .primary-button {
-      text-decoration: none;
+    .login-btn {
+      border: none;
+      background: #172033;
       color: white;
-      background: #665cff;
-      padding: 16px 29px;
+      padding: 16px 28px;
       border-radius: 14px;
-      font-weight: 700;
       font-size: 16px;
-      box-shadow: 0 15px 35px rgba(102, 92, 255, 0.25);
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 10px 25px rgba(23,32,51,0.15);
       transition: 0.2s;
     }
 
-    .primary-button:hover {
-      transform: translateY(-3px);
+    .login-btn:hover {
+      transform: translateY(-2px);
+      opacity: 0.92;
     }
 
-    .secondary-button {
-      text-decoration: none;
-      color: #151827;
-      background: white;
-      padding: 16px 29px;
-      border-radius: 14px;
-      font-weight: 700;
-      font-size: 16px;
-      border: 1px solid #e1e3eb;
-    }
-
-    /* ---------- INTRO CARD ---------- */
-
-    .intro {
-      max-width: 1000px;
-      margin: 0 auto 90px;
-      padding: 20px;
-    }
-
-    .intro-card {
-      background: white;
-      border-radius: 28px;
-      padding: 50px;
-      border: 1px solid #e7e8ef;
-      box-shadow: 0 25px 70px rgba(30, 35, 60, 0.08);
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 40px;
-      align-items: center;
-    }
-
-    .intro-label {
-      color: #665cff;
-      font-size: 13px;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      margin-bottom: 13px;
-    }
-
-    .intro h2 {
-      font-size: 39px;
-      line-height: 1.1;
-      letter-spacing: -1.5px;
-      margin-bottom: 17px;
-    }
-
-    .intro p {
-      color: #70788a;
-      line-height: 1.7;
-      font-size: 16px;
-    }
-
-    .quote-box {
-      background: #f5f4ff;
-      border-radius: 22px;
-      padding: 32px;
-    }
-
-    .quote {
-      font-size: 24px;
-      line-height: 1.4;
-      font-weight: 700;
-      color: #24203f;
-    }
-
-    .quote-name {
+    .message {
       margin-top: 18px;
-      color: #665cff;
-      font-weight: 700;
+      color: #667085;
       font-size: 14px;
     }
 
-    /* ---------- FEATURES ---------- */
-
-    .features {
-      max-width: 1050px;
+    .cards {
+      max-width: 950px;
       margin: 0 auto;
       padding: 20px;
-    }
-
-    .section-title {
-      text-align: center;
-      margin-bottom: 40px;
-    }
-
-    .section-title h2 {
-      font-size: 40px;
-      letter-spacing: -1.5px;
-      margin-bottom: 12px;
-    }
-
-    .section-title p {
-      color: #737b8d;
-    }
-
-    .cards {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 20px;
+      gap: 18px;
     }
 
     .card {
       background: white;
-      padding: 30px;
-      border-radius: 22px;
-      border: 1px solid #e6e7ee;
-      transition: 0.2s;
+      border: 1px solid #eaecf0;
+      border-radius: 20px;
+      padding: 28px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.04);
     }
 
-    .card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 18px 45px rgba(30, 35, 60, 0.08);
-    }
-
-    .card-icon {
-      font-size: 29px;
-      margin-bottom: 20px;
+    .icon {
+      font-size: 30px;
+      margin-bottom: 15px;
     }
 
     .card h3 {
-      font-size: 19px;
       margin-bottom: 10px;
     }
 
     .card p {
-      color: #747c8d;
-      font-size: 14px;
-      line-height: 1.7;
+      color: #667085;
+      line-height: 1.5;
     }
-
-    /* ---------- CTA ---------- */
-
-    .cta {
-      max-width: 950px;
-      margin: 100px auto;
-      padding: 20px;
-    }
-
-    .cta-box {
-      background: #151827;
-      color: white;
-      border-radius: 30px;
-      text-align: center;
-      padding: 65px 30px;
-    }
-
-    .cta-box h2 {
-      font-size: 46px;
-      letter-spacing: -2px;
-      margin-bottom: 16px;
-    }
-
-    .cta-box p {
-      color: #b9becb;
-      max-width: 550px;
-      margin: 0 auto;
-      line-height: 1.7;
-    }
-
-    .cta-button {
-      display: inline-block;
-      margin-top: 28px;
-      background: #665cff;
-      color: white;
-      text-decoration: none;
-      padding: 16px 30px;
-      border-radius: 14px;
-      font-weight: 700;
-    }
-
-    /* ---------- FOOTER ---------- */
 
     footer {
       text-align: center;
-      padding: 40px 20px 55px;
-      color: #858c9d;
-      font-size: 13px;
+      padding: 45px 20px;
+      color: #98a2b3;
+      font-size: 14px;
     }
 
-    footer strong {
-      color: #151827;
-    }
-
-    /* ---------- MOBILE ---------- */
-
-    @media (max-width: 750px) {
-
-      nav {
-        padding: 18px 5%;
-      }
-
-      .hero {
-        min-height: 75vh;
-        padding-top: 40px;
-      }
-
-      h1 {
-        font-size: 54px;
-        letter-spacing: -3px;
-      }
-
-      .hero-text {
-        font-size: 16px;
-      }
-
-      .intro-card {
-        grid-template-columns: 1fr;
-        padding: 30px;
-      }
-
-      .intro h2 {
-        font-size: 31px;
-      }
-
+    @media (max-width: 700px) {
       .cards {
         grid-template-columns: 1fr;
       }
 
-      .section-title h2 {
-        font-size: 32px;
-      }
-
-      .cta-box h2 {
-        font-size: 35px;
+      .subtitle {
+        font-size: 17px;
       }
     }
   </style>
@@ -389,213 +159,118 @@
 
 <body>
 
-  <!-- NAVIGATION -->
-
   <nav>
-    <div class="logo">To<span>Talk</span></div>
-
-    <a href="#contact" class="nav-link">
-      Talk to Sameer
-    </a>
+    <div class="logo">ToTalk</div>
+    <div class="nav-name">Created by Sameer</div>
   </nav>
 
+  <main>
 
-  <!-- HERO -->
+    <section class="hero">
 
-  <section class="hero">
+      <div class="hero-box">
 
-    <div class="glow-one"></div>
-    <div class="glow-two"></div>
+        <div class="tag">A simple place to talk</div>
 
-    <div class="hero-content">
+        <h1>
+          Sometimes,<br>
+          you just need to <span>talk.</span>
+        </h1>
 
-      <div class="small-tag">
-        ✦ Welcome to ToTalk
-      </div>
-
-      <h1>
-        A place to<br>
-        <span>talk to Sameer.</span>
-      </h1>
-
-      <p class="hero-text">
-        Sometimes you just want a simple place to say something,
-        share an idea, ask a question, or start a conversation.
-        That's what ToTalk is for.
-      </p>
-
-      <div class="hero-buttons">
-
-        <a href="#contact" class="primary-button">
-          Talk to Sameer →
-        </a>
-
-        <a href="#about" class="secondary-button">
-          About ToTalk
-        </a>
-
-      </div>
-
-    </div>
-
-  </section>
-
-
-  <!-- ABOUT -->
-
-  <section class="intro" id="about">
-
-    <div class="intro-card">
-
-      <div>
-
-        <div class="intro-label">
-          About ToTalk
-        </div>
-
-        <h2>
-          Built by Sameer, simply to connect.
-        </h2>
-
-        <p>
-          ToTalk is my own little corner of the internet.
-          I created it as a simple way for people to reach me
-          and have a conversation.
+        <p class="subtitle">
+          Welcome to ToTalk — a simple space created by Sameer
+          where you can reach out, share what's on your mind,
+          and start a conversation.
         </p>
 
-        <br>
+        <button class="login-btn" onclick="loginWithGoogle()">
+          Continue with Google
+        </button>
 
-        <p>
-          No complicated social network. No pretending to be
-          something it isn't. Just a straightforward place
-          where you can talk to me.
-        </p>
+        <div class="message" id="message"></div>
 
       </div>
 
-      <div class="quote-box">
+    </section>
 
-        <div class="quote">
-          “You don't always need a reason to talk.
-          Sometimes, you just want to connect.”
-        </div>
-
-        <div class="quote-name">
-          — Sameer · Creator of ToTalk
-        </div>
-
-      </div>
-
-    </div>
-
-  </section>
-
-
-  <!-- FEATURES -->
-
-  <section class="features">
-
-    <div class="section-title">
-
-      <h2>Why ToTalk?</h2>
-
-      <p>
-        Simple by choice.
-      </p>
-
-    </div>
-
-
-    <div class="cards">
+    <section class="cards">
 
       <div class="card">
-
-        <div class="card-icon">💬</div>
-
-        <h3>Just talk</h3>
-
+        <div class="icon">💬</div>
+        <h3>Talk freely</h3>
         <p>
-          Have something on your mind?
-          Start a conversation with Sameer
-          without making things complicated.
+          Have something to say? Start a conversation without
+          making things complicated.
         </p>
-
       </div>
 
-
       <div class="card">
-
-        <div class="card-icon">✨</div>
-
-        <h3>Your words matter</h3>
-
-        <p>
-          Share an idea, thought, question,
-          suggestion, or simply say hello.
-        </p>
-
-      </div>
-
-
-      <div class="card">
-
-        <div class="card-icon">🔗</div>
-
+        <div class="icon">🤝</div>
         <h3>One simple connection</h3>
-
         <p>
-          ToTalk isn't about connecting everyone
-          to everyone. It's about giving you a way
-          to reach me.
+          ToTalk is designed around a simple idea:
+          you talk, I listen.
         </p>
-
       </div>
 
-    </div>
+      <div class="card">
+        <div class="icon">✨</div>
+        <h3>Created by Sameer</h3>
+        <p>
+          ToTalk is my own project, built to make reaching
+          out feel simple and comfortable.
+        </p>
+      </div>
 
-  </section>
+    </section>
 
-
-  <!-- FINAL CTA -->
-
-  <section class="cta" id="contact">
-
-    <div class="cta-box">
-
-      <h2>
-        Want to talk?
-      </h2>
-
-      <p>
-        I'm Sameer, and this is ToTalk.
-        If you have something to say,
-        I'd love to hear from you.
-      </p>
-
-      <a href="#" class="cta-button">
-        Start a conversation →
-      </a>
-
-    </div>
-
-  </section>
-
-
-  <!-- FOOTER -->
+  </main>
 
   <footer>
-
-    <p>
-      ToTalk © 2026 · Created by <strong>Sameer</strong>
-    </p>
-
+    <p>ToTalk © 2026 · Created by <strong>Sameer</strong></p>
     <br>
-
-    <p>
-      Talk. Share. Connect.
-    </p>
-
+    <p>Talk. Share. Connect.</p>
   </footer>
+
+
+  <script>
+
+    // Your Supabase project
+    const SUPABASE_URL = "https://qyinczbrhpxwuabwuiy.supabase.co";
+
+    // Your PUBLIC / PUBLISHABLE key
+    const SUPABASE_KEY =
+      "sb_publishable_eUPz4c_nYckgINEK-AIWqw_JAXIHozd";
+
+    const supabaseClient =
+      window.supabase.createClient(
+        SUPABASE_URL,
+        SUPABASE_KEY
+      );
+
+
+    // Google Login
+    async function loginWithGoogle() {
+
+      const message = document.getElementById("message");
+
+      message.textContent = "Opening Google login...";
+
+      const { error } =
+        await supabaseClient.auth.signInWithOAuth({
+          provider: "google",
+          options: {
+            redirectTo: window.location.origin
+          }
+        });
+
+      if (error) {
+        message.textContent =
+          "Login error: " + error.message;
+      }
+    }
+
+  </script>
 
 </body>
 </html>
