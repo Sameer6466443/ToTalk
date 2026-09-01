@@ -1,1626 +1,1639 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 
-  <title>ToTalk Sameer</title>
+<title>ToTalk Sameer</title>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+<style>
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
 
-    html,
-    body {
-      width: 100%;
-      min-height: 100%;
-    }
+:root {
+    --bg: #03030d;
+    --panel: rgba(9, 8, 28, 0.88);
+    --panel2: rgba(16, 10, 40, 0.88);
+    --purple: #9b5cff;
+    --purple2: #6f35e8;
+    --violet: #c084ff;
+    --white: #ffffff;
+    --muted: #9b9ab5;
+    --border: rgba(155, 92, 255, 0.38);
+    --green: #63e6a2;
+}
 
-    body {
-      font-family: Arial, Helvetica, sans-serif;
-      background: #03030d;
-      color: #ffffff;
-      overflow: hidden;
-    }
+html,
+body {
+    width: 100%;
+    min-height: 100%;
+}
 
-    /* =========================================
-       GALAXY BACKGROUND
-       ========================================= */
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    background:
+        radial-gradient(circle at 80% 20%, rgba(102, 44, 190, 0.22), transparent 28%),
+        radial-gradient(circle at 20% 75%, rgba(63, 31, 145, 0.20), transparent 30%),
+        #03030d;
+    color: var(--white);
+    overflow-x: hidden;
+}
 
-    body::before {
-      content: "";
-      position: fixed;
-      inset: 0;
-      z-index: -5;
+/* ---------- STAR FIELD ---------- */
 
-      background:
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: -3;
+
+    background-image:
+        radial-gradient(circle, rgba(255,255,255,.85) 1px, transparent 1.5px),
+        radial-gradient(circle, rgba(170,120,255,.8) 1px, transparent 1.5px),
+        radial-gradient(circle, rgba(255,255,255,.5) 1px, transparent 1.5px);
+
+    background-size:
+        120px 120px,
+        180px 180px,
+        250px 250px;
+
+    background-position:
+        10px 20px,
+        60px 100px,
+        130px 40px;
+
+    opacity: .55;
+}
+
+/* ---------- GALAXY GLOW ---------- */
+
+body::after {
+    content: "";
+    position: fixed;
+    width: 900px;
+    height: 500px;
+    left: 50%;
+    top: 45%;
+    transform: translate(-50%, -50%) rotate(-18deg);
+    pointer-events: none;
+    z-index: -2;
+
+    background:
         radial-gradient(
-          circle at 75% 25%,
-          rgba(130, 45, 255, 0.28),
-          transparent 20%
-        ),
-        radial-gradient(
-          circle at 25% 75%,
-          rgba(75, 20, 180, 0.22),
-          transparent 25%
-        ),
-        radial-gradient(
-          ellipse at 65% 45%,
-          rgba(110, 35, 190, 0.15),
-          transparent 35%
-        ),
+            ellipse,
+            rgba(141, 61, 255, .25) 0%,
+            rgba(92, 32, 170, .15) 25%,
+            transparent 68%
+        );
+
+    filter: blur(20px);
+}
+
+/* ---------- APP ---------- */
+
+.app {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* ---------- HEADER ---------- */
+
+.topbar {
+    height: 78px;
+    padding: 0 28px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    border-bottom: 1px solid rgba(155,92,255,.25);
+
+    background:
         linear-gradient(
-          135deg,
-          #02020a 0%,
-          #060316 45%,
-          #02020b 100%
+            90deg,
+            rgba(4,4,16,.96),
+            rgba(10,5,28,.86),
+            rgba(4,4,16,.96)
         );
-    }
 
-    body::after {
-      content: "";
-      position: fixed;
-      inset: 0;
-      z-index: -4;
-      pointer-events: none;
+    backdrop-filter: blur(15px);
+}
 
-      background-image:
-        radial-gradient(circle, rgba(255,255,255,.9) 1px, transparent 1.5px),
-        radial-gradient(circle, rgba(160,110,255,.8) 1px, transparent 1.5px),
-        radial-gradient(circle, rgba(255,255,255,.6) 1px, transparent 1.5px);
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 9px;
 
-      background-size:
-        115px 115px,
-        175px 175px,
-        240px 240px;
+    font-size: 27px;
+    font-weight: 800;
+    letter-spacing: -1px;
+}
 
-      background-position:
-        15px 25px,
-        80px 60px,
-        30px 120px;
+.brand-main {
+    color: white;
+}
 
-      opacity: .55;
-    }
+.brand-name {
+    color: var(--purple);
+}
 
-    /* =========================================
-       EXTRA GALAXY GLOW
-       ========================================= */
+.brand-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #a96cff;
+    box-shadow: 0 0 14px #9b5cff;
+}
 
-    .universe {
-      position: fixed;
-      inset: 0;
-      z-index: -3;
-      pointer-events: none;
-      overflow: hidden;
-    }
+.user-area {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+}
 
-    .galaxy-glow {
-      position: absolute;
-      width: 65vw;
-      height: 22vw;
-      right: -10vw;
-      top: 28%;
-      transform: rotate(-25deg);
+.user-name {
+    color: #c3bfd6;
+    font-size: 15px;
+}
 
-      background:
+.logout-btn {
+    border: 1px solid var(--purple);
+    color: white;
+    background: rgba(90, 35, 160, .16);
+
+    border-radius: 10px;
+    padding: 11px 18px;
+
+    font-size: 14px;
+    cursor: pointer;
+
+    transition: .2s;
+}
+
+.logout-btn:hover {
+    background: rgba(155,92,255,.25);
+    box-shadow: 0 0 20px rgba(155,92,255,.25);
+}
+
+/* ---------- MAIN ---------- */
+
+.main {
+    flex: 1;
+
+    display: grid;
+    grid-template-columns: 270px minmax(0, 1fr);
+    gap: 16px;
+
+    padding: 18px;
+    min-height: calc(100vh - 78px);
+}
+
+/* ---------- SIDEBAR ---------- */
+
+.sidebar {
+    min-height: 0;
+
+    border: 1px solid var(--border);
+    border-radius: 17px;
+
+    background:
         radial-gradient(
-          ellipse,
-          rgba(184, 87, 255, .30) 0%,
-          rgba(120, 42, 220, .16) 30%,
-          rgba(40, 10, 100, .04) 55%,
-          transparent 72%
-        );
+            circle at 50% 30%,
+            rgba(91,39,170,.12),
+            transparent 45%
+        ),
+        rgba(4,4,17,.87);
 
-      filter: blur(10px);
-    }
+    overflow: hidden;
 
-    .galaxy-glow::after {
-      content: "";
-      position: absolute;
-      inset: 35% 5%;
-      border-radius: 50%;
-      background: linear-gradient(
-        90deg,
-        transparent,
-        rgba(193, 105, 255, .45),
-        rgba(255, 255, 255, .22),
-        rgba(193, 105, 255, .45),
-        transparent
-      );
-      filter: blur(15px);
-    }
+    position: relative;
+}
 
-    /* =========================================
-       MOONS / PLANETS
-       ========================================= */
+.sidebar::before {
+    content: "";
+    position: absolute;
+    width: 150px;
+    height: 150px;
+    left: 35px;
+    bottom: 45px;
 
-    .moon {
-      position: absolute;
-      border-radius: 50%;
+    border-radius: 50%;
 
-      background:
+    background:
         radial-gradient(
-          circle at 30% 28%,
-          #ffffff 0%,
-          #c9c9e8 15%,
-          #77779d 42%,
-          #29294a 75%,
-          #080817 100%
+            circle at 35% 35%,
+            #7133c9,
+            #25104e 45%,
+            #070711 70%
         );
 
-      box-shadow:
-        inset -25px -20px 45px rgba(0,0,0,.7),
-        0 0 35px rgba(126,88,255,.18);
-    }
+    box-shadow:
+        0 0 35px rgba(137,65,255,.25);
 
-    .moon::before {
-      content: "";
-      position: absolute;
-      border-radius: 50%;
-      background: rgba(30,30,60,.28);
-      width: 20%;
-      height: 20%;
-      left: 25%;
-      top: 35%;
-      box-shadow:
-        25px 20px 0 4px rgba(30,30,60,.20),
-        45px -12px 0 2px rgba(30,30,60,.18),
-        -12px -25px 0 3px rgba(30,30,60,.18);
-    }
+    opacity: .6;
+}
 
-    .moon-one {
-      width: 145px;
-      height: 145px;
-      right: 5%;
-      top: 19%;
-      opacity: .8;
-    }
+.sidebar-content {
+    position: relative;
+    z-index: 2;
+    padding: 25px 18px;
+}
 
-    .moon-two {
-      width: 230px;
-      height: 230px;
-      left: -95px;
-      bottom: -55px;
-      opacity: .55;
-    }
+.sidebar-title {
+    font-size: 20px;
+    font-weight: 700;
+}
 
-    .planet {
-      position: absolute;
-      width: 360px;
-      height: 360px;
-      border-radius: 50%;
-      right: -150px;
-      bottom: -160px;
+.sidebar-subtitle {
+    margin-top: 7px;
+    color: var(--muted);
+    font-size: 13px;
+}
 
-      background:
-        radial-gradient(
-          circle at 35% 30%,
-          #7545ba,
-          #351467 45%,
-          #10052c 75%,
-          #03030d 100%
-        );
+.contact {
+    margin-top: 28px;
 
-      box-shadow:
-        inset -35px -25px 70px rgba(0,0,0,.7),
-        0 0 80px rgba(123,55,220,.25);
-    }
+    display: flex;
+    align-items: center;
+    gap: 12px;
 
-    .planet::before {
-      content: "";
-      position: absolute;
-      width: 150%;
-      height: 30%;
-      left: -25%;
-      top: 35%;
-      border: 2px solid rgba(171,111,255,.25);
-      border-radius: 50%;
-      transform: rotate(-18deg);
-    }
+    padding: 16px;
 
-    /* =========================================
-       LOADING
-       ========================================= */
+    border: 1px solid rgba(155,92,255,.22);
+    border-radius: 14px;
 
-    #loading {
-      position: fixed;
-      inset: 0;
-      z-index: 1000;
-
-      display: flex;
-      align-items: center;
-      justify-content: center;
-
-      background:
-        radial-gradient(
-          circle at center,
-          #13052b 0%,
-          #05020f 45%,
-          #020207 100%
-        );
-
-      color: #ffffff;
-      font-weight: 700;
-      font-size: 18px;
-    }
-
-    /* =========================================
-       HEADER
-       ========================================= */
-
-    header {
-      height: 86px;
-      padding: 0 28px;
-
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-
-      border-bottom: 1px solid rgba(152, 76, 255, .35);
-
-      background:
+    background:
         linear-gradient(
-          180deg,
-          rgba(4,4,17,.94),
-          rgba(4,4,17,.72)
+            135deg,
+            rgba(101,44,186,.25),
+            rgba(34,15,75,.30)
+        );
+}
+
+.avatar {
+    width: 44px;
+    height: 44px;
+
+    flex-shrink: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 50%;
+
+    color: white;
+    font-size: 19px;
+    font-weight: bold;
+
+    background:
+        linear-gradient(
+            135deg,
+            #b46cff,
+            #6121d5
         );
 
-      backdrop-filter: blur(14px);
+    box-shadow:
+        0 0 18px rgba(155,92,255,.35);
+}
+
+.contact-name {
+    font-size: 15px;
+    font-weight: 700;
+}
+
+.online {
+    margin-top: 5px;
+    color: var(--green);
+    font-size: 12px;
+}
+
+.online::before {
+    content: "";
+    display: inline-block;
+
+    width: 6px;
+    height: 6px;
+
+    border-radius: 50%;
+    background: var(--green);
+
+    margin-right: 5px;
+}
+
+/* ---------- CHAT ---------- */
+
+.chat {
+    min-width: 0;
+    min-height: 0;
+
+    display: flex;
+    flex-direction: column;
+
+    border: 1px solid var(--border);
+    border-radius: 17px;
+
+    overflow: hidden;
+
+    position: relative;
+
+    background:
+        radial-gradient(
+            ellipse at 75% 18%,
+            rgba(125,46,207,.25),
+            transparent 30%
+        ),
+        radial-gradient(
+            ellipse at 20% 75%,
+            rgba(74,38,166,.18),
+            transparent 30%
+        ),
+        #03030d;
+}
+
+/* large galaxy band */
+
+.chat::before {
+    content: "";
+    position: absolute;
+
+    width: 120%;
+    height: 240px;
+
+    left: -10%;
+    top: 35%;
+
+    background:
+        radial-gradient(
+            ellipse,
+            rgba(137,54,240,.23),
+            rgba(74,28,145,.13) 30%,
+            transparent 70%
+        );
+
+    transform: rotate(-12deg);
+    filter: blur(18px);
+
+    pointer-events: none;
+}
+
+/* moon */
+
+.moon {
+    position: absolute;
+
+    width: 110px;
+    height: 110px;
+
+    right: 45px;
+    top: 110px;
+
+    border-radius: 50%;
+
+    background:
+        radial-gradient(
+            circle at 35% 30%,
+            #ddd8ff,
+            #8580a8 38%,
+            #302d54 72%,
+            #0c0b18 100%
+        );
+
+    box-shadow:
+        -12px 0 30px rgba(148,120,255,.35),
+        inset -15px -10px 25px rgba(0,0,0,.5);
+
+    opacity: .7;
+}
+
+.moon::after {
+    content: "";
+
+    position: absolute;
+    width: 100%;
+    height: 100%;
+
+    border-radius: 50%;
+
+    background:
+        radial-gradient(circle at 25% 40%, rgba(0,0,0,.18) 5px, transparent 6px),
+        radial-gradient(circle at 62% 28%, rgba(0,0,0,.16) 7px, transparent 8px),
+        radial-gradient(circle at 55% 67%, rgba(0,0,0,.18) 6px, transparent 7px);
+}
+
+/* ---------- CHAT HEADER ---------- */
+
+.chat-header {
+    height: 90px;
+
+    flex-shrink: 0;
+
+    padding: 18px 24px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    border-bottom: 1px solid rgba(155,92,255,.24);
+
+    background: rgba(3,3,15,.60);
+
+    backdrop-filter: blur(12px);
+
+    position: relative;
+    z-index: 5;
+}
+
+.chat-person {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+}
+
+.chat-avatar {
+    width: 46px;
+    height: 46px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 50%;
+
+    background: linear-gradient(
+        135deg,
+        #b36cff,
+        #6325d9
+    );
+
+    font-weight: 700;
+    font-size: 19px;
+
+    box-shadow:
+        0 0 20px rgba(155,92,255,.3);
+}
+
+.chat-title {
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.chat-status {
+    margin-top: 5px;
+    color: var(--green);
+    font-size: 12px;
+}
+
+.chat-actions {
+    color: #c7c0da;
+    font-size: 21px;
+}
+
+/* ---------- MESSAGES ---------- */
+
+.messages {
+    flex: 1;
+
+    min-height: 250px;
+
+    overflow-y: auto;
+
+    padding: 28px 24px;
+
+    position: relative;
+    z-index: 3;
+
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.welcome {
+    margin: auto;
+
+    text-align: center;
+
+    max-width: 650px;
+
+    padding: 30px 15px;
+}
+
+.welcome-line {
+    width: 100px;
+    height: 1px;
+
+    margin: 20px auto;
+
+    background:
+        linear-gradient(
+            90deg,
+            transparent,
+            #9b5cff,
+            transparent
+        );
+}
+
+.welcome h1 {
+    font-size: 31px;
+    line-height: 1.2;
+}
+
+.welcome h1 span {
+    color: var(--purple);
+}
+
+.welcome p {
+    margin-top: 13px;
+
+    color: #a6a1bb;
+
+    font-size: 15px;
+}
+
+.message {
+    max-width: 72%;
+
+    padding: 12px 15px;
+
+    border-radius: 15px;
+
+    font-size: 15px;
+    line-height: 1.45;
+
+    word-break: break-word;
+}
+
+.message.mine {
+    align-self: flex-end;
+
+    color: white;
+
+    background:
+        linear-gradient(
+            135deg,
+            #7939e8,
+            #4d20a9
+        );
+
+    border-bottom-right-radius: 4px;
+
+    box-shadow:
+        0 5px 20px rgba(94,36,202,.20);
+}
+
+.message.other {
+    align-self: flex-start;
+
+    color: #e9e6f2;
+
+    background: rgba(24,20,47,.9);
+
+    border: 1px solid rgba(155,92,255,.22);
+
+    border-bottom-left-radius: 4px;
+}
+
+.message-time {
+    display: block;
+
+    margin-top: 5px;
+
+    font-size: 10px;
+
+    opacity: .55;
+}
+
+/* ---------- INPUT ---------- */
+
+.input-area {
+    position: relative;
+    z-index: 5;
+
+    padding: 14px 18px;
+
+    border-top: 1px solid rgba(155,92,255,.24);
+
+    background: rgba(3,3,15,.80);
+
+    backdrop-filter: blur(14px);
+}
+
+.input-box {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    padding: 7px 8px 7px 16px;
+
+    border: 1px solid rgba(155,92,255,.42);
+
+    border-radius: 15px;
+
+    background:
+        rgba(14,10,34,.95);
+
+    box-shadow:
+        0 0 25px rgba(95,38,180,.08);
+}
+
+.message-input {
+    flex: 1;
+
+    min-width: 0;
+
+    border: none;
+    outline: none;
+
+    background: transparent;
+
+    color: white;
+
+    font-size: 15px;
+}
+
+.message-input::placeholder {
+    color: #77738d;
+}
+
+.send-btn {
+    width: 46px;
+    height: 42px;
+
+    flex-shrink: 0;
+
+    border: none;
+
+    border-radius: 12px;
+
+    color: white;
+
+    background:
+        linear-gradient(
+            135deg,
+            #a85dff,
+            #6726d9
+        );
+
+    cursor: pointer;
+
+    font-size: 17px;
+    font-weight: bold;
+
+    box-shadow:
+        0 0 18px rgba(139,67,255,.28);
+
+    transition: .2s;
+}
+
+.send-btn:hover {
+    transform: translateY(-1px);
+}
+
+.send-btn:disabled {
+    opacity: .45;
+    cursor: not-allowed;
+}
+
+/* ---------- LOADING / ERROR ---------- */
+
+.loading {
+    position: fixed;
+    inset: 0;
+
+    z-index: 100;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background: #03030d;
+
+    font-size: 16px;
+    color: #c5bed8;
+}
+
+.login-error {
+    display: none;
+
+    position: fixed;
+    inset: 0;
+
+    z-index: 200;
+
+    align-items: center;
+    justify-content: center;
+
+    padding: 25px;
+
+    background: #03030d;
+}
+
+.error-box {
+    width: min(430px, 100%);
+
+    padding: 30px;
+
+    text-align: center;
+
+    border: 1px solid rgba(155,92,255,.4);
+
+    border-radius: 18px;
+
+    background:
+        rgba(13,9,30,.96);
+
+    box-shadow:
+        0 0 50px rgba(92,35,190,.18);
+}
+
+.error-box h2 {
+    margin-bottom: 12px;
+}
+
+.error-box p {
+    color: #aaa5bb;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.back-btn {
+    margin-top: 20px;
+
+    padding: 11px 18px;
+
+    border: 1px solid #9b5cff;
+
+    border-radius: 10px;
+
+    color: white;
+
+    background: rgba(115,48,210,.18);
+
+    cursor: pointer;
+}
+
+/* ---------- MOBILE ---------- */
+
+@media (max-width: 760px) {
+
+    body {
+        overflow-y: auto;
     }
 
-    .logo {
-      display: flex;
-      align-items: center;
-      gap: 0;
-
-      font-size: 31px;
-      font-weight: 900;
-      letter-spacing: -1.5px;
+    .topbar {
+        height: 66px;
+        padding: 0 15px;
     }
 
-    .logo-main {
-      color: #ffffff;
+    .brand {
+        font-size: 21px;
     }
 
-    .logo-name {
-      color: #9b55ff;
-      margin-left: 8px;
+    .brand-dot {
+        width: 5px;
+        height: 5px;
     }
 
-    .right-header {
-      display: flex;
-      align-items: center;
-      gap: 20px;
+    .user-area {
+        gap: 8px;
     }
 
     .user-name {
-      color: #aaa9bf;
-      font-size: 15px;
-      font-weight: 600;
+        font-size: 12px;
+        max-width: 75px;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
     }
 
-    .logout {
-      border: 1px solid #8f43e8;
-      background: rgba(20, 7, 45, .75);
-      color: #ffffff;
-
-      padding: 12px 20px;
-      border-radius: 12px;
-
-      font-size: 14px;
-      font-weight: 700;
-
-      cursor: pointer;
-      transition: .2s;
+    .logout-btn {
+        padding: 8px 11px;
+        font-size: 12px;
     }
 
-    .logout:hover {
-      background: rgba(119, 49, 218, .3);
-      border-color: #b16aff;
+    .main {
+        display: block;
+        padding: 9px;
+
+        min-height: calc(100vh - 66px);
     }
-
-    /* =========================================
-       MAIN LAYOUT
-       ========================================= */
-
-    .chat-layout {
-      width: 100%;
-      max-width: 1450px;
-
-      height: calc(100vh - 86px);
-
-      margin: 0 auto;
-      padding: 18px;
-
-      display: grid;
-      grid-template-columns: 275px minmax(0, 1fr);
-      gap: 16px;
-    }
-
-    /* =========================================
-       SIDEBAR
-       ========================================= */
 
     .sidebar {
-      min-width: 0;
-
-      border: 1px solid rgba(147, 71, 238, .55);
-      border-radius: 18px;
-
-      background:
-        linear-gradient(
-          160deg,
-          rgba(10,7,28,.88),
-          rgba(4,4,16,.78)
-        );
-
-      backdrop-filter: blur(10px);
-
-      overflow: hidden;
-
-      box-shadow:
-        0 0 35px rgba(91, 32, 160, .12);
+        display: none;
     }
 
-    .sidebar-title {
-      padding: 27px 24px 22px;
+    .chat {
+        height: calc(100vh - 84px);
+        min-height: 500px;
 
-      border-bottom: 1px solid rgba(145, 74, 230, .22);
+        border-radius: 14px;
     }
 
-    .sidebar-title h2 {
-      font-size: 20px;
-      margin-bottom: 7px;
-    }
-
-    .sidebar-title p {
-      color: #88879f;
-      font-size: 13px;
-    }
-
-    .profile {
-      margin: 18px;
-
-      padding: 15px;
-
-      border: 1px solid rgba(140, 67, 231, .3);
-      border-radius: 15px;
-
-      background:
-        linear-gradient(
-          135deg,
-          rgba(86, 34, 160, .24),
-          rgba(32, 12, 68, .45)
-        );
-
-      display: flex;
-      align-items: center;
-      gap: 13px;
-    }
-
-    .avatar {
-      width: 47px;
-      height: 47px;
-
-      flex-shrink: 0;
-
-      border-radius: 50%;
-
-      display: flex;
-      align-items: center;
-      justify-content: center;
-
-      background:
-        linear-gradient(
-          145deg,
-          #b067ff,
-          #7132d9
-        );
-
-      color: #ffffff;
-
-      font-size: 20px;
-      font-weight: 800;
-
-      box-shadow:
-        0 0 22px rgba(145, 70, 255, .3);
-    }
-
-    .profile strong {
-      display: block;
-      font-size: 14px;
-      margin-bottom: 5px;
-    }
-
-    .online {
-      color: #6ee7a0;
-      font-size: 11px;
-      font-weight: 700;
-    }
-
-    /* =========================================
-       CHAT BOX
-       ========================================= */
-
-    .chat-box {
-      min-width: 0;
-      min-height: 0;
-
-      border: 1px solid rgba(147, 71, 238, .58);
-      border-radius: 18px;
-
-      background:
-        rgba(3,3,14,.78);
-
-      backdrop-filter: blur(10px);
-
-      overflow: hidden;
-
-      display: flex;
-      flex-direction: column;
-
-      box-shadow:
-        0 0 40px rgba(91, 32, 160, .12);
-    }
-
-    .chat-top {
-      min-height: 82px;
-
-      padding: 16px 24px;
-
-      display: flex;
-      align-items: center;
-      gap: 14px;
-
-      border-bottom: 1px solid rgba(145, 74, 230, .25);
-
-      background:
-        linear-gradient(
-          90deg,
-          rgba(12,7,32,.85),
-          rgba(4,4,17,.7)
-        );
+    .chat-header {
+        height: 72px;
+        padding: 13px 14px;
     }
 
     .chat-avatar {
-      width: 45px;
-      height: 45px;
-
-      border-radius: 50%;
-
-      display: flex;
-      align-items: center;
-      justify-content: center;
-
-      background:
-        linear-gradient(
-          145deg,
-          #ae5fff,
-          #7133d8
-        );
-
-      font-size: 18px;
-      font-weight: 800;
-
-      box-shadow:
-        0 0 20px rgba(143, 68, 255, .32);
-    }
-
-    .chat-top strong {
-      display: block;
-      font-size: 16px;
-      margin-bottom: 5px;
-    }
-
-    .chat-top small {
-      color: #6ee7a0;
-      font-size: 11px;
-      font-weight: 700;
-    }
-
-    /* =========================================
-       MESSAGES / UNIVERSE
-       ========================================= */
-
-    .messages {
-      position: relative;
-
-      flex: 1;
-      min-height: 0;
-
-      overflow-y: auto;
-
-      padding: 30px;
-
-      background:
-        radial-gradient(
-          ellipse at 75% 25%,
-          rgba(104, 38, 181, .20),
-          transparent 25%
-        ),
-        radial-gradient(
-          ellipse at 20% 80%,
-          rgba(58, 25, 120, .17),
-          transparent 28%
-        ),
-        linear-gradient(
-          135deg,
-          rgba(1,1,8,.96),
-          rgba(7,3,22,.90)
-        );
-    }
-
-    .messages::before {
-      content: "";
-
-      position: absolute;
-      inset: 0;
-
-      pointer-events: none;
-
-      background-image:
-        radial-gradient(circle, #ffffff 1px, transparent 1.5px),
-        radial-gradient(circle, #a969ff 1px, transparent 1.5px);
-
-      background-size:
-        95px 95px,
-        155px 155px;
-
-      background-position:
-        12px 18px,
-        45px 75px;
-
-      opacity: .38;
-    }
-
-    .welcome-message {
-      position: relative;
-      z-index: 2;
-
-      min-height: 100%;
-
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-
-      text-align: center;
-
-      padding: 30px;
-    }
-
-    /* Pure CSS moon - no emoji/image */
-
-    .welcome-moon {
-      width: 92px;
-      height: 92px;
-
-      border-radius: 50%;
-
-      margin-bottom: 28px;
-
-      background:
-        radial-gradient(
-          circle at 35% 30%,
-          #fff9d0 0%,
-          #f7dc55 18%,
-          #c58b18 48%,
-          #503408 100%
-        );
-
-      box-shadow:
-        0 0 18px rgba(255, 215, 65, .75),
-        0 0 55px rgba(157, 74, 255, .22);
-
-      position: relative;
-    }
-
-    .welcome-moon::after {
-      content: "";
-
-      position: absolute;
-
-      width: 18px;
-      height: 18px;
-
-      border-radius: 50%;
-
-      background: rgba(100, 63, 10, .25);
-
-      top: 24px;
-      left: 27px;
-
-      box-shadow:
-        23px 13px 0 3px rgba(100,63,10,.20),
-        8px 37px 0 2px rgba(100,63,10,.20);
-    }
-
-    .welcome-message h3 {
-      font-size: clamp(25px, 3vw, 38px);
-
-      line-height: 1.2;
-
-      margin-bottom: 14px;
-    }
-
-    .welcome-message h3 span {
-      color: #a35aff;
-    }
-
-    .welcome-message p {
-      color: #9d9ab5;
-
-      font-size: 15px;
-      line-height: 1.7;
-
-      max-width: 600px;
-    }
-
-    .space-line {
-      width: 180px;
-      height: 1px;
-
-      margin-top: 28px;
-
-      background:
-        linear-gradient(
-          90deg,
-          transparent,
-          #9b4dff,
-          transparent
-        );
-
-      position: relative;
-    }
-
-    .space-line::after {
-      content: "";
-
-      position: absolute;
-
-      width: 7px;
-      height: 7px;
-
-      border-radius: 50%;
-
-      background: #d49cff;
-
-      left: 50%;
-      top: -3px;
-
-      box-shadow:
-        0 0 12px #b56aff;
-    }
-
-    /* =========================================
-       MESSAGE BUBBLES
-       ========================================= */
-
-    .message {
-      position: relative;
-      z-index: 5;
-
-      max-width: 72%;
-
-      margin-bottom: 13px;
-
-      padding: 12px 16px;
-
-      border-radius: 16px;
-
-      font-size: 14px;
-      line-height: 1.5;
-
-      word-wrap: break-word;
-    }
-
-    .message.mine {
-      margin-left: auto;
-
-      color: #ffffff;
-
-      background:
-        linear-gradient(
-          135deg,
-          #873de4,
-          #5e22b9
-        );
-
-      border-bottom-right-radius: 5px;
-
-      box-shadow:
-        0 5px 20px rgba(101, 35, 190, .25);
-    }
-
-    /* =========================================
-       INPUT
-       ========================================= */
-
-    .input-area {
-      position: relative;
-      z-index: 10;
-
-      padding: 13px 18px 18px;
-
-      display: flex;
-      gap: 10px;
-
-      border-top: 1px solid rgba(145, 74, 230, .25);
-
-      background:
-        rgba(5,3,18,.94);
-    }
-
-    #messageInput {
-      flex: 1;
-      min-width: 0;
-
-      height: 50px;
-
-      border: 1px solid rgba(142, 69, 228, .45);
-      outline: none;
-
-      background:
-        rgba(20, 9, 40, .88);
-
-      color: #ffffff;
-
-      padding: 0 17px;
-
-      border-radius: 14px;
-
-      font-size: 14px;
-    }
-
-    #messageInput::placeholder {
-      color: #79768f;
-    }
-
-    #messageInput:focus {
-      border-color: #9b4dff;
-
-      box-shadow:
-        0 0 0 2px rgba(145, 67, 235, .12);
-    }
-
-    #sendButton {
-      width: 54px;
-      height: 50px;
-
-      border: none;
-      border-radius: 14px;
-
-      background:
-        linear-gradient(
-          145deg,
-          #a458ff,
-          #7029d4
-        );
-
-      color: #ffffff;
-
-      font-size: 20px;
-      font-weight: 700;
-
-      cursor: pointer;
-
-      box-shadow:
-        0 0 22px rgba(135, 54, 234, .35);
-
-      transition: .2s;
-    }
-
-    #sendButton:hover {
-      transform: translateY(-1px);
-
-      box-shadow:
-        0 0 30px rgba(150, 70, 255, .5);
-    }
-
-    /* =========================================
-       LOGIN ERROR
-       ========================================= */
-
-    .login-error {
-      width: min(92%, 520px);
-
-      padding: 28px;
-
-      border: 1px solid rgba(159, 75, 255, .55);
-      border-radius: 18px;
-
-      background:
-        rgba(9,5,25,.92);
-
-      box-shadow:
-        0 0 40px rgba(105, 40, 190, .18);
-
-      text-align: center;
-    }
-
-    .login-error h2 {
-      margin-bottom: 12px;
-    }
-
-    .login-error p {
-      color: #aaa7ba;
-      line-height: 1.6;
-      margin-bottom: 18px;
-    }
-
-    .login-error a {
-      display: inline-block;
-
-      padding: 12px 18px;
-
-      border-radius: 11px;
-
-      background: #8d43e9;
-      color: white;
-
-      text-decoration: none;
-      font-weight: 700;
-    }
-
-    /* =========================================
-       TABLET
-       ========================================= */
-
-    @media (max-width: 900px) {
-
-      header {
-        height: 70px;
-        padding: 0 18px;
-      }
-
-      .logo {
-        font-size: 25px;
-      }
-
-      .right-header {
-        gap: 10px;
-      }
-
-      .user-name {
-        display: none;
-      }
-
-      .chat-layout {
-        height: calc(100vh - 70px);
-
-        padding: 10px;
-
-        grid-template-columns: 1fr;
-      }
-
-      .sidebar {
-        display: none;
-      }
-
-      .chat-box {
-        border-radius: 16px;
-      }
-
-      .messages {
-        padding: 20px 15px;
-      }
-    }
-
-    /* =========================================
-       PHONE
-       ========================================= */
-
-    @media (max-width: 600px) {
-
-      body {
-        overflow: hidden;
-      }
-
-      header {
-        height: 62px;
-
-        padding:
-          0 12px;
-
-        padding-top: env(safe-area-inset-top);
-
-        height:
-          calc(62px + env(safe-area-inset-top));
-      }
-
-      .logo {
-        font-size: 22px;
-        letter-spacing: -1px;
-      }
-
-      .logo-name {
-        margin-left: 5px;
-      }
-
-      .logout {
-        padding: 9px 12px;
-        font-size: 12px;
-        border-radius: 10px;
-      }
-
-      .chat-layout {
-        height:
-          calc(
-            100vh -
-            62px -
-            env(safe-area-inset-top)
-          );
-
-        padding: 7px;
-
-        gap: 0;
-      }
-
-      .chat-box {
-        height: 100%;
-        border-radius: 14px;
-      }
-
-      .chat-top {
-        min-height: 66px;
-
-        padding: 10px 13px;
-
-        gap: 10px;
-      }
-
-      .chat-avatar {
         width: 39px;
         height: 39px;
-
         font-size: 16px;
-      }
+    }
 
-      .chat-top strong {
-        font-size: 14px;
-      }
+    .chat-title {
+        font-size: 15px;
+    }
 
-      .chat-top small {
-        font-size: 10px;
-      }
+    .chat-status {
+        font-size: 11px;
+    }
 
-      .messages {
-        padding: 12px 10px;
-      }
-
-      .welcome-message {
-        padding: 18px 10px;
-      }
-
-      .welcome-moon {
+    .moon {
         width: 70px;
         height: 70px;
 
-        margin-bottom: 20px;
-      }
+        right: 18px;
+        top: 100px;
+    }
 
-      .welcome-moon::after {
-        width: 13px;
-        height: 13px;
+    .messages {
+        padding: 18px 12px;
+        gap: 9px;
+    }
 
-        top: 18px;
-        left: 20px;
+    .welcome {
+        padding: 15px 8px;
+    }
 
-        box-shadow:
-          17px 10px 0 2px rgba(100,63,10,.20),
-          6px 28px 0 2px rgba(100,63,10,.20);
-      }
-
-      .welcome-message h3 {
+    .welcome h1 {
         font-size: 24px;
-      }
+    }
 
-      .welcome-message p {
+    .welcome p {
         font-size: 13px;
-        max-width: 330px;
-      }
+        line-height: 1.5;
+    }
 
-      .space-line {
-        width: 130px;
-        margin-top: 20px;
-      }
-
-      .input-area {
-        padding:
-          8px
-          8px
-          calc(8px + env(safe-area-inset-bottom));
-
-        gap: 7px;
-      }
-
-      #messageInput {
-        height: 46px;
-
-        padding: 0 13px;
-
-        border-radius: 12px;
-
+    .message {
+        max-width: 84%;
         font-size: 14px;
-      }
+    }
 
-      #sendButton {
-        width: 48px;
-        height: 46px;
+    .input-area {
+        padding: 9px;
+    }
 
-        border-radius: 12px;
+    .input-box {
+        padding-left: 12px;
+    }
 
+    .message-input {
+        font-size: 14px;
+    }
+
+    .send-btn {
+        width: 43px;
+        height: 39px;
+    }
+}
+
+@media (max-width: 380px) {
+
+    .brand {
         font-size: 18px;
-      }
+    }
 
-      .message {
-        max-width: 86%;
+    .user-name {
+        display: none;
+    }
+
+    .chat-title {
         font-size: 14px;
-      }
-
-      .moon-one {
-        width: 90px;
-        height: 90px;
-
-        right: -20px;
-        top: 18%;
-      }
-
-      .moon-two {
-        width: 140px;
-        height: 140px;
-
-        left: -65px;
-        bottom: -40px;
-      }
-
-      .planet {
-        width: 190px;
-        height: 190px;
-
-        right: -95px;
-        bottom: -85px;
-      }
-
-      .galaxy-glow {
-        width: 100vw;
-        height: 35vw;
-
-        right: -25vw;
-      }
     }
 
-    /* =========================================
-       VERY SMALL PHONES
-       ========================================= */
-
-    @media (max-width: 380px) {
-
-      .logo {
-        font-size: 20px;
-      }
-
-      .logout {
-        padding: 8px 10px;
-      }
-
-      .chat-top {
-        min-height: 60px;
-      }
-
-      .welcome-message h3 {
+    .welcome h1 {
         font-size: 21px;
-      }
-
-      .welcome-message p {
-        font-size: 12px;
-      }
     }
-  </style>
+}
+</style>
 </head>
 
 <body>
 
-  <!-- Universe decorations -->
-  <div class="universe">
-    <div class="galaxy-glow"></div>
-    <div class="moon moon-one"></div>
-    <div class="moon moon-two"></div>
-    <div class="planet"></div>
-  </div>
+<!-- LOGIN LOADING -->
+<div id="loading" class="loading">
+    Opening your chat...
+</div>
 
-  <!-- Login/session loading -->
-  <div id="loading">
-    Opening ToTalk...
-  </div>
+<!-- LOGIN ERROR -->
+<div id="loginError" class="login-error">
+    <div class="error-box">
+        <h2>Unable to open chat</h2>
+        <p id="errorText">
+            The login session could not be loaded.
+        </p>
 
-  <!-- Header -->
-  <header>
-
-    <div class="logo">
-      <span class="logo-main">ToTalk</span>
-      <span class="logo-name">Sameer</span>
-    </div>
-
-    <div class="right-header">
-
-      <div class="user-name" id="userName">
-        Loading...
-      </div>
-
-      <button
-        class="logout"
-        id="logoutBtn"
-        type="button"
-      >
-        Logout
-      </button>
-
-    </div>
-
-  </header>
-
-
-  <!-- Chat -->
-  <main class="chat-layout">
-
-    <!-- Sidebar -->
-    <aside class="sidebar">
-
-      <div class="sidebar-title">
-        <h2>Sameer's Chats</h2>
-        <p>Your personal conversation space</p>
-      </div>
-
-      <div class="profile">
-
-        <div class="avatar">
-          S
-        </div>
-
-        <div>
-          <strong id="sideName">
-            Sameer
-          </strong>
-
-          <div class="online">
-            Online
-          </div>
-        </div>
-
-      </div>
-
-    </aside>
-
-
-    <!-- Chat box -->
-    <section class="chat-box">
-
-      <div class="chat-top">
-
-        <div class="chat-avatar">
-          S
-        </div>
-
-        <div>
-          <strong>
-            Sameer's ToTalk
-          </strong>
-
-          <small>
-            Online
-          </small>
-        </div>
-
-      </div>
-
-
-      <div
-        class="messages"
-        id="messages"
-      >
-
-        <div class="welcome-message">
-
-          <div class="welcome-moon"></div>
-
-          <h3>
-            Welcome to
-            <span>Sameer's ToTalk</span>
-          </h3>
-
-          <p>
-            You're signed in.
-            This is Sameer's personal chat space.
-          </p>
-
-          <div class="space-line"></div>
-
-        </div>
-
-      </div>
-
-
-      <!-- Message input -->
-      <div class="input-area">
-
-        <input
-          type="text"
-          id="messageInput"
-          placeholder="Write a message..."
-          autocomplete="off"
-          enterkeyhint="send"
-        >
-
-        <button
-          id="sendButton"
-          type="button"
-          aria-label="Send message"
-        >
-          →
+        <button class="back-btn" onclick="goHome()">
+            Back to ToTalk
         </button>
+    </div>
+</div>
 
-      </div>
+<div id="app" class="app" style="display:none;">
 
-    </section>
+    <!-- HEADER -->
+    <header class="topbar">
 
-  </main>
+        <div class="brand">
+            <span class="brand-main">ToTalk</span>
+            <span class="brand-name">Sameer</span>
+            <span class="brand-dot"></span>
+        </div>
+
+        <div class="user-area">
+            <span id="userName" class="user-name">Sameer</span>
+
+            <button id="logoutBtn" class="logout-btn">
+                Logout
+            </button>
+        </div>
+
+    </header>
 
 
-  <script>
+    <!-- MAIN -->
+    <main class="main">
 
-    /* =========================================
-       SUPABASE
-       DO NOT CHANGE THESE LOGIN SETTINGS
-       ========================================= */
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
 
-    const SUPABASE_URL =
-      "https://qiynczbrhpxwuabwuyiy.supabase.co";
+            <div class="sidebar-content">
 
-    const SUPABASE_KEY =
-      "sb_publishable_eUPz4c_nYckgINEK-AIWqw_JAXIHozd";
+                <div class="sidebar-title">
+                    Sameer's Chats
+                </div>
+
+                <div class="sidebar-subtitle">
+                    Your personal conversation space
+                </div>
+
+                <div class="contact">
+
+                    <div class="avatar">
+                        S
+                    </div>
+
+                    <div>
+                        <div class="contact-name">
+                            Sameer
+                        </div>
+
+                        <div class="online">
+                            Ready to chat
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </aside>
 
 
-    /*
-      IMPORTANT:
-      Keep this authentication configuration.
+        <!-- CHAT -->
+        <section class="chat">
 
-      It allows Supabase to process the Google
-      OAuth result and keep the session.
-    */
+            <div class="moon"></div>
 
-    const supabaseClient =
-      supabase.createClient(
-        SUPABASE_URL,
-        SUPABASE_KEY,
-        {
-          auth: {
+            <!-- CHAT HEADER -->
+            <div class="chat-header">
+
+                <div class="chat-person">
+
+                    <div class="chat-avatar">
+                        S
+                    </div>
+
+                    <div>
+                        <div class="chat-title">
+                            Sameer's ToTalk
+                        </div>
+
+                        <div class="chat-status">
+                            Online
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="chat-actions">
+                    ···
+                </div>
+
+            </div>
+
+
+            <!-- MESSAGES -->
+            <div id="messages" class="messages">
+
+                <div id="welcome" class="welcome">
+
+                    <h1>
+                        Welcome to
+                        <span>Sameer's ToTalk</span>
+                    </h1>
+
+                    <p>
+                        You're signed in. This is Sameer's personal chat space.
+                    </p>
+
+                    <div class="welcome-line"></div>
+
+                </div>
+
+            </div>
+
+
+            <!-- INPUT -->
+            <div class="input-area">
+
+                <div class="input-box">
+
+                    <input
+                        id="messageInput"
+                        class="message-input"
+                        type="text"
+                        placeholder="Write a message..."
+                        autocomplete="off"
+                    >
+
+                    <button
+                        id="sendBtn"
+                        class="send-btn"
+                        type="button"
+                    >
+                        →
+                    </button>
+
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+</div>
+
+
+<script>
+/* =========================================================
+   SUPABASE
+========================================================= */
+
+const SUPABASE_URL =
+    "https://qiynczbrhpxwuabwuyiy.supabase.co";
+
+const SUPABASE_KEY =
+    "sb_publishable_eUPz4c_nYckgINEK-AIWqw_JAXIHozd";
+
+
+const supabaseClient = supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY,
+    {
+        auth: {
             persistSession: true,
             autoRefreshToken: true,
             detectSessionInUrl: true,
             flowType: "implicit"
-          }
         }
-      );
+    }
+);
 
 
-    /* =========================================
-       SHOW USER
-       ========================================= */
+/* =========================================================
+   VARIABLES
+========================================================= */
 
-    function showLoggedInUser(user) {
+let currentUser = null;
+let authReady = false;
+let loadingMessages = false;
 
-      const name =
+
+/* =========================================================
+   ELEMENTS
+========================================================= */
+
+const loading = document.getElementById("loading");
+const app = document.getElementById("app");
+const loginError = document.getElementById("loginError");
+const errorText = document.getElementById("errorText");
+
+const userName = document.getElementById("userName");
+
+const messages = document.getElementById("messages");
+const welcome = document.getElementById("welcome");
+
+const messageInput = document.getElementById("messageInput");
+const sendBtn = document.getElementById("sendBtn");
+
+const logoutBtn = document.getElementById("logoutBtn");
+
+
+/* =========================================================
+   SHOW CHAT
+========================================================= */
+
+function showChat(user) {
+
+    currentUser = user;
+    authReady = true;
+
+    loading.style.display = "none";
+    loginError.style.display = "none";
+    app.style.display = "flex";
+
+    const name =
         user.user_metadata?.full_name ||
         user.user_metadata?.name ||
         user.email?.split("@")[0] ||
         "Sameer";
 
-      document.getElementById(
-        "userName"
-      ).textContent = name;
+    userName.textContent = name;
 
-      document.getElementById(
-        "sideName"
-      ).textContent = name;
+    loadMessages();
+}
 
-      document.getElementById(
-        "loading"
-      ).style.display = "none";
+
+/* =========================================================
+   LOGIN ERROR
+========================================================= */
+
+function showLoginError(message) {
+
+    loading.style.display = "none";
+    app.style.display = "none";
+
+    errorText.textContent = message;
+
+    loginError.style.display = "flex";
+}
+
+
+/* =========================================================
+   AUTH STATE
+========================================================= */
+
+supabaseClient.auth.onAuthStateChange(
+    async (event, session) => {
+
+        if (session && session.user) {
+
+            showChat(session.user);
+
+        } else if (
+            event === "SIGNED_OUT"
+        ) {
+
+            goHome();
+
+        }
     }
+);
 
 
-    /* =========================================
-       LOGIN ERROR
-       ========================================= */
+/* =========================================================
+   CHECK LOGIN
+========================================================= */
 
-    function showLoginError(message) {
+async function checkLogin() {
 
-      const loading =
-        document.getElementById("loading");
-
-      loading.innerHTML = `
-        <div class="login-error">
-
-          <h2>
-            Login problem
-          </h2>
-
-          <p>
-            ${message}
-          </p>
-
-          <a href="./index.html">
-            Back to ToTalk
-          </a>
-
-        </div>
-      `;
-    }
-
-
-    /* =========================================
-       START CHAT
-       ========================================= */
-
-    async function startChat() {
-
-      try {
+    try {
 
         /*
-          Register the listener BEFORE getSession.
+         * First allow Supabase a moment to process
+         * Google's OAuth callback.
+         */
 
-          This is important because Google may finish
-          the OAuth callback while this page is loading.
-        */
+        await new Promise(resolve => {
+            setTimeout(resolve, 700);
+        });
 
-        let signedIn = false;
-
-        supabaseClient.auth.onAuthStateChange(
-          (event, session) => {
-
-            console.log(
-              "Supabase auth event:",
-              event
-            );
-
-            if (
-              session &&
-              session.user
-            ) {
-
-              signedIn = true;
-
-              showLoggedInUser(
-                session.user
-              );
-
-            }
-
-          }
-        );
-
-
-        /*
-          Check for an existing session.
-        */
 
         const {
-          data,
-          error
-        } =
-          await supabaseClient.auth.getSession();
+            data,
+            error
+        } = await supabaseClient.auth.getSession();
 
 
         if (error) {
 
-          console.error(
-            "Session check error:",
-            error
-          );
+            console.error(error);
 
+            showLoginError(
+                "Google sign-in was completed, but the login session could not be loaded. Please go back and try once more."
+            );
+
+            return;
         }
 
 
-        if (
-          data?.session?.user
-        ) {
+        if (data && data.session) {
 
-          signedIn = true;
+            showChat(data.session.user);
 
-          showLoggedInUser(
-            data.session.user
-          );
-
-          return;
+            return;
         }
 
 
         /*
-          Give Supabase time to finish
-          processing Google's callback.
-        */
+         * Sometimes mobile browsers need a little
+         * extra time after returning from Google.
+         */
 
-        setTimeout(
-          async () => {
+        setTimeout(async () => {
 
-            if (signedIn) {
-              return;
-            }
-
-            const {
-              data: retryData,
-              error: retryError
-            } =
-              await supabaseClient.auth.getSession();
-
-
-            if (retryError) {
-
-              console.error(
-                "Final session check error:",
-                retryError
-              );
-
-            }
-
+            const result =
+                await supabaseClient.auth.getSession();
 
             if (
-              retryData?.session?.user
+                result.data &&
+                result.data.session
             ) {
 
-              showLoggedInUser(
-                retryData.session.user
-              );
+                showChat(
+                    result.data.session.user
+                );
 
-              return;
+            } else {
+
+                showLoginError(
+                    "No active Google login session was found. Please return to the homepage and tap Continue with Google again."
+                );
+
             }
 
+        }, 2500);
 
-            showLoginError(
-              "Google sign-in completed, but ToTalk did not receive the login session. Please go back and try the Google button once more."
-            );
+    } catch (err) {
 
-          },
-          2500
-        );
-
-      } catch (error) {
-
-        console.error(
-          "Login error:",
-          error
-        );
+        console.error(err);
 
         showLoginError(
-          "ToTalk could not finish the Google sign-in. Please go back and try again."
+            "Something went wrong while opening your chat."
         );
-
-      }
-
     }
+}
 
 
-    /* =========================================
-       LOGOUT
-       ========================================= */
+/* =========================================================
+   LOAD MESSAGES
+========================================================= */
 
-    document
-      .getElementById("logoutBtn")
-      .addEventListener(
-        "click",
-        async () => {
+async function loadMessages() {
 
-          await supabaseClient.auth.signOut();
-
-          window.location.replace(
-            "./index.html"
-          );
-
-        }
-      );
-
-
-    /* =========================================
-       SEND MESSAGE
-       ========================================= */
-
-    const input =
-      document.getElementById(
-        "messageInput"
-      );
-
-    const sendButton =
-      document.getElementById(
-        "sendButton"
-      );
-
-    const messages =
-      document.getElementById(
-        "messages"
-      );
-
-
-    function sendMessage() {
-
-      const text =
-        input.value.trim();
-
-      if (!text) {
+    if (!currentUser || loadingMessages) {
         return;
-      }
-
-
-      const welcome =
-        document.querySelector(
-          ".welcome-message"
-        );
-
-      if (welcome) {
-        welcome.remove();
-      }
-
-
-      const message =
-        document.createElement(
-          "div"
-        );
-
-      message.className =
-        "message mine";
-
-      message.textContent =
-        text;
-
-
-      messages.appendChild(
-        message
-      );
-
-
-      input.value = "";
-
-
-      messages.scrollTop =
-        messages.scrollHeight;
-
     }
 
+    loadingMessages = true;
 
-    sendButton.addEventListener(
-      "click",
-      sendMessage
-    );
+    try {
+
+        const {
+            data,
+            error
+        } = await supabaseClient
+            .from("messages")
+            .select("id, sender_id, content, created_at")
+            .order("created_at", {
+                ascending: true
+            });
 
 
-    input.addEventListener(
-      "keydown",
-      function(event) {
+        if (error) {
 
-        if (event.key === "Enter") {
+            console.error(
+                "Message loading error:",
+                error
+            );
 
-          event.preventDefault();
+            loadingMessages = false;
 
-          sendMessage();
+            return;
+        }
+
+
+        /*
+         * Remove existing messages but keep
+         * the welcome screen temporarily.
+         */
+
+        messages.innerHTML = "";
+
+
+        if (!data || data.length === 0) {
+
+            messages.appendChild(
+                createWelcome()
+            );
+
+        } else {
+
+            data.forEach(message => {
+
+                addMessageToScreen(message);
+
+            });
 
         }
 
-      }
-    );
+
+        scrollToBottom();
+
+    } catch (err) {
+
+        console.error(err);
+
+    } finally {
+
+        loadingMessages = false;
+    }
+}
 
 
-    /* =========================================
-       START
-       ========================================= */
+/* =========================================================
+   WELCOME SCREEN
+========================================================= */
 
-    startChat();
+function createWelcome() {
 
-  </script>
+    const div =
+        document.createElement("div");
+
+    div.className = "welcome";
+
+    div.innerHTML = `
+        <h1>
+            Welcome to
+            <span>Sameer's ToTalk</span>
+        </h1>
+
+        <p>
+            You're signed in. This is Sameer's personal chat space.
+        </p>
+
+        <div class="welcome-line"></div>
+    `;
+
+    return div;
+}
+
+
+/* =========================================================
+   ADD MESSAGE TO SCREEN
+========================================================= */
+
+function addMessageToScreen(message) {
+
+    /*
+     * If welcome screen exists, remove it
+     * when the first message appears.
+     */
+
+    const existingWelcome =
+        messages.querySelector(".welcome");
+
+    if (existingWelcome) {
+        existingWelcome.remove();
+    }
+
+
+    const div =
+        document.createElement("div");
+
+
+    const mine =
+        message.sender_id === currentUser.id;
+
+
+    div.className =
+        mine
+            ? "message mine"
+            : "message other";
+
+
+    const text =
+        document.createElement("div");
+
+    text.textContent =
+        message.content;
+
+
+    const time =
+        document.createElement("span");
+
+    time.className =
+        "message-time";
+
+
+    const date =
+        new Date(message.created_at);
+
+
+    time.textContent =
+        date.toLocaleTimeString(
+            [],
+            {
+                hour: "numeric",
+                minute: "2-digit"
+            }
+        );
+
+
+    div.appendChild(text);
+    div.appendChild(time);
+
+    messages.appendChild(div);
+}
+
+
+/* =========================================================
+   SEND MESSAGE
+========================================================= */
+
+async function sendMessage() {
+
+    if (!currentUser) {
+        return;
+    }
+
+
+    const content =
+        messageInput.value.trim();
+
+
+    if (!content) {
+        return;
+    }
+
+
+    sendBtn.disabled = true;
+
+
+    try {
+
+        const {
+            data,
+            error
+        } = await supabaseClient
+            .from("messages")
+            .insert([
+                {
+                    sender_id:
+                        currentUser.id,
+
+                    content:
+                        content
+                }
+            ])
+            .select()
+            .single();
+
+
+        if (error) {
+
+            console.error(
+                "Send message error:",
+                error
+            );
+
+            alert(
+                "Message could not be sent. Please try again."
+            );
+
+            return;
+        }
+
+
+        messageInput.value = "";
+
+
+        if (data) {
+
+            addMessageToScreen(data);
+
+            scrollToBottom();
+
+        }
+
+    } catch (err) {
+
+        console.error(err);
+
+        alert(
+            "Message could not be sent."
+        );
+
+    } finally {
+
+        sendBtn.disabled = false;
+
+        messageInput.focus();
+    }
+}
+
+
+/* =========================================================
+   SEND BUTTON
+========================================================= */
+
+sendBtn.addEventListener(
+    "click",
+    sendMessage
+);
+
+
+/* =========================================================
+   ENTER TO SEND
+========================================================= */
+
+messageInput.addEventListener(
+    "keydown",
+    function(event) {
+
+        if (
+            event.key === "Enter" &&
+            !event.shiftKey
+        ) {
+
+            event.preventDefault();
+
+            sendMessage();
+        }
+    }
+);
+
+
+/* =========================================================
+   SCROLL
+========================================================= */
+
+function scrollToBottom() {
+
+    setTimeout(() => {
+
+        messages.scrollTop =
+            messages.scrollHeight;
+
+    }, 50);
+}
+
+
+/* =========================================================
+   LOGOUT
+========================================================= */
+
+logoutBtn.addEventListener(
+    "click",
+    async function() {
+
+        logoutBtn.disabled = true;
+
+        await supabaseClient.auth.signOut();
+
+        window.location.href =
+            "index.html";
+    }
+);
+
+
+/* =========================================================
+   GO HOME
+========================================================= */
+
+function goHome() {
+
+    window.location.href =
+        "index.html";
+}
+
+
+/* =========================================================
+   START
+========================================================= */
+
+checkLogin();
+
+</script>
 
 </body>
 </html>
