@@ -2143,6 +2143,25 @@
 
       }
 
+
+      /* PROFILE ONBOARDING */
+      .profile-overlay{position:fixed;inset:0;z-index:5000;display:none;align-items:center;justify-content:center;padding:20px;background:rgba(3,2,18,.88);backdrop-filter:blur(10px)}
+      .profile-overlay.open{display:flex}
+      .profile-modal{width:min(430px,100%);padding:28px;border:1px solid rgba(145,76,255,.35);border-radius:24px;background:linear-gradient(145deg,rgba(24,13,50,.98),rgba(8,7,25,.99));box-shadow:0 30px 90px rgba(0,0,0,.55)}
+      .profile-kicker{font-size:11px;letter-spacing:2px;font-weight:900;color:#b993ff;text-transform:uppercase;margin-bottom:9px}
+      .profile-modal h2{margin:0 0 8px;font-size:27px;color:#fff}
+      .profile-modal p{margin:0 0 20px;color:rgba(255,255,255,.68);font-size:13px;line-height:1.55}
+      .profile-label{display:block;margin:0 0 7px;font-size:12px;font-weight:800;color:rgba(255,255,255,.78)}
+      .profile-input{width:100%;height:48px;padding:0 14px;border-radius:13px;border:1px solid rgba(145,76,255,.3);background:rgba(5,4,18,.72);color:#fff;outline:none;font-size:14px;margin-bottom:16px}
+      .profile-input:focus{border-color:rgba(170,112,255,.8);box-shadow:0 0 0 3px rgba(145,76,255,.12)}
+      .profile-id-box{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:13px 14px;border-radius:13px;border:1px solid rgba(145,76,255,.24);background:rgba(70,31,130,.14);margin-bottom:18px}
+      .profile-id{font-weight:900;letter-spacing:1.2px;color:#fff;font-size:15px}
+      .profile-id-note{font-size:10px;color:rgba(255,255,255,.5);text-align:right;line-height:1.3}
+      .profile-create{width:100%;height:48px;border:0;border-radius:13px;background:linear-gradient(135deg,#7f42ff,#a86cff);color:#fff;font-weight:900;cursor:pointer}
+      .profile-create:disabled{opacity:.55;cursor:not-allowed}
+      .profile-error{min-height:18px;margin:-5px 0 10px;color:#ff9caa;font-size:12px}
+      @media(max-width:700px){.profile-modal{padding:23px;border-radius:20px}.profile-modal h2{font-size:23px}}
+
       /* Mobile Find Person bar */
       .mobile-find-strip{display:none;padding:8px 8px 0}
       .mobile-find-strip button{width:100%;height:42px;padding:0 14px;border:1px solid rgba(145,76,255,.34);border-radius:11px;background:linear-gradient(135deg,rgba(95,37,165,.24),rgba(27,12,59,.45));color:var(--white);display:flex;align-items:center;justify-content:center;gap:9px;font-size:12px;font-weight:900;cursor:pointer}
@@ -2569,6 +2588,25 @@
   </main>
 
 
+
+  <!-- PROFILE ONBOARDING -->
+  <div class="profile-overlay" id="profileOverlay" aria-hidden="true">
+    <div class="profile-modal" role="dialog" aria-modal="true" aria-labelledby="profileTitle">
+      <div class="profile-kicker">WELCOME TO TOTALK</div>
+      <h2 id="profileTitle">Create your ToTalk profile</h2>
+      <p>Choose the name people will see. Your ToTalk ID is generated automatically and can be shared with people so they can find you.</p>
+      <label class="profile-label" for="profileNameInput">Your name</label>
+      <input class="profile-input" id="profileNameInput" type="text" maxlength="40" autocomplete="name" placeholder="Enter your name">
+      <div class="profile-label">Your ToTalk ID</div>
+      <div class="profile-id-box">
+        <span class="profile-id" id="profileIdPreview">TT-XXXXXX</span>
+        <span class="profile-id-note">Generated automatically<br>Use this to be found</span>
+      </div>
+      <div class="profile-error" id="profileError" aria-live="polite"></div>
+      <button class="profile-create" id="profileCreateBtn" type="button">Create Profile</button>
+    </div>
+  </div>
+
   <!-- FIND PERSON -->
 
   <div class="find-person-overlay" id="findPersonOverlay" aria-hidden="true">
@@ -2697,6 +2735,11 @@
     const sideAvatar = document.getElementById("sideAvatar");
     const chatAvatar = document.getElementById("chatAvatar");
     const chatTitle = document.getElementById("chatTitle");
+    const profileOverlay = document.getElementById("profileOverlay");
+    const profileNameInput = document.getElementById("profileNameInput");
+    const profileIdPreview = document.getElementById("profileIdPreview");
+    const profileCreateBtn = document.getElementById("profileCreateBtn");
+    const profileError = document.getElementById("profileError");
 
     const typingIndicator =
       document.getElementById(
@@ -2865,6 +2908,58 @@
 
     }
 
+
+    /* ======================================
+       PROFILE ONBOARDING
+    ====================================== */
+    function makeTotalkId(){const chars="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";let out="TT-";for(let i=0;i<6;i++)out+=chars[Math.floor(Math.random()*chars.length)];return out;}
+    let profileIdCandidate=makeTotalkId();
+    profileIdPreview.textContent=profileIdCandidate;
+    function openProfileMaker(){profileIdCandidate=makeTotalkId();profileIdPreview.textContent=profileIdCandidate;profileError.textContent="";profileCreateBtn.disabled=false;profileOverlay.classList.add("open");profileOverlay.setAttribute("aria-hidden","false");setTimeout(()=>profileNameInput.focus(),60);}
+    function closeProfileMaker(){profileOverlay.classList.remove("open");profileOverlay.setAttribute("aria-hidden","true");}
+    async function ensureProfile(){
+      if(!currentUser)return false;
+      try{
+        const {data,error}=await supabaseClient.from("profiles").select("id,user_id,name,avatar_url,totalk_id").eq("user_id",currentUser.id).maybeSingle();
+        if(error)throw error;
+        if(data?.name?.trim() && data?.totalk_id){showUser({...currentUser,user_metadata:{...(currentUser.user_metadata||{}),full_name:data.name,name:data.name}});return true;}
+        openProfileMaker();
+        return false;
+      }catch(error){
+        console.error("Profile check error:",error);
+        profileError.textContent="We couldn't check your profile yet. Please try again.";
+        openProfileMaker();
+        return false;
+      }
+    }
+    async function createProfile(){
+      const name=(profileNameInput.value||"").trim();
+      if(name.length<2){profileError.textContent="Please enter a name with at least 2 characters.";profileNameInput.focus();return;}
+      profileCreateBtn.disabled=true;profileCreateBtn.textContent="Creating...";profileError.textContent="";
+      try{
+        for(let attempt=0;attempt<5;attempt++){
+          const candidate=attempt===0?profileIdCandidate:makeTotalkId();
+          const {data:existing,error:checkError}=await supabaseClient.from("profiles").select("id").eq("totalk_id",candidate).maybeSingle();
+          if(checkError)throw checkError;
+          if(existing)continue;
+          const {data,error}=await supabaseClient.from("profiles").upsert({user_id:currentUser.id,name,totalk_id:candidate},{onConflict:"user_id"}).select("id,user_id,name,avatar_url,totalk_id").single();
+          if(error)throw error;
+          profileIdCandidate=candidate;
+          showUser({...currentUser,user_metadata:{...(currentUser.user_metadata||{}),full_name:name,name}});
+          closeProfileMaker();
+          profileCreateBtn.textContent="Create Profile";
+          return true;
+        }
+        throw new Error("Could not generate a unique ToTalk ID.");
+      }catch(error){
+        console.error("Create profile error:",error);
+        profileError.textContent=error?.message||"Profile could not be created. Please try again.";
+        profileCreateBtn.disabled=false;profileCreateBtn.textContent="Create Profile";
+        return false;
+      }
+    }
+    profileCreateBtn.addEventListener("click",createProfile);
+    profileNameInput.addEventListener("keydown",event=>{if(event.key==="Enter")createProfile();});
 
     /* ======================================
        PRIVATE CONVERSATIONS / FIND PERSON
@@ -4793,6 +4888,13 @@
         authReady = true;
         showUser(session.user);
 
+        /* First-time users complete their ToTalk identity before entering chat. */
+        const profileReady = await ensureProfile();
+        if (!profileReady) {
+          finishLoading();
+          return;
+        }
+
         /* Restore the last person, but keep the page alive if this
            optional step has a temporary network/realtime problem. */
         try {
@@ -5036,7 +5138,6 @@
           if (session?.user) {
             currentUser = session.user;
             authReady = true;
-            showUser(session.user);
           }
 
         }
