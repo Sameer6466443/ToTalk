@@ -1133,15 +1133,6 @@
       bottom: auto;
     }
 
-    /* When there is not enough vertical room, place the menu beside the
-       message instead of covering the next message. */
-    .message-menu.menu-side-left {
-      right: calc(100% + 8px);
-      left: auto;
-      top: 0;
-      bottom: auto;
-    }
-
     .message-menu button {
       width: 100%;
       border: 0;
@@ -3008,40 +2999,11 @@
     }
 
     function placeMessageMenu(messageElement, menu) {
-      // Keep the existing design. The menu opens above when possible.
-      // If the message is too close to the header, place the menu beside
-      // the bubble so it never covers the message below it.
-      menu.classList.remove("menu-down", "menu-side-left");
-
+      menu.classList.remove("menu-down");
       const messageRect = messageElement.getBoundingClientRect();
       const menuHeight = menu.offsetHeight || 90;
-      const menuWidth = menu.offsetWidth || 110;
-      const gap = 8;
-      const chatTop = document.querySelector(".chat-top");
-      const inputArea = document.querySelector(".input-area");
-      const headerBottom = chatTop
-        ? chatTop.getBoundingClientRect().bottom
-        : 0;
-      const inputTop = inputArea
-        ? inputArea.getBoundingClientRect().top
-        : window.innerHeight;
-
-      const spaceAbove = messageRect.top - headerBottom - gap;
-      const spaceBelow = inputTop - messageRect.bottom - gap;
-      const spaceLeft = messageRect.left - gap;
-
-      // Best position: above the message.
-      if (spaceAbove >= menuHeight) return;
-
-      // If above is blocked, move the menu to the left of the bubble.
-      // This is especially clean for the right-aligned messages on mobile.
-      if (spaceLeft >= menuWidth) {
-        menu.classList.add("menu-side-left");
-        return;
-      }
-
-      // Last fallback: below the message.
-      if (spaceBelow >= menuHeight) {
+      const topSpace = messageRect.top - 8;
+      if (topSpace < menuHeight) {
         menu.classList.add("menu-down");
       }
     }
@@ -3181,66 +3143,71 @@
     }
 
     async function toggleReaction(messageId, reaction, messageElement) {
-      if (!messageId || !currentUser) return;
-      messageElement._lastSelectedReaction = reaction;
+      if (!messageId || !currentUser || !messageElement) return;
 
-      // If the user taps the same reaction again, remove it.
-      const existingResult = await supabaseClient
-        .from("message_reactions")
-        .select("id, reaction")
-        .eq("message_id", messageId)
-        .eq("user_id", currentUser.id);
+      // Optimistic UI: update the reaction immediately, without waiting for Supabase.
+      const current = Array.isArray(messageElement._reactionData)
+        ? messageElement._reactionData.map(item => ({ ...item }))
+        : [];
 
-      if (existingResult.error) {
-        console.error("Reaction lookup error:", existingResult.error);
-        showStatus("Reaction could not be changed.");
-        return;
-      }
-
-      const existing = existingResult.data && existingResult.data[0];
+      const myIndex = current.findIndex(item => item.user_id === currentUser.id);
+      const existing = myIndex >= 0 ? current[myIndex] : null;
 
       if (existing && existing.reaction === reaction) {
-        const removeResult = await supabaseClient
-          .from("message_reactions")
-          .delete()
-          .eq("message_id", messageId)
-          .eq("user_id", currentUser.id);
-
-        if (removeResult.error) {
-          console.error("Reaction delete error:", removeResult.error);
-          showStatus("Reaction could not be changed.");
-          return;
-        }
+        current.splice(myIndex, 1);
       } else {
-        // Different reaction: remove the old one first, then save the new one.
-        const removeResult = await supabaseClient
-          .from("message_reactions")
-          .delete()
-          .eq("message_id", messageId)
-          .eq("user_id", currentUser.id);
-
-        if (removeResult.error) {
-          console.error("Reaction delete error:", removeResult.error);
-          showStatus("Reaction could not be changed.");
-          return;
-        }
-
-        const insertResult = await supabaseClient
-          .from("message_reactions")
-          .insert({
-            message_id: messageId,
-            user_id: currentUser.id,
-            reaction: reaction
-          });
-
-        if (insertResult.error) {
-          console.error("Reaction insert error:", insertResult.error);
-          showStatus("Reaction could not be changed.");
-          return;
-        }
+        if (myIndex >= 0) current.splice(myIndex, 1);
+        current.push({
+          user_id: currentUser.id,
+          reaction: reaction
+        });
       }
 
-      await refreshReactionForMessage(messageId);
+      messageElement._reactionData = current;
+      messageElement._lastSelectedReaction = reaction;
+      renderReactionSummary(messageId, current);
+
+      // Protect against very fast repeated taps finishing out of order.
+      const requestId = (messageElement._reactionRequestId || 0) + 1;
+      messageElement._reactionRequestId = requestId;
+
+      // Save in the background. The screen does not wait for the network.
+      try {
+        const removeResult = await supabaseClient
+          .from("message_reactions")
+          .delete()
+          .eq("message_id", messageId)
+          .eq("user_id", currentUser.id);
+
+        if (removeResult.error) throw removeResult.error;
+
+        // If the user tapped again while this request was saving, do not write
+        // this older selection over the newer one.
+        if (messageElement._reactionRequestId !== requestId) return;
+
+        if (!(existing && existing.reaction === reaction)) {
+          const insertResult = await supabaseClient
+            .from("message_reactions")
+            .insert({
+              message_id: messageId,
+              user_id: currentUser.id,
+              reaction: reaction
+            });
+
+          if (insertResult.error) throw insertResult.error;
+        }
+
+        if (messageElement._reactionRequestId === requestId) {
+          await refreshReactionForMessage(messageId);
+        }
+      } catch (error) {
+        console.error("Reaction save error:", error);
+        // Restore the authoritative database state if the save fails.
+        if (messageElement._reactionRequestId === requestId) {
+          await refreshReactionForMessage(messageId);
+          showStatus("Reaction could not be changed.");
+        }
+      }
     }
 
     async function refreshReactionForMessage(messageId) {
@@ -3256,8 +3223,9 @@
         return;
       }
 
-      renderReactionSummary(messageId, data || []);
       const messageElement = document.querySelector(`[data-message-id="${messageId}"]`);
+      if (messageElement) messageElement._reactionData = (data || []).map(item => ({ ...item }));
+      renderReactionSummary(messageId, data || []);
       if (messageElement) {
         window.setTimeout(() => { messageElement._lastSelectedReaction = null; }, 320);
       }
@@ -3315,6 +3283,7 @@
 
       document.querySelectorAll("[data-message-id]").forEach((messageElement) => {
         const id = messageElement.dataset.messageId;
+        messageElement._reactionData = (grouped[id] || []).map(item => ({ ...item }));
         renderReactionSummary(id, grouped[id] || []);
       });
     }
