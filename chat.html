@@ -2999,11 +2999,28 @@
     }
 
     function placeMessageMenu(messageElement, menu) {
+      // Keep the existing design, but never let the message menu overlap
+      // the chat header/search controls. If there is not enough room above
+      // the message, open the menu downward instead.
       menu.classList.remove("menu-down");
+
       const messageRect = messageElement.getBoundingClientRect();
       const menuHeight = menu.offsetHeight || 90;
-      const topSpace = messageRect.top - 8;
-      if (topSpace < menuHeight) {
+      const gap = 8;
+      const chatTop = document.querySelector(".chat-top");
+      const inputArea = document.querySelector(".input-area");
+      const headerBottom = chatTop
+        ? chatTop.getBoundingClientRect().bottom
+        : 0;
+      const inputTop = inputArea
+        ? inputArea.getBoundingClientRect().top
+        : window.innerHeight;
+
+      const spaceAbove = messageRect.top - headerBottom - gap;
+      const spaceBelow = inputTop - messageRect.bottom - gap;
+
+      // Prefer above, unless it would enter the fixed chat header area.
+      if (spaceAbove < menuHeight && spaceBelow >= menuHeight) {
         menu.classList.add("menu-down");
       }
     }
