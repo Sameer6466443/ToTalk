@@ -646,137 +646,54 @@
        MESSAGE SEARCH
     ====================================== */
 
-
-    .chat-search-row {
-      flex: 0 0 auto;
-      padding: 8px 12px;
-      background: rgba(5,3,15,.96);
-      border-bottom: 1px solid rgba(145,76,255,.18);
-    }
-
-    .chat-search-row .message-search-bar {
-      width: 100%;
-      max-width: none;
-      margin: 0;
-      box-sizing: border-box;
-      height: 38px;
-      background: rgba(18,11,38,.78);
-    }
-
-    .message-search-bar {
+    .message-search-toggle {
       margin-left: auto;
-      width: min(260px, 34vw);
-      height: 36px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 0 10px;
-      border: 1px solid rgba(181,143,255,.28);
-      border-radius: 12px;
-      background: rgba(255,255,255,.055);
-      box-shadow: inset 0 0 18px rgba(98,38,190,.08);
-      transition: border-color .2s ease, box-shadow .2s ease, transform .2s ease;
+      width: 34px; height: 34px; flex: 0 0 34px;
+      border: 1px solid rgba(181,143,255,.22); border-radius: 50%;
+      background: rgba(255,255,255,.045); cursor: pointer; position: relative;
+      display:flex; align-items:center; justify-content:center;
+      transition: transform .2s ease, background .2s ease, border-color .2s ease;
     }
-
-    .message-search-bar:focus-within {
-      border-color: rgba(181,143,255,.58);
-      box-shadow: 0 0 20px rgba(145,76,255,.16), inset 0 0 18px rgba(98,38,190,.1);
-      transform: translateY(-1px);
+    .message-search-toggle:hover,.message-search-toggle:focus-visible {
+      transform:translateY(-1px); background:rgba(145,76,255,.14);
+      border-color:rgba(181,143,255,.5); outline:none;
     }
-
-    .search-glass {
-      width: 13px;
-      height: 13px;
-      flex: 0 0 13px;
-      border: 1.7px solid rgba(255,255,255,.72);
-      border-radius: 50%;
-      position: relative;
-      opacity: .9;
+    .message-search-toggle .search-glass {
+      width:12px;height:12px;border:1.7px solid rgba(255,255,255,.82);
+      border-radius:50%;position:relative;opacity:.95;
     }
-
-    .search-glass::after {
-      content: "";
-      position: absolute;
-      width: 6px;
-      height: 1.7px;
-      background: rgba(255,255,255,.72);
-      right: -5px;
-      bottom: -2px;
-      transform: rotate(45deg);
-      border-radius: 2px;
+    .message-search-toggle .search-glass::after {
+      content:"";position:absolute;width:5px;height:1.7px;
+      background:rgba(255,255,255,.82);right:-4px;bottom:-2px;
+      transform:rotate(45deg);border-radius:2px;
     }
-
-    .message-search-input {
-      min-width: 0;
-      width: 100%;
-      height: 32px;
-      padding: 0;
-      border: 0;
-      background: transparent;
-      color: #fff;
-      outline: none;
-      font: inherit;
-      font-size: 11px;
+    .chat-search-popover {
+      position:absolute; top:68px; right:14px; z-index:80;
+      width:min(270px,calc(100% - 28px)); padding:7px;
+      border:1px solid rgba(165,102,255,.34); border-radius:13px;
+      background:rgba(10,6,25,.97);
+      box-shadow:0 12px 35px rgba(0,0,0,.45),0 0 25px rgba(125,55,220,.18);
+      backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px);
+      opacity:0; transform:translateY(-7px) scale(.98); pointer-events:none;
+      transition:opacity .2s ease,transform .2s cubic-bezier(.2,.75,.25,1);
     }
-
-    .message-search-input::placeholder {
-      color: rgba(255,255,255,.48);
+    .chat-search-popover.open { opacity:1; transform:translateY(0) scale(1); pointer-events:auto; }
+    .message-search-bar {
+      width:100%;height:34px;display:flex;align-items:center;gap:7px;padding:0 8px;box-sizing:border-box;
+      border:1px solid rgba(181,143,255,.24);border-radius:9px;background:rgba(255,255,255,.045);
     }
-
-    .search-count {
-      min-width: 42px;
-      text-align: right;
-      color: rgba(255,255,255,.55);
-      font-size: 9px;
-      white-space: nowrap;
-    }
-
-    .search-nav-btn {
-      width: 24px;
-      height: 24px;
-      flex: 0 0 24px;
-      border: 1px solid rgba(181,143,255,.2);
-      border-radius: 7px;
-      background: rgba(255,255,255,.045);
-      color: rgba(255,255,255,.78);
-      cursor: pointer;
-      font-size: 10px;
-      transition: background .18s, transform .18s;
-    }
-
-    .search-nav-btn:hover {
-      background: rgba(145,76,255,.15);
-      transform: translateY(-1px);
-    }
-
-    .search-hit {
-      background: rgba(255,227,79,.28);
-      color: #fff;
-      border-radius: 3px;
-      padding: 0 2px;
-      box-shadow: 0 0 9px rgba(255,227,79,.12);
-    }
-
-    .message.search-active {
-      border-color: rgba(181,143,255,.72);
-      box-shadow: 0 0 24px rgba(145,76,255,.24);
-    }
-
-    @media (max-width: 650px) {
-      .chat-search-row {
-        padding: 7px 9px;
-      }
-      .chat-search-row .message-search-bar {
-        height: 36px;
-      }
-      .search-count {
-        min-width: 34px;
-      }
-      .search-nav-btn {
-        width: 23px;
-        height: 23px;
-        flex-basis: 23px;
-      }
+    .message-search-input { min-width:0;flex:1;height:30px;padding:0;border:0;background:transparent;color:#fff;outline:none;font:inherit;font-size:11px; }
+    .message-search-input::placeholder { color:rgba(255,255,255,.46); }
+    .search-count { min-width:30px;text-align:center;color:rgba(255,255,255,.52);font-size:9px;white-space:nowrap; }
+    .search-nav-btn { width:23px;height:23px;flex:0 0 23px;border:1px solid rgba(181,143,255,.2);border-radius:7px;background:rgba(255,255,255,.045);color:rgba(255,255,255,.78);cursor:pointer;font-size:10px;transition:background .18s,transform .18s; }
+    .search-nav-btn:hover { background:rgba(145,76,255,.15);transform:translateY(-1px); }
+    .search-close-btn { width:23px;height:23px;flex:0 0 23px;border:0;border-radius:7px;background:transparent;color:rgba(255,255,255,.5);cursor:pointer;font-size:15px;line-height:1; }
+    .search-hit { background:rgba(255,227,79,.28);color:#fff;border-radius:3px;padding:0 2px;box-shadow:0 0 9px rgba(255,227,79,.12); }
+    .message.search-active { border-color:rgba(181,143,255,.72);box-shadow:0 0 24px rgba(145,76,255,.24); }
+    .message.is-editing .message-menu-wrap { display:none !important; }
+    @media (max-width:650px) {
+      .message-search-toggle { width:32px;height:32px;flex-basis:32px; }
+      .chat-search-popover { top:62px;right:9px;width:min(270px,calc(100% - 18px)); }
     }
 
 
@@ -2224,14 +2141,17 @@
 
       </div>
 
-      <!-- MESSAGE SEARCH -->
-      <div class="chat-search-row" id="messageSearchBar">
+      <button class="message-search-toggle" id="messageSearchToggle" type="button" aria-label="Search messages" aria-expanded="false">
+        <span class="search-glass" aria-hidden="true"></span>
+      </button>
+
+      <div class="chat-search-popover" id="messageSearchBar" aria-hidden="true">
         <div class="message-search-bar">
-          <span class="search-glass" aria-hidden="true"></span>
           <input class="message-search-input" id="messageSearchInput" type="search" placeholder="Search messages..." autocomplete="off" maxlength="100" aria-label="Search messages">
           <span class="search-count" id="searchCount">0</span>
           <button class="search-nav-btn" id="searchPrev" type="button" aria-label="Previous result">↑</button>
           <button class="search-nav-btn" id="searchNext" type="button" aria-label="Next result">↓</button>
+          <button class="search-close-btn" id="searchClose" type="button" aria-label="Close search">×</button>
         </div>
       </div>
 
@@ -2568,12 +2488,26 @@
       });
     }
 
+    let activeEditCleanup = null;
+
     function closeOtherEditors(exceptMessage = null) {
-      document.querySelectorAll(".edit-message-area").forEach((editor) => {
-        const message = editor.closest(".message");
-        if (message && message !== exceptMessage) {
-          const cancel = message.querySelector(".message-actions .message-action-btn:last-child");
-          if (cancel) cancel.click();
+      if (activeEditCleanup) {
+        const current = document.querySelector(".message.is-editing");
+        if (!exceptMessage || current !== exceptMessage) {
+          const cleanup = activeEditCleanup;
+          activeEditCleanup = null;
+          cleanup();
+        }
+      }
+      document.querySelectorAll(".message.is-editing").forEach((message) => {
+        if (message !== exceptMessage) {
+          const editor = message.querySelector(".edit-message-area");
+          const text = message.querySelector(".message-text");
+          const actions = message.querySelector(".message-actions");
+          if (editor) editor.remove();
+          if (actions) actions.remove();
+          if (text) text.style.display = "";
+          message.classList.remove("is-editing");
         }
       });
     }
@@ -2825,10 +2759,13 @@
        MESSAGE SEARCH
     ====================================== */
 
+    const messageSearchToggle = document.getElementById("messageSearchToggle");
+    const messageSearchBar = document.getElementById("messageSearchBar");
     const messageSearchInput = document.getElementById("messageSearchInput");
     const searchCount = document.getElementById("searchCount");
     const searchPrev = document.getElementById("searchPrev");
     const searchNext = document.getElementById("searchNext");
+    const searchClose = document.getElementById("searchClose");
     let searchMatches = [];
     let searchIndex = -1;
 
@@ -2845,48 +2782,33 @@
     }
 
     function runMessageSearch() {
-      clearSearchHighlights();
-      searchMatches = [];
-      searchIndex = -1;
-
+      clearSearchHighlights(); searchMatches = []; searchIndex = -1;
       const query = messageSearchInput.value.trim();
-      if (!query) {
-        searchCount.textContent = "0";
-        return;
-      }
-
+      if (!query) { searchCount.textContent = "0"; return; }
       const regex = new RegExp(escapeSearchRegex(query), "gi");
       document.querySelectorAll("#messages .message").forEach(messageEl => {
+        if (messageEl.classList.contains("is-editing")) return;
         const textEl = messageEl.querySelector(".message-text");
-        if (!textEl || textEl.querySelector("textarea")) return;
+        if (!textEl) return;
         const original = textEl.textContent || "";
         if (!regex.test(original)) return;
         regex.lastIndex = 0;
         textEl.dataset.searchOriginal = original;
         const fragment = document.createDocumentFragment();
-        let last = 0;
-        let match;
+        let last = 0, match;
         while ((match = regex.exec(original)) !== null) {
           fragment.appendChild(document.createTextNode(original.slice(last, match.index)));
           const mark = document.createElement("mark");
-          mark.className = "search-hit";
-          mark.textContent = match[0];
+          mark.className = "search-hit"; mark.textContent = match[0];
           fragment.appendChild(mark);
           last = match.index + match[0].length;
         }
         fragment.appendChild(document.createTextNode(original.slice(last)));
-        textEl.textContent = "";
-        textEl.appendChild(fragment);
+        textEl.replaceChildren(fragment);
         searchMatches.push(messageEl);
       });
-
-      if (!searchMatches.length) {
-        searchCount.textContent = "No results";
-        return;
-      }
-
-      searchIndex = 0;
-      focusSearchResult();
+      if (!searchMatches.length) { searchCount.textContent = "0"; return; }
+      searchIndex = 0; focusSearchResult();
     }
 
     function focusSearchResult() {
@@ -2894,34 +2816,39 @@
       if (searchIndex < 0 || searchIndex >= searchMatches.length) return;
       const target = searchMatches[searchIndex];
       target.classList.add("search-active");
-      target.scrollIntoView({ behavior: "smooth", block: "center" });
+      target.scrollIntoView({behavior:"smooth", block:"center"});
       searchCount.textContent = `${searchIndex + 1}/${searchMatches.length}`;
     }
 
+    function openMessageSearch() {
+      messageSearchBar.classList.add("open");
+      messageSearchBar.setAttribute("aria-hidden", "false");
+      messageSearchToggle.setAttribute("aria-expanded", "true");
+      messageSearchInput.focus();
+    }
+
+    function closeMessageSearch() {
+      messageSearchBar.classList.remove("open");
+      messageSearchBar.setAttribute("aria-hidden", "true");
+      messageSearchToggle.setAttribute("aria-expanded", "false");
+      messageSearchInput.value = "";
+      clearSearchHighlights(); searchMatches = []; searchIndex = -1; searchCount.textContent = "0";
+    }
+
+    messageSearchToggle.addEventListener("click", (event) => {
+      event.stopPropagation();
+      messageSearchBar.classList.contains("open") ? closeMessageSearch() : openMessageSearch();
+    });
+    searchClose.addEventListener("click", closeMessageSearch);
     messageSearchInput.addEventListener("input", runMessageSearch);
     messageSearchInput.addEventListener("keydown", event => {
-      if (event.key === "Enter" && searchMatches.length) {
-        event.shiftKey ? searchPrev.click() : searchNext.click();
-      }
-      if (event.key === "Escape") {
-        messageSearchInput.value = "";
-        clearSearchHighlights();
-        searchMatches = [];
-        searchIndex = -1;
-        searchCount.textContent = "0";
-      }
+      if (event.key === "Enter" && searchMatches.length) { event.preventDefault(); event.shiftKey ? searchPrev.click() : searchNext.click(); }
+      if (event.key === "Escape") closeMessageSearch();
     });
-
-    searchNext.addEventListener("click", () => {
-      if (!searchMatches.length) return;
-      searchIndex = (searchIndex + 1) % searchMatches.length;
-      focusSearchResult();
-    });
-
-    searchPrev.addEventListener("click", () => {
-      if (!searchMatches.length) return;
-      searchIndex = (searchIndex - 1 + searchMatches.length) % searchMatches.length;
-      focusSearchResult();
+    searchNext.addEventListener("click", () => { if (searchMatches.length) { searchIndex=(searchIndex+1)%searchMatches.length; focusSearchResult(); } });
+    searchPrev.addEventListener("click", () => { if (searchMatches.length) { searchIndex=(searchIndex-1+searchMatches.length)%searchMatches.length; focusSearchResult(); } });
+    document.addEventListener("click", event => {
+      if (messageSearchBar.classList.contains("open") && !event.target.closest(".chat-search-popover") && !event.target.closest("#messageSearchToggle")) closeMessageSearch();
     });
 
 
@@ -3159,22 +3086,19 @@
 
     async function editMessage(messageId, messageElement, textElement) {
       if (!messageId || !currentUser || !textElement) return;
-      if (messageElement.querySelector(".edit-message-area")) return;
+      if (messageElement.classList.contains("is-editing")) return;
+
       closeOtherEditors(messageElement);
       closeAllMessageMenus();
 
       const menuWrap = messageElement.querySelector(".message-menu-wrap");
+      const originalContent = textElement.textContent || "";
 
       const editor = document.createElement("textarea");
       editor.className = "edit-message-area";
-      const originalContent = textElement.textContent;
       editor.value = originalContent;
       editor.maxLength = 5000;
-
-      textElement.replaceWith(editor);
-      if (menuWrap) menuWrap.style.display = "none";
-      editor.focus();
-      editor.setSelectionRange(editor.value.length, editor.value.length);
+      editor.setAttribute("aria-label", "Edit message");
 
       const saveRow = document.createElement("div");
       saveRow.className = "message-actions";
@@ -3189,23 +3113,33 @@
       cancelButton.type = "button";
       cancelButton.textContent = "Cancel";
 
-      saveRow.appendChild(saveButton);
-      saveRow.appendChild(cancelButton);
-      messageElement.appendChild(saveRow);
+      saveRow.append(saveButton, cancelButton);
+      textElement.style.display = "none";
+      messageElement.insertBefore(editor, textElement.nextSibling);
+      messageElement.insertBefore(saveRow, editor.nextSibling);
+      messageElement.classList.add("is-editing");
+      if (menuWrap) menuWrap.style.display = "none";
+
+      const cleanup = () => {
+        if (!messageElement.isConnected) return;
+        editor.remove();
+        saveRow.remove();
+        textElement.style.display = "";
+        messageElement.classList.remove("is-editing");
+        if (menuWrap) menuWrap.style.display = "";
+      };
+      activeEditCleanup = cleanup;
 
       const cancelEdit = () => {
-        editor.replaceWith(textElement);
-        saveRow.remove();
-        if (menuWrap) menuWrap.style.display = "block";
+        if (activeEditCleanup === cleanup) activeEditCleanup = null;
+        cleanup();
       };
-
       cancelButton.addEventListener("click", cancelEdit);
 
       saveButton.addEventListener("click", async () => {
         const newContent = editor.value.trim();
         if (!newContent) { showStatus("Message cannot be empty."); editor.focus(); return; }
         if (newContent === originalContent) { cancelEdit(); return; }
-
         saveButton.disabled = true;
         cancelButton.disabled = true;
         saveButton.textContent = "Saving...";
@@ -3220,48 +3154,27 @@
 
         if (error) {
           console.error("Edit message error:", error);
-          saveButton.disabled = false;
-          cancelButton.disabled = false;
-          saveButton.textContent = "Save";
-          showStatus("Message could not be edited.");
-          return;
+          saveButton.disabled = false; cancelButton.disabled = false; saveButton.textContent = "Save";
+          showStatus("Message could not be edited."); return;
         }
 
         textElement.textContent = data.content;
-
-        const timeElement =
-          messageElement.querySelector(".message-time");
-
+        const timeElement = messageElement.querySelector(".message-time");
         if (timeElement) {
-          const editedDate =
-            data.created_at
-              ? new Date(data.created_at)
-              : null;
-
-          const editedTimeText =
-            editedDate
-              ? editedDate.toLocaleTimeString(
-                  [],
-                  {
-                    hour: "2-digit",
-                    minute: "2-digit"
-                  }
-                )
-              : timeElement.textContent.split(" · ")[0];
-
-          timeElement.textContent =
-            editedTimeText + " · edited";
+          const date = data.created_at ? new Date(data.created_at) : null;
+          const timeText = date ? date.toLocaleTimeString([], {hour:"2-digit", minute:"2-digit"}) : timeElement.textContent.split(" · ")[0];
+          timeElement.textContent = data.edited_at ? timeText + " · edited" : timeText;
         }
-
-        editor.replaceWith(textElement);
-        saveRow.remove();
-        if (menuWrap) menuWrap.style.display = "block";
+        cancelEdit();
       });
 
       editor.addEventListener("keydown", (event) => {
         if (event.key === "Escape") { event.preventDefault(); cancelEdit(); }
         if ((event.ctrlKey || event.metaKey) && event.key === "Enter") { event.preventDefault(); saveButton.click(); }
       });
+
+      editor.focus();
+      editor.setSelectionRange(editor.value.length, editor.value.length);
     }
 
 
