@@ -1133,6 +1133,15 @@
       bottom: auto;
     }
 
+    /* When there is not enough vertical room, place the menu beside the
+       message instead of covering the next message. */
+    .message-menu.menu-side-left {
+      right: calc(100% + 8px);
+      left: auto;
+      top: 0;
+      bottom: auto;
+    }
+
     .message-menu button {
       width: 100%;
       border: 0;
@@ -2999,13 +3008,14 @@
     }
 
     function placeMessageMenu(messageElement, menu) {
-      // Keep the existing design, but never let the message menu overlap
-      // the chat header/search controls. If there is not enough room above
-      // the message, open the menu downward instead.
-      menu.classList.remove("menu-down");
+      // Keep the existing design. The menu opens above when possible.
+      // If the message is too close to the header, place the menu beside
+      // the bubble so it never covers the message below it.
+      menu.classList.remove("menu-down", "menu-side-left");
 
       const messageRect = messageElement.getBoundingClientRect();
       const menuHeight = menu.offsetHeight || 90;
+      const menuWidth = menu.offsetWidth || 110;
       const gap = 8;
       const chatTop = document.querySelector(".chat-top");
       const inputArea = document.querySelector(".input-area");
@@ -3018,9 +3028,20 @@
 
       const spaceAbove = messageRect.top - headerBottom - gap;
       const spaceBelow = inputTop - messageRect.bottom - gap;
+      const spaceLeft = messageRect.left - gap;
 
-      // Prefer above, unless it would enter the fixed chat header area.
-      if (spaceAbove < menuHeight && spaceBelow >= menuHeight) {
+      // Best position: above the message.
+      if (spaceAbove >= menuHeight) return;
+
+      // If above is blocked, move the menu to the left of the bubble.
+      // This is especially clean for the right-aligned messages on mobile.
+      if (spaceLeft >= menuWidth) {
+        menu.classList.add("menu-side-left");
+        return;
+      }
+
+      // Last fallback: below the message.
+      if (spaceBelow >= menuHeight) {
         menu.classList.add("menu-down");
       }
     }
