@@ -1070,7 +1070,8 @@
       position: absolute;
       top: 7px;
       right: 7px;
-      z-index: 200;
+      z-index: 900;
+      display: block;
     }
 
     .message-menu-btn {
@@ -1113,6 +1114,7 @@
 
     .message-menu.open {
       display: block;
+      z-index: 1000;
     }
 
     .message-menu button {
@@ -1145,6 +1147,20 @@
       color: #ffd6df;
     }
 
+
+    .message:not(.mine) .message-menu-wrap {
+      opacity: .72;
+    }
+
+    .message:not(.mine) .message-menu-btn {
+      background: rgba(255,255,255,.07);
+    }
+
+    .message:not(.mine) .message-menu-btn:hover,
+    .message:not(.mine) .message-menu-btn:focus-visible {
+      opacity: 1;
+      background: rgba(145,76,255,.20);
+    }
 
     .message.mine {
       align-self: flex-end;
@@ -1244,7 +1260,7 @@
       position: absolute;
       right: 8px;
       top: 34px;
-      z-index: 50;
+      z-index: 950;
       display: flex;
       align-items: center;
       gap: 2px;
