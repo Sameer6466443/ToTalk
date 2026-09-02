@@ -2143,7 +2143,13 @@
 
       }
 
-      .mobile-find-person-btn{display:flex}
+      /* Mobile Find Person bar */
+      .mobile-find-strip{display:none;padding:8px 8px 0}
+      .mobile-find-strip button{width:100%;height:42px;padding:0 14px;border:1px solid rgba(145,76,255,.34);border-radius:11px;background:linear-gradient(135deg,rgba(95,37,165,.24),rgba(27,12,59,.45));color:var(--white);display:flex;align-items:center;justify-content:center;gap:9px;font-size:12px;font-weight:900;cursor:pointer}
+      .mobile-find-strip .find-person-icon{width:14px;height:14px;flex:0 0 14px;border-width:2px}
+      .mobile-find-strip .find-person-icon:after{width:7px;height:2px;right:-6px;bottom:-3px}
+      .mobile-find-person-btn{display:none}
+      .mobile-find-strip{display:block}
 
 
       .moon {
@@ -2469,6 +2475,13 @@
 
       <!-- SPACE -->
 
+      <div class="mobile-find-strip">
+        <button id="mobileFindPersonBar" type="button" aria-label="Find Person">
+          <span class="find-person-icon" aria-hidden="true"></span>
+          <span>Find Person</span>
+        </button>
+      </div>
+
       <div class="space">
 
 
@@ -2674,6 +2687,7 @@
 
     const findPersonBtn = document.getElementById("findPersonBtn");
     const mobileFindPersonBtn = document.getElementById("mobileFindPersonBtn");
+    const mobileFindPersonBar = document.getElementById("mobileFindPersonBar");
     const findPersonOverlay = document.getElementById("findPersonOverlay");
     const findPersonClose = document.getElementById("findPersonClose");
     const findPersonInput = document.getElementById("findPersonInput");
@@ -2860,7 +2874,15 @@
     function closeFindPerson(){findPersonOverlay.classList.remove("open");findPersonOverlay.setAttribute("aria-hidden","true");}
     function showSelectedPerson(profile){currentChatPerson=profile;const name=profile.name||"ToTalk User";const initial=initials(name);sideAvatar.textContent=initial;chatAvatar.textContent=initial;sideName.textContent=name;chatTitle.textContent=name+"'s ToTalk";selectedPersonCard.hidden=false;messageInput.disabled=false;sendButton.disabled=false;messageInput.placeholder="Write a message...";}
     function showNoConversationState(text="Find a person to start a private chat."){messages.innerHTML=`<div class="welcome-message" id="welcomeMessage"><h3>Private ToTalk</h3><p>${text}</p></div>`;messageInput.disabled=true;sendButton.disabled=true;messageInput.placeholder="Find a person first...";}
-    async function findPersonById(){const raw=(findPersonInput.value||"").trim().toUpperCase();if(!raw)return;findPersonSearch.disabled=true;findPersonSearch.textContent="Finding";findPersonResult.innerHTML="";try{const {data,error}=await supabaseClient.from("profiles").select("id,user_id,name,avatar_url,totalk_id").eq("totalk_id",raw).maybeSingle();if(error)throw error;if(!data){findPersonResult.innerHTML=`<div class="find-person-error">No ToTalk person was found with <strong>${raw}</strong>.</div>`;return;}if(data.user_id===currentUser?.id){findPersonResult.innerHTML=`<div class="find-person-error">That's your own ToTalk ID. Enter another person's ID.</div>`;return;}const card=document.createElement("div");card.className="find-person-card";card.innerHTML=`<div class="result-avatar">${initials(data.name)}</div><div class="find-person-copy"><div class="find-person-name"></div><div class="find-person-id"></div></div><button class="start-private-chat" type="button">Start Chat</button>`;card.querySelector(".find-person-name").textContent=data.name||"ToTalk User";card.querySelector(".find-person-id").textContent=data.totalk_id;card.querySelector(".start-private-chat").addEventListener("click",()=>startPrivateConversation(data));findPersonResult.appendChild(card);}catch(error){console.error("Find person error:",error);findPersonResult.innerHTML=`<div class="find-person-error">Could not search right now. Please try again.</div>`;}finally{findPersonSearch.disabled=false;findPersonSearch.textContent="Find";}}
+    async function findPersonById(){const raw=(findPersonInput.value||"").trim().toUpperCase();if(!raw)return;findPersonSearch.disabled=true;findPersonSearch.textContent="Finding";findPersonResult.innerHTML="";try{
+      if (!currentUser) {
+        const session = await getStableSession();
+        if (session?.user) { currentUser = session.user; authReady = true; }
+      }
+      if (!currentUser) {
+        findPersonResult.innerHTML=`<div class="find-person-error">Your login session is still restoring. Please wait a moment and try again.</div>`;
+        return;
+      }const {data,error}=await supabaseClient.from("profiles").select("id,user_id,name,avatar_url,totalk_id").eq("totalk_id",raw).maybeSingle();if(error)throw error;if(!data){findPersonResult.innerHTML=`<div class="find-person-error">No ToTalk person was found with <strong>${raw}</strong>.</div>`;return;}if(data.user_id===currentUser?.id){findPersonResult.innerHTML=`<div class="find-person-error">That's your own ToTalk ID. Enter another person's ID.</div>`;return;}const card=document.createElement("div");card.className="find-person-card";card.innerHTML=`<div class="result-avatar">${initials(data.name)}</div><div class="find-person-copy"><div class="find-person-name"></div><div class="find-person-id"></div></div><button class="start-private-chat" type="button">Start Chat</button>`;card.querySelector(".find-person-name").textContent=data.name||"ToTalk User";card.querySelector(".find-person-id").textContent=data.totalk_id;card.querySelector(".start-private-chat").addEventListener("click",()=>startPrivateConversation(data));findPersonResult.appendChild(card);}catch(error){console.error("Find person error:",error);findPersonResult.innerHTML=`<div class="find-person-error">Could not search right now. Please try again.</div>`;}finally{findPersonSearch.disabled=false;findPersonSearch.textContent="Find";}}
     async function startPrivateConversation(profile){if(!currentUser||!profile?.user_id)return;try{const {data,error}=await supabaseClient.rpc("get_or_create_direct_conversation",{target_user:profile.user_id});if(error)throw error;currentConversationId=data;showSelectedPerson(profile);localStorage.setItem("totalk_current_person",JSON.stringify({user_id:profile.user_id}));closeFindPerson();messageCache.clear();clearReplyTarget();unreadCount=0;updateUnreadUI();await loadMessages();startRealtime();}catch(error){console.error("Start private conversation error:",error);showStatus("Private chat could not be opened: "+(error.message||"Please try again."));}}
     async function restorePrivateConversation(){if(!currentUser)return false;let saved=null;try{saved=JSON.parse(localStorage.getItem("totalk_current_person")||"null");}catch{}if(!saved?.user_id){showNoConversationState();return false;}const {data,error}=await supabaseClient.from("profiles").select("id,user_id,name,avatar_url,totalk_id").eq("user_id",saved.user_id).maybeSingle();if(error||!data){localStorage.removeItem("totalk_current_person");showNoConversationState();return false;}const {data:conversationId,error:rpcError}=await supabaseClient.rpc("get_or_create_direct_conversation",{target_user:data.user_id});if(rpcError){console.error("Restore conversation error:",rpcError);showNoConversationState();return false;}currentConversationId=conversationId;showSelectedPerson(data);await loadMessages();startRealtime();return true;}
 
@@ -4700,93 +4722,47 @@
     let chatStartupRunning = false;
 
     async function getStableSession() {
-      /*
-        Read an already stored session first.
-
-        This is important on mobile: if Google has already finished
-        the PKCE callback, we must NOT try to exchange the same code
-        again. Re-exchanging an already-used code can make the page
-        look logged out for a moment.
-      */
-      let { data, error } =
-        await supabaseClient.auth.getSession();
-
-      if (error) {
-        console.warn("Initial session read failed:", error);
-      }
-
-      if (data?.session?.user) {
-        return data.session;
-      }
-
-      /*
-        If there is no session yet, try the OAuth code from the URL.
-        Only do this when an actual code is present.
-      */
+      /* Robust session restoration. Never turn a temporary storage/network
+         delay into a logout. */
       const params = new URLSearchParams(window.location.search);
       const code = params.get("code");
 
       if (code) {
-        const { data: exchangeData, error: exchangeError } =
-          await supabaseClient.auth.exchangeCodeForSession(code);
-
-        if (!exchangeError && exchangeData?.session?.user) {
-          window.history.replaceState(
-            {},
-            document.title,
-            window.location.pathname
-          );
-
-          return exchangeData.session;
+        try {
+          const { data, error } = await supabaseClient.auth.exchangeCodeForSession(code);
+          if (!error && data?.session?.user) {
+            window.history.replaceState({}, document.title, window.location.pathname);
+            return data.session;
+          }
+          console.warn("PKCE exchange did not immediately return a session:", error);
+        } catch (error) {
+          console.warn("PKCE exchange failed:", error);
         }
-
-        /*
-          A second read is intentional. On some mobile browsers the
-          auth storage becomes available just after the callback.
-        */
-        const retry = await supabaseClient.auth.getSession();
-
-        if (retry.data?.session?.user) {
-          window.history.replaceState(
-            {},
-            document.title,
-            window.location.pathname
-          );
-
-          return retry.data.session;
-        }
-
-        console.error(
-          "OAuth code exchange failed:",
-          exchangeError
-        );
       }
 
-      /*
-        Give the browser a short opportunity to finish restoring the
-        persisted Supabase session.
-      */
-      for (let attempt = 0; attempt < 4; attempt++) {
-        await new Promise(resolve => setTimeout(resolve, 350));
-
-        const retry = await supabaseClient.auth.getSession();
-
-        if (retry.data?.session?.user) {
-          if (window.location.search.includes("code=")) {
-            window.history.replaceState(
-              {},
-              document.title,
-              window.location.pathname
-            );
-          }
-
-          return retry.data.session;
+      for (let attempt = 0; attempt < 12; attempt++) {
+        try {
+          const { data, error } = await supabaseClient.auth.getSession();
+          if (!error && data?.session?.user) return data.session;
+        } catch (error) {
+          console.warn("Session read failed:", error);
         }
+
+        try {
+          const { data } = await supabaseClient.auth.getUser();
+          if (data?.user) {
+            const { data: sessionData } = await supabaseClient.auth.getSession();
+            if (sessionData?.session?.user) return sessionData.session;
+          }
+        } catch (error) {
+          console.warn("Authenticated-user read failed:", error);
+        }
+
+        await new Promise(resolve => setTimeout(resolve, 350));
       }
 
       return null;
     }
-
 
     async function startChat() {
 
@@ -4813,6 +4789,8 @@
           return;
         }
 
+        currentUser = session.user;
+        authReady = true;
         showUser(session.user);
 
         /* Restore the last person, but keep the page alive if this
@@ -4998,6 +4976,7 @@
 
     findPersonBtn.addEventListener("click", openFindPerson);
     mobileFindPersonBtn.addEventListener("click", openFindPerson);
+    mobileFindPersonBar.addEventListener("click", openFindPerson);
     findPersonClose.addEventListener("click", closeFindPerson);
     findPersonSearch.addEventListener("click", findPersonById);
     findPersonInput.addEventListener("input",()=>{findPersonInput.value=findPersonInput.value.toUpperCase().replace(/[^A-Z0-9-]/g,"");});
@@ -5054,15 +5033,10 @@
           );
 
 
-          if (
-            session &&
-            session.user &&
-            !currentUser
-          ) {
-
-            currentUser =
-              session.user;
-
+          if (session?.user) {
+            currentUser = session.user;
+            authReady = true;
+            showUser(session.user);
           }
 
         }
