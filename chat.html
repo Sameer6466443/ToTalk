@@ -626,7 +626,7 @@
 
     .top-star {
 
-      margin-left: auto;
+      margin-left: 0;
 
       color: var(--yellow);
 
@@ -648,28 +648,29 @@
 
     .message-search-toggle {
       margin-left: auto;
-      width: 34px; height: 34px; flex: 0 0 34px;
-      border: 1px solid rgba(181,143,255,.22); border-radius: 50%;
-      background: rgba(255,255,255,.045); cursor: pointer; position: relative;
+      width: 30px; height: 30px; flex: 0 0 30px;
+      border: 0; border-radius: 8px;
+      background: transparent; cursor: pointer; position: relative;
       display:flex; align-items:center; justify-content:center;
-      transition: transform .2s ease, background .2s ease, border-color .2s ease;
+      opacity:.82;
+      transition: transform .18s ease, opacity .18s ease, background .18s ease;
     }
     .message-search-toggle:hover,.message-search-toggle:focus-visible {
-      transform:translateY(-1px); background:rgba(145,76,255,.14);
-      border-color:rgba(181,143,255,.5); outline:none;
+      transform:scale(1.08); background:rgba(145,76,255,.10);
+      opacity:1; outline:none;
     }
     .message-search-toggle .search-glass {
-      width:12px;height:12px;border:1.7px solid rgba(255,255,255,.82);
+      width:13px;height:13px;border:1.8px solid rgba(255,255,255,.86);
       border-radius:50%;position:relative;opacity:.95;
     }
     .message-search-toggle .search-glass::after {
-      content:"";position:absolute;width:5px;height:1.7px;
-      background:rgba(255,255,255,.82);right:-4px;bottom:-2px;
+      content:"";position:absolute;width:6px;height:1.8px;
+      background:rgba(255,255,255,.86);right:-5px;bottom:-2px;
       transform:rotate(45deg);border-radius:2px;
     }
     .chat-search-popover {
-      position:absolute; top:68px; right:14px; z-index:80;
-      width:min(270px,calc(100% - 28px)); padding:7px;
+      position:absolute; top:60px; right:12px; z-index:40;
+      width:min(235px,calc(100% - 24px)); padding:6px;
       border:1px solid rgba(165,102,255,.34); border-radius:13px;
       background:rgba(10,6,25,.97);
       box-shadow:0 12px 35px rgba(0,0,0,.45),0 0 25px rgba(125,55,220,.18);
@@ -679,10 +680,10 @@
     }
     .chat-search-popover.open { opacity:1; transform:translateY(0) scale(1); pointer-events:auto; }
     .message-search-bar {
-      width:100%;height:34px;display:flex;align-items:center;gap:7px;padding:0 8px;box-sizing:border-box;
+      width:100%;height:32px;display:flex;align-items:center;gap:6px;padding:0 7px;box-sizing:border-box;
       border:1px solid rgba(181,143,255,.24);border-radius:9px;background:rgba(255,255,255,.045);
     }
-    .message-search-input { min-width:0;flex:1;height:30px;padding:0;border:0;background:transparent;color:#fff;outline:none;font:inherit;font-size:11px; }
+    .message-search-input { min-width:0;flex:1;height:28px;padding:0;border:0;background:transparent;color:#fff;outline:none;font:inherit;font-size:10px; }
     .message-search-input::placeholder { color:rgba(255,255,255,.46); }
     .search-count { min-width:30px;text-align:center;color:rgba(255,255,255,.52);font-size:9px;white-space:nowrap; }
     .search-nav-btn { width:23px;height:23px;flex:0 0 23px;border:1px solid rgba(181,143,255,.2);border-radius:7px;background:rgba(255,255,255,.045);color:rgba(255,255,255,.78);cursor:pointer;font-size:10px;transition:background .18s,transform .18s; }
@@ -692,8 +693,8 @@
     .message.search-active { border-color:rgba(181,143,255,.72);box-shadow:0 0 24px rgba(145,76,255,.24); }
     .message.is-editing .message-menu-wrap { display:none !important; }
     @media (max-width:650px) {
-      .message-search-toggle { width:32px;height:32px;flex-basis:32px; }
-      .chat-search-popover { top:62px;right:9px;width:min(270px,calc(100% - 18px)); }
+      .message-search-toggle { width:28px;height:28px;flex-basis:28px; }
+      .chat-search-popover { top:57px;right:8px;width:min(235px,calc(100% - 16px)); }
     }
 
 
@@ -1069,7 +1070,7 @@
       position: absolute;
       top: 7px;
       right: 7px;
-      z-index: 20;
+      z-index: 120;
     }
 
     .message-menu-btn {
@@ -1108,6 +1109,7 @@
       background: rgba(13,8,30,.98);
       box-shadow: 0 10px 28px rgba(0,0,0,.45), 0 0 18px rgba(125,55,220,.18);
       display: none;
+      z-index: 121;
     }
 
     .message-menu.open {
@@ -1184,7 +1186,12 @@
       opacity: .5;
     }
 
+    .message.is-editing {
+      padding-right: 13px;
+    }
+
     .edit-message-area {
+      display:block;
       width: 100%;
       box-sizing: border-box;
       min-height: 58px;
@@ -2135,15 +2142,15 @@
 
 
 
+        <button class="message-search-toggle" id="messageSearchToggle" type="button" aria-label="Search messages" aria-expanded="false">
+          <span class="search-glass" aria-hidden="true"></span>
+        </button>
+
         <div class="top-star">
           ☆
         </div>
 
       </div>
-
-      <button class="message-search-toggle" id="messageSearchToggle" type="button" aria-label="Search messages" aria-expanded="false">
-        <span class="search-glass" aria-hidden="true"></span>
-      </button>
 
       <div class="chat-search-popover" id="messageSearchBar" aria-hidden="true">
         <div class="message-search-bar">
@@ -3114,32 +3121,45 @@
       cancelButton.textContent = "Cancel";
 
       saveRow.append(saveButton, cancelButton);
-      textElement.style.display = "none";
-      messageElement.insertBefore(editor, textElement.nextSibling);
-      messageElement.insertBefore(saveRow, editor.nextSibling);
+
+      // Replace the text node completely while editing. This prevents the
+      // old message text from remaining visible behind the editor.
+      textElement.replaceWith(editor);
+      messageElement.appendChild(saveRow);
       messageElement.classList.add("is-editing");
       if (menuWrap) menuWrap.style.display = "none";
 
-      const cleanup = () => {
+      const restore = () => {
         if (!messageElement.isConnected) return;
-        editor.remove();
-        saveRow.remove();
-        textElement.style.display = "";
+        if (editor.isConnected) editor.replaceWith(textElement);
+        if (saveRow.isConnected) saveRow.remove();
         messageElement.classList.remove("is-editing");
         if (menuWrap) menuWrap.style.display = "";
       };
+
+      const cleanup = () => {
+        if (activeEditCleanup === cleanup) activeEditCleanup = null;
+        restore();
+      };
       activeEditCleanup = cleanup;
 
-      const cancelEdit = () => {
-        if (activeEditCleanup === cleanup) activeEditCleanup = null;
-        cleanup();
-      };
-      cancelButton.addEventListener("click", cancelEdit);
+      editor.focus();
+      editor.setSelectionRange(editor.value.length, editor.value.length);
+
+      cancelButton.addEventListener("click", cleanup);
 
       saveButton.addEventListener("click", async () => {
         const newContent = editor.value.trim();
-        if (!newContent) { showStatus("Message cannot be empty."); editor.focus(); return; }
-        if (newContent === originalContent) { cancelEdit(); return; }
+        if (!newContent) {
+          showStatus("Message cannot be empty.");
+          editor.focus();
+          return;
+        }
+        if (newContent === originalContent) {
+          cleanup();
+          return;
+        }
+
         saveButton.disabled = true;
         cancelButton.disabled = true;
         saveButton.textContent = "Saving...";
@@ -3154,29 +3174,37 @@
 
         if (error) {
           console.error("Edit message error:", error);
-          saveButton.disabled = false; cancelButton.disabled = false; saveButton.textContent = "Save";
-          showStatus("Message could not be edited."); return;
+          saveButton.disabled = false;
+          cancelButton.disabled = false;
+          saveButton.textContent = "Save";
+          showStatus("Message could not be edited.");
+          return;
         }
 
         textElement.textContent = data.content;
         const timeElement = messageElement.querySelector(".message-time");
         if (timeElement) {
           const date = data.created_at ? new Date(data.created_at) : null;
-          const timeText = date ? date.toLocaleTimeString([], {hour:"2-digit", minute:"2-digit"}) : timeElement.textContent.split(" · ")[0];
+          const timeText = date
+            ? date.toLocaleTimeString([], { hour:"2-digit", minute:"2-digit" })
+            : timeElement.textContent.split(" · ")[0];
           timeElement.textContent = data.edited_at ? timeText + " · edited" : timeText;
         }
-        cancelEdit();
+
+        cleanup();
       });
 
       editor.addEventListener("keydown", (event) => {
-        if (event.key === "Escape") { event.preventDefault(); cancelEdit(); }
-        if ((event.ctrlKey || event.metaKey) && event.key === "Enter") { event.preventDefault(); saveButton.click(); }
+        if (event.key === "Escape") {
+          event.preventDefault();
+          cleanup();
+        }
+        if ((event.ctrlKey || event.metaKey) && event.key === "Enter") {
+          event.preventDefault();
+          saveButton.click();
+        }
       });
-
-      editor.focus();
-      editor.setSelectionRange(editor.value.length, editor.value.length);
     }
-
 
     /* ======================================
        DELETE MESSAGE
