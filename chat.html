@@ -2565,58 +2565,31 @@
     async function toggleReaction(messageId, reaction, messageElement) {
       if (!messageId || !currentUser) return;
 
-      const { data: existing, error: existingError } = await supabaseClient
+      // Set the selected reaction directly. We first remove any existing
+      // reaction from this user on this message, then insert the new one.
+      // This avoids upsert/conflict handling and also cleans up duplicates.
+      const removeResult = await supabaseClient
         .from("message_reactions")
-        .select("id, reaction")
+        .delete()
         .eq("message_id", messageId)
-        .eq("user_id", currentUser.id)
-        .maybeSingle();
+        .eq("user_id", currentUser.id);
 
-      if (existingError) {
-        console.error("Reaction lookup error:", existingError);
+      if (removeResult.error) {
+        console.error("Reaction delete error:", removeResult.error);
         showStatus("Reaction could not be changed.");
         return;
       }
 
-      let error = null;
+      const insertResult = await supabaseClient
+        .from("message_reactions")
+        .insert({
+          message_id: messageId,
+          user_id: currentUser.id,
+          reaction: reaction
+        });
 
-      if (existing && existing.reaction === reaction) {
-        const result = await supabaseClient
-          .from("message_reactions")
-          .delete()
-          .eq("id", existing.id)
-          .eq("user_id", currentUser.id);
-        error = result.error;
-      } else {
-        // Use separate delete + insert instead of upsert.
-        // This works cleanly with the RLS policies on this table.
-        if (existing) {
-          const removeResult = await supabaseClient
-            .from("message_reactions")
-            .delete()
-            .eq("id", existing.id)
-            .eq("user_id", currentUser.id);
-
-          if (removeResult.error) {
-            console.error("Reaction replace error:", removeResult.error);
-            showStatus("Reaction could not be changed.");
-            return;
-          }
-        }
-
-        const insertResult = await supabaseClient
-          .from("message_reactions")
-          .insert({
-            message_id: messageId,
-            user_id: currentUser.id,
-            reaction: reaction
-          });
-
-        error = insertResult.error;
-      }
-
-      if (error) {
-        console.error("Reaction save error:", error);
+      if (insertResult.error) {
+        console.error("Reaction insert error:", insertResult.error);
         showStatus("Reaction could not be changed.");
         return;
       }
