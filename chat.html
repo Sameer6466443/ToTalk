@@ -418,16 +418,104 @@
     }
 
 
-    .online {
+    .presence-status {
 
       margin-top: 5px;
 
-      color: var(--green);
+      display: inline-flex;
+
+      align-items: center;
+
+      gap: 6px;
 
       font-size: 10px;
 
       font-weight: 700;
 
+      transition: color .28s ease, opacity .28s ease;
+
+    }
+
+    .presence-status.online { color: #bda8ff; }
+    .presence-status.offline { color: #9a95a9; }
+
+    .presence-icon {
+      width: 14px;
+      height: 14px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      flex: 0 0 14px;
+    }
+
+    .moon-icon {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #cdbdff;
+      box-shadow: 0 0 9px rgba(190,160,255,.65);
+      position: relative;
+      display: block;
+    }
+
+    .moon-icon::after {
+      content: "";
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #0b0716;
+      left: 3px;
+      top: -2px;
+    }
+
+    .sun-icon {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: #f5d98b;
+      box-shadow: 0 0 9px rgba(245,217,139,.45);
+      position: relative;
+      display: block;
+    }
+
+    .sun-icon::before,
+    .sun-icon::after {
+      content: "";
+      position: absolute;
+      inset: -3px;
+      border-radius: 50%;
+      border: 1px solid rgba(245,217,139,.55);
+    }
+
+    .sun-icon::after {
+      transform: rotate(45deg);
+      border-color: rgba(245,217,139,.35);
+    }
+
+    .presence-status.offline .sun-icon {
+      animation: sunBreath 2.8s ease-in-out infinite;
+    }
+
+    .presence-status.online .moon-icon {
+      animation: moonFloat 3s ease-in-out infinite;
+    }
+
+    @keyframes moonFloat {
+      0%,100% { transform: translateY(0); }
+      50% { transform: translateY(-1px); }
+    }
+
+    @keyframes sunBreath {
+      0%,100% { transform: scale(.92); opacity:.72; }
+      50% { transform: scale(1); opacity:1; }
+    }
+
+    .chat-status {
+      margin-top: 4px;
+      font-size: 10px;
+      font-weight: 700;
     }
 
 
@@ -528,17 +616,7 @@
     }
 
 
-    .chat-status {
-
-      margin-top: 4px;
-
-      color: var(--green);
-
-      font-size: 10px;
-
-      font-weight: 700;
-
-    }
+    
 
 
     .top-star {
@@ -1941,8 +2019,9 @@
             Sameer
           </div>
 
-          <div class="online">
-            Online
+          <div class="presence-status online" id="sidePresence">
+            <span class="presence-icon" aria-hidden="true"><span class="moon-icon"></span></span>
+            <span class="presence-label">Online</span>
           </div>
 
         </div>
@@ -1972,8 +2051,9 @@
             Sameer's ToTalk
           </div>
 
-          <div class="chat-status">
-            Online
+          <div class="chat-status online" id="chatPresence">
+            <span class="presence-icon" aria-hidden="true"><span class="moon-icon"></span></span>
+            <span class="presence-label">Online</span>
           </div>
 
         </div>
@@ -3164,6 +3244,81 @@
 
 
     /* ======================================
+       ONLINE / OFFLINE PRESENCE
+    ====================================== */
+
+    let presenceChannel = null;
+
+    function setPresenceUI(isOnline) {
+
+      const statuses = [
+        document.getElementById("sidePresence"),
+        document.getElementById("chatPresence")
+      ];
+
+      statuses.forEach((el) => {
+        if (!el) return;
+
+        el.classList.toggle("online", isOnline);
+        el.classList.toggle("offline", !isOnline);
+
+        const icon = el.querySelector(".presence-icon");
+        const label = el.querySelector(".presence-label");
+
+        if (icon) {
+          icon.innerHTML = isOnline
+            ? '<span class="moon-icon"></span>'
+            : '<span class="sun-icon"></span>';
+        }
+
+        if (label) label.textContent = isOnline ? "Online" : "Offline";
+      });
+    }
+
+    async function startPresence() {
+
+      if (!currentUser) return;
+
+      if (presenceChannel) {
+        await supabaseClient.removeChannel(presenceChannel);
+      }
+
+      presenceChannel = supabaseClient.channel("totalk-presence", {
+        config: {
+          presence: { key: currentUser.id }
+        }
+      });
+
+      presenceChannel.on("presence", { event: "sync" }, () => {
+        const state = presenceChannel.presenceState();
+        setPresenceUI(Object.keys(state).length > 0);
+      });
+
+      presenceChannel.on("presence", { event: "join" }, () => {
+        setPresenceUI(true);
+      });
+
+      presenceChannel.on("presence", { event: "leave" }, () => {
+        const state = presenceChannel.presenceState();
+        setPresenceUI(Object.keys(state).length > 0);
+      });
+
+      const status = await presenceChannel.subscribe(async (status) => {
+        if (status === "SUBSCRIBED") {
+          await presenceChannel.track({
+            user_id: currentUser.id,
+            online_at: new Date().toISOString()
+          });
+          setPresenceUI(true);
+        }
+      });
+
+      if (status !== "SUBSCRIBED") {
+        setPresenceUI(false);
+      }
+    }
+
+    /* ======================================
        REAL-TIME MESSAGES
     ====================================== */
 
@@ -3411,6 +3566,7 @@
 
 
                 startRealtime();
+                startPresence();
 
 
                 return;
@@ -3460,6 +3616,7 @@
         ------------------------------- */
 
         startRealtime();
+        startPresence();
 
 
       } catch (error) {
