@@ -2262,6 +2262,27 @@
 
     .message-menu { display: none !important; }
     .message-menu.open { display: block !important; }
+
+    /* ======================================
+       FIND PERSON
+    ====================================== */
+    .find-person-btn{width:calc(100% - 30px);margin:16px 15px 4px;padding:12px 13px;border:1px solid rgba(145,76,255,.34);border-radius:12px;background:linear-gradient(135deg,rgba(95,37,165,.24),rgba(27,12,59,.45));color:var(--white);display:flex;align-items:center;gap:10px;font-size:13px;font-weight:800;cursor:pointer;transition:.2s ease}
+    .find-person-btn:hover{border-color:rgba(170,105,255,.7);transform:translateY(-1px)}
+    .find-person-icon{width:15px;height:15px;border:2px solid var(--purple-light);border-radius:50%;position:relative;flex:0 0 15px}
+    .find-person-icon:after{content:"";position:absolute;width:7px;height:2px;background:var(--purple-light);right:-6px;bottom:-3px;transform:rotate(45deg);border-radius:2px}
+    .chat-person[hidden]{display:none}
+    .find-person-overlay{position:fixed;inset:0;z-index:80;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(2,1,8,.76);backdrop-filter:blur(8px);opacity:0;pointer-events:none;transition:opacity .22s ease}
+    .find-person-overlay.open{opacity:1;pointer-events:auto}
+    .find-person-modal{width:min(430px,100%);position:relative;padding:28px;border:1px solid var(--border);border-radius:18px;background:linear-gradient(145deg,rgba(12,7,29,.98),rgba(4,2,14,.99));box-shadow:0 20px 70px rgba(0,0,0,.5),0 0 40px rgba(100,35,190,.18);transform:translateY(10px) scale(.98);transition:transform .22s ease}
+    .find-person-overlay.open .find-person-modal{transform:translateY(0) scale(1)}
+    .find-person-close{position:absolute;top:12px;right:14px;border:0;background:transparent;color:var(--muted);font-size:24px;cursor:pointer}
+    .find-person-kicker{color:var(--purple-light);font-size:10px;font-weight:900;letter-spacing:1.6px;margin-bottom:8px}
+    .find-person-modal h2{font-size:24px;margin-bottom:7px}.find-person-modal p{color:var(--muted);font-size:12px;margin-bottom:18px}
+    .find-person-input-row{display:flex;gap:9px}.find-person-input-row input{min-width:0;flex:1;height:44px;padding:0 13px;border:1px solid rgba(145,76,255,.35);border-radius:10px;background:rgba(2,1,8,.78);color:var(--white);outline:none;font-size:13px;text-transform:uppercase}.find-person-input-row input:focus{border-color:var(--purple-light);box-shadow:0 0 0 3px rgba(145,76,255,.1)}
+    .find-person-input-row button{height:44px;padding:0 18px;border:0;border-radius:10px;background:linear-gradient(135deg,var(--purple-light),var(--purple-dark));color:white;font-weight:900;cursor:pointer}.find-person-input-row button:disabled{opacity:.55;cursor:wait}
+    .find-person-result{min-height:76px;margin-top:16px}.find-person-card{display:flex;align-items:center;gap:12px;padding:13px;border:1px solid rgba(145,76,255,.28);border-radius:12px;background:rgba(17,8,39,.68)}
+    .find-person-card .result-avatar{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#a45cff,#6321d8);font-weight:900;flex:0 0 42px}.find-person-copy{min-width:0;flex:1}.find-person-name{font-size:13px;font-weight:900}.find-person-id{margin-top:4px;color:var(--muted);font-size:11px}.start-private-chat{border:1px solid rgba(145,76,255,.35);border-radius:9px;padding:8px 10px;background:rgba(145,76,255,.12);color:var(--white);font-size:11px;font-weight:800;cursor:pointer}.find-person-error{color:#ff9fbc;font-size:12px;padding:12px;border:1px solid rgba(255,90,140,.2);border-radius:10px;background:rgba(80,10,35,.18)}
+
 </style>
 
 </head>
@@ -2353,12 +2374,16 @@
       </div>
 
 
-      <div class="chat-person">
+      <button class="find-person-btn" id="findPersonBtn" type="button">
+        <span class="find-person-icon" aria-hidden="true"></span>
+        <span>Find Person</span>
+      </button>
 
-        <div class="avatar">
+      <div class="chat-person" id="selectedPersonCard" hidden>
+
+        <div class="avatar" id="sideAvatar">
           S
         </div>
-
 
         <div>
 
@@ -2366,7 +2391,7 @@
             class="person-name"
             id="sideName"
           >
-            Sameer
+            Select a person
           </div>
 
           <div class="presence-status online" id="sidePresence">
@@ -2392,14 +2417,14 @@
 
       <div class="chat-top">
 
-        <div class="chat-avatar">
+        <div class="chat-avatar" id="chatAvatar">
           S
         </div>
 
 
         <div>
 
-          <div class="chat-title">
+          <div class="chat-title" id="chatTitle">
             Sameer's ToTalk
           </div>
 
@@ -2523,6 +2548,22 @@
   </main>
 
 
+  <!-- FIND PERSON -->
+
+  <div class="find-person-overlay" id="findPersonOverlay" aria-hidden="true">
+    <div class="find-person-modal" role="dialog" aria-modal="true" aria-labelledby="findPersonTitle">
+      <button class="find-person-close" id="findPersonClose" type="button" aria-label="Close">×</button>
+      <div class="find-person-kicker">PRIVATE CHAT</div>
+      <h2 id="findPersonTitle">Find Person</h2>
+      <p>Search using their ToTalk ID.</p>
+      <div class="find-person-input-row">
+        <input id="findPersonInput" type="text" placeholder="TT-XXXXXX" autocomplete="off" maxlength="9" spellcheck="false" aria-label="ToTalk ID">
+        <button id="findPersonSearch" type="button">Find</button>
+      </div>
+      <div class="find-person-result" id="findPersonResult" aria-live="polite"></div>
+    </div>
+  </div>
+
   <!-- STATUS -->
 
   <div id="status"></div>
@@ -2623,6 +2664,17 @@
         "messages"
       );
 
+    const findPersonBtn = document.getElementById("findPersonBtn");
+    const findPersonOverlay = document.getElementById("findPersonOverlay");
+    const findPersonClose = document.getElementById("findPersonClose");
+    const findPersonInput = document.getElementById("findPersonInput");
+    const findPersonSearch = document.getElementById("findPersonSearch");
+    const findPersonResult = document.getElementById("findPersonResult");
+    const selectedPersonCard = document.getElementById("selectedPersonCard");
+    const sideAvatar = document.getElementById("sideAvatar");
+    const chatAvatar = document.getElementById("chatAvatar");
+    const chatTitle = document.getElementById("chatTitle");
+
     const typingIndicator =
       document.getElementById(
         "typingIndicator"
@@ -2642,6 +2694,9 @@
 
     let currentUser =
       null;
+
+    let currentConversationId = null;
+    let currentChatPerson = null;
 
     const messageCache = new Map();
     let replyTarget = null;
@@ -2787,6 +2842,18 @@
 
     }
 
+
+    /* ======================================
+       PRIVATE CONVERSATIONS / FIND PERSON
+    ====================================== */
+    function initials(name){const parts=String(name||"?").trim().split(/\s+/).filter(Boolean);return parts.length?(parts[0][0]+(parts.length>1?parts[parts.length-1][0]:"")).toUpperCase():"?";}
+    function openFindPerson(){findPersonOverlay.classList.add("open");findPersonOverlay.setAttribute("aria-hidden","false");findPersonResult.innerHTML="";findPersonInput.focus();findPersonInput.select();}
+    function closeFindPerson(){findPersonOverlay.classList.remove("open");findPersonOverlay.setAttribute("aria-hidden","true");}
+    function showSelectedPerson(profile){currentChatPerson=profile;const name=profile.name||"ToTalk User";const initial=initials(name);sideAvatar.textContent=initial;chatAvatar.textContent=initial;sideName.textContent=name;chatTitle.textContent=name+"'s ToTalk";selectedPersonCard.hidden=false;messageInput.disabled=false;sendButton.disabled=false;messageInput.placeholder="Write a message...";}
+    function showNoConversationState(text="Find a person to start a private chat."){messages.innerHTML=`<div class="welcome-message" id="welcomeMessage"><h3>Private ToTalk</h3><p>${text}</p></div>`;messageInput.disabled=true;sendButton.disabled=true;messageInput.placeholder="Find a person first...";}
+    async function findPersonById(){const raw=(findPersonInput.value||"").trim().toUpperCase();if(!raw)return;findPersonSearch.disabled=true;findPersonSearch.textContent="Finding";findPersonResult.innerHTML="";try{const {data,error}=await supabaseClient.from("profiles").select("id,user_id,name,avatar_url,totalk_id").eq("totalk_id",raw).maybeSingle();if(error)throw error;if(!data){findPersonResult.innerHTML=`<div class="find-person-error">No ToTalk person was found with <strong>${raw}</strong>.</div>`;return;}if(data.user_id===currentUser?.id){findPersonResult.innerHTML=`<div class="find-person-error">That's your own ToTalk ID. Enter another person's ID.</div>`;return;}const card=document.createElement("div");card.className="find-person-card";card.innerHTML=`<div class="result-avatar">${initials(data.name)}</div><div class="find-person-copy"><div class="find-person-name"></div><div class="find-person-id"></div></div><button class="start-private-chat" type="button">Start Chat</button>`;card.querySelector(".find-person-name").textContent=data.name||"ToTalk User";card.querySelector(".find-person-id").textContent=data.totalk_id;card.querySelector(".start-private-chat").addEventListener("click",()=>startPrivateConversation(data));findPersonResult.appendChild(card);}catch(error){console.error("Find person error:",error);findPersonResult.innerHTML=`<div class="find-person-error">Could not search right now. Please try again.</div>`;}finally{findPersonSearch.disabled=false;findPersonSearch.textContent="Find";}}
+    async function startPrivateConversation(profile){if(!currentUser||!profile?.user_id)return;try{const {data,error}=await supabaseClient.rpc("get_or_create_direct_conversation",{target_user:profile.user_id});if(error)throw error;currentConversationId=data;showSelectedPerson(profile);localStorage.setItem("totalk_current_person",JSON.stringify({user_id:profile.user_id}));closeFindPerson();messageCache.clear();clearReplyTarget();unreadCount=0;updateUnreadUI();await loadMessages();startRealtime();}catch(error){console.error("Start private conversation error:",error);showStatus("Private chat could not be opened: "+(error.message||"Please try again."));}}
+    async function restorePrivateConversation(){if(!currentUser)return false;let saved=null;try{saved=JSON.parse(localStorage.getItem("totalk_current_person")||"null");}catch{}if(!saved?.user_id){showNoConversationState();return false;}const {data,error}=await supabaseClient.from("profiles").select("id,user_id,name,avatar_url,totalk_id").eq("user_id",saved.user_id).maybeSingle();if(error||!data){localStorage.removeItem("totalk_current_person");showNoConversationState();return false;}const {data:conversationId,error:rpcError}=await supabaseClient.rpc("get_or_create_direct_conversation",{target_user:data.user_id});if(rpcError){console.error("Restore conversation error:",rpcError);showNoConversationState();return false;}currentConversationId=conversationId;showSelectedPerson(data);await loadMessages();startRealtime();return true;}
 
     /* ======================================
        MESSAGE ELEMENT
@@ -3905,8 +3972,9 @@
         await supabaseClient
           .from("messages")
           .select(
-            "id, sender_id, content, created_at, edited_at, reply_to_id"
+            "id, sender_id, content, created_at, edited_at, reply_to_id, conversation_id"
           )
+          .eq("conversation_id", currentConversationId)
           .order(
             "created_at",
             {
@@ -4128,6 +4196,12 @@
       }
 
 
+      if (!currentConversationId) {
+        showStatus("Find a person and start a private chat first.");
+        return;
+      }
+
+
       if (
         !authReady ||
         !currentUser
@@ -4210,13 +4284,16 @@
                 content:
                   text,
 
+                conversation_id:
+                  currentConversationId,
+
                 reply_to_id:
                   replyTarget?.id || null
 
               }
             ])
             .select(
-              "id, sender_id, content, created_at, edited_at, reply_to_id"
+              "id, sender_id, content, created_at, edited_at, reply_to_id, conversation_id"
             )
             .single();
 
@@ -4511,7 +4588,8 @@
             {
               event: "*",
               schema: "public",
-              table: "messages"
+              table: "messages",
+              filter: currentConversationId ? `conversation_id=eq.${currentConversationId}` : "conversation_id=is.null"
             },
             (payload) => {
               if (payload.eventType === "INSERT") {
@@ -4754,7 +4832,7 @@
                 );
 
 
-                await loadMessages();
+                await restorePrivateConversation();
 
                 finishLoading();
 
@@ -4800,7 +4878,7 @@
            LOAD DATABASE MESSAGES
         ------------------------------- */
 
-        await loadMessages();
+        await restorePrivateConversation();
 
         finishLoading();
 
@@ -4920,6 +4998,14 @@
       "click",
       sendMessage
     );
+
+    findPersonBtn.addEventListener("click", openFindPerson);
+    findPersonClose.addEventListener("click", closeFindPerson);
+    findPersonSearch.addEventListener("click", findPersonById);
+    findPersonInput.addEventListener("input",()=>{findPersonInput.value=findPersonInput.value.toUpperCase().replace(/[^A-Z0-9-]/g,"");});
+    findPersonInput.addEventListener("keydown",event=>{if(event.key==="Enter"){event.preventDefault();findPersonById();}});
+    findPersonOverlay.addEventListener("click",event=>{if(event.target===findPersonOverlay)closeFindPerson();});
+
 
 
     if (replyComposeClose) {
