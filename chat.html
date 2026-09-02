@@ -289,7 +289,7 @@ async function createProfile(){
 
     msg.className="error success";
     msg.textContent="Profile created. Entering ToTalk…";
-    setTimeout(()=>location.href="./chat.html",700);
+    setTimeout(()=>{ window.location.replace("https://sameer6466443.github.io/ToTalk/chat.html"); },700);
   }catch(err){
     console.error(err);
     msg.textContent=err.message||"Could not create your profile.";
