@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Create your ToTalk profile</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -747,17 +747,6 @@ button:disabled{
     transition:none!important;
   }
 }
-
-/* MOBILE VIEWPORT FIX — keeps the existing design, only prevents desktop scaling */
-html,body{width:100%;max-width:100%;min-width:0;}
-@media(max-width:700px){
-  html{width:100%;overflow-x:hidden;}
-  body{width:100%;min-width:0;overflow-x:hidden;}
-  #galaxyLoading{width:100vw;height:100svh;min-height:100vh;}
-  .wrap{width:100%;min-height:100svh;min-height:100vh;padding:20px 14px;}
-  .card{width:min(470px,100%);max-width:100%;}
-}
-
 </style>
 </head>
 
@@ -768,7 +757,7 @@ html,body{width:100%;max-width:100%;min-width:0;}
      GALAXY LOADING
 ========================================= -->
 
-<div id="galaxyLoading">
+<div id="galaxyLoading" aria-hidden="true">
 
   <div class="loading-stars"></div>
 
@@ -914,7 +903,7 @@ html,body{width:100%;max-width:100%;min-width:0;}
     </div>
 
 
-    <button id="createBtn">
+    <button id="createBtn" type="button">
       Create Profile
     </button>
 
@@ -1080,6 +1069,8 @@ document
 
 function showProfileMaker(){
 
+  loader.setAttribute("aria-hidden","true");
+
   /*
    * First make the profile card ready.
    */
@@ -1099,7 +1090,7 @@ function showProfileMaker(){
         "hide"
       );
     },
-    1200
+    350
   );
 
 }
@@ -1111,9 +1102,16 @@ function showProfileMaker(){
 
 function showGalaxy(){
 
-  loader.classList.remove(
-    "hide"
-  );
+  /*
+   * Make the loader visible immediately and force a
+   * browser layout pass so the transition cannot be
+   * skipped when this function is called right after
+   * an async Supabase request.
+   */
+  loader.classList.remove("hide");
+  loader.setAttribute("aria-hidden","false");
+
+  void loader.offsetWidth;
 
 }
 
@@ -1246,7 +1244,7 @@ async function init(){
           "./chat.html"
         );
       },
-      1200
+      850
     );
 
     return;
@@ -1324,9 +1322,26 @@ async function init(){
    CREATE PROFILE
 ========================================= */
 
+let profileCreating = false;
+
 btn.addEventListener(
   "click",
-  async ()=>{
+  async (event)=>{
+
+    /*
+     * This button is intentionally NOT a form submit.
+     * Prevent the browser from performing any native
+     * navigation/reload if this file is ever placed
+     * inside another form by the hosting page.
+     */
+    if(event){
+      event.preventDefault();
+      event.stopPropagation();
+    }
+
+    if(profileCreating){
+      return;
+    }
 
     const name =
       nameEl.value.trim();
@@ -1361,10 +1376,39 @@ btn.addEventListener(
     }
 
 
-    if(!currentUser){
+    /*
+     * Refresh the session one final time before
+     * writing the profile. This avoids a race where
+     * Google login has completed visually but the
+     * Supabase session has not finished restoring.
+     */
+    let sessionData = null;
+    let sessionError = null;
+
+    try{
+      const result =
+        await supabaseClient.auth.getSession();
+
+      sessionData = result.data;
+      sessionError = result.error;
+
+    }catch(error){
+
+      console.error(
+        "Session check error:",
+        error
+      );
+
+    }
+
+
+    if(
+      sessionError ||
+      !sessionData?.session?.user
+    ){
 
       setStatus(
-        "Your Google session is not ready. Please try again.",
+        "Your Google session is not ready. Please wait a moment and try again.",
         "error"
       );
 
@@ -1373,11 +1417,15 @@ btn.addEventListener(
     }
 
 
-    btn.disabled =
-      true;
+    currentUser =
+      sessionData.session.user;
 
-    btn.textContent =
-      "Creating profile…";
+
+    profileCreating = true;
+
+    btn.disabled = true;
+    btn.setAttribute("aria-busy","true");
+    btn.textContent = "Creating profile…";
 
     setStatus(
       "Saving your profile…"
@@ -1387,9 +1435,9 @@ btn.addEventListener(
     try{
 
       /*
-       * Reuse existing TT-ID.
+       * Keep the existing TT-ID if Supabase already
+       * gave this user one. Otherwise generate it now.
        */
-
       if(
         !generatedId ||
         generatedId === "Generating…"
@@ -1402,29 +1450,23 @@ btn.addEventListener(
 
 
       /*
-       * Check existing row.
+       * Look for the existing profile row.
+       * We deliberately keep the same profiles table
+       * and columns used by the existing project.
        */
-
       const {
         data:existing,
         error:readError
       } =
         await supabaseClient
           .from("profiles")
-          .select(
-            "id,totalk_id"
-          )
-          .eq(
-            "user_id",
-            currentUser.id
-          )
+          .select("id,totalk_id")
+          .eq("user_id",currentUser.id)
           .maybeSingle();
 
 
       if(readError){
-
         throw readError;
-
       }
 
 
@@ -1436,129 +1478,139 @@ btn.addEventListener(
 
 
         const {
-          error
+          error:updateError
         } =
           await supabaseClient
             .from("profiles")
             .update({
-
               name:name,
-
               gender:gender,
-
-              totalk_id:
-                generatedId,
-
-              profile_completed:
-                true
-
+              totalk_id:generatedId,
+              profile_completed:true
             })
-            .eq(
-              "user_id",
-              currentUser.id
-            );
+            .eq("user_id",currentUser.id);
 
 
-        if(error){
-
-          throw error;
-
+        if(updateError){
+          throw updateError;
         }
 
       }else{
 
         const {
-          error
+          error:insertError
         } =
           await supabaseClient
             .from("profiles")
             .insert({
-
-              user_id:
-                currentUser.id,
-
+              user_id:currentUser.id,
               name:name,
-
               gender:gender,
-
-              totalk_id:
-                generatedId,
-
-              profile_completed:
-                true
-
+              totalk_id:generatedId,
+              profile_completed:true
             });
 
 
-        if(error){
-
-          throw error;
-
+        if(insertError){
+          throw insertError;
         }
 
       }
 
 
       /*
-       * Profile saved.
+       * Confirm the database really contains the
+       * completed profile before leaving this page.
        */
+      const {
+        data:confirmedProfile,
+        error:confirmError
+      } =
+        await supabaseClient
+          .from("profiles")
+          .select("profile_completed,totalk_id")
+          .eq("user_id",currentUser.id)
+          .maybeSingle();
 
+
+      if(confirmError){
+        throw confirmError;
+      }
+
+
+      if(
+        !confirmedProfile ||
+        confirmedProfile.profile_completed !== true
+      ){
+
+        throw new Error(
+          "Your profile could not be confirmed in Supabase."
+        );
+
+      }
+
+
+      if(confirmedProfile.totalk_id){
+        generatedId =
+          confirmedProfile.totalk_id;
+        ttidEl.textContent =
+          generatedId;
+      }
+
+
+      /*
+       * PROFILE IS NOW SAVED.
+       * Put the galaxy screen above everything BEFORE
+       * starting the transition timer.
+       */
       setStatus(
         "Profile created. Entering ToTalk…",
         "success"
       );
 
-
-      /*
-       * Bring the galaxy loading screen
-       * back over the profile page.
-       */
-
       showGalaxy();
 
-
       /*
-       * Wait so the user can see
-       * the smooth transition.
+       * Give the galaxy animation enough time to be
+       * clearly visible on mobile and desktop.
        */
-
-      setTimeout(
-        ()=>{
-
-          window.location.replace(
-            "./chat.html"
-          );
-
-        },
-        1100
+      await new Promise(
+        resolve=>setTimeout(resolve,1400)
       );
 
 
-    }catch(err){
+      /*
+       * Use a clean relative URL so the browser opens
+       * the existing chat page without carrying profile
+       * page state or query parameters with it.
+       */
+      window.location.assign("./chat.html");
+
+
+    }catch(error){
 
       console.error(
         "Profile creation error:",
-        err
+        error
       );
 
-
       setStatus(
-        err?.message ||
+        error?.message ||
         "Could not create your profile.",
         "error"
       );
 
+      profileCreating = false;
 
-      btn.disabled =
-        false;
-
-      btn.textContent =
-        "Create Profile";
+      btn.disabled = false;
+      btn.removeAttribute("aria-busy");
+      btn.textContent = "Create Profile";
 
     }
 
-  });
-
+  },
+  false
+);
 
 /* =========================================
    SIGNED OUT
