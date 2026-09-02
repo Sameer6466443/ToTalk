@@ -396,7 +396,6 @@ body:before{
     0 0 70px rgba(100,50,255,.13);
 
   opacity:0;
-  visibility:hidden;
   transform:translateY(14px) scale(.985);
 
   transition:
@@ -691,79 +690,43 @@ button:disabled{
    MOBILE
 ========================================= */
 
-@media(max-width:700px){
-
-  html,
-  body{
-    width:100%;
-    max-width:100%;
-    min-width:0;
-    overflow-x:hidden;
-  }
-
-  body{
-    min-height:100svh;
-    min-height:100vh;
-  }
+@media(max-width:500px){
 
   .wrap{
-    width:100%;
-    min-height:100svh;
-    min-height:100vh;
-    display:grid;
-    place-items:center;
-    padding:
-      max(18px,env(safe-area-inset-top))
-      12px
-      max(20px,env(safe-area-inset-bottom));
+    padding:20px 15px;
   }
 
   .card{
-    width:100% !important;
-    max-width:430px !important;
-    min-width:0 !important;
-    margin:0 auto;
-    padding:29px 20px 24px;
+    padding:29px 21px 24px;
     border-radius:24px;
   }
 
-  .gender-grid{
-    grid-template-columns:1fr 1fr;
-    width:100%;
+  h1{
+    font-size:24px;
   }
 
-  .gender{
-    min-width:0;
-  }
-
-  input,
-  button,
-  .ttbox{
-    max-width:100%;
-  }
-
-  .ttid{
-    overflow-wrap:anywhere;
+  .sub{
+    font-size:13px;
   }
 
   .loading-system{
-    width:min(280px,78vw);
-    height:min(240px,65vw);
+    width:260px;
+    height:235px;
   }
 
   .loading-orbit{
-    width:min(225px,64vw);
-    height:min(82px,24vw);
+    width:225px;
+    height:82px;
   }
 
   .loading-orbit.two{
-    width:min(255px,72vw);
-    height:min(98px,28vw);
+    width:255px;
+    height:98px;
   }
 
   .loading-moon{
-    width:min(92px,27vw);
-    height:min(92px,27vw);
+    width:92px;
+    height:92px;
   }
 
   .loading-title{
@@ -772,23 +735,6 @@ button:disabled{
 
   .loading-subtitle{
     font-size:12px;
-  }
-}
-
-@media(max-width:380px){
-
-  .wrap{
-    padding-left:9px;
-    padding-right:9px;
-  }
-
-  .card{
-    padding-left:15px;
-    padding-right:15px;
-  }
-
-  h1{
-    font-size:23px;
   }
 }
 
@@ -801,6 +747,17 @@ button:disabled{
     transition:none!important;
   }
 }
+
+/* MOBILE VIEWPORT FIX — keeps the existing design, only prevents desktop scaling */
+html,body{width:100%;max-width:100%;min-width:0;}
+@media(max-width:700px){
+  html{width:100%;overflow-x:hidden;}
+  body{width:100%;min-width:0;overflow-x:hidden;}
+  #galaxyLoading{width:100vw;height:100svh;min-height:100vh;}
+  .wrap{width:100%;min-height:100svh;min-height:100vh;padding:20px 14px;}
+  .card{width:min(470px,100%);max-width:100%;}
+}
+
 </style>
 </head>
 
@@ -811,7 +768,7 @@ button:disabled{
      GALAXY LOADING
 ========================================= -->
 
-<div id="galaxyLoading" aria-hidden="false">
+<div id="galaxyLoading">
 
   <div class="loading-stars"></div>
 
@@ -1124,9 +1081,7 @@ document
 function showProfileMaker(){
 
   /*
-   * Keep the universe visible while the profile page
-   * becomes ready. This is the screen the user sees
-   * immediately after Google authentication.
+   * First make the profile card ready.
    */
 
   profileCard.classList.add(
@@ -1135,19 +1090,13 @@ function showProfileMaker(){
 
 
   /*
-   * Give the universe animation time to be visible,
-   * then fade it away.
+   * Then slowly remove the galaxy screen.
    */
 
   setTimeout(
     ()=>{
       loader.classList.add(
         "hide"
-      );
-
-      loader.setAttribute(
-        "aria-hidden",
-        "true"
       );
     },
     1200
@@ -1297,7 +1246,7 @@ async function init(){
           "./chat.html"
         );
       },
-      850
+      1200
     );
 
     return;
