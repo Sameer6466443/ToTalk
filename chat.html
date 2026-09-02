@@ -1390,9 +1390,9 @@
 
     .typing-indicator {
       position: absolute;
-      z-index: 9;
+      z-index: 20;
       left: 24px;
-      bottom: 86px;
+      bottom: 92px;
       display: flex;
       align-items: center;
       gap: 7px;
@@ -1440,7 +1440,7 @@
     @media (max-width: 600px) {
       .typing-indicator {
         left: 22px;
-        bottom: 82px;
+        bottom: 88px;
       }
     }
 
@@ -3854,6 +3854,7 @@
     ====================================== */
 
     let presenceChannel = null;
+    let typingChannel = null;
     let typingStopTimer = null;
     let typingBroadcastTimer = null;
 
@@ -3895,35 +3896,39 @@
       setTypingUI(someoneTyping, typingName);
     }
 
-    async function setTypingPresence(isTyping) {
-      if (!presenceChannel || !currentUser) return;
+    async function sendTypingSignal(isTyping) {
+      if (!typingChannel || !currentUser) return;
 
       try {
-        await presenceChannel.track({
-          user_id: currentUser.id,
-          name: currentUser.user_metadata?.full_name || currentUser.user_metadata?.name || "",
-          online_at: new Date().toISOString(),
-          typing: isTyping === true
+        await typingChannel.send({
+          type: "broadcast",
+          event: "typing",
+          payload: {
+            user_id: currentUser.id,
+            name: currentUser.user_metadata?.full_name || currentUser.user_metadata?.name || "",
+            typing: isTyping === true
+          }
         });
       } catch (error) {
-        console.error("Typing presence error:", error);
+        console.error("Typing broadcast error:", error);
       }
     }
 
     function handleTypingInput() {
-      if (!currentUser || !presenceChannel) return;
+      if (!currentUser || !typingChannel) return;
 
       clearTimeout(typingStopTimer);
-      setTypingPresence(true);
+      sendTypingSignal(true);
 
       typingStopTimer = window.setTimeout(() => {
-        setTypingPresence(false);
+        sendTypingSignal(false);
       }, 900);
     }
 
     function stopTypingPresence() {
       clearTimeout(typingStopTimer);
-      setTypingPresence(false);
+      sendTypingSignal(false);
+      setTypingUI(false);
     }
 
     function setPresenceUI(isOnline) {
@@ -3955,6 +3960,34 @@
     async function startPresence() {
 
       if (!currentUser) return;
+
+      if (typingChannel) {
+        try { await supabaseClient.removeChannel(typingChannel); } catch (_) {}
+        typingChannel = null;
+      }
+
+      typingChannel = supabaseClient.channel("totalk-typing");
+
+      typingChannel.on("broadcast", { event: "typing" }, ({ payload }) => {
+        if (!payload || payload.user_id === currentUser.id) return;
+
+        if (payload.typing === true) {
+          setTypingUI(true, payload.name || "");
+
+          clearTimeout(typingBroadcastTimer);
+          typingBroadcastTimer = window.setTimeout(() => {
+            setTypingUI(false);
+          }, 1400);
+        } else {
+          clearTimeout(typingBroadcastTimer);
+          setTypingUI(false);
+        }
+      });
+
+      const typingStatus = await typingChannel.subscribe();
+      if (typingStatus !== "SUBSCRIBED") {
+        console.warn("Typing channel not subscribed:", typingStatus);
+      }
 
       if (presenceChannel) {
         await supabaseClient.removeChannel(presenceChannel);
