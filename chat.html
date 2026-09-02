@@ -1147,12 +1147,9 @@
       justify-content: center;
 
       background:
-        radial-gradient(
-          circle at 50% 42%,
-          rgba(122,48,210,.28),
-          rgba(12,5,30,.96) 38%,
-          #03020b 75%
-        );
+        radial-gradient(circle at 50% 42%, rgba(122,52,220,.25), transparent 28%),
+        radial-gradient(circle at 75% 70%, rgba(55,70,210,.12), transparent 30%),
+        #03020b;
 
       color: var(--white);
 
@@ -1163,13 +1160,8 @@
       text-align: center;
 
       opacity: 1;
-
       visibility: visible;
-
-      transition:
-        opacity .65s ease,
-        visibility .65s ease;
-
+      transition: opacity .65s ease, visibility .65s ease;
       overflow: hidden;
 
     }
@@ -1178,138 +1170,16 @@
     #loading::before {
 
       content: "";
-
       position: absolute;
-
-      width: 250px;
-
-      height: 250px;
-
-      border-radius: 50%;
-
-      border: 1px solid rgba(168,121,255,.22);
-
-      box-shadow:
-        0 0 55px rgba(142,77,255,.20),
-        0 0 110px rgba(77,54,190,.12);
-
-      animation: loadingOrbit 12s linear infinite;
-
-    }
-
-
-    #loading::after {
-
-      content: "";
-
-      position: absolute;
-
-      width: 105px;
-
-      height: 105px;
-
-      border-radius: 50%;
-
-      background:
-        radial-gradient(circle at 35% 30%, #fff8cf 0 4%, transparent 5%),
-        radial-gradient(circle at 60% 55%, #b8a8c7 0 8%, transparent 9%),
-        radial-gradient(circle at 42% 72%, #92869d 0 7%, transparent 8%),
-        radial-gradient(circle at 35% 35%, #e9e5ed, #77707f);
-
-      box-shadow:
-        -12px -10px 24px rgba(255,255,255,.18) inset,
-        15px 12px 30px rgba(0,0,0,.62) inset,
-        0 0 45px rgba(211,177,255,.25);
-
-      animation: loadingMoon 7s linear infinite;
-
-    }
-
-
-    #loading > * {
-      position: relative;
-      z-index: 2;
-    }
-
-
-    .loading-content {
-
-      width: min(340px, calc(100% - 40px));
-
-      padding: 190px 20px 20px;
-
-      position: relative;
-
-    }
-
-
-    .loading-title {
-
-      font-size: 25px;
-      font-weight: 900;
-      letter-spacing: -.7px;
-      margin-bottom: 8px;
-
-    }
-
-
-    .loading-subtitle {
-
-      color: #aaa1bc;
-      font-size: 13px;
-      font-weight: 600;
-      letter-spacing: .2px;
-
-    }
-
-
-    .loading-dots {
-
-      display: inline-flex;
-      gap: 5px;
-      margin-left: 5px;
-      vertical-align: middle;
-
-    }
-
-
-    .loading-dots span {
-
-      width: 5px;
-      height: 5px;
-      border-radius: 50%;
-      background: #a879ff;
-      box-shadow: 0 0 10px rgba(168,121,255,.8);
-      animation: loadingDot 1.2s ease-in-out infinite;
-
-    }
-
-
-    .loading-dots span:nth-child(2) {
-      animation-delay: .15s;
-    }
-
-
-    .loading-dots span:nth-child(3) {
-      animation-delay: .3s;
-    }
-
-
-    @keyframes loadingMoon {
-      from { transform: rotate(0deg); }
-      to { transform: rotate(360deg); }
-    }
-
-
-    @keyframes loadingOrbit {
-      from { transform: rotate(0deg) scaleX(1.35); }
-      to { transform: rotate(360deg) scaleX(1.35); }
-    }
-
-
-    @keyframes loadingDot {
-      0%, 60%, 100% { opacity: .3; transform: translateY(0); }
-      30% { opacity: 1; transform: translateY(-4px); }
+      inset: 0;
+      opacity: .45;
+      background-image:
+        radial-gradient(#fff 1px, transparent 1px),
+        radial-gradient(#b991ff 1px, transparent 1px),
+        radial-gradient(#fff .8px, transparent .8px);
+      background-size: 90px 90px, 145px 145px, 210px 210px;
+      background-position: 10px 20px, 40px 70px, 90px 10px;
+      pointer-events: none;
     }
 
 
@@ -1317,6 +1187,104 @@
       opacity: 0;
       visibility: hidden;
       pointer-events: none;
+    }
+
+
+    .loading-box {
+      position: relative;
+      z-index: 2;
+      width: min(420px, calc(100% - 36px));
+      padding: 34px 25px 30px;
+      border: 1px solid rgba(145,76,255,.42);
+      border-radius: 22px;
+      background: rgba(8,5,22,.82);
+      box-shadow: 0 0 70px rgba(105,45,210,.22);
+      backdrop-filter: blur(12px);
+    }
+
+
+    .loading-moon {
+      width: 78px;
+      height: 78px;
+      margin: 0 auto 23px;
+      border-radius: 50%;
+      position: relative;
+      background: #ffe85d;
+      box-shadow: 0 0 35px rgba(255,225,72,.55);
+      animation: loadingMoonSpin 5s linear infinite;
+    }
+
+
+    .loading-moon::after {
+      content: "";
+      position: absolute;
+      width: 78px;
+      height: 78px;
+      border-radius: 50%;
+      background: #08051a;
+      left: 25px;
+      top: -8px;
+    }
+
+
+    .loading-ring {
+      position: absolute;
+      width: 120px;
+      height: 42px;
+      left: 50%;
+      top: 39px;
+      transform: translate(-50%, -50%) rotate(-18deg);
+      border: 1px solid rgba(177,133,255,.5);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+
+
+    .loading-title {
+      font-size: 25px;
+      letter-spacing: -.5px;
+      margin-bottom: 8px;
+    }
+
+
+    .loading-subtitle {
+      color: #a9a1bd;
+      font-size: 13px;
+      font-weight: 600;
+      line-height: 1.5;
+    }
+
+
+    .loading-dots {
+      margin-top: 19px;
+      display: flex;
+      justify-content: center;
+      gap: 6px;
+    }
+
+
+    .loading-dots span {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #a879ff;
+      animation: loadingDot 1.2s ease-in-out infinite;
+    }
+
+
+    .loading-dots span:nth-child(2) { animation-delay: .15s; }
+    .loading-dots span:nth-child(3) { animation-delay: .3s; }
+
+
+    @keyframes loadingMoonSpin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+
+    @keyframes loadingDot {
+      0%, 60%, 100% { opacity: .25; transform: translateY(0); }
+      30% { opacity: 1; transform: translateY(-3px); }
     }
 
 
@@ -1612,19 +1580,24 @@
 
   <div id="loading">
 
-    <div class="loading-content">
+    <div class="loading-box">
+
+      <div class="loading-moon">
+        <div class="loading-ring"></div>
+      </div>
 
       <div class="loading-title">
         Entering ToTalk
       </div>
 
       <div class="loading-subtitle">
-        Opening your conversation space
-        <span class="loading-dots">
-          <span></span>
-          <span></span>
-          <span></span>
-        </span>
+        Preparing your conversation space...
+      </div>
+
+      <div class="loading-dots" aria-hidden="true">
+        <span></span>
+        <span></span>
+        <span></span>
       </div>
 
     </div>
@@ -2032,16 +2005,30 @@
         name;
 
 
-      /* Smoothly reveal the already-loaded chat.
-         Authentication and message logic are unchanged. */
-      loading.classList.add("fade-out");
-
-      setTimeout(() => {
-        loading.style.display = "none";
-      }, 700);
-
       authReady =
         true;
+
+
+      /*
+        Keep the galaxy loading screen visible for a
+        moment after authentication succeeds, then
+        fade it away instead of removing it suddenly.
+      */
+
+      loading.classList.add(
+        "fade-out"
+      );
+
+
+      setTimeout(
+        () => {
+
+          loading.style.display =
+            "none";
+
+        },
+        700
+      );
 
     }
 
