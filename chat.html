@@ -2286,6 +2286,11 @@
     .find-person-input-row{display:flex;gap:9px}.find-person-input-row input{min-width:0;flex:1;height:44px;padding:0 13px;border:1px solid rgba(145,76,255,.35);border-radius:10px;background:rgba(2,1,8,.78);color:var(--white);outline:none;font-size:13px;text-transform:uppercase}.find-person-input-row input:focus{border-color:var(--purple-light);box-shadow:0 0 0 3px rgba(145,76,255,.1)}
     .find-person-input-row button{height:44px;padding:0 18px;border:0;border-radius:10px;background:linear-gradient(135deg,var(--purple-light),var(--purple-dark));color:white;font-weight:900;cursor:pointer}.find-person-input-row button:disabled{opacity:.55;cursor:wait}
     .find-person-result{min-height:76px;margin-top:16px}.find-person-card{display:flex;align-items:center;gap:12px;padding:13px;border:1px solid rgba(145,76,255,.28);border-radius:12px;background:rgba(17,8,39,.68)}
+
+    /* Mobile Find Person must override the desktop default above. */
+    @media (max-width:800px){
+      .mobile-find-person-btn{display:flex !important;position:relative;z-index:20;flex:0 0 auto;visibility:visible !important;opacity:1 !important;}
+    }
     .find-person-card .result-avatar{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#a45cff,#6321d8);font-weight:900;flex:0 0 42px}.find-person-copy{min-width:0;flex:1}.find-person-name{font-size:13px;font-weight:900}.find-person-id{margin-top:4px;color:var(--muted);font-size:11px}.start-private-chat{border:1px solid rgba(145,76,255,.35);border-radius:9px;padding:8px 10px;background:rgba(145,76,255,.12);color:var(--white);font-size:11px;font-weight:800;cursor:pointer}.find-person-error{color:#ff9fbc;font-size:12px;padding:12px;border:1px solid rgba(255,90,140,.2);border-radius:10px;background:rgba(80,10,35,.18)}
 
 </style>
@@ -4801,6 +4806,29 @@
 
           return;
 
+        }
+
+
+        /*
+          If the browser was closed and reopened, the saved
+          Supabase session can need a refresh before it becomes
+          available again. Try that once before treating the user
+          as logged out.
+        */
+        if (
+          !data ||
+          !data.session ||
+          !data.session.user
+        ) {
+
+          const {
+            data: refreshed,
+            error: refreshError
+          } = await supabaseClient.auth.refreshSession();
+
+          if (!refreshError && refreshed?.session?.user) {
+            data.session = refreshed.session;
+          }
         }
 
 
