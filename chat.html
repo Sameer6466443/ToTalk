@@ -1244,6 +1244,30 @@
       white-space: nowrap;
     }
 
+    .message-status {
+      display: block;
+      margin-top: 3px;
+      text-align: right;
+      font-size: 8px;
+      line-height: 1;
+      opacity: .52;
+      white-space: nowrap;
+      transition: opacity .18s ease, transform .18s ease;
+    }
+
+    .message-status.seen {
+      opacity: .82;
+    }
+
+    .message-status.status-pop {
+      animation: statusPop .22s cubic-bezier(.2,.8,.2,1);
+    }
+
+    @keyframes statusPop {
+      0% { opacity: .25; transform: translateY(2px); }
+      100% { opacity: .82; transform: translateY(0); }
+    }
+
     @media (max-width:800px) {
       .message {
         max-width: 78%;
@@ -2778,6 +2802,14 @@
       message.appendChild(text);
       message.appendChild(time);
 
+      if (messageData.id && currentUser && messageData.sender_id === currentUser.id) {
+        const status = document.createElement("span");
+        status.className = "message-status";
+        status.dataset.messageStatus = "true";
+        status.textContent = "Sent";
+        message.appendChild(status);
+      }
+
       // Every message supports long-press reactions, but only your own
       // messages show the three-dot Edit/Delete menu.
       const reactionPicker = createReactionPicker(messageData.id, message);
@@ -3019,10 +3051,16 @@
       if(indicator) indicator.classList.toggle("show",unreadCount>0);
       document.title=unreadCount>0?`(${unreadCount>99?"99+":unreadCount}) ${defaultPageTitle}`:defaultPageTitle;
     }
-    function markMessagesRead(){unreadCount=0;updateUnreadUI()}
+    async function markMessagesRead(){
+      unreadCount=0;
+      updateUnreadUI();
+      if (typeof markVisibleMessagesSeen === "function") {
+        markVisibleMessagesSeen();
+      }
+    }
     const newMessageIndicator=document.getElementById("newMessageIndicator");
     if(newMessageIndicator)newMessageIndicator.addEventListener("click",()=>{markMessagesRead();scrollToBottom(true)});
-    messages.addEventListener("scroll",()=>{if(isNearBottom()&&unreadCount>0)markMessagesRead()});
+    messages.addEventListener("scroll",()=>{if(isNearBottom()){ if(unreadCount>0)markMessagesRead(); else if(typeof markVisibleMessagesSeen === "function") markVisibleMessagesSeen(); }});
 
     /* ======================================
        REACTIONS
@@ -3664,9 +3702,121 @@
 
       markMessagesRead();
       await loadAllReactions();
+      await loadAllReceipts();
+      await markVisibleMessagesSeen();
 
     }
 
+
+    /* ======================================
+       READ RECEIPTS
+    ====================================== */
+
+    function setMessageStatus(messageId, statusText, animate = true) {
+      const messageElement = document.querySelector(`[data-message-id="${messageId}"]`);
+      if (!messageElement || !currentUser) return;
+      if (messageElement.classList.contains("mine") === false) return;
+
+      let status = messageElement.querySelector(".message-status");
+      if (!status) {
+        status = document.createElement("span");
+        status.className = "message-status";
+        status.dataset.messageStatus = "true";
+        messageElement.appendChild(status);
+      }
+
+      const normalized = statusText || "Sent";
+      if (status.textContent !== normalized) {
+        status.textContent = normalized;
+        status.classList.toggle("seen", normalized === "Seen");
+        if (animate) {
+          status.classList.remove("status-pop");
+          requestAnimationFrame(() => status.classList.add("status-pop"));
+        }
+      } else {
+        status.classList.toggle("seen", normalized === "Seen");
+      }
+    }
+
+    function renderReceiptForMessage(messageId, receipt) {
+      if (!messageId || !receipt) return;
+      setMessageStatus(messageId, receipt.status === "seen" ? "Seen" : "Delivered");
+    }
+
+    async function saveReceipt(messageId, status) {
+      if (!messageId || !currentUser) return;
+
+      try {
+        const existing = await supabaseClient
+          .from("message_receipts")
+          .select("id, status")
+          .eq("message_id", messageId)
+          .eq("user_id", currentUser.id)
+          .maybeSingle();
+
+        if (existing.error) throw existing.error;
+
+        if (existing.data?.id) {
+          if (existing.data.status === "seen" || existing.data.status === status) return;
+          const update = await supabaseClient
+            .from("message_receipts")
+            .update({ status, seen_at: status === "seen" ? new Date().toISOString() : null })
+            .eq("id", existing.data.id)
+            .eq("user_id", currentUser.id);
+          if (update.error) throw update.error;
+        } else {
+          const insert = await supabaseClient
+            .from("message_receipts")
+            .insert({
+              message_id: messageId,
+              user_id: currentUser.id,
+              status,
+              seen_at: status === "seen" ? new Date().toISOString() : null
+            });
+          if (insert.error) throw insert.error;
+        }
+      } catch (error) {
+        console.error("Receipt save error:", error);
+      }
+    }
+
+    async function markMessageDelivered(messageId) {
+      if (!messageId || !currentUser) return;
+      const messageElement = document.querySelector(`[data-message-id="${messageId}"]`);
+      if (!messageElement || messageElement.classList.contains("mine")) return;
+      await saveReceipt(messageId, "delivered");
+    }
+
+    async function markVisibleMessagesSeen() {
+      if (!currentUser || !isNearBottom()) return;
+
+      const messageElements = Array.from(document.querySelectorAll("#messages .message"));
+      const otherMessages = messageElements.filter(el => !el.classList.contains("mine") && el.dataset.messageId);
+      await Promise.all(otherMessages.map(el => saveReceipt(el.dataset.messageId, "seen")));
+    }
+
+    async function loadAllReceipts() {
+      if (!currentUser) return;
+
+      const { data, error } = await supabaseClient
+        .from("message_receipts")
+        .select("message_id, user_id, status, seen_at");
+
+      if (error) {
+        console.error("Load receipts error:", error);
+        return;
+      }
+
+      const byMessage = {};
+      (data || []).forEach((receipt) => {
+        if (receipt.user_id === currentUser.id) return;
+        byMessage[receipt.message_id] = receipt;
+      });
+
+      Object.entries(byMessage).forEach(([messageId, receipt]) => {
+        renderReceiptForMessage(messageId, receipt);
+      });
+    }
 
     /* ======================================
        SEND MESSAGE
@@ -4071,6 +4221,12 @@
               if (payload.eventType === "INSERT") {
                 const wasNearBottom = isNearBottom();
                 addMessage(payload.new);
+                if (payload.new?.sender_id && currentUser && payload.new.sender_id !== currentUser.id) {
+                  markMessageDelivered(payload.new.id);
+                  if (wasNearBottom) {
+                    saveReceipt(payload.new.id, "seen");
+                  }
+                }
                 if (wasNearBottom) {
                   scrollToBottom(true);
                   markMessagesRead();
@@ -4126,6 +4282,24 @@
             async (payload) => {
               const messageId = payload.new?.message_id || payload.old?.message_id;
               if (messageId) await refreshReactionForMessage(messageId);
+            }
+          )
+          .on(
+            "postgres_changes",
+            {
+              event: "*",
+              schema: "public",
+              table: "message_receipts"
+            },
+            (payload) => {
+              const messageId = payload.new?.message_id || payload.old?.message_id;
+              const receiptUserId = payload.new?.user_id || payload.old?.user_id;
+              if (!messageId || !receiptUserId || (currentUser && receiptUserId === currentUser.id)) return;
+              if (payload.eventType === "DELETE") {
+                setMessageStatus(messageId, "Sent");
+                return;
+              }
+              renderReceiptForMessage(messageId, payload.new);
             }
           )
 
