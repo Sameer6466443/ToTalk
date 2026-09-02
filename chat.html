@@ -418,22 +418,115 @@
     }
 
 
-    .online {
+    .presence-status {
 
       margin-top: 5px;
 
-      color: var(--green);
+      display: inline-flex;
+
+      align-items: center;
+
+      gap: 6px;
 
       font-size: 10px;
 
       font-weight: 700;
 
+      transition: color .28s ease, opacity .28s ease;
+
+    }
+
+    .presence-status.online { color: #bda8ff; }
+    .presence-status.offline { color: #9a95a9; }
+
+    .presence-icon {
+      width: 14px;
+      height: 14px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      flex: 0 0 14px;
+    }
+
+    .moon-icon {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #cdbdff;
+      box-shadow: 0 0 9px rgba(190,160,255,.65);
+      position: relative;
+      display: block;
+    }
+
+    .moon-icon::after {
+      content: "";
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #0b0716;
+      left: 3px;
+      top: -2px;
+    }
+
+    .sun-icon {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: #f5d98b;
+      box-shadow: 0 0 9px rgba(245,217,139,.45);
+      position: relative;
+      display: block;
+    }
+
+    .sun-icon::before,
+    .sun-icon::after {
+      content: "";
+      position: absolute;
+      inset: -3px;
+      border-radius: 50%;
+      border: 1px solid rgba(245,217,139,.55);
+    }
+
+    .sun-icon::after {
+      transform: rotate(45deg);
+      border-color: rgba(245,217,139,.35);
+    }
+
+    .presence-status.offline .sun-icon {
+      animation: sunBreath 2.8s ease-in-out infinite;
+    }
+
+    .presence-status.online .moon-icon {
+      animation: moonFloat 3s ease-in-out infinite;
+    }
+
+    @keyframes moonFloat {
+      0%,100% { transform: translateY(0); }
+      50% { transform: translateY(-1px); }
+    }
+
+    @keyframes sunBreath {
+      0%,100% { transform: scale(.92); opacity:.72; }
+      50% { transform: scale(1); opacity:1; }
+    }
+
+    .chat-status {
+      margin-top: 4px;
+      font-size: 10px;
+      font-weight: 700;
     }
 
 
     /* ======================================
        CHAT BOX
     ====================================== */
+
+
+    /* UNREAD MESSAGE INDICATOR */
+    .unread-badge{display:none;min-width:17px;height:17px;padding:0 5px;align-items:center;justify-content:center;border-radius:999px;background:linear-gradient(135deg,#b67cff,#6d35e8);color:#fff;font-size:9px;font-weight:900;box-shadow:0 0 12px rgba(155,102,255,.55);animation:unreadPulse 1.8s ease-in-out infinite}.unread-badge.show{display:inline-flex}
+    .new-message-indicator{position:absolute;left:50%;bottom:78px;transform:translate(-50%,10px);z-index:30;display:inline-flex;align-items:center;gap:8px;padding:9px 14px;border:1px solid rgba(190,160,255,.28);border-radius:999px;background:rgba(20,13,42,.92);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);color:#eee8ff;font-size:11px;font-weight:800;box-shadow:0 8px 30px rgba(0,0,0,.35),0 0 22px rgba(137,82,255,.18);opacity:0;pointer-events:none;transition:opacity .28s ease,transform .28s cubic-bezier(.2,.75,.25,1)}.new-message-indicator.show{opacity:1;transform:translate(-50%,0)}.new-message-indicator .unread-dot{width:6px;height:6px;border-radius:50%;background:#c9b1ff;box-shadow:0 0 9px rgba(201,177,255,.85)}@keyframes unreadPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
 
     .chat-box {
 
@@ -528,22 +621,12 @@
     }
 
 
-    .chat-status {
-
-      margin-top: 4px;
-
-      color: var(--green);
-
-      font-size: 10px;
-
-      font-weight: 700;
-
-    }
+    
 
 
     .top-star {
 
-      margin-left: auto;
+      margin-left: 0;
 
       color: var(--yellow);
 
@@ -554,6 +637,64 @@
       text-shadow:
         0 0 12px rgba(255,227,79,.75);
 
+    }
+
+
+
+
+    /* ======================================
+       MESSAGE SEARCH
+    ====================================== */
+
+    .message-search-toggle {
+      margin-left: auto;
+      width: 30px; height: 30px; flex: 0 0 30px;
+      border: 0; border-radius: 8px;
+      background: transparent; cursor: pointer; position: relative;
+      display:flex; align-items:center; justify-content:center;
+      opacity:.82;
+      transition: transform .18s ease, opacity .18s ease, background .18s ease;
+    }
+    .message-search-toggle:hover,.message-search-toggle:focus-visible {
+      transform:scale(1.08); background:rgba(145,76,255,.10);
+      opacity:1; outline:none;
+    }
+    .message-search-toggle .search-glass {
+      width:13px;height:13px;border:1.8px solid rgba(255,255,255,.86);
+      border-radius:50%;position:relative;opacity:.95;
+    }
+    .message-search-toggle .search-glass::after {
+      content:"";position:absolute;width:6px;height:1.8px;
+      background:rgba(255,255,255,.86);right:-5px;bottom:-2px;
+      transform:rotate(45deg);border-radius:2px;
+    }
+    .chat-search-popover {
+      position:absolute; top:60px; right:12px; z-index:80;
+      width:min(235px,calc(100% - 24px)); padding:6px;
+      border:1px solid rgba(165,102,255,.34); border-radius:13px;
+      background:rgba(10,6,25,.97);
+      box-shadow:0 12px 35px rgba(0,0,0,.45),0 0 25px rgba(125,55,220,.18);
+      backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px);
+      opacity:0; transform:translateY(-7px) scale(.98); pointer-events:none;
+      transition:opacity .2s ease,transform .2s cubic-bezier(.2,.75,.25,1);
+    }
+    .chat-search-popover.open { opacity:1; transform:translateY(0) scale(1); pointer-events:auto; }
+    .message-search-bar {
+      width:100%;height:32px;display:flex;align-items:center;gap:6px;padding:0 7px;box-sizing:border-box;
+      border:1px solid rgba(181,143,255,.24);border-radius:9px;background:rgba(255,255,255,.045);
+    }
+    .message-search-input { min-width:0;flex:1;height:28px;padding:0;border:0;background:transparent;color:#fff;outline:none;font:inherit;font-size:10px; }
+    .message-search-input::placeholder { color:rgba(255,255,255,.46); }
+    .search-count { min-width:30px;text-align:center;color:rgba(255,255,255,.52);font-size:9px;white-space:nowrap; }
+    .search-nav-btn { width:23px;height:23px;flex:0 0 23px;border:1px solid rgba(181,143,255,.2);border-radius:7px;background:rgba(255,255,255,.045);color:rgba(255,255,255,.78);cursor:pointer;font-size:10px;transition:background .18s,transform .18s; }
+    .search-nav-btn:hover { background:rgba(145,76,255,.15);transform:translateY(-1px); }
+    .search-close-btn { width:23px;height:23px;flex:0 0 23px;border:0;border-radius:7px;background:transparent;color:rgba(255,255,255,.5);cursor:pointer;font-size:15px;line-height:1; }
+    .search-hit { background:rgba(255,227,79,.28);color:#fff;border-radius:3px;padding:0 2px;box-shadow:0 0 9px rgba(255,227,79,.12); }
+    .message.search-active { border-color:rgba(181,143,255,.72);box-shadow:0 0 24px rgba(145,76,255,.24); }
+    .message.is-editing .message-menu-wrap { display:none !important; }
+    @media (max-width:650px) {
+      .message-search-toggle { width:28px;height:28px;flex-basis:28px; }
+      .chat-search-popover { top:57px;right:8px;width:min(235px,calc(100% - 16px)); }
     }
 
 
@@ -903,6 +1044,10 @@
 
     .message {
       position: relative;
+      -webkit-user-select: none;
+      user-select: none;
+      -webkit-touch-callout: none;
+      touch-action: manipulation;
       max-width: min(70%, 520px);
       align-self: flex-start;
       padding: 10px 13px 9px;
@@ -925,11 +1070,17 @@
       white-space: pre-wrap;
     }
 
+    .message:not(.mine) {
+      padding-right: 13px;
+    }
+
+
     .message-menu-wrap {
       position: absolute;
       top: 7px;
       right: 7px;
-      z-index: 20;
+      z-index: 900;
+      display: block;
     }
 
     .message-menu-btn {
@@ -958,8 +1109,11 @@
 
     .message-menu {
       position: absolute;
-      top: 29px;
+      bottom: 29px;
+      top: auto;
       right: 0;
+      max-height: 180px;
+      overflow: auto;
       min-width: 92px;
       padding: 5px;
       border: 1px solid rgba(165,102,255,.35);
@@ -971,6 +1125,12 @@
 
     .message-menu.open {
       display: block;
+      z-index: 10000;
+    }
+
+    .message-menu.menu-down {
+      top: 29px;
+      bottom: auto;
     }
 
     .message-menu button {
@@ -1043,7 +1203,12 @@
       opacity: .5;
     }
 
+    .message.is-editing {
+      padding-right: 13px;
+    }
+
     .edit-message-area {
+      display:block;
       width: 100%;
       box-sizing: border-box;
       min-height: 58px;
@@ -1093,38 +1258,100 @@
       }
     }
 
+    /* Smooth, compact reaction bar */
     .reaction-picker {
-      position: absolute;
-      right: 8px;
-      top: 34px;
-      z-index: 50;
-      display: none;
+      position: fixed;
+      z-index: 2147483647;
+      display: flex;
       align-items: center;
+      justify-content: center;
       gap: 3px;
-      padding: 5px 6px;
-      border: 1px solid rgba(165,102,255,.35);
-      border-radius: 12px;
-      background: rgba(13,8,30,.98);
-      box-shadow: 0 10px 28px rgba(0,0,0,.45);
+      padding: 6px 7px;
+      border: 1px solid rgba(178,132,255,.34);
+      border-radius: 18px;
+      background: rgba(10,7,25,.94);
+      box-shadow: 0 12px 34px rgba(0,0,0,.5), 0 0 22px rgba(126,72,255,.16);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(7px) scale(.96);
+      transform-origin: center bottom;
+      pointer-events: none;
+      transition: opacity .13s ease, transform .18s cubic-bezier(.2,.8,.2,1), visibility .13s ease;
+      max-width: calc(100vw - 20px);
     }
 
-    .reaction-picker.open { display: flex; }
+    .reaction-picker.open {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0) scale(1);
+      pointer-events: auto;
+    }
 
     .reaction-picker button {
-      width: 30px;
-      height: 30px;
+      flex: 0 0 36px;
+      width: 36px;
+      height: 36px;
+      padding: 0;
       border: 0;
-      border-radius: 8px;
+      border-radius: 11px;
       background: transparent;
       color: #fff;
-      font-size: 17px;
+      font-size: 20px;
+      line-height: 1;
       cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      transition: background .11s ease, transform .13s cubic-bezier(.2,.8,.2,1);
     }
 
     .reaction-picker button:hover,
     .reaction-picker button:focus-visible {
-      background: rgba(145,76,255,.20);
+      background: rgba(145,76,255,.18);
+      transform: translateY(-2px) scale(1.08);
       outline: none;
+    }
+
+    .reaction-picker button:active,
+    .reaction-picker button.picked {
+      background: rgba(145,76,255,.28);
+      transform: scale(.9);
+    }
+
+    @media (max-width: 520px) {
+      .reaction-picker {
+        gap: 1px;
+        padding: 5px 6px;
+        border-radius: 17px;
+      }
+      .reaction-picker button {
+        flex-basis: 34px;
+        width: 34px;
+        height: 34px;
+        font-size: 19px;
+      }
+    }
+
+    .reaction-chip {
+      transition: transform .16s ease, background .16s ease;
+    }
+
+    .reaction-chip.reaction-pop {
+      animation: reactionPop .28s cubic-bezier(.2,.8,.2,1);
+    }
+
+    @keyframes reactionPop {
+      0% { opacity: .2; transform: scale(.78); }
+      65% { opacity: 1; transform: scale(1.08); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+
+    .reaction-chip:hover {
+      transform: translateY(-1px);
+    }
+
+    @media (prefers-reduced-motion:reduce) {
+      .reaction-picker, .reaction-picker button, .reaction-chip { transition: none; }
     }
 
     .reaction-summary {
@@ -1299,6 +1526,9 @@
         translateX(-50%);
 
       display: none;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .25s ease, transform .25s ease;
 
       max-width:
         calc(100% - 30px);
@@ -1321,6 +1551,9 @@
       text-align: center;
 
     }
+
+
+.status-visible{opacity:1;transform:translateX(-50%) translateY(-4px);}
 
 
     /* ======================================
@@ -1797,8 +2030,22 @@
   
 .message{opacity:0;transform:translateY(10px);}
 .message.message-enter{animation:messageEnter .42s cubic-bezier(.2,.75,.25,1) forwards;}
+.message.mine.message-enter{animation:messageSent .48s cubic-bezier(.18,.8,.25,1) forwards;}
+@keyframes messageSent{0%{opacity:0;transform:translateY(12px) scale(.97);filter:blur(1px)}60%{opacity:1;transform:translateY(-2px) scale(1.008);filter:blur(0)}100%{opacity:1;transform:translateY(0) scale(1);filter:blur(0)}}
 @keyframes messageEnter{to{opacity:1;transform:translateY(0);}}
 @media (prefers-reduced-motion:reduce){.message.message-enter{animation:none;opacity:1;transform:none;}}
+
+
+    /* Final reaction-picker visibility fix: never leave an empty shell visible. */
+    .reaction-picker {
+      display: none !important;
+    }
+    .reaction-picker.open {
+      display: flex !important;
+    }
+
+    .message-menu { display: none !important; }
+    .message-menu.open { display: block !important; }
 </style>
 
 </head>
@@ -1906,9 +2153,12 @@
             Sameer
           </div>
 
-          <div class="online">
-            Online
+          <div class="presence-status online" id="sidePresence">
+            <span class="presence-icon" aria-hidden="true"><span class="moon-icon"></span></span>
+            <span class="presence-label">Online</span>
           </div>
+
+          <span class="unread-badge" id="sideUnread" aria-label="Unread messages">0</span>
 
         </div>
 
@@ -1937,12 +2187,20 @@
             Sameer's ToTalk
           </div>
 
-          <div class="chat-status">
-            Online
+          <div class="chat-status online" id="chatPresence">
+            <span class="presence-icon" aria-hidden="true"><span class="moon-icon"></span></span>
+            <span class="presence-label">Online</span>
           </div>
 
         </div>
 
+
+
+
+
+        <button class="message-search-toggle" id="messageSearchToggle" type="button" aria-label="Search messages" aria-expanded="false">
+          <span class="search-glass" aria-hidden="true"></span>
+        </button>
 
         <div class="top-star">
           ☆
@@ -1950,6 +2208,15 @@
 
       </div>
 
+      <div class="chat-search-popover" id="messageSearchBar" aria-hidden="true">
+        <div class="message-search-bar">
+          <input class="message-search-input" id="messageSearchInput" type="search" placeholder="Search messages..." autocomplete="off" maxlength="100" aria-label="Search messages">
+          <span class="search-count" id="searchCount">0</span>
+          <button class="search-nav-btn" id="searchPrev" type="button" aria-label="Previous result">↑</button>
+          <button class="search-nav-btn" id="searchNext" type="button" aria-label="Next result">↓</button>
+          <button class="search-close-btn" id="searchClose" type="button" aria-label="Close search">×</button>
+        </div>
+      </div>
 
       <!-- SPACE -->
 
@@ -1992,6 +2259,11 @@
 
 
         <!-- INPUT -->
+
+        <button class="new-message-indicator" id="newMessageIndicator" type="button" aria-label="Jump to new messages">
+          <span class="unread-dot" aria-hidden="true"></span>
+          <span id="newMessageLabel">New message</span>
+        </button>
 
         <div class="input-area">
 
@@ -2150,6 +2422,9 @@
 
       status.style.display =
         "block";
+      requestAnimationFrame(() => {
+        status.classList.add("status-visible");
+      });
 
 
       clearTimeout(
@@ -2161,8 +2436,10 @@
         setTimeout(
           () => {
 
-            status.style.display =
-              "none";
+            status.classList.remove("status-visible");
+            setTimeout(() => {
+              status.style.display = "none";
+            }, 250);
 
           },
           3500
@@ -2262,6 +2539,41 @@
     /* ======================================
        MESSAGE ELEMENT
     ====================================== */
+
+    function closeAllMessageMenus(exceptMenu = null) {
+      document.querySelectorAll(".message-menu.open").forEach((menu) => {
+        if (menu !== exceptMenu) menu.classList.remove("open");
+      });
+      document.querySelectorAll(".message-menu-btn[aria-expanded=\"true\"]").forEach((button) => {
+        const wrap = button.closest(".message-menu-wrap");
+        const menu = wrap ? wrap.querySelector(".message-menu") : null;
+        if (!menu || menu !== exceptMenu) button.setAttribute("aria-expanded", "false");
+      });
+    }
+
+    let activeEditCleanup = null;
+
+    function closeOtherEditors(exceptMessage = null) {
+      if (activeEditCleanup) {
+        const current = document.querySelector(".message.is-editing");
+        if (!exceptMessage || current !== exceptMessage) {
+          const cleanup = activeEditCleanup;
+          activeEditCleanup = null;
+          cleanup();
+        }
+      }
+      document.querySelectorAll(".message.is-editing").forEach((message) => {
+        if (message !== exceptMessage) {
+          const editor = message.querySelector(".edit-message-area");
+          const text = message.querySelector(".message-text");
+          const actions = message.querySelector(".message-actions");
+          if (editor) editor.remove();
+          if (actions) actions.remove();
+          if (text) text.style.display = "";
+          message.classList.remove("is-editing");
+        }
+      });
+    }
 
     function addMessage(messageData, animate = false, delay = 0) {
 
@@ -2389,12 +2701,13 @@
       message.appendChild(text);
       message.appendChild(time);
 
-      if (currentUser && messageData.id) {
+      // Every message supports long-press reactions, but only your own
+      // messages show the three-dot Edit/Delete menu.
+      const reactionPicker = createReactionPicker(messageData.id, message);
+      message._reactionPicker = reactionPicker;
+
+      if (messageData.id && currentUser && messageData.sender_id === currentUser.id) {
         const menuWrap = document.createElement("div");
-        const isOwnMessage = messageData.sender_id === currentUser.id;
-        const isSameerAdmin =
-          String(currentUser.email || "").toLowerCase() ===
-          "sameerking91220@gmail.com";
         menuWrap.className = "message-menu-wrap";
 
         const menuButton = document.createElement("button");
@@ -2407,20 +2720,7 @@
         const menu = document.createElement("div");
         menu.className = "message-menu";
 
-        const reactButton = document.createElement("button");
-        reactButton.type = "button";
-        reactButton.textContent = "React";
-        reactButton.addEventListener("click", (event) => {
-          event.stopPropagation();
-          menu.classList.remove("open");
-          menuButton.setAttribute("aria-expanded", "false");
-          toggleReactionPicker(message, reactionPicker);
-        });
-
-        const reactionPicker = createReactionPicker(messageData.id, message);
-        message.appendChild(reactionPicker);
-
-        if (isOwnMessage) {
+        {
           const editButton = document.createElement("button");
           editButton.type = "button";
           editButton.textContent = "Edit";
@@ -2430,10 +2730,7 @@
             menuButton.setAttribute("aria-expanded", "false");
             editMessage(messageData.id, message, text);
           });
-          menu.appendChild(editButton);
-        }
 
-        if (isOwnMessage || isSameerAdmin) {
           const deleteButton = document.createElement("button");
           deleteButton.type = "button";
           deleteButton.className = "menu-delete";
@@ -2444,26 +2741,35 @@
             menuButton.setAttribute("aria-expanded", "false");
             deleteMessage(messageData.id, message);
           });
+
+          menu.appendChild(editButton);
           menu.appendChild(deleteButton);
         }
 
-        menu.insertBefore(reactButton, menu.firstChild);
         menuWrap.appendChild(menuButton);
         menuWrap.appendChild(menu);
         message.appendChild(menuWrap);
 
         menuButton.addEventListener("click", (event) => {
           event.stopPropagation();
-          const isOpen = menu.classList.toggle("open");
-          menuButton.setAttribute("aria-expanded", String(isOpen));
+          const isOpen = menu.classList.contains("open");
+          closeAllMessageMenus(isOpen ? null : menu);
+
+          if (!isOpen) {
+            // Never allow the message menu to sit underneath the search popup.
+            if (typeof closeMessageSearch === "function") closeMessageSearch();
+            document.querySelectorAll(".reaction-picker.open").forEach((picker) => picker.classList.remove("open"));
+            document.querySelectorAll(".reaction-target").forEach((el) => el.classList.remove("reaction-target"));
+          }
+
+          menu.classList.toggle("open", !isOpen);
+          menuButton.setAttribute("aria-expanded", String(!isOpen));
+          if (!isOpen) {
+            requestAnimationFrame(() => placeMessageMenu(message, menu));
+          }
         });
       }
 
-      const reactionPicker = message.querySelector(".reaction-picker");
-      if (!reactionPicker) {
-        const picker = createReactionPicker(messageData.id, message);
-        message.appendChild(picker);
-      }
 
       const reactionSummary = document.createElement("div");
       reactionSummary.className = "reaction-summary";
@@ -2472,6 +2778,9 @@
 
       attachReactionGestures(message, messageData.id);
       messages.appendChild(message);
+      if (message._reactionPicker && !message._reactionPicker.isConnected) {
+        document.body.appendChild(message._reactionPicker);
+      }
 
     }
 
@@ -2505,6 +2814,132 @@
     }
 
 
+
+
+
+    /* ======================================
+       MESSAGE SEARCH
+    ====================================== */
+
+    const messageSearchToggle = document.getElementById("messageSearchToggle");
+    const messageSearchBar = document.getElementById("messageSearchBar");
+    const messageSearchInput = document.getElementById("messageSearchInput");
+    const searchCount = document.getElementById("searchCount");
+    const searchPrev = document.getElementById("searchPrev");
+    const searchNext = document.getElementById("searchNext");
+    const searchClose = document.getElementById("searchClose");
+    let searchMatches = [];
+    let searchIndex = -1;
+
+    function escapeSearchRegex(value) {
+      return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    }
+
+    function clearSearchHighlights() {
+      document.querySelectorAll(".message.search-active").forEach(el => el.classList.remove("search-active"));
+      document.querySelectorAll(".message-text[data-search-original]").forEach(textEl => {
+        textEl.textContent = textEl.dataset.searchOriginal;
+        delete textEl.dataset.searchOriginal;
+      });
+    }
+
+    function runMessageSearch() {
+      clearSearchHighlights(); searchMatches = []; searchIndex = -1;
+      const query = messageSearchInput.value.trim();
+      if (!query) { searchCount.textContent = "0"; return; }
+      const regex = new RegExp(escapeSearchRegex(query), "gi");
+      document.querySelectorAll("#messages .message").forEach(messageEl => {
+        if (messageEl.classList.contains("is-editing")) return;
+        const textEl = messageEl.querySelector(".message-text");
+        if (!textEl) return;
+        const original = textEl.textContent || "";
+        if (!regex.test(original)) return;
+        regex.lastIndex = 0;
+        textEl.dataset.searchOriginal = original;
+        const fragment = document.createDocumentFragment();
+        let last = 0, match;
+        while ((match = regex.exec(original)) !== null) {
+          fragment.appendChild(document.createTextNode(original.slice(last, match.index)));
+          const mark = document.createElement("mark");
+          mark.className = "search-hit"; mark.textContent = match[0];
+          fragment.appendChild(mark);
+          last = match.index + match[0].length;
+        }
+        fragment.appendChild(document.createTextNode(original.slice(last)));
+        textEl.replaceChildren(fragment);
+        searchMatches.push(messageEl);
+      });
+      if (!searchMatches.length) { searchCount.textContent = "0"; return; }
+      searchIndex = 0; focusSearchResult();
+    }
+
+    function focusSearchResult() {
+      searchMatches.forEach(el => el.classList.remove("search-active"));
+      if (searchIndex < 0 || searchIndex >= searchMatches.length) return;
+      const target = searchMatches[searchIndex];
+      target.classList.add("search-active");
+      target.scrollIntoView({behavior:"smooth", block:"center"});
+      searchCount.textContent = `${searchIndex + 1}/${searchMatches.length}`;
+    }
+
+    function openMessageSearch() {
+      closeAllMessageMenus();
+      document.querySelectorAll(".reaction-picker.open").forEach((picker) => picker.classList.remove("open"));
+      document.querySelectorAll(".reaction-target").forEach((el) => el.classList.remove("reaction-target"));
+      messageSearchBar.classList.add("open");
+      messageSearchBar.setAttribute("aria-hidden", "false");
+      messageSearchToggle.setAttribute("aria-expanded", "true");
+      messageSearchInput.focus();
+    }
+
+    function closeMessageSearch() {
+      messageSearchBar.classList.remove("open");
+      messageSearchBar.setAttribute("aria-hidden", "true");
+      messageSearchToggle.setAttribute("aria-expanded", "false");
+      messageSearchInput.value = "";
+      clearSearchHighlights(); searchMatches = []; searchIndex = -1; searchCount.textContent = "0";
+    }
+
+    messageSearchToggle.addEventListener("click", (event) => {
+      event.stopPropagation();
+      messageSearchBar.classList.contains("open") ? closeMessageSearch() : openMessageSearch();
+    });
+    searchClose.addEventListener("click", closeMessageSearch);
+    messageSearchInput.addEventListener("input", runMessageSearch);
+    messageSearchInput.addEventListener("keydown", event => {
+      if (event.key === "Enter" && searchMatches.length) { event.preventDefault(); event.shiftKey ? searchPrev.click() : searchNext.click(); }
+      if (event.key === "Escape") closeMessageSearch();
+    });
+    searchNext.addEventListener("click", () => { if (searchMatches.length) { searchIndex=(searchIndex+1)%searchMatches.length; focusSearchResult(); } });
+    searchPrev.addEventListener("click", () => { if (searchMatches.length) { searchIndex=(searchIndex-1+searchMatches.length)%searchMatches.length; focusSearchResult(); } });
+    document.addEventListener("click", event => {
+      if (messageSearchBar.classList.contains("open") && !event.target.closest(".chat-search-popover") && !event.target.closest("#messageSearchToggle")) closeMessageSearch();
+    });
+
+
+    /* ======================================
+       UNREAD MESSAGE INDICATOR
+    ====================================== */
+    let unreadCount = 0;
+    const defaultPageTitle = document.title;
+
+    function isNearBottom(){
+      return (messages.scrollHeight - messages.scrollTop - messages.clientHeight) < 90;
+    }
+    function updateUnreadUI(){
+      const badge=document.getElementById("sideUnread");
+      const indicator=document.getElementById("newMessageIndicator");
+      const label=document.getElementById("newMessageLabel");
+      if(badge){badge.textContent=unreadCount>99?"99+":String(unreadCount);badge.classList.toggle("show",unreadCount>0)}
+      if(label) label.textContent=unreadCount===1?"1 new message":`${unreadCount} new messages`;
+      if(indicator) indicator.classList.toggle("show",unreadCount>0);
+      document.title=unreadCount>0?`(${unreadCount>99?"99+":unreadCount}) ${defaultPageTitle}`:defaultPageTitle;
+    }
+    function markMessagesRead(){unreadCount=0;updateUnreadUI()}
+    const newMessageIndicator=document.getElementById("newMessageIndicator");
+    if(newMessageIndicator)newMessageIndicator.addEventListener("click",()=>{markMessagesRead();scrollToBottom(true)});
+    messages.addEventListener("scroll",()=>{if(isNearBottom()&&unreadCount>0)markMessagesRead()});
+
     /* ======================================
        REACTIONS
     ====================================== */
@@ -2515,17 +2950,24 @@
       const picker = document.createElement("div");
       picker.className = "reaction-picker";
       picker.dataset.messageId = messageId || "";
+      picker._messageElement = messageElement;
 
       REACTIONS.forEach((reaction) => {
         const button = document.createElement("button");
         button.type = "button";
         button.textContent = reaction;
         button.setAttribute("aria-label", "React " + reaction);
-        button.addEventListener("click", async (event) => {
+        button.addEventListener("click", (event) => {
           event.stopPropagation();
-          await toggleReaction(messageId, reaction, messageElement);
+
+          // Make the tap feel instant: close the picker first and animate
+          // the selected emoji. The database work continues in the background.
+          button.classList.add("picked");
           picker.classList.remove("open");
           messageElement.classList.remove("reaction-target");
+
+          window.setTimeout(() => button.classList.remove("picked"), 140);
+          toggleReaction(messageId, reaction, messageElement);
         });
         picker.appendChild(button);
       });
@@ -2533,8 +2975,42 @@
       return picker;
     }
 
+    function placeReactionPicker(messageElement, picker) {
+      if (!messageElement || !picker) return;
+
+      picker.classList.remove("picker-left", "picker-above");
+
+      const messageRect = messageElement.getBoundingClientRect();
+      const gap = 8;
+      const pickerWidth = Math.min(245, Math.max(190, picker.offsetWidth || 220));
+      const pickerHeight = picker.offsetHeight || 48;
+
+      let left = messageRect.left + (messageRect.width - pickerWidth) / 2;
+      left = Math.max(gap, Math.min(left, window.innerWidth - pickerWidth - gap));
+
+      let top = messageRect.top - pickerHeight - 9;
+      if (top < gap) {
+        top = messageRect.bottom + 9;
+      }
+      top = Math.max(gap, Math.min(top, window.innerHeight - pickerHeight - gap));
+
+      picker.style.left = Math.round(left) + "px";
+      picker.style.top = Math.round(top) + "px";
+    }
+
+    function placeMessageMenu(messageElement, menu) {
+      menu.classList.remove("menu-down");
+      const messageRect = messageElement.getBoundingClientRect();
+      const menuHeight = menu.offsetHeight || 90;
+      const topSpace = messageRect.top - 8;
+      if (topSpace < menuHeight) {
+        menu.classList.add("menu-down");
+      }
+    }
+
     function toggleReactionPicker(messageElement, picker) {
       if (!picker) return;
+      if (typeof closeMessageSearch === "function") closeMessageSearch();
       document.querySelectorAll(".reaction-picker.open").forEach((other) => {
         if (other !== picker) other.classList.remove("open");
       });
@@ -2543,63 +3019,187 @@
       });
       const open = picker.classList.toggle("open");
       messageElement.classList.toggle("reaction-target", open);
+      if (open) {
+        // Float the compact bar next to the message instead of using a
+        // bottom sheet. This keeps the interaction visually connected
+        // to the message and avoids the delayed/awkward feeling.
+        picker.style.bottom = "auto";
+        picker.style.left = "0px";
+        picker.style.top = "0px";
+        requestAnimationFrame(() => placeReactionPicker(messageElement, picker));
+      }
     }
 
-    function attachReactionGestures(messageElement, messageId) {
-      if (!messageId) return;
-      let pressTimer = null;
-
-      messageElement.addEventListener("contextmenu", (event) => {
-        event.preventDefault();
-        const picker = messageElement.querySelector(".reaction-picker");
-        toggleReactionPicker(messageElement, picker);
+    window.addEventListener("resize", () => {
+      document.querySelectorAll(".message-menu.open").forEach((menu) => {
+        const message = menu.closest(".message");
+        if (message) placeMessageMenu(message, menu);
       });
+    });
 
-      messageElement.addEventListener("touchstart", () => {
+    function attachReactionGestures(messageElement, messageId) {
+      if (!messageId || !messageElement) return;
+
+      let pressTimer = null;
+      let startX = 0;
+      let startY = 0;
+      let longPressTriggered = false;
+      let touchActive = false;
+      let suppressClickUntil = 0;
+
+      const cancelPress = () => {
+        if (pressTimer) {
+          clearTimeout(pressTimer);
+          pressTimer = null;
+        }
+      };
+
+      const openReactionPicker = () => {
+        const picker = messageElement._reactionPicker;
+        if (!picker) return;
+        longPressTriggered = true;
+        suppressClickUntil = Date.now() + 900;
+        messageElement._suppressReactionClickUntil = suppressClickUntil;
+        toggleReactionPicker(messageElement, picker);
+      };
+
+      // Android/iOS reliable long-press. Touch events are used directly
+      // instead of pointer capture so the gesture also works on received
+      // messages and inside the scrollable chat area.
+      messageElement.addEventListener("touchstart", (event) => {
+        if (event.touches.length !== 1) return;
+        if (event.target.closest(".message-menu-wrap")) return;
+
+        touchActive = true;
+        longPressTriggered = false;
+        cancelPress();
+
+        const touch = event.touches[0];
+        startX = touch.clientX;
+        startY = touch.clientY;
+
         pressTimer = setTimeout(() => {
-          const picker = messageElement.querySelector(".reaction-picker");
-          toggleReactionPicker(messageElement, picker);
-        }, 550);
+          if (!touchActive) return;
+          openReactionPicker();
+        }, 450);
       }, { passive: true });
 
-      ["touchend", "touchmove", "touchcancel"].forEach((eventName) => {
-        messageElement.addEventListener(eventName, () => {
-          if (pressTimer) clearTimeout(pressTimer);
-          pressTimer = null;
-        }, { passive: true });
+      messageElement.addEventListener("touchmove", (event) => {
+        if (!touchActive || !pressTimer || !event.touches.length) return;
+        const touch = event.touches[0];
+        const moved = Math.hypot(touch.clientX - startX, touch.clientY - startY);
+        if (moved > 12) cancelPress();
+      }, { passive: true });
+
+      messageElement.addEventListener("touchend", (event) => {
+        touchActive = false;
+        cancelPress();
+        if (longPressTriggered) {
+          event.preventDefault();
+          event.stopPropagation();
+          suppressClickUntil = Date.now() + 900;
+          longPressTriggered = false;
+        }
+      }, { passive: false });
+
+      messageElement.addEventListener("touchcancel", () => {
+        touchActive = false;
+        cancelPress();
+      }, { passive: true });
+
+      // Desktop fallback: hold the left mouse button.
+      messageElement.addEventListener("mousedown", (event) => {
+        if (event.button !== 0) return;
+        if (event.target.closest(".message-menu-wrap")) return;
+
+        longPressTriggered = false;
+        cancelPress();
+        startX = event.clientX;
+        startY = event.clientY;
+        pressTimer = setTimeout(openReactionPicker, 450);
+      });
+
+      messageElement.addEventListener("mousemove", (event) => {
+        if (!pressTimer) return;
+        if (Math.hypot(event.clientX - startX, event.clientY - startY) > 12) cancelPress();
+      });
+
+      messageElement.addEventListener("mouseup", (event) => {
+        cancelPress();
+        if (longPressTriggered) {
+          event.preventDefault();
+          event.stopPropagation();
+          suppressClickUntil = Date.now() + 900;
+          longPressTriggered = false;
+        }
+      });
+
+      messageElement.addEventListener("mouseleave", cancelPress);
+
+      // Never show the browser's context menu for a message.
+      messageElement.addEventListener("contextmenu", (event) => {
+        event.preventDefault();
       });
     }
 
     async function toggleReaction(messageId, reaction, messageElement) {
       if (!messageId || !currentUser) return;
+      messageElement._lastSelectedReaction = reaction;
 
-      // Set the selected reaction directly. We first remove any existing
-      // reaction from this user on this message, then insert the new one.
-      // This avoids upsert/conflict handling and also cleans up duplicates.
-      const removeResult = await supabaseClient
+      // If the user taps the same reaction again, remove it.
+      const existingResult = await supabaseClient
         .from("message_reactions")
-        .delete()
+        .select("id, reaction")
         .eq("message_id", messageId)
         .eq("user_id", currentUser.id);
 
-      if (removeResult.error) {
-        console.error("Reaction delete error:", removeResult.error);
+      if (existingResult.error) {
+        console.error("Reaction lookup error:", existingResult.error);
         showStatus("Reaction could not be changed.");
         return;
       }
 
-      const insertResult = await supabaseClient
-        .from("message_reactions")
-        .insert({
-          message_id: messageId,
-          user_id: currentUser.id,
-          reaction: reaction
-        });
+      const existing = existingResult.data && existingResult.data[0];
 
-      if (insertResult.error) {
-        console.error("Reaction insert error:", insertResult.error);
-        showStatus("Reaction could not be changed.");
-        return;
+      if (existing && existing.reaction === reaction) {
+        const removeResult = await supabaseClient
+          .from("message_reactions")
+          .delete()
+          .eq("message_id", messageId)
+          .eq("user_id", currentUser.id);
+
+        if (removeResult.error) {
+          console.error("Reaction delete error:", removeResult.error);
+          showStatus("Reaction could not be changed.");
+          return;
+        }
+      } else {
+        // Different reaction: remove the old one first, then save the new one.
+        const removeResult = await supabaseClient
+          .from("message_reactions")
+          .delete()
+          .eq("message_id", messageId)
+          .eq("user_id", currentUser.id);
+
+        if (removeResult.error) {
+          console.error("Reaction delete error:", removeResult.error);
+          showStatus("Reaction could not be changed.");
+          return;
+        }
+
+        const insertResult = await supabaseClient
+          .from("message_reactions")
+          .insert({
+            message_id: messageId,
+            user_id: currentUser.id,
+            reaction: reaction
+          });
+
+        if (insertResult.error) {
+          console.error("Reaction insert error:", insertResult.error);
+          showStatus("Reaction could not be changed.");
+          return;
+        }
       }
 
       await refreshReactionForMessage(messageId);
@@ -2619,6 +3219,10 @@
       }
 
       renderReactionSummary(messageId, data || []);
+      const messageElement = document.querySelector(`[data-message-id="${messageId}"]`);
+      if (messageElement) {
+        window.setTimeout(() => { messageElement._lastSelectedReaction = null; }, 320);
+      }
     }
 
     function renderReactionSummary(messageId, reactions) {
@@ -2645,6 +3249,9 @@
         if (!counts[reaction]) return;
         const chip = document.createElement("span");
         chip.className = "reaction-chip" + (mine.has(reaction) ? " mine" : "");
+        if (mine.has(reaction) && messageElement._lastSelectedReaction === reaction) {
+          chip.classList.add("reaction-pop");
+        }
         chip.textContent = reaction + " " + counts[reaction];
         summary.appendChild(chip);
       });
@@ -2675,8 +3282,15 @@
     }
 
     document.addEventListener("click", (event) => {
+      const touchedMessage = event.target.closest && event.target.closest(".message");
+      if (touchedMessage && touchedMessage._suppressReactionClickUntil && Date.now() < touchedMessage._suppressReactionClickUntil) {
+        event.preventDefault();
+        event.stopPropagation();
+        return;
+      }
       if (!event.target.closest(".message-menu-wrap") && !event.target.closest(".reaction-picker")) {
         document.querySelectorAll(".message-menu.open").forEach((menu) => menu.classList.remove("open"));
+        document.querySelectorAll(".message-menu-btn[aria-expanded=\"true\"]").forEach((button) => button.setAttribute("aria-expanded", "false"));
         document.querySelectorAll(".reaction-picker.open").forEach((picker) => picker.classList.remove("open"));
         document.querySelectorAll(".reaction-target").forEach((message) => message.classList.remove("reaction-target"));
       }
@@ -2688,20 +3302,19 @@
 
     async function editMessage(messageId, messageElement, textElement) {
       if (!messageId || !currentUser || !textElement) return;
-      if (messageElement.querySelector(".edit-message-area")) return;
+      if (messageElement.classList.contains("is-editing")) return;
+
+      closeOtherEditors(messageElement);
+      closeAllMessageMenus();
 
       const menuWrap = messageElement.querySelector(".message-menu-wrap");
+      const originalContent = textElement.textContent || "";
 
       const editor = document.createElement("textarea");
       editor.className = "edit-message-area";
-      const originalContent = textElement.textContent;
       editor.value = originalContent;
       editor.maxLength = 5000;
-
-      textElement.replaceWith(editor);
-      if (menuWrap) menuWrap.style.display = "none";
-      editor.focus();
-      editor.setSelectionRange(editor.value.length, editor.value.length);
+      editor.setAttribute("aria-label", "Edit message");
 
       const saveRow = document.createElement("div");
       saveRow.className = "message-actions";
@@ -2716,22 +3329,45 @@
       cancelButton.type = "button";
       cancelButton.textContent = "Cancel";
 
-      saveRow.appendChild(saveButton);
-      saveRow.appendChild(cancelButton);
-      messageElement.appendChild(saveRow);
+      saveRow.append(saveButton, cancelButton);
 
-      const cancelEdit = () => {
-        editor.replaceWith(textElement);
-        saveRow.remove();
-        if (menuWrap) menuWrap.style.display = "block";
+      // Replace the text node completely while editing. This prevents the
+      // old message text from remaining visible behind the editor.
+      textElement.replaceWith(editor);
+      messageElement.appendChild(saveRow);
+      messageElement.classList.add("is-editing");
+      if (menuWrap) menuWrap.style.display = "none";
+
+      const restore = () => {
+        if (!messageElement.isConnected) return;
+        if (editor.isConnected) editor.replaceWith(textElement);
+        if (saveRow.isConnected) saveRow.remove();
+        messageElement.classList.remove("is-editing");
+        if (menuWrap) menuWrap.style.display = "";
       };
 
-      cancelButton.addEventListener("click", cancelEdit);
+      const cleanup = () => {
+        if (activeEditCleanup === cleanup) activeEditCleanup = null;
+        restore();
+      };
+      activeEditCleanup = cleanup;
+
+      editor.focus();
+      editor.setSelectionRange(editor.value.length, editor.value.length);
+
+      cancelButton.addEventListener("click", cleanup);
 
       saveButton.addEventListener("click", async () => {
         const newContent = editor.value.trim();
-        if (!newContent) { showStatus("Message cannot be empty."); editor.focus(); return; }
-        if (newContent === originalContent) { cancelEdit(); return; }
+        if (!newContent) {
+          showStatus("Message cannot be empty.");
+          editor.focus();
+          return;
+        }
+        if (newContent === originalContent) {
+          cleanup();
+          return;
+        }
 
         saveButton.disabled = true;
         cancelButton.disabled = true;
@@ -2755,42 +3391,29 @@
         }
 
         textElement.textContent = data.content;
-
-        const timeElement =
-          messageElement.querySelector(".message-time");
-
+        const timeElement = messageElement.querySelector(".message-time");
         if (timeElement) {
-          const editedDate =
-            data.created_at
-              ? new Date(data.created_at)
-              : null;
-
-          const editedTimeText =
-            editedDate
-              ? editedDate.toLocaleTimeString(
-                  [],
-                  {
-                    hour: "2-digit",
-                    minute: "2-digit"
-                  }
-                )
-              : timeElement.textContent.split(" · ")[0];
-
-          timeElement.textContent =
-            editedTimeText + " · edited";
+          const date = data.created_at ? new Date(data.created_at) : null;
+          const timeText = date
+            ? date.toLocaleTimeString([], { hour:"2-digit", minute:"2-digit" })
+            : timeElement.textContent.split(" · ")[0];
+          timeElement.textContent = data.edited_at ? timeText + " · edited" : timeText;
         }
 
-        editor.replaceWith(textElement);
-        saveRow.remove();
-        if (menuWrap) menuWrap.style.display = "block";
+        cleanup();
       });
 
       editor.addEventListener("keydown", (event) => {
-        if (event.key === "Escape") { event.preventDefault(); cancelEdit(); }
-        if ((event.ctrlKey || event.metaKey) && event.key === "Enter") { event.preventDefault(); saveButton.click(); }
+        if (event.key === "Escape") {
+          event.preventDefault();
+          cleanup();
+        }
+        if ((event.ctrlKey || event.metaKey) && event.key === "Enter") {
+          event.preventDefault();
+          saveButton.click();
+        }
       });
     }
-
 
     /* ======================================
        DELETE MESSAGE
@@ -2809,7 +3432,8 @@
       const { error } = await supabaseClient
         .from("messages")
         .delete()
-        .eq("id", messageId);
+        .eq("id", messageId)
+        .eq("sender_id", currentUser.id);
 
       if (error) {
         console.error("Delete message error:", error);
@@ -2927,6 +3551,7 @@
         false
       );
 
+      markMessagesRead();
       await loadAllReactions();
 
     }
@@ -3063,7 +3688,9 @@
         ------------------------------- */
 
         addMessage(
-          data
+          data,
+          true,
+          0
         );
 
 
@@ -3079,6 +3706,7 @@
         scrollToBottom(
           true
         );
+        markMessagesRead();
 
 
       } catch (error) {
@@ -3107,6 +3735,81 @@
 
     }
 
+
+    /* ======================================
+       ONLINE / OFFLINE PRESENCE
+    ====================================== */
+
+    let presenceChannel = null;
+
+    function setPresenceUI(isOnline) {
+
+      const statuses = [
+        document.getElementById("sidePresence"),
+        document.getElementById("chatPresence")
+      ];
+
+      statuses.forEach((el) => {
+        if (!el) return;
+
+        el.classList.toggle("online", isOnline);
+        el.classList.toggle("offline", !isOnline);
+
+        const icon = el.querySelector(".presence-icon");
+        const label = el.querySelector(".presence-label");
+
+        if (icon) {
+          icon.innerHTML = isOnline
+            ? '<span class="moon-icon"></span>'
+            : '<span class="sun-icon"></span>';
+        }
+
+        if (label) label.textContent = isOnline ? "Online" : "Offline";
+      });
+    }
+
+    async function startPresence() {
+
+      if (!currentUser) return;
+
+      if (presenceChannel) {
+        await supabaseClient.removeChannel(presenceChannel);
+      }
+
+      presenceChannel = supabaseClient.channel("totalk-presence", {
+        config: {
+          presence: { key: currentUser.id }
+        }
+      });
+
+      presenceChannel.on("presence", { event: "sync" }, () => {
+        const state = presenceChannel.presenceState();
+        setPresenceUI(Object.keys(state).length > 0);
+      });
+
+      presenceChannel.on("presence", { event: "join" }, () => {
+        setPresenceUI(true);
+      });
+
+      presenceChannel.on("presence", { event: "leave" }, () => {
+        const state = presenceChannel.presenceState();
+        setPresenceUI(Object.keys(state).length > 0);
+      });
+
+      const status = await presenceChannel.subscribe(async (status) => {
+        if (status === "SUBSCRIBED") {
+          await presenceChannel.track({
+            user_id: currentUser.id,
+            online_at: new Date().toISOString()
+          });
+          setPresenceUI(true);
+        }
+      });
+
+      if (status !== "SUBSCRIBED") {
+        setPresenceUI(false);
+      }
+    }
 
     /* ======================================
        REAL-TIME MESSAGES
@@ -3144,8 +3847,15 @@
             },
             (payload) => {
               if (payload.eventType === "INSERT") {
+                const wasNearBottom = isNearBottom();
                 addMessage(payload.new);
-                scrollToBottom(true);
+                if (wasNearBottom) {
+                  scrollToBottom(true);
+                  markMessagesRead();
+                } else {
+                  unreadCount += 1;
+                  updateUnreadUI();
+                }
                 return;
               }
 
@@ -3356,6 +4066,7 @@
 
 
                 startRealtime();
+                startPresence();
 
 
                 return;
@@ -3405,6 +4116,7 @@
         ------------------------------- */
 
         startRealtime();
+        startPresence();
 
 
       } catch (error) {
