@@ -1066,6 +1066,11 @@
       white-space: pre-wrap;
     }
 
+    .message:not(.mine) {
+      padding-right: 13px;
+    }
+
+
     .message-menu-wrap {
       position: absolute;
       top: 7px;
@@ -1154,20 +1159,6 @@
       color: #ffd6df;
     }
 
-
-    .message:not(.mine) .message-menu-wrap {
-      opacity: .72;
-    }
-
-    .message:not(.mine) .message-menu-btn {
-      background: rgba(255,255,255,.07);
-    }
-
-    .message:not(.mine) .message-menu-btn:hover,
-    .message:not(.mine) .message-menu-btn:focus-visible {
-      opacity: 1;
-      background: rgba(145,76,255,.20);
-    }
 
     .message.mine {
       align-self: flex-end;
@@ -2692,9 +2683,9 @@
       message.appendChild(text);
       message.appendChild(time);
 
-      // Every message gets a three-dot menu. Reactions are long-press only.
-      // Edit/Delete are only shown for the message owner.
-      if (messageData.id) {
+      // Only your own messages get the three-dot menu.
+      // Received messages stay clean; reactions are long-press only.
+      if (messageData.id && currentUser && messageData.sender_id === currentUser.id) {
         const menuWrap = document.createElement("div");
         menuWrap.className = "message-menu-wrap";
 
@@ -2711,7 +2702,7 @@
         const reactionPicker = createReactionPicker(messageData.id, message);
         message._reactionPicker = reactionPicker;
 
-        if (currentUser && messageData.sender_id === currentUser.id) {
+        {
           const editButton = document.createElement("button");
           editButton.type = "button";
           editButton.textContent = "Edit";
