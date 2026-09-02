@@ -902,114 +902,196 @@
 
 
     .message {
-
-      max-width:
-        min(70%, 520px);
-
+      position: relative;
+      max-width: min(70%, 520px);
       align-self: flex-start;
-
-      padding:
-        11px 15px;
-
+      padding: 10px 13px 9px;
+      padding-right: 42px;
       border-radius: 15px;
-
-      background:
-        rgba(19,13,40,.94);
-
-      border:
-        1px solid rgba(145,76,255,.25);
-
+      background: rgba(19,13,40,.94);
+      border: 1px solid rgba(145,76,255,.25);
       color: var(--white);
-
       font-size: 13px;
-
-      line-height: 1.5;
-
+      line-height: 1.45;
       word-break: break-word;
+    }
 
+    .message.mine {
+      position: relative;
+    }
+
+    .message-text {
+      display: block;
+      white-space: pre-wrap;
+    }
+
+    .message-menu-wrap {
+      position: absolute;
+      top: 7px;
+      right: 7px;
+      z-index: 20;
+    }
+
+    .message-menu-btn {
+      width: 24px;
+      height: 24px;
+      padding: 0;
+      border: 0;
+      border-radius: 50%;
+      background: rgba(255,255,255,.08);
+      color: rgba(255,255,255,.72);
+      font-size: 16px;
+      line-height: 22px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background .18s, color .18s;
+    }
+
+    .message-menu-btn:hover,
+    .message-menu-btn:focus-visible {
+      background: rgba(255,255,255,.16);
+      color: #fff;
+      outline: none;
+    }
+
+    .message-menu {
+      position: absolute;
+      top: 29px;
+      right: 0;
+      min-width: 92px;
+      padding: 5px;
+      border: 1px solid rgba(165,102,255,.35);
+      border-radius: 10px;
+      background: rgba(13,8,30,.98);
+      box-shadow: 0 10px 28px rgba(0,0,0,.45), 0 0 18px rgba(125,55,220,.18);
+      display: none;
+    }
+
+    .message-menu.open {
+      display: block;
+    }
+
+    .message-menu button {
+      width: 100%;
+      border: 0;
+      background: transparent;
+      color: rgba(255,255,255,.82);
+      text-align: left;
+      padding: 7px 9px;
+      border-radius: 7px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .message-menu button:hover,
+    .message-menu button:focus-visible {
+      background: rgba(145,76,255,.18);
+      color: #fff;
+      outline: none;
+    }
+
+    .message-menu .menu-delete {
+      color: rgba(255,190,205,.82);
+    }
+
+    .message-menu .menu-delete:hover,
+    .message-menu .menu-delete:focus-visible {
+      background: rgba(255,90,125,.10);
+      color: #ffd6df;
     }
 
 
     .message.mine {
-
       align-self: flex-end;
       min-width: 118px;
-
-      background:
-        linear-gradient(
-          135deg,
-          #8e47f0,
-          #6226c8
-        );
-
-      border:
-        1px solid rgba(188,142,255,.45);
-
-      box-shadow:
-        0 5px 20px rgba(91,35,177,.25);
-
+      background: linear-gradient(135deg, #8e47f0, #6226c8);
+      border: 1px solid rgba(188,142,255,.45);
+      box-shadow: 0 5px 20px rgba(91,35,177,.25);
     }
 
 
     .message-actions {
-      display:flex;
-      justify-content:flex-end;
-      align-items:center;
-      gap:7px;
-      margin-top:8px;
-      padding-top:7px;
-      border-top:1px solid rgba(255,255,255,.13);
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 6px;
+      margin-top: 7px;
     }
 
     .message-action-btn {
-      border:1px solid rgba(255,255,255,.24);
-      background:rgba(10,5,25,.24);
-      color:rgba(255,255,255,.88);
-      border-radius:8px;
-      padding:5px 10px;
-      min-width:46px;
-      font-size:10px;
-      line-height:1.1;
-      font-weight:700;
-      cursor:pointer;
-      opacity:.9;
-      transition:background .2s, border-color .2s, transform .15s, opacity .2s;
+      border: 0;
+      background: rgba(255,255,255,.08);
+      color: rgba(255,255,255,.78);
+      border-radius: 7px;
+      padding: 5px 9px;
+      font-size: 10px;
+      line-height: 1.2;
+      font-weight: 600;
+      cursor: pointer;
     }
 
     .message-action-btn:hover {
-      opacity:1;
-      background:rgba(255,255,255,.13);
-      border-color:rgba(255,255,255,.4);
-      transform:translateY(-1px);
+      background: rgba(255,255,255,.14);
+      color: #fff;
     }
 
-    .message-action-btn:active { transform:translateY(0); }
-    .message-action-btn:disabled { cursor:default; opacity:.5; transform:none; }
-    .delete-message-btn { min-width:54px; }
-    .edit-message-area { width:100%; box-sizing:border-box; min-height:58px; resize:vertical; border:1px solid rgba(255,255,255,.22); border-radius:9px; background:rgba(5,7,20,.65); color:#fff; padding:9px 10px; font:inherit; line-height:1.45; outline:none; }
-    .edit-message-area:focus { border-color:rgba(255,255,255,.45); }
-    .message.deleting { opacity:0 !important; transform:scale(.96) !important; transition:opacity .22s ease, transform .22s ease; }
-    @media (max-width:800px) {
-      .message-action-btn {
-        font-size:10px;
-        padding:6px 10px;
-      }
+    .message-action-btn:disabled {
+      cursor: default;
+      opacity: .5;
+    }
+
+    .edit-message-area {
+      width: 100%;
+      box-sizing: border-box;
+      min-height: 58px;
+      resize: vertical;
+      border: 1px solid rgba(255,255,255,.22);
+      border-radius: 9px;
+      background: rgba(5,7,20,.65);
+      color: #fff;
+      padding: 9px 10px;
+      font: inherit;
+      line-height: 1.45;
+      outline: none;
+    }
+
+    .edit-message-area:focus {
+      border-color: rgba(255,255,255,.45);
+    }
+
+    .message.deleting {
+      opacity: 0 !important;
+      transform: scale(.96) !important;
+      transition: opacity .22s ease, transform .22s ease;
     }
 
     .message-time {
-
       display: block;
-
-      margin-top: 4px;
-
+      margin-top: 3px;
       text-align: right;
-
-      font-size: 9px;
-
-      opacity: .58;
-
+      font-size: 8px;
+      line-height: 1;
+      opacity: .55;
+      white-space: nowrap;
     }
 
+    @media (max-width:800px) {
+      .message {
+        max-width: 78%;
+        padding-right: 40px;
+      }
+      .message-menu-btn {
+        width: 23px;
+        height: 23px;
+        font-size: 15px;
+      }
+      .message-time {
+        font-size: 8px;
+      }
+    }
 
     /* ======================================
        INPUT
@@ -2237,24 +2319,51 @@
       message.appendChild(time);
 
       if (currentUser && messageData.sender_id === currentUser.id && messageData.id) {
-        const actions = document.createElement("div");
-        actions.className = "message-actions";
+        const menuWrap = document.createElement("div");
+        menuWrap.className = "message-menu-wrap";
+
+        const menuButton = document.createElement("button");
+        menuButton.className = "message-menu-btn";
+        menuButton.type = "button";
+        menuButton.setAttribute("aria-label", "Message options");
+        menuButton.setAttribute("aria-expanded", "false");
+        menuButton.textContent = "⋮";
+
+        const menu = document.createElement("div");
+        menu.className = "message-menu";
 
         const editButton = document.createElement("button");
-        editButton.className = "message-action-btn edit-message-btn";
         editButton.type = "button";
         editButton.textContent = "Edit";
-        editButton.addEventListener("click", () => editMessage(messageData.id, message, text, messageData.content));
+        editButton.addEventListener("click", (event) => {
+          event.stopPropagation();
+          menu.classList.remove("open");
+          menuButton.setAttribute("aria-expanded", "false");
+          editMessage(messageData.id, message, text, messageData.content);
+        });
 
         const deleteButton = document.createElement("button");
-        deleteButton.className = "message-action-btn delete-message-btn";
         deleteButton.type = "button";
+        deleteButton.className = "menu-delete";
         deleteButton.textContent = "Delete";
-        deleteButton.addEventListener("click", () => deleteMessage(messageData.id, message));
+        deleteButton.addEventListener("click", (event) => {
+          event.stopPropagation();
+          menu.classList.remove("open");
+          menuButton.setAttribute("aria-expanded", "false");
+          deleteMessage(messageData.id, message);
+        });
 
-        actions.appendChild(editButton);
-        actions.appendChild(deleteButton);
-        message.appendChild(actions);
+        menu.appendChild(editButton);
+        menu.appendChild(deleteButton);
+        menuWrap.appendChild(menuButton);
+        menuWrap.appendChild(menu);
+        message.appendChild(menuWrap);
+
+        menuButton.addEventListener("click", (event) => {
+          event.stopPropagation();
+          const isOpen = menu.classList.toggle("open");
+          menuButton.setAttribute("aria-expanded", String(isOpen));
+        });
       }
 
       messages.appendChild(message);
@@ -2299,9 +2408,7 @@
       if (!messageId || !currentUser || !textElement) return;
       if (messageElement.querySelector(".edit-message-area")) return;
 
-      const actions = messageElement.querySelector(".message-actions");
-      const editButton = messageElement.querySelector(".edit-message-btn");
-      const deleteButton = messageElement.querySelector(".delete-message-btn");
+      const menuWrap = messageElement.querySelector(".message-menu-wrap");
 
       const editor = document.createElement("textarea");
       editor.className = "edit-message-area";
@@ -2309,7 +2416,7 @@
       editor.maxLength = 5000;
 
       textElement.replaceWith(editor);
-      if (actions) actions.style.display = "none";
+      if (menuWrap) menuWrap.style.display = "none";
       editor.focus();
       editor.setSelectionRange(editor.value.length, editor.value.length);
 
@@ -2333,7 +2440,7 @@
       const cancelEdit = () => {
         editor.replaceWith(textElement);
         saveRow.remove();
-        if (actions) actions.style.display = "flex";
+        if (menuWrap) menuWrap.style.display = "block";
       };
 
       cancelButton.addEventListener("click", cancelEdit);
@@ -2367,7 +2474,7 @@
         textElement.textContent = data.content;
         editor.replaceWith(textElement);
         saveRow.remove();
-        if (actions) actions.style.display = "flex";
+        if (menuWrap) menuWrap.style.display = "block";
       });
 
       editor.addEventListener("keydown", (event) => {
@@ -2386,10 +2493,9 @@
 
       if (!window.confirm("Delete this message?")) return;
 
-      const button = messageElement.querySelector(".delete-message-btn");
-      if (button) {
-        button.disabled = true;
-        button.textContent = "Deleting...";
+      const menuButton = messageElement.querySelector(".message-menu-btn");
+      if (menuButton) {
+        menuButton.disabled = true;
       }
 
       const { error } = await supabaseClient
@@ -2400,9 +2506,8 @@
 
       if (error) {
         console.error("Delete message error:", error);
-        if (button) {
-          button.disabled = false;
-          button.textContent = "Delete";
+        if (menuButton) {
+          menuButton.disabled = false;
         }
         showStatus("Message could not be deleted.");
         return;
