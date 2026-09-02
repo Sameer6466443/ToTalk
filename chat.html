@@ -1866,12 +1866,29 @@
         name;
 
 
-      loading.style.display =
-        "none";
-
-
       authReady =
         true;
+
+    }
+
+
+    /* ======================================
+       FINISH CHAT LOADING
+    ====================================== */
+
+    function finishLoading() {
+
+      if (
+        loading.classList.contains("fade-out")
+      ) {
+        return;
+      }
+
+      loading.classList.add("fade-out");
+
+      setTimeout(() => {
+        loading.style.display = "none";
+      }, 700);
 
     }
 
@@ -2543,6 +2560,8 @@
 
                 await loadMessages();
 
+                finishLoading();
+
 
                 startRealtime();
 
@@ -2585,6 +2604,8 @@
         ------------------------------- */
 
         await loadMessages();
+
+        finishLoading();
 
 
         /* -------------------------------
