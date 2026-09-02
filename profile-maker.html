@@ -2,964 +2,129 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport"
-      content="width=device-width, initial-scale=1.0,
-               maximum-scale=1.0,
-               user-scalable=no">
-
-<title>ToTalk — Create Profile</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#020108">
+<title>ToTalk Profile</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
-
 *{
   box-sizing:border-box;
   margin:0;
   padding:0;
 }
 
+:root{
+  --black:#020108;
+  --dark:#05020e;
+  --panel:#0b0617;
+  --purple:#914cff;
+  --purple2:#aa69ff;
+  --purple3:#6324ca;
+  --white:#f8f5ff;
+  --muted:#928ba8;
+  --border:rgba(145,76,255,.38);
+}
+
 html,
 body{
   width:100%;
   min-height:100%;
+  background:#020108;
 }
 
 body{
-  font-family:
-    Inter,
-    -apple-system,
-    BlinkMacSystemFont,
-    "Segoe UI",
-    sans-serif;
-
-  color:#fff;
+  min-height:100dvh;
+  overflow-x:hidden;
+  color:var(--white);
+  font-family:Arial,Helvetica,sans-serif;
 
   background:
     radial-gradient(
-      circle at 15% 35%,
-      rgba(105,55,220,.18),
-      transparent 30%
+      ellipse at 20% 75%,
+      rgba(83,34,180,.24),
+      transparent 35%
     ),
     radial-gradient(
-      circle at 85% 70%,
-      rgba(45,55,170,.18),
-      transparent 32%
+      ellipse at 78% 25%,
+      rgba(111,36,191,.18),
+      transparent 35%
     ),
-    #03020c;
-
-  overflow-x:hidden;
+    linear-gradient(
+      135deg,
+      #020108,
+      #070313 50%,
+      #020108
+    );
 }
 
+/* =====================================================
+   IMPORTANT:
+   PAGE CONTENT IS INVISIBLE UNTIL PROFILE CHECK FINISHES
+===================================================== */
+
+#app{
+  display:none;
+}
+
+body.ready #app{
+  display:block;
+}
 
 /* =====================================================
-   BACKGROUND
+   STARS
 ===================================================== */
 
 body:before{
   content:"";
-
   position:fixed;
   inset:0;
-
+  z-index:0;
   pointer-events:none;
+  opacity:.65;
 
-  background:
-    radial-gradient(
-      circle at 12% 16%,
-      #fff 0 1px,
-      transparent 1.6px
-    ),
-    radial-gradient(
-      circle at 30% 42%,
-      rgba(255,255,255,.8) 0 1px,
-      transparent 1.6px
-    ),
-    radial-gradient(
-      circle at 52% 18%,
-      rgba(190,160,255,.8) 0 1px,
-      transparent 1.6px
-    ),
-    radial-gradient(
-      circle at 72% 35%,
-      rgba(255,255,255,.8) 0 1px,
-      transparent 1.6px
-    ),
-    radial-gradient(
-      circle at 91% 20%,
-      rgba(190,160,255,.8) 0 1px,
-      transparent 1.6px
-    ),
-    radial-gradient(
-      circle at 82% 80%,
-      rgba(255,255,255,.8) 0 1px,
-      transparent 1.6px
-    ),
-    radial-gradient(
-      circle at 42% 87%,
-      rgba(255,255,255,.8) 0 1px,
-      transparent 1.6px
-    );
-
-  opacity:.55;
-}
-
-
-/* =====================================================
-   PAGE
-===================================================== */
-
-.page{
-  position:relative;
-  z-index:1;
-
-  width:100%;
-  min-height:100vh;
-
-  padding:
-    28px
-    clamp(20px,5vw,80px)
-    50px;
-}
-
-
-/* =====================================================
-   TOP BAR
-===================================================== */
-
-.topbar{
-  width:100%;
-
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-
-  max-width:1500px;
-  margin:0 auto;
-}
-
-.brand{
-  font-size:20px;
-  font-weight:800;
-  letter-spacing:-.7px;
-}
-
-.brand span{
-  color:#a36cff;
-}
-
-.step{
-  color:#716b7f;
-  font-size:11px;
-  letter-spacing:1.2px;
-  text-transform:uppercase;
-}
-
-
-/* =====================================================
-   MAIN TWO COLUMN LAYOUT
-===================================================== */
-
-.shell{
-
-  width:100%;
-  max-width:1500px;
-
-  margin:35px auto 0;
-
-  min-height:
-    calc(100vh - 120px);
-
-  display:grid;
-
-  grid-template-columns:
-    minmax(0,1.05fr)
-    minmax(420px,.95fr);
-
-  gap:
-    clamp(40px,7vw,120px);
-
-  align-items:center;
-}
-
-
-/* =====================================================
-   LEFT VISUAL
-===================================================== */
-
-.visual{
-  position:relative;
-
-  min-height:650px;
-
-  display:flex;
-  align-items:center;
-  justify-content:center;
-}
-
-.visual:before{
-  content:"";
-
-  position:absolute;
-
-  width:520px;
-  height:520px;
-
-  border-radius:50%;
-
-  background:
+  background-image:
     radial-gradient(
       circle,
-      rgba(108,55,255,.25),
-      rgba(65,40,170,.10) 45%,
-      transparent 70%
-    );
-
-  filter:blur(25px);
-
-  animation:
-    visualGlow 5s ease-in-out infinite;
-}
-
-@keyframes visualGlow{
-
-  0%,100%{
-    transform:scale(.94);
-    opacity:.7;
-  }
-
-  50%{
-    transform:scale(1.08);
-    opacity:1;
-  }
-
-}
-
-
-/* =====================================================
-   PLANET
-===================================================== */
-
-.moon{
-  position:absolute;
-
-  width:250px;
-  height:250px;
-
-  border-radius:50%;
-
-  background:
-    radial-gradient(
-      circle at 32% 27%,
-      #fff 0 5%,
-      #ece9ff 18%,
-      #d9d5ee 55%,
-      #aaa6c2 100%
-    );
-
-  box-shadow:
-    inset -25px -25px 45px rgba(38,32,70,.18),
-    inset 18px 15px 30px rgba(255,255,255,.55),
-    0 0 35px rgba(207,193,255,.55),
-    0 0 110px rgba(100,50,255,.35);
-
-  z-index:3;
-
-  animation:
-    moonFloat 4s ease-in-out infinite;
-}
-
-.moon:before{
-  content:"";
-
-  position:absolute;
-
-  width:35px;
-  height:35px;
-
-  border-radius:50%;
-
-  left:55px;
-  top:62px;
-
-  background:rgba(120,115,150,.15);
-
-  box-shadow:
-    65px 30px 0 rgba(120,115,150,.13),
-    25px 95px 0 rgba(120,115,150,.13),
-    95px 112px 0 rgba(120,115,150,.10);
-}
-
-@keyframes moonFloat{
-
-  0%,100%{
-    transform:translateY(0);
-  }
-
-  50%{
-    transform:translateY(-12px);
-  }
-
-}
-
-
-/* =====================================================
-   ORBITS
-===================================================== */
-
-.orbit{
-  position:absolute;
-
-  width:420px;
-  height:145px;
-
-  border:
-    1px solid
-    rgba(173,132,255,.38);
-
-  border-radius:50%;
-
-  transform:
-    rotate(-17deg);
-
-  z-index:4;
-
-  animation:
-    orbitMove 8s linear infinite;
-}
-
-.orbit.two{
-  width:470px;
-  height:175px;
-
-  transform:
-    rotate(38deg);
-
-  border-color:
-    rgba(145,110,235,.25);
-
-  animation:
-    orbitMoveReverse 11s linear infinite;
-}
-
-@keyframes orbitMove{
-
-  from{
-    transform:
-      rotate(-17deg)
-      rotate(0deg);
-  }
-
-  to{
-    transform:
-      rotate(-17deg)
-      rotate(360deg);
-  }
-
-}
-
-@keyframes orbitMoveReverse{
-
-  from{
-    transform:
-      rotate(38deg)
-      rotate(360deg);
-  }
-
-  to{
-    transform:
-      rotate(38deg)
-      rotate(0deg);
-  }
-
-}
-
-
-/* =====================================================
-   VISUAL TEXT
-===================================================== */
-
-.visual-text{
-  position:absolute;
-
-  left:5%;
-  bottom:20px;
-
-  z-index:8;
-}
-
-.visual-text h2{
-  font-size:38px;
-  line-height:1;
-  letter-spacing:-1.8px;
-  margin-bottom:14px;
-}
-
-.visual-text p{
-  color:#817b91;
-  font-size:15px;
-}
-
-
-/* =====================================================
-   PROFILE PANEL
-===================================================== */
-
-.panel{
-
-  position:relative;
-
-  width:100%;
-  max-width:620px;
-
-  margin-left:auto;
-
-  padding:
-    clamp(32px,4vw,58px);
-
-  border:
-    1px solid
-    rgba(164,125,255,.25);
-
-  border-radius:32px;
-
-  background:
-    linear-gradient(
-      145deg,
-      rgba(21,16,39,.88),
-      rgba(7,5,18,.94)
-    );
-
-  box-shadow:
-    0 35px 100px rgba(0,0,0,.35),
-    inset 0 1px 0 rgba(255,255,255,.035);
-
-  backdrop-filter:
-    blur(20px);
-
-  overflow:hidden;
-}
-
-.panel:before{
-
-  content:"";
-
-  position:absolute;
-
-  width:280px;
-  height:280px;
-
-  top:-170px;
-  right:-100px;
-
-  border-radius:50%;
-
-  background:
+      rgba(255,255,255,.9) 1px,
+      transparent 1.5px
+    ),
     radial-gradient(
       circle,
-      rgba(115,65,255,.16),
-      transparent 70%
+      rgba(210,190,255,.8) 1px,
+      transparent 1.5px
+    ),
+    radial-gradient(
+      circle,
+      rgba(255,255,255,.65) 1px,
+      transparent 1.5px
     );
 
-  pointer-events:none;
-}
+  background-size:
+    115px 115px,
+    175px 175px,
+    245px 245px;
 
+  background-position:
+    15px 25px,
+    70px 90px,
+    130px 45px;
+}
 
 /* =====================================================
-   TEXT
+   LOADING SCREEN
 ===================================================== */
 
-.kicker{
-  color:#a88aff;
-
-  font-size:13px;
-
-  letter-spacing:3px;
-
-  text-transform:uppercase;
-
-  margin-bottom:30px;
-}
-
-h1{
-  font-size:
-    clamp(44px,5vw,70px);
-
-  line-height:.92;
-
-  letter-spacing:-3.5px;
-
-  max-width:500px;
-
-  margin-bottom:30px;
-}
-
-.subtitle{
-
-  color:#9c96a9;
-
-  font-size:20px;
-
-  line-height:1.55;
-
-  max-width:570px;
-
-  margin-bottom:45px;
-}
-
-
-/* =====================================================
-   FORM
-===================================================== */
-
-label{
-
-  display:block;
-
-  color:#dcd7e8;
-
-  font-size:16px;
-
-  font-weight:700;
-
-  margin-bottom:12px;
-}
-
-.input{
-
-  width:100%;
-
-  height:68px;
-
-  border:
-    1px solid
-    rgba(170,145,220,.25);
-
-  border-radius:22px;
-
-  outline:none;
-
-  padding:
-    0 22px;
-
-  color:#fff;
-
-  background:
-    rgba(4,3,13,.55);
-
-  font-size:19px;
-
-  transition:.2s ease;
-}
-
-.input:focus{
-
-  border-color:
-    rgba(157,112,255,.8);
-
-  box-shadow:
-    0 0 0 4px
-    rgba(125,76,255,.08);
-}
-
-.input::placeholder{
-  color:#615b6d;
-}
-
-
-/* =====================================================
-   GENDER
-===================================================== */
-
-.section{
-  margin-top:35px;
-}
-
-.gender-grid{
-
-  display:grid;
-
-  grid-template-columns:1fr 1fr;
-
-  gap:20px;
-}
-
-.gender{
-
-  position:relative;
-
-  min-height:90px;
-
-  border:
-    1px solid
-    rgba(170,145,220,.22);
-
-  border-radius:22px;
-
-  padding:0 25px;
-
-  display:flex;
-
-  align-items:center;
-
-  gap:17px;
-
-  cursor:pointer;
-
-  color:#bcb5ca;
-
-  background:
-    rgba(4,3,13,.45);
-
-  transition:.2s ease;
-}
-
-.gender:hover{
-  transform:translateY(-2px);
-  background:rgba(100,70,170,.08);
-}
-
-.gender input{
-  position:absolute;
-  opacity:0;
-  pointer-events:none;
-}
-
-.circle{
-
-  width:25px;
-  height:25px;
-
-  border:
-    2px solid
-    #575163;
-
-  border-radius:50%;
-
-  display:grid;
-  place-items:center;
-
-  flex:none;
-}
-
-.circle:after{
-
-  content:"✓";
-
-  font-size:15px;
-
-  opacity:0;
-
-  transform:scale(.5);
-
-  transition:.18s ease;
-}
-
-.gender.selected{
-
-  border-color:
-    rgba(164,115,255,.95);
-
-  background:
-    rgba(105,62,220,.13);
-
-  color:#fff;
-
-  box-shadow:
-    0 0 35px
-    rgba(108,65,240,.08);
-}
-
-.gender.selected .circle{
-
-  border-color:#b89aff;
-
-  background:#8b5cff;
-}
-
-.gender.selected .circle:after{
-
-  opacity:1;
-
-  transform:scale(1);
-
-}
-
-
-/* =====================================================
-   TT ID
-===================================================== */
-
-.id-card{
-
-  margin-top:30px;
-
-  padding:22px 25px;
-
-  border:
-    1px solid
-    rgba(170,145,220,.20);
-
-  border-radius:22px;
-
-  background:
-    rgba(95,65,160,.08);
-
-  cursor:pointer;
-
-  transition:.2s ease;
-}
-
-.id-card:hover{
-
-  border-color:
-    rgba(170,125,255,.42);
-
-  transform:translateY(-1px);
-}
-
-.id-label{
-
-  color:#837c92;
-
-  font-size:12px;
-
-  letter-spacing:2.5px;
-
-  text-transform:uppercase;
-
-  margin-bottom:12px;
-}
-
-.id-row{
-
-  display:flex;
-
-  justify-content:space-between;
-
-  align-items:center;
-
-  gap:15px;
-}
-
-.id-value{
-
-  font-size:27px;
-
-  letter-spacing:2px;
-
-  font-weight:700;
-}
-
-.id-note{
-
-  color:#777083;
-
-  font-size:13px;
-
-  margin-top:8px;
-}
-
-
-/* =====================================================
-   COPY GALAXY ICON
-===================================================== */
-
-.copy-galaxy{
-
-  position:relative;
-
-  width:62px;
-  height:62px;
-
-  border:
-    1px solid
-    rgba(184,151,255,.65);
-
-  border-radius:50%;
-
-  flex:none;
-
-  box-shadow:
-    0 0 25px
-    rgba(110,70,255,.16);
-}
-
-.copy-orbit{
-
-  position:absolute;
-
-  width:42px;
-  height:17px;
-
-  left:9px;
-  top:20px;
-
-  border:
-    1px solid
-    rgba(193,169,255,.7);
-
-  border-radius:50%;
-
-  transform:rotate(-28deg);
-}
-
-.copy-core{
-
-  position:absolute;
-
-  width:9px;
-  height:9px;
-
-  border-radius:50%;
-
-  background:#d9caff;
-
-  left:26px;
-  top:26px;
-
-  box-shadow:
-    0 0 12px
-    rgba(202,181,255,.95);
-}
-
-.copy-star{
-
-  position:absolute;
-
-  width:3px;
-  height:3px;
-
-  border-radius:50%;
-
-  background:#fff;
-
-  box-shadow:
-    0 0 7px #fff;
-}
-
-.copy-star.s1{
-  left:15px;
-  top:14px;
-}
-
-.copy-star.s2{
-  right:11px;
-  bottom:14px;
-}
-
-
-/* =====================================================
-   BUTTON
-===================================================== */
-
-#createBtn{
-
-  width:100%;
-
-  height:68px;
-
-  margin-top:32px;
-
-  border:0;
-
-  border-radius:22px;
-
-  color:#fff;
-
-  background:
-    linear-gradient(
-      135deg,
-      #8056e8,
-      #a06cff
-    );
-
-  font-size:19px;
-
-  font-weight:800;
-
-  cursor:pointer;
-
-  box-shadow:
-    0 18px 40px
-    rgba(116,73,220,.28);
-
-  transition:.2s ease;
-}
-
-#createBtn:hover:not(:disabled){
-
-  transform:translateY(-2px);
-
-  filter:brightness(1.06);
-}
-
-#createBtn:disabled{
-
-  opacity:.6;
-
-  cursor:not-allowed;
-}
-
-
-/* =====================================================
-   STATUS
-===================================================== */
-
-.status{
-
-  min-height:22px;
-
-  text-align:center;
-
-  margin-top:15px;
-
-  font-size:13px;
-
-  color:#938c9f;
-}
-
-.status.error{
-  color:#ff9daa;
-}
-
-.status.success{
-  color:#a9f0c5;
-}
-
-.footer-note{
-
-  color:#686172;
-
-  font-size:12px;
-
-  line-height:1.5;
-
-  text-align:center;
-
-  margin-top:22px;
-}
-
-
-/* =====================================================
-   GALAXY LOADING
-===================================================== */
-
-#galaxyLoading{
-
+#loading{
   position:fixed;
-
   inset:0;
-
   z-index:999999;
 
   display:flex;
-
-  flex-direction:column;
-
   align-items:center;
-
   justify-content:center;
+  flex-direction:column;
 
   overflow:hidden;
 
@@ -967,7 +132,7 @@ label{
     radial-gradient(
       circle at 50% 42%,
       rgba(111,63,255,.25),
-      transparent 31%
+      transparent 30%
     ),
     radial-gradient(
       circle at 18% 78%,
@@ -981,30 +146,22 @@ label{
     ),
     #02020b;
 
-  opacity:0;
-
-  visibility:hidden;
-
-  pointer-events:none;
-
-  transition:
-    opacity .7s ease,
-    visibility .7s ease;
-}
-
-#galaxyLoading.show{
-
   opacity:1;
-
   visibility:visible;
 
-  pointer-events:auto;
+  transition:
+    opacity .55s ease,
+    visibility .55s ease;
+}
+
+#loading.hide{
+  opacity:0;
+  visibility:hidden;
+  pointer-events:none;
 }
 
 .loading-stars{
-
   position:absolute;
-
   inset:0;
 
   background-image:
@@ -1019,38 +176,23 @@ label{
     radial-gradient(circle at 82% 68%,#fff 0 1.2px,transparent 1.8px),
     radial-gradient(circle at 94% 20%,#fff 0 1px,transparent 1.6px);
 
-  opacity:.75;
-
   animation:
     starsMove 5s ease-in-out infinite alternate;
 }
 
-@keyframes starsMove{
-
-  from{
-    transform:translateY(0);
-  }
-
-  to{
-    transform:translateY(-8px);
-  }
-
-}
-
 .loading-nebula{
-
   position:absolute;
 
-  width:500px;
-  height:500px;
+  width:430px;
+  height:430px;
 
   border-radius:50%;
 
   background:
     radial-gradient(
       circle,
-      rgba(126,73,255,.19),
-      rgba(76,42,180,.08) 45%,
+      rgba(126,73,255,.18),
+      rgba(76,42,180,.07) 45%,
       transparent 70%
     );
 
@@ -1061,220 +203,142 @@ label{
 }
 
 .loading-system{
-
   position:relative;
 
-  width:340px;
-  height:290px;
+  width:300px;
+  height:260px;
 
   display:flex;
-
   align-items:center;
-
   justify-content:center;
 }
 
 .loading-orbit{
-
   position:absolute;
 
-  width:280px;
-  height:100px;
+  width:250px;
+  height:90px;
 
-  border:
-    1px solid
-    rgba(175,128,255,.5);
-
+  border:1px solid rgba(175,128,255,.46);
   border-radius:50%;
 
   transform:rotate(-18deg);
 
   box-shadow:
-    0 0 25px
-    rgba(123,72,255,.15);
+    0 0 25px rgba(123,72,255,.14);
 
   animation:
-    loadingOrbit 5.5s linear infinite;
+    orbitOne 5.5s linear infinite;
 }
 
 .loading-orbit.two{
+  width:270px;
+  height:105px;
 
-  width:315px;
-  height:125px;
-
-  transform:rotate(54deg);
+  transform:rotate(38deg);
 
   border-color:
-    rgba(160,120,255,.28);
+    rgba(145,95,255,.28);
 
   animation:
-    loadingOrbitReverse 7s linear infinite;
+    orbitTwo 7s linear infinite reverse;
 }
 
 .loading-moon{
-
   position:relative;
 
-  width:125px;
-  height:125px;
+  width:94px;
+  height:94px;
 
   border-radius:50%;
 
   background:
     radial-gradient(
-      circle at 30% 27%,
+      circle at 30% 25%,
       #fff,
-      #f1efff 35%,
-      #d7d4e7 100%
+      #eeeaff 48%,
+      #d3cde9 100%
     );
 
   box-shadow:
-    inset -13px -12px 25px rgba(30,27,48,.22),
-    inset 9px 8px 17px rgba(255,255,255,.55),
-    0 0 32px rgba(192,164,255,.48),
-    0 0 85px rgba(100,55,255,.24);
+    0 0 18px rgba(255,255,255,.35),
+    0 0 65px rgba(127,72,255,.45);
 
   animation:
-    loadingMoonFloat 3.2s ease-in-out infinite;
+    moonFloat 3.5s ease-in-out infinite;
 }
 
-.loading-moon:before{
-
+.loading-moon:before,
+.loading-moon:after{
   content:"";
 
   position:absolute;
 
-  width:20px;
-  height:20px;
-
   border-radius:50%;
 
-  left:32px;
+  background:
+    rgba(130,120,160,.20);
+}
+
+.loading-moon:before{
+  width:17px;
+  height:17px;
+
+  left:23px;
+  top:28px;
+}
+
+.loading-moon:after{
+  width:24px;
+  height:24px;
+
+  right:19px;
   top:42px;
-
-  background:rgba(120,115,150,.12);
-
-  box-shadow:
-    45px 18px 0 rgba(120,115,150,.10),
-    25px 55px 0 rgba(120,115,150,.10);
-}
-
-@keyframes loadingOrbit{
-
-  from{
-    transform:
-      rotate(-18deg)
-      rotate(0deg);
-  }
-
-  to{
-    transform:
-      rotate(-18deg)
-      rotate(360deg);
-  }
-
-}
-
-@keyframes loadingOrbitReverse{
-
-  from{
-    transform:
-      rotate(54deg)
-      rotate(360deg);
-  }
-
-  to{
-    transform:
-      rotate(54deg)
-      rotate(0deg);
-  }
-
-}
-
-@keyframes loadingMoonFloat{
-
-  0%,100%{
-    transform:translateY(0);
-  }
-
-  50%{
-    transform:translateY(-10px);
-  }
-
-}
-
-@keyframes nebulaPulse{
-
-  0%,100%{
-    transform:scale(.94);
-    opacity:.65;
-  }
-
-  50%{
-    transform:scale(1.08);
-    opacity:1;
-  }
-
 }
 
 .loading-title{
-
   position:relative;
 
-  z-index:4;
+  margin-top:-8px;
 
-  margin-top:10px;
+  font-size:24px;
+  font-weight:900;
 
-  font-size:27px;
-
-  font-weight:800;
-
-  text-shadow:
-    0 0 18px
-    rgba(180,140,255,.35);
+  text-align:center;
 }
 
 .loading-subtitle{
-
   position:relative;
 
-  z-index:4;
+  margin-top:8px;
 
-  margin-top:9px;
+  color:#a39cb5;
 
-  color:#aaa5bd;
+  font-size:13px;
 
-  font-size:14px;
+  text-align:center;
 }
 
 .loading-dots{
-
   position:relative;
-
-  z-index:4;
 
   display:flex;
 
-  gap:7px;
+  gap:8px;
 
-  margin-top:17px;
+  margin-top:15px;
 }
 
 .loading-dots span{
-
   width:7px;
   height:7px;
 
   border-radius:50%;
 
-  background:#ad79ff;
-
-  box-shadow:
-    0 0 12px
-    rgba(173,121,255,.85);
+  background:#c8b5ff;
 
   animation:
-    loadingDot 1.15s ease-in-out infinite;
+    dot 1.2s ease-in-out infinite;
 }
 
 .loading-dots span:nth-child(2){
@@ -1285,282 +349,917 @@ label{
   animation-delay:.3s;
 }
 
-@keyframes loadingDot{
+/* =====================================================
+   HEADER
+===================================================== */
 
-  0%,80%,100%{
-    transform:scale(.6);
+.header{
+  position:relative;
+  z-index:10;
+
+  height:76px;
+
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+
+  padding:0 42px;
+
+  border-bottom:
+    1px solid rgba(145,76,255,.20);
+
+  background:
+    rgba(3,2,10,.82);
+
+  backdrop-filter:
+    blur(15px);
+}
+
+.logo{
+  font-size:21px;
+  font-weight:900;
+  letter-spacing:-.7px;
+}
+
+.logo span{
+  color:var(--purple2);
+}
+
+.step{
+  color:#5d576a;
+
+  font-size:10px;
+  font-weight:700;
+
+  letter-spacing:1.5px;
+}
+
+/* =====================================================
+   MAIN
+===================================================== */
+
+.main{
+  position:relative;
+  z-index:2;
+
+  min-height:
+    calc(100dvh - 76px);
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  padding:50px 25px;
+}
+
+/* =====================================================
+   CONTENT
+===================================================== */
+
+.profile-layout{
+  width:min(1100px,100%);
+
+  display:grid;
+
+  grid-template-columns:
+    minmax(0,1fr)
+    minmax(400px,500px);
+
+  gap:70px;
+
+  align-items:center;
+}
+
+/* =====================================================
+   LEFT SIDE
+===================================================== */
+
+.hero{
+  min-width:0;
+}
+
+.hero-kicker{
+  color:#a989e8;
+
+  font-size:11px;
+  font-weight:800;
+
+  letter-spacing:2px;
+
+  margin-bottom:18px;
+}
+
+.hero-title{
+  max-width:520px;
+
+  font-size:
+    clamp(42px,6vw,74px);
+
+  line-height:.92;
+
+  letter-spacing:-4px;
+
+  font-weight:900;
+
+  margin-bottom:22px;
+}
+
+.hero-title span{
+  color:var(--purple2);
+}
+
+.hero-text{
+  max-width:460px;
+
+  color:#8e879e;
+
+  font-size:15px;
+
+  line-height:1.7;
+}
+
+/* =====================================================
+   PLANET
+===================================================== */
+
+.planet-area{
+  position:relative;
+
+  width:100%;
+  height:310px;
+
+  margin-top:25px;
+}
+
+.planet{
+  position:absolute;
+
+  left:50%;
+  top:50%;
+
+  width:190px;
+  height:190px;
+
+  transform:
+    translate(-50%,-50%);
+
+  border-radius:50%;
+
+  background:
+    radial-gradient(
+      circle at 30% 25%,
+      #ffffff,
+      #efedff 48%,
+      #d1cce5 100%
+    );
+
+  box-shadow:
+    0 0 25px rgba(255,255,255,.30),
+    0 0 75px rgba(121,71,255,.45),
+    0 0 140px rgba(93,46,214,.22);
+
+  animation:
+    planetFloat 4s ease-in-out infinite;
+}
+
+.planet:before{
+  content:"";
+
+  position:absolute;
+
+  width:30px;
+  height:30px;
+
+  left:42px;
+  top:52px;
+
+  border-radius:50%;
+
+  background:
+    rgba(125,117,157,.18);
+}
+
+.planet:after{
+  content:"";
+
+  position:absolute;
+
+  width:42px;
+  height:42px;
+
+  right:39px;
+  top:86px;
+
+  border-radius:50%;
+
+  background:
+    rgba(125,117,157,.15);
+}
+
+.orbit-a,
+.orbit-b{
+  position:absolute;
+
+  left:50%;
+  top:50%;
+
+  border:
+    1px solid rgba(160,120,255,.34);
+
+  border-radius:50%;
+
+  pointer-events:none;
+}
+
+.orbit-a{
+  width:380px;
+  height:105px;
+
+  transform:
+    translate(-50%,-50%)
+    rotate(-13deg);
+}
+
+.orbit-b{
+  width:145px;
+  height:340px;
+
+  transform:
+    translate(-50%,-50%)
+    rotate(7deg);
+
+  border-color:
+    rgba(145,100,255,.23);
+}
+
+.hero-bottom{
+  font-size:28px;
+  font-weight:900;
+
+  letter-spacing:-1.5px;
+
+  margin-top:-5px;
+}
+
+.hero-small{
+  color:#70697e;
+
+  font-size:12px;
+
+  margin-top:8px;
+}
+
+/* =====================================================
+   CARD
+===================================================== */
+
+.card{
+  width:100%;
+
+  padding:34px;
+
+  border:
+    1px solid rgba(145,76,255,.40);
+
+  border-radius:24px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(17,9,34,.96),
+      rgba(7,4,18,.98)
+    );
+
+  box-shadow:
+    0 30px 80px rgba(0,0,0,.38),
+    0 0 45px rgba(93,42,185,.12);
+
+  backdrop-filter:
+    blur(20px);
+}
+
+.card-kicker{
+  color:#a98bea;
+
+  font-size:10px;
+  font-weight:800;
+
+  letter-spacing:2px;
+
+  margin-bottom:17px;
+}
+
+.card h1{
+  font-size:36px;
+
+  line-height:.98;
+
+  letter-spacing:-2px;
+
+  margin-bottom:18px;
+}
+
+.card-description{
+  color:#8e879e;
+
+  font-size:14px;
+
+  line-height:1.6;
+
+  margin-bottom:28px;
+}
+
+/* =====================================================
+   LABEL
+===================================================== */
+
+.field{
+  margin-bottom:22px;
+}
+
+.field-label{
+  display:block;
+
+  color:#eeeaf7;
+
+  font-size:12px;
+  font-weight:800;
+
+  margin-bottom:8px;
+}
+
+input[type="text"]{
+  width:100%;
+
+  height:58px;
+
+  padding:0 17px;
+
+  border:
+    1px solid rgba(145,76,255,.55);
+
+  border-radius:15px;
+
+  outline:none;
+
+  background:
+    rgba(2,1,8,.75);
+
+  color:#fff;
+
+  font-family:inherit;
+
+  font-size:14px;
+
+  transition:
+    border-color .2s ease,
+    box-shadow .2s ease;
+}
+
+input[type="text"]:focus{
+  border-color:#aa69ff;
+
+  box-shadow:
+    0 0 0 3px rgba(145,76,255,.10),
+    0 0 25px rgba(145,76,255,.12);
+}
+
+input::placeholder{
+  color:#5f586d;
+}
+
+/* =====================================================
+   GENDER
+===================================================== */
+
+.gender-grid{
+  display:grid;
+
+  grid-template-columns:
+    1fr 1fr;
+
+  gap:12px;
+}
+
+.gender-option{
+  position:relative;
+}
+
+.gender-option input{
+  position:absolute;
+
+  opacity:0;
+
+  pointer-events:none;
+}
+
+.gender-label{
+  height:58px;
+
+  display:flex;
+  align-items:center;
+  gap:11px;
+
+  padding:0 17px;
+
+  border:
+    1px solid rgba(145,76,255,.24);
+
+  border-radius:15px;
+
+  background:
+    rgba(3,2,12,.55);
+
+  color:#aaa3b7;
+
+  font-size:12px;
+  font-weight:800;
+
+  cursor:pointer;
+
+  transition:
+    .2s ease;
+}
+
+.gender-label:before{
+  content:"";
+
+  width:20px;
+  height:20px;
+
+  flex:0 0 20px;
+
+  border:
+    2px solid #5c5668;
+
+  border-radius:50%;
+
+  transition:.2s ease;
+}
+
+.gender-option input:checked + .gender-label{
+  border-color:#9858ff;
+
+  background:
+    rgba(101,37,200,.16);
+
+  color:#fff;
+
+  box-shadow:
+    0 0 25px rgba(145,76,255,.10);
+}
+
+.gender-option input:checked + .gender-label:before{
+  border-color:#aa69ff;
+
+  box-shadow:
+    inset 0 0 0 5px #0b0617;
+  
+  background:#aa69ff;
+}
+
+/* =====================================================
+   TOTALK ID
+===================================================== */
+
+.totalk-id{
+  position:relative;
+
+  margin-top:24px;
+  margin-bottom:22px;
+
+  padding:19px;
+
+  border:
+    1px solid rgba(145,76,255,.22);
+
+  border-radius:17px;
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(21,10,42,.72),
+      rgba(8,4,20,.75)
+    );
+
+  cursor:pointer;
+}
+
+.id-label{
+  color:#777084;
+
+  font-size:9px;
+
+  letter-spacing:1.7px;
+
+  margin-bottom:8px;
+}
+
+.id-row{
+  display:flex;
+
+  align-items:center;
+  justify-content:space-between;
+
+  gap:15px;
+}
+
+.id-value{
+  color:#f6f2ff;
+
+  font-size:25px;
+
+  font-weight:900;
+
+  letter-spacing:1px;
+}
+
+.copy-icon{
+  width:44px;
+  height:44px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  border:
+    1px solid rgba(168,120,255,.48);
+
+  border-radius:50%;
+
+  color:#cab3ff;
+
+  font-size:20px;
+}
+
+.id-help{
+  color:#625b70;
+
+  font-size:10px;
+
+  margin-top:8px;
+}
+
+/* =====================================================
+   CREATE BUTTON
+===================================================== */
+
+#createButton{
+  width:100%;
+
+  height:59px;
+
+  border:0;
+
+  border-radius:15px;
+
+  background:
+    linear-gradient(
+      135deg,
+      #914cff,
+      #aa69ff
+    );
+
+  color:#fff;
+
+  font-family:inherit;
+
+  font-size:14px;
+  font-weight:900;
+
+  cursor:pointer;
+
+  box-shadow:
+    0 12px 35px rgba(121,58,232,.28);
+
+  transition:
+    transform .18s ease,
+    box-shadow .18s ease,
+    opacity .18s ease;
+}
+
+#createButton:hover{
+  transform:translateY(-1px);
+
+  box-shadow:
+    0 15px 42px rgba(121,58,232,.38);
+}
+
+#createButton:active{
+  transform:translateY(1px);
+}
+
+#createButton:disabled{
+  opacity:.55;
+  cursor:not-allowed;
+  transform:none;
+}
+
+.card-footer{
+  color:#615a6f;
+
+  font-size:10px;
+
+  line-height:1.5;
+
+  text-align:center;
+
+  margin-top:17px;
+}
+
+/* =====================================================
+   STATUS
+===================================================== */
+
+#status{
+  position:fixed;
+
+  left:50%;
+  bottom:25px;
+
+  z-index:999999;
+
+  transform:
+    translateX(-50%)
+    translateY(15px);
+
+  opacity:0;
+
+  pointer-events:none;
+
+  padding:10px 15px;
+
+  border:
+    1px solid rgba(145,76,255,.45);
+
+  border-radius:10px;
+
+  background:#110820;
+
+  color:#e6dff1;
+
+  font-size:11px;
+
+  transition:.25s ease;
+}
+
+#status.show{
+  opacity:1;
+
+  transform:
+    translateX(-50%)
+    translateY(0);
+}
+
+/* =====================================================
+   KEYFRAMES
+===================================================== */
+
+@keyframes dot{
+  0%,100%{
+    transform:translateY(0);
     opacity:.35;
   }
 
-  40%{
-    transform:scale(1);
+  50%{
+    transform:translateY(-5px);
     opacity:1;
   }
-
 }
 
+@keyframes moonFloat{
+  0%,100%{
+    transform:translateY(0) rotate(0);
+  }
+
+  50%{
+    transform:translateY(-7px) rotate(4deg);
+  }
+}
+
+@keyframes planetFloat{
+  0%,100%{
+    transform:translate(-50%,-50%);
+  }
+
+  50%{
+    transform:translate(-50%,calc(-50% - 8px));
+  }
+}
+
+@keyframes orbitOne{
+  from{
+    transform:rotate(-18deg) rotate(0deg);
+  }
+
+  to{
+    transform:rotate(-18deg) rotate(360deg);
+  }
+}
+
+@keyframes orbitTwo{
+  from{
+    transform:rotate(38deg) rotate(0deg);
+  }
+
+  to{
+    transform:rotate(38deg) rotate(360deg);
+  }
+}
+
+@keyframes starsMove{
+  from{
+    opacity:.45;
+    transform:scale(1);
+  }
+
+  to{
+    opacity:.9;
+    transform:scale(1.015);
+  }
+}
+
+@keyframes nebulaPulse{
+  0%,100%{
+    transform:scale(.95);
+    opacity:.65;
+  }
+
+  50%{
+    transform:scale(1.08);
+    opacity:1;
+  }
+}
 
 /* =====================================================
-   TABLET / MOBILE
+   MOBILE
 ===================================================== */
 
 @media(max-width:850px){
 
-  .page{
-    padding:
-      22px
-      18px
-      45px;
-  }
-
-  .topbar{
-    padding:0 3px;
-  }
-
-  .shell{
-
-    grid-template-columns:1fr;
-
-    gap:35px;
-
-    min-height:auto;
-
-    margin-top:30px;
-  }
-
-  .visual{
-
-    min-height:430px;
-
-    order:1;
-  }
-
-  .moon{
-
-    width:175px;
-    height:175px;
-  }
-
-  .orbit{
-    width:300px;
-    height:105px;
-  }
-
-  .orbit.two{
-    width:345px;
-    height:125px;
-  }
-
-  .visual-text{
-
-    left:0;
-    bottom:0;
-  }
-
-  .visual-text h2{
-    font-size:29px;
-  }
-
-  .visual-text p{
-    font-size:14px;
-  }
-
-  .panel{
-
-    order:2;
-
-    max-width:none;
-
-    margin:0;
+  .header{
+    height:62px;
 
     padding:
-      30px
-      23px;
-
-    border-radius:25px;
+      0 16px;
   }
 
-  .kicker{
-    font-size:11px;
-    margin-bottom:23px;
-  }
-
-  h1{
-
-    font-size:
-      clamp(38px,10vw,52px);
-
-    letter-spacing:-2.5px;
-
-    margin-bottom:23px;
-  }
-
-  .subtitle{
-
-    font-size:17px;
-
-    margin-bottom:35px;
-  }
-
-  .input{
-    height:62px;
-    border-radius:18px;
-  }
-
-  .gender{
-    min-height:78px;
-    border-radius:18px;
-    padding:0 16px;
-  }
-
-  .id-card{
-    border-radius:18px;
-  }
-
-  #createBtn{
-    height:62px;
-    border-radius:18px;
-  }
-
-}
-
-
-/* =====================================================
-   SMALL PHONES
-===================================================== */
-
-@media(max-width:500px){
-
-  .brand{
-    font-size:17px;
+  .logo{
+    font-size:18px;
   }
 
   .step{
-    font-size:9px;
+    font-size:8px;
   }
 
-  .visual{
-    min-height:380px;
+  .main{
+    min-height:
+      calc(100dvh - 62px);
+
+    padding:
+      25px 12px 35px;
   }
 
-  .visual:before{
-    width:350px;
-    height:350px;
+  .profile-layout{
+    grid-template-columns:1fr;
+
+    gap:25px;
+
+    width:min(520px,100%);
   }
 
-  .moon{
+  .hero{
+    text-align:center;
+  }
+
+  .hero-title{
+    max-width:none;
+
+    font-size:
+      clamp(40px,12vw,60px);
+
+    letter-spacing:-3px;
+  }
+
+  .hero-text{
+    margin:auto;
+
+    font-size:13px;
+  }
+
+  .planet-area{
+    height:235px;
+  }
+
+  .planet{
     width:145px;
     height:145px;
   }
 
-  .orbit{
-    width:260px;
-    height:95px;
-  }
-
-  .orbit.two{
+  .orbit-a{
     width:300px;
-    height:110px;
+    height:85px;
   }
 
-  .visual-text h2{
-    font-size:25px;
+  .orbit-b{
+    width:110px;
+    height:270px;
   }
 
-  .visual-text p{
+  .hero-bottom{
+    font-size:24px;
+  }
+
+  .card{
+    padding:24px 19px;
+    border-radius:20px;
+  }
+
+  .card h1{
+    font-size:32px;
+  }
+
+  .card-description{
     font-size:13px;
   }
 
-  .panel{
-    padding:27px 20px;
-  }
-
-  h1{
-    font-size:36px;
-  }
-
-  .subtitle{
-    font-size:15px;
-    line-height:1.55;
-  }
-
-  .gender-grid{
-    gap:10px;
-  }
-
-  .gender{
-    padding:0 12px;
-    gap:10px;
-    font-size:14px;
-  }
-
-  .circle{
-    width:21px;
-    height:21px;
-  }
-
-  .id-value{
-    font-size:21px;
-  }
-
-  .copy-galaxy{
-    width:52px;
-    height:52px;
-  }
-
-  .copy-orbit{
-    width:35px;
-    left:7px;
-    top:17px;
-  }
-
-  .copy-core{
-    left:21px;
-    top:21px;
-  }
-
   .loading-system{
-    width:270px;
-    height:235px;
+    width:260px;
+    height:225px;
   }
 
   .loading-orbit{
-    width:225px;
-    height:82px;
+    width:220px;
+    height:80px;
   }
 
   .loading-orbit.two{
-    width:255px;
-    height:98px;
+    width:240px;
+    height:93px;
   }
 
   .loading-moon{
-    width:92px;
-    height:92px;
+    width:88px;
+    height:88px;
   }
 
   .loading-title{
-    font-size:22px;
+    font-size:21px;
   }
 
   .loading-subtitle{
     font-size:12px;
   }
-
 }
 
+@media(max-width:420px){
+
+  .main{
+    padding-left:8px;
+    padding-right:8px;
+  }
+
+  .card{
+    padding:21px 16px;
+  }
+
+  .card h1{
+    font-size:29px;
+  }
+
+  .hero-title{
+    font-size:39px;
+  }
+
+  .planet-area{
+    height:210px;
+  }
+
+  .id-value{
+    font-size:22px;
+  }
+}
+
+@media(prefers-reduced-motion:reduce){
+
+  *,
+  *:before,
+  *:after{
+    animation:none!important;
+    transition:none!important;
+  }
+}
 </style>
 </head>
 
-
 <body>
 
-
 <!-- =====================================================
-     GALAXY LOADING
+     LOADING
+     THIS IS THE ONLY THING VISIBLE INITIALLY
 ===================================================== -->
 
-<div id="galaxyLoading">
+<div id="loading">
 
   <div class="loading-stars"></div>
 
@@ -1576,13 +1275,18 @@ label{
 
   </div>
 
-  <div class="loading-title">
+  <div
+    class="loading-title"
+    id="loadingTitle"
+  >
     Entering ToTalk
   </div>
 
-  <div class="loading-subtitle"
-       id="loadingSubtitle">
-    Preparing your profile
+  <div
+    class="loading-subtitle"
+    id="loadingSubtitle"
+  >
+    Checking your account
   </div>
 
   <div class="loading-dots">
@@ -1597,227 +1301,223 @@ label{
 
 
 <!-- =====================================================
-     PAGE
+     APP
+     HIDDEN UNTIL PROFILE CHECK IS FINISHED
 ===================================================== -->
 
-<div class="page">
+<div id="app">
 
+  <header class="header">
 
-  <header class="topbar">
-
-    <div class="brand">
+    <div class="logo">
       ToTalk <span>Sameer</span>
     </div>
 
     <div class="step">
-      Profile setup · 01
+      PROFILE SETUP · 01
     </div>
 
   </header>
 
 
-  <main class="shell">
+  <main class="main">
 
+    <div class="profile-layout">
 
-    <!-- =================================================
-         LEFT VISUAL
-    ================================================== -->
+      <!-- =================================================
+           LEFT
+      ================================================= -->
 
-    <section class="visual">
+      <section class="hero">
 
-      <div class="orbit"></div>
+        <div class="hero-kicker">
+          WELCOME TO TOTALK
+        </div>
 
-      <div class="orbit two"></div>
+        <h1 class="hero-title">
+          Your space<br>
+          starts <span>here.</span>
+        </h1>
 
-      <div class="moon"></div>
-
-      <div class="visual-text">
-
-        <h2>
-          Your space starts here.
-        </h2>
-
-        <p>
-          Create your identity before entering ToTalk.
+        <p class="hero-text">
+          Create your identity before entering
+          ToTalk. This is how you'll appear
+          inside your personal conversation space.
         </p>
 
-      </div>
+        <div class="planet-area">
 
-    </section>
+          <div class="orbit-a"></div>
 
+          <div class="orbit-b"></div>
 
-    <!-- =================================================
-         PROFILE
-    ================================================== -->
-
-    <section class="panel">
-
-      <div class="kicker">
-        Welcome to ToTalk
-      </div>
-
-      <h1>
-        Create your profile.
-      </h1>
-
-      <p class="subtitle">
-        Choose how you want to appear when you connect
-        with people on Sameer's personal chat space.
-      </p>
-
-
-      <!-- NAME -->
-
-      <label for="name">
-        Your name
-      </label>
-
-      <input
-        id="name"
-        class="input"
-        maxlength="40"
-        autocomplete="name"
-        placeholder="Enter your name"
-      >
-
-
-      <!-- GENDER -->
-
-      <div class="section">
-
-        <label>
-          Your gender
-        </label>
-
-        <div class="gender-grid">
-
-
-          <label
-            class="gender"
-            data-gender="Male">
-
-            <input
-              type="radio"
-              name="gender"
-              value="Male"
-            >
-
-            <span class="circle"></span>
-
-            <span>
-              Male
-            </span>
-
-          </label>
-
-
-          <label
-            class="gender"
-            data-gender="Female">
-
-            <input
-              type="radio"
-              name="gender"
-              value="Female"
-            >
-
-            <span class="circle"></span>
-
-            <span>
-              Female
-            </span>
-
-          </label>
-
+          <div class="planet"></div>
 
         </div>
 
-      </div>
-
-
-      <!-- TT ID -->
-
-      <div
-        class="id-card"
-        id="idCard"
-        role="button"
-        tabindex="0"
-        aria-label="Copy your ToTalk ID">
-
-        <div class="id-label">
-          Your ToTalk ID
+        <div class="hero-bottom">
+          Create your profile.
         </div>
 
-        <div class="id-row">
+        <div class="hero-small">
+          Your identity stays connected to your account.
+        </div>
 
-          <div
-            class="id-value"
-            id="totalkId">
+      </section>
 
-            Generating…
 
+      <!-- =================================================
+           PROFILE CARD
+      ================================================= -->
+
+      <section class="card">
+
+        <div class="card-kicker">
+          WELCOME TO TOTALK
+        </div>
+
+        <h1>
+          Create your<br>
+          profile.
+        </h1>
+
+        <p class="card-description">
+          Choose how you want to appear when
+          you connect with people on Sameer's
+          personal chat space.
+        </p>
+
+
+        <!-- NAME -->
+
+        <div class="field">
+
+          <label
+            class="field-label"
+            for="nameInput"
+          >
+            Your name
+          </label>
+
+          <input
+            id="nameInput"
+            type="text"
+            maxlength="80"
+            autocomplete="name"
+            placeholder="Enter your name"
+          >
+
+        </div>
+
+
+        <!-- GENDER -->
+
+        <div class="field">
+
+          <div class="field-label">
+            Your gender
           </div>
 
+          <div class="gender-grid">
 
-          <div
-            class="copy-galaxy"
-            aria-hidden="true">
+            <div class="gender-option">
 
-            <span class="copy-orbit"></span>
+              <input
+                id="male"
+                type="radio"
+                name="gender"
+                value="Male"
+              >
 
-            <span class="copy-star s1"></span>
+              <label
+                class="gender-label"
+                for="male"
+              >
+                Male
+              </label>
 
-            <span class="copy-star s2"></span>
+            </div>
 
-            <span class="copy-core"></span>
+            <div class="gender-option">
+
+              <input
+                id="female"
+                type="radio"
+                name="gender"
+                value="Female"
+              >
+
+              <label
+                class="gender-label"
+                for="female"
+              >
+                Female
+              </label>
+
+            </div>
 
           </div>
 
         </div>
+
+
+        <!-- TOTALK ID -->
 
         <div
-          class="id-note"
-          id="idNote">
+          class="totalk-id"
+          id="totalkIdBox"
+          title="Tap to copy"
+        >
 
-          Tap your ID to copy it.
+          <div class="id-label">
+            YOUR TOTALK ID
+          </div>
+
+          <div class="id-row">
+
+            <div
+              class="id-value"
+              id="totalkId"
+            >
+              TT-000000
+            </div>
+
+            <div class="copy-icon">
+              ⌁
+            </div>
+
+          </div>
+
+          <div class="id-help">
+            Tap your ID to copy it.
+          </div>
 
         </div>
 
-      </div>
 
+        <!-- CREATE -->
 
-      <!-- STATUS -->
+        <button
+          id="createButton"
+          type="button"
+        >
+          Create Profile
+        </button>
 
-      <div
-        class="status"
-        id="message">
-      </div>
+        <div class="card-footer">
+          Your profile is used to identify you inside ToTalk.
+        </div>
 
+      </section>
 
-      <!-- CREATE -->
-
-      <button
-        id="createBtn"
-        type="button">
-
-        Create Profile
-
-      </button>
-
-
-      <div class="footer-note">
-
-        Your profile is used to identify you
-        inside ToTalk.
-
-      </div>
-
-
-    </section>
+    </div>
 
   </main>
 
 </div>
+
+
+<div id="status"></div>
 
 
 <script>
@@ -1831,7 +1531,6 @@ const SUPABASE_URL =
 
 const SUPABASE_KEY =
   "sb_publishable_eUPz4c_nYckgINEK-AIWqw_JAXIHozd";
-
 
 const supabaseClient =
   supabase.createClient(
@@ -1852,62 +1551,256 @@ const supabaseClient =
    ELEMENTS
 ===================================================== */
 
-const nameEl =
-  document.getElementById("name");
+const loading =
+  document.getElementById(
+    "loading"
+  );
 
-const idEl =
-  document.getElementById("totalkId");
-
-const idCard =
-  document.getElementById("idCard");
-
-const idNote =
-  document.getElementById("idNote");
-
-const createBtn =
-  document.getElementById("createBtn");
-
-const messageEl =
-  document.getElementById("message");
-
-const galaxy =
-  document.getElementById("galaxyLoading");
+const loadingTitle =
+  document.getElementById(
+    "loadingTitle"
+  );
 
 const loadingSubtitle =
-  document.getElementById("loadingSubtitle");
+  document.getElementById(
+    "loadingSubtitle"
+  );
 
+const app =
+  document.getElementById(
+    "app"
+  );
 
-let currentUser = null;
+const nameInput =
+  document.getElementById(
+    "nameInput"
+  );
 
-let gender = "";
+const createButton =
+  document.getElementById(
+    "createButton"
+  );
 
-let generatedId = "";
+const totalkId =
+  document.getElementById(
+    "totalkId"
+  );
 
-let profileCreating = false;
+const totalkIdBox =
+  document.getElementById(
+    "totalkIdBox"
+  );
+
+const statusBox =
+  document.getElementById(
+    "status"
+  );
 
 
 /* =====================================================
-   ID GENERATOR
+   STATE
 ===================================================== */
 
-function makeTTId(){
+let currentUser =
+  null;
 
-  const chars =
+let existingProfile =
+  null;
+
+let generatedToTalkId =
+  "";
+
+
+/* =====================================================
+   LOADING TEXT
+===================================================== */
+
+function setLoadingText(
+  title,
+  subtitle
+){
+
+  loadingTitle.textContent =
+    title;
+
+  loadingSubtitle.textContent =
+    subtitle;
+
+}
+
+
+/* =====================================================
+   STATUS
+===================================================== */
+
+function showStatus(text){
+
+  statusBox.textContent =
+    text;
+
+  statusBox.classList.add(
+    "show"
+  );
+
+  clearTimeout(
+    showStatus.timer
+  );
+
+  showStatus.timer =
+    setTimeout(
+      ()=>{
+        statusBox.classList.remove(
+          "show"
+        );
+      },
+      3000
+    );
+
+}
+
+
+/* =====================================================
+   FINISH LOADING
+===================================================== */
+
+function finishLoading(){
+
+  /*
+   * Reveal profile page ONLY after
+   * the database check has completed.
+   */
+
+  document.body.classList.add(
+    "ready"
+  );
+
+  requestAnimationFrame(
+    ()=>{
+
+      requestAnimationFrame(
+        ()=>{
+
+          loading.classList.add(
+            "hide"
+          );
+
+          setTimeout(
+            ()=>{
+
+              loading.style.display =
+                "none";
+
+            },
+            650
+          );
+
+        }
+      );
+
+    }
+  );
+
+}
+
+
+/* =====================================================
+   GET SESSION
+===================================================== */
+
+async function getLoggedInUser(){
+
+  const {
+    data,
+    error
+  } =
+    await supabaseClient
+      .auth
+      .getSession();
+
+  if(error){
+
+    console.error(
+      "Session error:",
+      error
+    );
+
+    return null;
+
+  }
+
+  return (
+    data?.session?.user ||
+    null
+  );
+
+}
+
+
+/* =====================================================
+   CHECK PROFILE
+===================================================== */
+
+async function checkExistingProfile(){
+
+  if(!currentUser){
+    return null;
+  }
+
+  const {
+    data,
+    error
+  } =
+    await supabaseClient
+      .from("profiles")
+      .select(
+        "id,user_id,name,gender,totalk_id,profile_completed"
+      )
+      .eq(
+        "user_id",
+        currentUser.id
+      )
+      .maybeSingle();
+
+  if(error){
+
+    console.error(
+      "Profile check error:",
+      error
+    );
+
+    throw error;
+
+  }
+
+  return data || null;
+
+}
+
+
+/* =====================================================
+   GENERATE TOTALK ID
+===================================================== */
+
+function generateToTalkId(){
+
+  const characters =
     "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 
   let result =
     "TT-";
 
-  const bytes =
-    new Uint8Array(6);
-
-  crypto.getRandomValues(bytes);
-
-  for(const byte of bytes){
+  for(
+    let i = 0;
+    i < 6;
+    i++
+  ){
 
     result +=
-      chars[
-        byte % chars.length
+      characters[
+        Math.floor(
+          Math.random() *
+          characters.length
+        )
       ];
 
   }
@@ -1918,519 +1811,322 @@ function makeTTId(){
 
 
 /* =====================================================
-   STATUS
+   GET UNIQUE TOTALK ID
 ===================================================== */
 
-function setMessage(
-  text,
-  type=""
-){
+async function createUniqueToTalkId(){
 
-  messageEl.textContent =
-    text;
+  for(
+    let attempt = 0;
+    attempt < 10;
+    attempt++
+  ){
 
-  messageEl.className =
-    "status";
+    const id =
+      generateToTalkId();
 
-  if(type){
+    const {
+      data,
+      error
+    } =
+      await supabaseClient
+        .from("profiles")
+        .select("id")
+        .eq(
+          "totalk_id",
+          id
+        )
+        .maybeSingle();
 
-    messageEl.classList.add(
-      type
-    );
+    if(error){
 
-  }
-
-}
-
-
-/* =====================================================
-   GENDER
-===================================================== */
-
-document
-  .querySelectorAll(".gender")
-  .forEach(
-    element=>{
-
-      element.addEventListener(
-        "click",
-        ()=>{
-
-          gender =
-            element.dataset.gender;
-
-          document
-            .querySelectorAll(".gender")
-            .forEach(
-              item=>{
-                item.classList.remove(
-                  "selected"
-                );
-              }
-            );
-
-          element.classList.add(
-            "selected"
-          );
-
-          const radio =
-            element.querySelector(
-              "input"
-            );
-
-          radio.checked =
-            true;
-
-        }
-      );
+      throw error;
 
     }
-  );
 
+    if(!data){
 
-/* =====================================================
-   COPY ID
-===================================================== */
+      return id;
 
-async function copyId(){
-
-  const id =
-    idEl.textContent.trim();
-
-  try{
-
-    await navigator.clipboard
-      .writeText(id);
-
-  }catch(error){
-
-    const textarea =
-      document.createElement(
-        "textarea"
-      );
-
-    textarea.value =
-      id;
-
-    document.body.appendChild(
-      textarea
-    );
-
-    textarea.select();
-
-    document.execCommand(
-      "copy"
-    );
-
-    textarea.remove();
+    }
 
   }
 
-  idNote.textContent =
-    "ToTalk ID copied";
-
-  setTimeout(
-    ()=>{
-      idNote.textContent =
-        "Tap your ID to copy it.";
-    },
-    1600
+  throw new Error(
+    "Could not generate a unique ToTalk ID."
   );
 
 }
 
 
-idCard.addEventListener(
+/* =====================================================
+   COPY TOTALK ID
+===================================================== */
+
+totalkIdBox.addEventListener(
   "click",
-  copyId
-);
+  async ()=>{
 
+    if(!generatedToTalkId){
+      return;
+    }
 
-idCard.addEventListener(
-  "keydown",
-  event=>{
+    try{
 
-    if(
-      event.key === "Enter" ||
-      event.key === " "
-    ){
+      await navigator.clipboard.writeText(
+        generatedToTalkId
+      );
 
-      event.preventDefault();
+      showStatus(
+        "ToTalk ID copied."
+      );
 
-      copyId();
+    }catch(error){
+
+      showStatus(
+        generatedToTalkId
+      );
 
     }
 
   }
 );
-
-
-/* =====================================================
-   SHOW GALAXY
-===================================================== */
-
-function showGalaxy(
-  subtitle="Preparing your profile"
-){
-
-  loadingSubtitle.textContent =
-    subtitle;
-
-  galaxy.classList.add(
-    "show"
-  );
-
-}
 
 
 /* =====================================================
    CREATE PROFILE
 ===================================================== */
 
-createBtn.addEventListener(
-  "click",
-  async ()=>{
+async function createProfile(){
 
-    if(profileCreating){
-      return;
-    }
+  if(!currentUser){
 
-    const name =
-      nameEl.value.trim();
+    showStatus(
+      "Your login session is not ready."
+    );
 
+    return;
 
-    setMessage("");
+  }
 
+  const name =
+    nameInput.value.trim();
 
-    /* -------------------------------
-       VALIDATION
-    ------------------------------- */
+  const genderElement =
+    document.querySelector(
+      'input[name="gender"]:checked'
+    );
 
-    if(name.length < 2){
+  const gender =
+    genderElement?.value ||
+    "";
 
-      setMessage(
-        "Please enter your name.",
-        "error"
-      );
+  if(!name){
 
-      nameEl.focus();
+    nameInput.focus();
 
-      return;
+    showStatus(
+      "Please enter your name."
+    );
 
-    }
+    return;
 
+  }
 
-    if(!gender){
+  if(!gender){
 
-      setMessage(
-        "Please choose Male or Female.",
-        "error"
-      );
+    showStatus(
+      "Please choose your gender."
+    );
 
-      return;
+    return;
 
-    }
+  }
 
+  createButton.disabled =
+    true;
 
-    profileCreating =
-      true;
+  createButton.textContent =
+    "Creating Profile...";
 
-    createBtn.disabled =
-      true;
+  try{
 
-    createBtn.textContent =
-      "Creating profile…";
+    /*
+     * IMPORTANT:
+     * Check AGAIN before INSERT.
+     *
+     * This prevents duplicate profiles if
+     * the user clicks twice or two tabs are open.
+     */
 
+    const profile =
+      await checkExistingProfile();
 
-    try{
-
-      /* -------------------------------
-         GET GOOGLE USER
-      ------------------------------- */
-
-      let user = null;
-
-      const {
-        data:sessionData
-      } =
-        await supabaseClient
-          .auth
-          .getSession();
-
-      user =
-        sessionData?.session?.user ||
-        null;
-
-
-      if(!user){
-
-        const {
-          data:userData,
-          error:userError
-        } =
-          await supabaseClient
-            .auth
-            .getUser();
-
-        if(userError){
-          throw userError;
-        }
-
-        user =
-          userData?.user ||
-          null;
-
-      }
-
-
-      if(!user){
-
-        throw new Error(
-          "Your Google login session is not ready. Please sign in again."
-        );
-
-      }
-
-
-      currentUser =
-        user;
-
-
-      /* -------------------------------
-         KEEP EXISTING TT ID
-      ------------------------------- */
-
-      if(
-        !generatedId ||
-        generatedId === "Generating…"
-      ){
-
-        generatedId =
-          makeTTId();
-
-      }
-
-
-      /* -------------------------------
-         CHECK EXISTING PROFILE
-      ------------------------------- */
-
-      const {
-        data:existing,
-        error:readError
-      } =
-        await supabaseClient
-          .from("profiles")
-          .select(
-            "id,totalk_id"
-          )
-          .eq(
-            "user_id",
-            currentUser.id
-          )
-          .maybeSingle();
-
-
-      if(readError){
-
-        throw readError;
-
-      }
-
-
-      /* -------------------------------
-         UPDATE OR INSERT
-      ------------------------------- */
-
-      if(existing){
-
-        generatedId =
-          existing.totalk_id ||
-          generatedId;
-
-
-        const {
-          error:updateError
-        } =
-          await supabaseClient
-            .from("profiles")
-            .update({
-
-              name:name,
-
-              gender:gender,
-
-              totalk_id:
-                generatedId,
-
-              profile_completed:
-                true
-
-            })
-            .eq(
-              "user_id",
-              currentUser.id
-            );
-
-
-        if(updateError){
-
-          throw updateError;
-
-        }
-
-      }else{
-
-        const {
-          error:insertError
-        } =
-          await supabaseClient
-            .from("profiles")
-            .insert({
-
-              user_id:
-                currentUser.id,
-
-              name:name,
-
-              gender:gender,
-
-              totalk_id:
-                generatedId,
-
-              profile_completed:
-                true
-
-            });
-
-
-        if(insertError){
-
-          throw insertError;
-
-        }
-
-      }
-
-
-      /* -------------------------------
-         CONFIRM DATABASE
-      ------------------------------- */
-
-      const {
-        data:confirmedProfile,
-        error:confirmError
-      } =
-        await supabaseClient
-          .from("profiles")
-          .select(
-            "profile_completed,totalk_id"
-          )
-          .eq(
-            "user_id",
-            currentUser.id
-          )
-          .maybeSingle();
-
-
-      if(confirmError){
-
-        throw confirmError;
-
-      }
-
-
-      if(
-        !confirmedProfile ||
-        confirmedProfile.profile_completed !== true
-      ){
-
-        throw new Error(
-          "Your profile could not be confirmed in Supabase."
-        );
-
-      }
-
-
-      if(
-        confirmedProfile.totalk_id
-      ){
-
-        generatedId =
-          confirmedProfile.totalk_id;
-
-        idEl.textContent =
-          generatedId;
-
-      }
-
-
-      /* -------------------------------
-         SHOW SUCCESS
-      ------------------------------- */
-
-      setMessage(
-        "Profile created. Entering ToTalk…",
-        "success"
-      );
-
+    if(profile){
 
       /*
-       * IMPORTANT:
-       * Galaxy appears BEFORE navigation.
+       * Profile already exists.
+       * Never show the profile form again.
        */
 
-      showGalaxy(
-        "Preparing your conversation space"
+      setLoadingText(
+        "Profile found",
+        "Opening your conversation space"
       );
-
-
-      /*
-       * Give the galaxy animation
-       * enough time to actually be seen.
-       */
-
-      await new Promise(
-        resolve =>
-          setTimeout(
-            resolve,
-            1600
-          )
-      );
-
-
-      /*
-       * Go to the EXISTING chat page.
-       */
 
       window.location.replace(
         "./chat.html"
       );
 
+      return;
 
-    }catch(error){
-
-      console.error(
-        "Profile creation error:",
-        error
-      );
+    }
 
 
-      setMessage(
-        error?.message ||
-        "Could not create your profile.",
-        "error"
-      );
+    if(!generatedToTalkId){
+
+      generatedToTalkId =
+        await createUniqueToTalkId();
+
+    }
 
 
-      profileCreating =
-        false;
+    const {
+      data,
+      error
+    } =
+      await supabaseClient
+        .from("profiles")
+        .insert({
 
-      createBtn.disabled =
-        false;
+          user_id:
+            currentUser.id,
 
-      createBtn.textContent =
-        "Create Profile";
+          name:
+            name,
+
+          gender:
+            gender,
+
+          totalk_id:
+            generatedToTalkId,
+
+          profile_completed:
+            true
+
+        })
+        .select(
+          "id,user_id,name,gender,totalk_id,profile_completed"
+        )
+        .single();
+
+
+    if(error){
+
+      /*
+       * If another request created the
+       * profile at the same time, reload
+       * the existing profile instead of
+       * showing an error.
+       */
+
+      if(
+        error.code === "23505"
+      ){
+
+        setLoadingText(
+          "Profile ready",
+          "Opening your conversation space"
+        );
+
+        window.location.replace(
+          "./chat.html"
+        );
+
+        return;
+
+      }
+
+      throw error;
+
+    }
+
+
+    existingProfile =
+      data;
+
+
+    setLoadingText(
+      "Profile created",
+      "Opening your conversation space"
+    );
+
+
+    /*
+     * Small delay makes the transition
+     * feel intentional without ever
+     * showing Page 2 incorrectly.
+     */
+
+    setTimeout(
+      ()=>{
+
+        window.location.replace(
+          "./chat.html"
+        );
+
+      },
+      450
+    );
+
+
+  }catch(error){
+
+    console.error(
+      "Create profile error:",
+      error
+    );
+
+    createButton.disabled =
+      false;
+
+    createButton.textContent =
+      "Create Profile";
+
+    showStatus(
+      "Profile could not be created."
+    );
+
+  }
+
+}
+
+
+/* =====================================================
+   BUTTON
+===================================================== */
+
+createButton.addEventListener(
+  "click",
+  createProfile
+);
+
+
+/* =====================================================
+   ENTER KEY
+===================================================== */
+
+nameInput.addEventListener(
+  "keydown",
+  event=>{
+
+    if(
+      event.key === "Enter"
+    ){
+
+      event.preventDefault();
+
+      createProfile();
 
     }
 
@@ -2445,7 +2141,12 @@ createBtn.addEventListener(
 supabaseClient
   .auth
   .onAuthStateChange(
-    (event)=>{
+    (event,session)=>{
+
+      console.log(
+        "Auth event:",
+        event
+      );
 
       if(
         event === "SIGNED_OUT"
@@ -2462,201 +2163,236 @@ supabaseClient
 
 
 /* =====================================================
-   INITIALIZE
+   START APPLICATION
 ===================================================== */
 
-async function init(){
+async function startApp(){
 
   /*
-   * Generate ID immediately.
+   * CRITICAL:
+   *
+   * Do NOT reveal #app here.
+   *
+   * It stays display:none while this
+   * entire function checks the session
+   * and profile.
    */
 
-  generatedId =
-    makeTTId();
+  try{
 
-  idEl.textContent =
-    generatedId;
-
-
-  /*
-   * Wait for Google/Supabase
-   * session restoration.
-   */
-
-  let session =
-    null;
+    setLoadingText(
+      "Entering ToTalk",
+      "Checking your account"
+    );
 
 
-  for(
-    let attempt=0;
-    attempt<12;
-    attempt++
-  ){
+    /* -----------------------------------------------
+       FIRST SESSION CHECK
+    ------------------------------------------------ */
 
-    const {
-      data,
-      error
-    } =
-      await supabaseClient
-        .auth
-        .getSession();
+    currentUser =
+      await getLoggedInUser();
 
+
+    /*
+     * Google/Supabase callback can take
+     * a moment on some mobile browsers.
+     */
+
+    if(!currentUser){
+
+      await new Promise(
+        resolve =>
+          setTimeout(
+            resolve,
+            700
+          )
+      );
+
+      currentUser =
+        await getLoggedInUser();
+
+    }
+
+
+    /* -----------------------------------------------
+       NO LOGIN
+    ------------------------------------------------ */
+
+    if(!currentUser){
+
+      setLoadingText(
+        "Login required",
+        "Returning to ToTalk"
+      );
+
+      setTimeout(
+        ()=>{
+
+          window.location.replace(
+            "./index.html"
+          );
+
+        },
+        700
+      );
+
+      return;
+
+    }
+
+
+    /* -----------------------------------------------
+       PROFILE CHECK
+    ------------------------------------------------ */
+
+    setLoadingText(
+      "Checking your profile",
+      "Looking for your ToTalk identity"
+    );
+
+
+    existingProfile =
+      await checkExistingProfile();
+
+
+    /* -----------------------------------------------
+       PROFILE EXISTS
+    ------------------------------------------------ */
 
     if(
-      !error &&
-      data?.session
+      existingProfile &&
+      existingProfile.profile_completed === true
     ){
 
-      session =
-        data.session;
+      /*
+       * THIS IS THE MAIN FIX.
+       *
+       * #app has NEVER been displayed.
+       *
+       * Therefore the Create Profile page
+       * cannot flash for even one frame.
+       */
 
-      break;
+      setLoadingText(
+        "Profile found",
+        "Opening your conversation space"
+      );
+
+      await new Promise(
+        resolve =>
+          setTimeout(
+            resolve,
+            250
+          )
+      );
+
+      window.location.replace(
+        "./chat.html"
+      );
+
+      return;
 
     }
 
 
-    await new Promise(
-      resolve =>
-        setTimeout(
-          resolve,
-          250
-        )
+    /* -----------------------------------------------
+       PROFILE DOES NOT EXIST
+    ------------------------------------------------ */
+
+    setLoadingText(
+      "Almost ready",
+      "Preparing your profile"
     );
 
-  }
+
+    /*
+     * Generate the ID BEFORE revealing
+     * the profile page.
+     */
+
+    generatedToTalkId =
+      await createUniqueToTalkId();
 
 
-  /*
-   * If not logged in,
-   * return to homepage.
-   */
-
-  if(!session){
-
-    window.location.replace(
-      "./index.html"
-    );
-
-    return;
-
-  }
+    totalkId.textContent =
+      generatedToTalkId;
 
 
-  currentUser =
-    session.user;
+    /*
+     * NOW and ONLY NOW reveal Page 2.
+     */
+
+    finishLoading();
 
 
-  /*
-   * Check whether profile
-   * already exists.
-   */
-
-  const {
-    data:existing,
-    error
-  } =
-    await supabaseClient
-      .from("profiles")
-      .select(
-        "id,name,gender,totalk_id,profile_completed"
-      )
-      .eq(
-        "user_id",
-        currentUser.id
-      )
-      .maybeSingle();
-
-
-  if(error){
+  }catch(error){
 
     console.error(
-      "Profile check error:",
+      "Profile maker startup error:",
       error
     );
 
-    return;
 
-  }
+    /*
+     * Keep the profile form hidden if
+     * startup failed.
+     */
 
-
-  /*
-   * If profile is already complete,
-   * don't show profile maker again.
-   */
-
-  if(
-    existing &&
-    existing.profile_completed === true
-  ){
-
-    window.location.replace(
-      "./chat.html"
-    );
-
-    return;
-
-  }
+    app.style.display =
+      "none";
 
 
-  /*
-   * Reuse existing information
-   * if profile row already exists.
-   */
+    loading.innerHTML = `
+      <div style="
+        position:relative;
+        z-index:5;
+        width:min(90%,420px);
+        padding:30px;
+        border:1px solid rgba(145,76,255,.4);
+        border-radius:20px;
+        background:rgba(10,5,22,.94);
+        text-align:center;
+      ">
 
-  if(existing){
+        <h2 style="
+          margin-bottom:10px;
+          font-size:20px;
+        ">
+          Unable to open ToTalk
+        </h2>
 
-    if(existing.name){
+        <p style="
+          color:#9b94aa;
+          font-size:13px;
+          line-height:1.5;
+          margin-bottom:20px;
+        ">
+          Something went wrong while checking
+          your profile.
+        </p>
 
-      nameEl.value =
-        existing.name;
+        <button
+          onclick="location.reload()"
+          style="
+            border:0;
+            padding:11px 20px;
+            border-radius:10px;
+            background:linear-gradient(
+              135deg,
+              #914cff,
+              #aa69ff
+            );
+            color:white;
+            font-weight:800;
+            cursor:pointer;
+          "
+        >
+          Try Again
+        </button>
 
-    }
-
-
-    if(existing.gender){
-
-      gender =
-        existing.gender;
-
-      document
-        .querySelectorAll(".gender")
-        .forEach(
-          element=>{
-
-            if(
-              element.dataset.gender ===
-              existing.gender
-            ){
-
-              element.classList.add(
-                "selected"
-              );
-
-              const radio =
-                element.querySelector(
-                  "input"
-                );
-
-              radio.checked =
-                true;
-
-            }
-
-          }
-        );
-
-    }
-
-
-    if(existing.totalk_id){
-
-      generatedId =
-        existing.totalk_id;
-
-      idEl.textContent =
-        generatedId;
-
-    }
+      </div>
+    `;
 
   }
 
@@ -2667,7 +2403,7 @@ async function init(){
    START
 ===================================================== */
 
-init();
+startApp();
 
 </script>
 
