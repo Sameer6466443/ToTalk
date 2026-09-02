@@ -1258,78 +1258,92 @@
       }
     }
 
+    /* Smooth, compact reaction bar */
     .reaction-picker {
       position: fixed;
-      left: 50%;
-      bottom: 92px;
-      top: auto;
       z-index: 2147483647;
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 4px;
-      padding: 8px 10px;
-      border: 1px solid rgba(165,102,255,.45);
-      border-radius: 20px;
-      background: rgba(8,5,22,.98);
-      box-shadow: 0 16px 42px rgba(0,0,0,.58), 0 0 28px rgba(126,72,255,.22);
+      gap: 3px;
+      padding: 6px 7px;
+      border: 1px solid rgba(178,132,255,.34);
+      border-radius: 18px;
+      background: rgba(10,7,25,.94);
+      box-shadow: 0 12px 34px rgba(0,0,0,.5), 0 0 22px rgba(126,72,255,.16);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
       opacity: 0;
       visibility: hidden;
-      transform: translate(-50%, 10px) scale(.94);
+      transform: translateY(7px) scale(.96);
+      transform-origin: center bottom;
       pointer-events: none;
-      transition: opacity .16s ease, transform .18s cubic-bezier(.2,.8,.2,1), visibility .16s ease;
-      max-width: calc(100vw - 24px);
+      transition: opacity .13s ease, transform .18s cubic-bezier(.2,.8,.2,1), visibility .13s ease;
+      max-width: calc(100vw - 20px);
     }
 
     .reaction-picker.open {
       opacity: 1;
       visibility: visible;
-      transform: translate(-50%, 0) scale(1);
+      transform: translateY(0) scale(1);
       pointer-events: auto;
     }
 
     .reaction-picker button {
-      flex: 0 0 38px;
-      width: 38px;
-      height: 38px;
+      flex: 0 0 36px;
+      width: 36px;
+      height: 36px;
       padding: 0;
       border: 0;
-      border-radius: 12px;
+      border-radius: 11px;
       background: transparent;
       color: #fff;
-      font-size: 21px;
+      font-size: 20px;
       line-height: 1;
       cursor: pointer;
-      transition: background .14s ease, transform .14s ease;
+      -webkit-tap-highlight-color: transparent;
+      transition: background .11s ease, transform .13s cubic-bezier(.2,.8,.2,1);
     }
 
     .reaction-picker button:hover,
     .reaction-picker button:focus-visible {
-      background: rgba(145,76,255,.22);
+      background: rgba(145,76,255,.18);
       transform: translateY(-2px) scale(1.08);
       outline: none;
     }
 
-    .reaction-picker button:active {
-      transform: scale(.94);
+    .reaction-picker button:active,
+    .reaction-picker button.picked {
+      background: rgba(145,76,255,.28);
+      transform: scale(.9);
     }
 
     @media (max-width: 520px) {
       .reaction-picker {
-        bottom: 82px;
         gap: 1px;
-        padding: 7px 8px;
+        padding: 5px 6px;
+        border-radius: 17px;
       }
       .reaction-picker button {
-        flex-basis: 35px;
-        width: 35px;
-        height: 35px;
+        flex-basis: 34px;
+        width: 34px;
+        height: 34px;
         font-size: 19px;
       }
     }
 
     .reaction-chip {
       transition: transform .16s ease, background .16s ease;
+    }
+
+    .reaction-chip.reaction-pop {
+      animation: reactionPop .28s cubic-bezier(.2,.8,.2,1);
+    }
+
+    @keyframes reactionPop {
+      0% { opacity: .2; transform: scale(.78); }
+      65% { opacity: 1; transform: scale(1.08); }
+      100% { opacity: 1; transform: scale(1); }
     }
 
     .reaction-chip:hover {
@@ -2943,11 +2957,17 @@
         button.type = "button";
         button.textContent = reaction;
         button.setAttribute("aria-label", "React " + reaction);
-        button.addEventListener("click", async (event) => {
+        button.addEventListener("click", (event) => {
           event.stopPropagation();
-          await toggleReaction(messageId, reaction, messageElement);
+
+          // Make the tap feel instant: close the picker first and animate
+          // the selected emoji. The database work continues in the background.
+          button.classList.add("picked");
           picker.classList.remove("open");
           messageElement.classList.remove("reaction-target");
+
+          window.setTimeout(() => button.classList.remove("picked"), 140);
+          toggleReaction(messageId, reaction, messageElement);
         });
         picker.appendChild(button);
       });
@@ -2965,26 +2985,14 @@
       const pickerWidth = Math.min(245, Math.max(190, picker.offsetWidth || 220));
       const pickerHeight = picker.offsetHeight || 48;
 
-      let left = messageRect.right - pickerWidth;
-      if (left < gap) {
-        left = messageRect.left;
-        picker.classList.add("picker-left");
-      }
+      let left = messageRect.left + (messageRect.width - pickerWidth) / 2;
+      left = Math.max(gap, Math.min(left, window.innerWidth - pickerWidth - gap));
 
-      if (left + pickerWidth > window.innerWidth - gap) {
-        left = window.innerWidth - pickerWidth - gap;
-      }
-      left = Math.max(gap, left);
-
-      let top = messageRect.bottom + 8;
-      if (top + pickerHeight > window.innerHeight - gap) {
-        top = messageRect.top - pickerHeight - 8;
-        picker.classList.add("picker-above");
-      }
+      let top = messageRect.top - pickerHeight - 9;
       if (top < gap) {
-        top = Math.min(window.innerHeight - pickerHeight - gap, messageRect.bottom + 8);
+        top = messageRect.bottom + 9;
       }
-      top = Math.max(gap, top);
+      top = Math.max(gap, Math.min(top, window.innerHeight - pickerHeight - gap));
 
       picker.style.left = Math.round(left) + "px";
       picker.style.top = Math.round(top) + "px";
@@ -3012,10 +3020,13 @@
       const open = picker.classList.toggle("open");
       messageElement.classList.toggle("reaction-target", open);
       if (open) {
-        // The picker is a fixed bottom sheet, so it can never be clipped by the message area.
-        picker.style.left = "50%";
-        picker.style.top = "auto";
-        picker.style.bottom = window.innerWidth <= 520 ? "82px" : "92px";
+        // Float the compact bar next to the message instead of using a
+        // bottom sheet. This keeps the interaction visually connected
+        // to the message and avoids the delayed/awkward feeling.
+        picker.style.bottom = "auto";
+        picker.style.left = "0px";
+        picker.style.top = "0px";
+        requestAnimationFrame(() => placeReactionPicker(messageElement, picker));
       }
     }
 
@@ -3133,6 +3144,7 @@
 
     async function toggleReaction(messageId, reaction, messageElement) {
       if (!messageId || !currentUser) return;
+      messageElement._lastSelectedReaction = reaction;
 
       // If the user taps the same reaction again, remove it.
       const existingResult = await supabaseClient
@@ -3207,6 +3219,10 @@
       }
 
       renderReactionSummary(messageId, data || []);
+      const messageElement = document.querySelector(`[data-message-id="${messageId}"]`);
+      if (messageElement) {
+        window.setTimeout(() => { messageElement._lastSelectedReaction = null; }, 320);
+      }
     }
 
     function renderReactionSummary(messageId, reactions) {
@@ -3233,6 +3249,9 @@
         if (!counts[reaction]) return;
         const chip = document.createElement("span");
         chip.className = "reaction-chip" + (mine.has(reaction) ? " mine" : "");
+        if (mine.has(reaction) && messageElement._lastSelectedReaction === reaction) {
+          chip.classList.add("reaction-pop");
+        }
         chip.textContent = reaction + " " + counts[reaction];
         summary.appendChild(chip);
       });
