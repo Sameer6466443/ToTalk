@@ -669,7 +669,7 @@
       transform:rotate(45deg);border-radius:2px;
     }
     .chat-search-popover {
-      position:absolute; top:60px; right:12px; z-index:40;
+      position:absolute; top:60px; right:12px; z-index:80;
       width:min(235px,calc(100% - 24px)); padding:6px;
       border:1px solid rgba(165,102,255,.34); border-radius:13px;
       background:rgba(10,6,25,.97);
@@ -1070,7 +1070,7 @@
       position: absolute;
       top: 7px;
       right: 7px;
-      z-index: 120;
+      z-index: 200;
     }
 
     .message-menu-btn {
@@ -1109,7 +1109,6 @@
       background: rgba(13,8,30,.98);
       box-shadow: 0 10px 28px rgba(0,0,0,.45), 0 0 18px rgba(125,55,220,.18);
       display: none;
-      z-index: 121;
     }
 
     .message-menu.open {
@@ -2645,7 +2644,9 @@
       message.appendChild(text);
       message.appendChild(time);
 
-      if (currentUser && messageData.sender_id === currentUser.id && messageData.id) {
+      // Every message gets a three-dot menu so either person can react.
+      // Edit/Delete are only shown for the message owner.
+      if (messageData.id) {
         const menuWrap = document.createElement("div");
         menuWrap.className = "message-menu-wrap";
 
@@ -2659,6 +2660,9 @@
         const menu = document.createElement("div");
         menu.className = "message-menu";
 
+        const reactionPicker = createReactionPicker(messageData.id, message);
+        message.appendChild(reactionPicker);
+
         const reactButton = document.createElement("button");
         reactButton.type = "button";
         reactButton.textContent = "React";
@@ -2666,36 +2670,37 @@
           event.stopPropagation();
           menu.classList.remove("open");
           menuButton.setAttribute("aria-expanded", "false");
+          if (typeof closeMessageSearch === "function") closeMessageSearch();
           toggleReactionPicker(message, reactionPicker);
         });
-
-        const reactionPicker = createReactionPicker(messageData.id, message);
-        message.appendChild(reactionPicker);
-
-        const editButton = document.createElement("button");
-        editButton.type = "button";
-        editButton.textContent = "Edit";
-        editButton.addEventListener("click", (event) => {
-          event.stopPropagation();
-          menu.classList.remove("open");
-          menuButton.setAttribute("aria-expanded", "false");
-          editMessage(messageData.id, message, text);
-        });
-
-        const deleteButton = document.createElement("button");
-        deleteButton.type = "button";
-        deleteButton.className = "menu-delete";
-        deleteButton.textContent = "Delete";
-        deleteButton.addEventListener("click", (event) => {
-          event.stopPropagation();
-          menu.classList.remove("open");
-          menuButton.setAttribute("aria-expanded", "false");
-          deleteMessage(messageData.id, message);
-        });
-
         menu.appendChild(reactButton);
-        menu.appendChild(editButton);
-        menu.appendChild(deleteButton);
+
+        if (currentUser && messageData.sender_id === currentUser.id) {
+          const editButton = document.createElement("button");
+          editButton.type = "button";
+          editButton.textContent = "Edit";
+          editButton.addEventListener("click", (event) => {
+            event.stopPropagation();
+            menu.classList.remove("open");
+            menuButton.setAttribute("aria-expanded", "false");
+            editMessage(messageData.id, message, text);
+          });
+
+          const deleteButton = document.createElement("button");
+          deleteButton.type = "button";
+          deleteButton.className = "menu-delete";
+          deleteButton.textContent = "Delete";
+          deleteButton.addEventListener("click", (event) => {
+            event.stopPropagation();
+            menu.classList.remove("open");
+            menuButton.setAttribute("aria-expanded", "false");
+            deleteMessage(messageData.id, message);
+          });
+
+          menu.appendChild(editButton);
+          menu.appendChild(deleteButton);
+        }
+
         menuWrap.appendChild(menuButton);
         menuWrap.appendChild(menu);
         message.appendChild(menuWrap);
@@ -2704,20 +2709,19 @@
           event.stopPropagation();
           const isOpen = menu.classList.contains("open");
           closeAllMessageMenus(isOpen ? null : menu);
+
           if (!isOpen) {
+            // Never allow the message menu to sit underneath the search popup.
+            if (typeof closeMessageSearch === "function") closeMessageSearch();
             document.querySelectorAll(".reaction-picker.open").forEach((picker) => picker.classList.remove("open"));
             document.querySelectorAll(".reaction-target").forEach((el) => el.classList.remove("reaction-target"));
           }
+
           menu.classList.toggle("open", !isOpen);
           menuButton.setAttribute("aria-expanded", String(!isOpen));
         });
       }
 
-      const reactionPicker = message.querySelector(".reaction-picker");
-      if (!reactionPicker) {
-        const picker = createReactionPicker(messageData.id, message);
-        message.appendChild(picker);
-      }
 
       const reactionSummary = document.createElement("div");
       reactionSummary.className = "reaction-summary";
@@ -2828,6 +2832,9 @@
     }
 
     function openMessageSearch() {
+      closeAllMessageMenus();
+      document.querySelectorAll(".reaction-picker.open").forEach((picker) => picker.classList.remove("open"));
+      document.querySelectorAll(".reaction-target").forEach((el) => el.classList.remove("reaction-target"));
       messageSearchBar.classList.add("open");
       messageSearchBar.setAttribute("aria-hidden", "false");
       messageSearchToggle.setAttribute("aria-expanded", "true");
@@ -2912,6 +2919,7 @@
 
     function toggleReactionPicker(messageElement, picker) {
       if (!picker) return;
+      if (typeof closeMessageSearch === "function") closeMessageSearch();
       document.querySelectorAll(".reaction-picker.open").forEach((other) => {
         if (other !== picker) other.classList.remove("open");
       });
