@@ -1264,11 +1264,10 @@
     }
 
     .reaction-picker {
-      position: absolute;
-      right: 0;
-      left: auto;
-      top: 34px;
-      z-index: 950;
+      position: fixed;
+      left: 0;
+      top: 0;
+      z-index: 999999;
       display: flex;
       align-items: center;
       gap: 2px;
@@ -1295,14 +1294,10 @@
     }
 
     .reaction-picker.picker-left {
-      left: 0;
-      right: auto;
       transform-origin: top left;
     }
 
     .reaction-picker.picker-above {
-      top: auto;
-      bottom: 34px;
       transform-origin: bottom right;
     }
 
@@ -2701,7 +2696,7 @@
         menu.className = "message-menu";
 
         const reactionPicker = createReactionPicker(messageData.id, message);
-        message.appendChild(reactionPicker);
+        message._reactionPicker = reactionPicker;
 
         const reactButton = document.createElement("button");
         reactButton.type = "button";
@@ -2773,6 +2768,9 @@
 
       attachReactionGestures(message, messageData.id);
       messages.appendChild(message);
+      if (message._reactionPicker && !message._reactionPicker.isConnected) {
+        document.body.appendChild(message._reactionPicker);
+      }
 
     }
 
@@ -2942,6 +2940,7 @@
       const picker = document.createElement("div");
       picker.className = "reaction-picker";
       picker.dataset.messageId = messageId || "";
+      picker._messageElement = messageElement;
 
       REACTIONS.forEach((reaction) => {
         const button = document.createElement("button");
@@ -2961,19 +2960,38 @@
     }
 
     function placeReactionPicker(messageElement, picker) {
+      if (!messageElement || !picker) return;
+
       picker.classList.remove("picker-left", "picker-above");
+
       const messageRect = messageElement.getBoundingClientRect();
-      const pickerWidth = Math.min(245, Math.max(190, picker.scrollWidth || 220));
+      const gap = 8;
+      const pickerWidth = Math.min(245, Math.max(190, picker.offsetWidth || 220));
       const pickerHeight = picker.offsetHeight || 48;
-      const viewportLeft = 8;
-      const viewportRight = window.innerWidth - 8;
-      if (messageRect.right - pickerWidth < viewportLeft) {
+
+      let left = messageRect.right - pickerWidth;
+      if (left < gap) {
+        left = messageRect.left;
         picker.classList.add("picker-left");
       }
-      const rectAfter = messageElement.getBoundingClientRect();
-      if (rectAfter.bottom + pickerHeight > window.innerHeight - 8) {
+
+      if (left + pickerWidth > window.innerWidth - gap) {
+        left = window.innerWidth - pickerWidth - gap;
+      }
+      left = Math.max(gap, left);
+
+      let top = messageRect.bottom + 8;
+      if (top + pickerHeight > window.innerHeight - gap) {
+        top = messageRect.top - pickerHeight - 8;
         picker.classList.add("picker-above");
       }
+      if (top < gap) {
+        top = Math.min(window.innerHeight - pickerHeight - gap, messageRect.bottom + 8);
+      }
+      top = Math.max(gap, top);
+
+      picker.style.left = Math.round(left) + "px";
+      picker.style.top = Math.round(top) + "px";
     }
 
     function placeMessageMenu(messageElement, menu) {
@@ -3004,7 +3022,7 @@
 
     window.addEventListener("resize", () => {
       document.querySelectorAll(".reaction-picker.open").forEach((picker) => {
-        const message = picker.closest(".message");
+        const message = picker._messageElement;
         if (message) placeReactionPicker(message, picker);
       });
       document.querySelectorAll(".message-menu.open").forEach((menu) => {
@@ -3019,7 +3037,7 @@
 
       messageElement.addEventListener("contextmenu", (event) => {
         event.preventDefault();
-        const picker = messageElement.querySelector(".reaction-picker");
+        const picker = messageElement._reactionPicker;
         toggleReactionPicker(messageElement, picker);
       });
 
