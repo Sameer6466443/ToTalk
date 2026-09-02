@@ -395,8 +395,8 @@ body:before{
     0 30px 80px rgba(0,0,0,.55),
     0 0 70px rgba(100,50,255,.13);
 
-  opacity:0;
-  transform:translateY(14px) scale(.985);
+  opacity:1;
+  transform:none;
 
   transition:
     opacity .6s ease,
@@ -747,6 +747,234 @@ button:disabled{
     transition:none!important;
   }
 }
+
+/* =========================================
+   RESPONSIVE PROFILE FIX
+   ========================================= */
+
+html{
+  width:100%;
+  max-width:100%;
+  overflow-x:hidden;
+}
+
+body{
+  width:100%;
+  max-width:100%;
+  min-width:0;
+}
+
+.wrap{
+  width:100%;
+  max-width:100%;
+  min-height:100svh;
+  min-height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:32px 20px;
+}
+
+.card{
+  width:min(470px,100%);
+  max-width:470px;
+  min-width:0;
+}
+
+/* Phones */
+@media (max-width:700px){
+
+  body{
+    overflow-x:hidden;
+  }
+
+  .wrap{
+    min-height:100svh;
+    min-height:100vh;
+    padding:
+      max(18px, env(safe-area-inset-top))
+      14px
+      max(22px, env(safe-area-inset-bottom));
+    align-items:center;
+  }
+
+  .card{
+    width:100%;
+    max-width:430px;
+    padding:26px 18px 23px;
+    border-radius:23px;
+    transform:none !important;
+  }
+
+  .card.ready{
+    transform:none !important;
+  }
+
+  .orbit{
+    width:78px;
+    height:78px;
+    margin-bottom:18px;
+  }
+
+  .orbit:before{
+    width:50px;
+    height:50px;
+  }
+
+  .orbit:after{
+    inset:-8px;
+  }
+
+  h1{
+    font-size:25px;
+    line-height:1.12;
+  }
+
+  .sub{
+    font-size:13px;
+    line-height:1.55;
+    margin:9px 0 24px;
+  }
+
+  .group{
+    margin-bottom:19px;
+  }
+
+  label{
+    font-size:12px;
+  }
+
+  input{
+    min-height:50px;
+    padding:13px 14px;
+    font-size:16px;
+  }
+
+  .gender-grid{
+    gap:9px;
+  }
+
+  .gender{
+    min-height:53px;
+    padding:13px 10px;
+    gap:9px;
+  }
+
+  .circle{
+    width:21px;
+    height:21px;
+  }
+
+  .ttbox{
+    min-height:56px;
+    padding:13px 13px;
+  }
+
+  .ttlabel{
+    font-size:10px;
+  }
+
+  .ttid{
+    font-size:14px;
+  }
+
+  button{
+    min-height:52px;
+    padding:14px;
+    font-size:15px;
+  }
+
+  .note{
+    font-size:10px;
+    margin-top:15px;
+  }
+
+  /* Smaller loading screen only if it is ever shown during an error/re-entry. */
+  .loading-system{
+    width:235px;
+    height:215px;
+  }
+
+  .loading-orbit{
+    width:205px;
+    height:75px;
+  }
+
+  .loading-orbit.two{
+    width:230px;
+    height:88px;
+  }
+
+  .loading-moon{
+    width:84px;
+    height:84px;
+  }
+
+  .loading-title{
+    font-size:20px;
+  }
+
+  .loading-subtitle{
+    font-size:12px;
+  }
+}
+
+/* Very small phones */
+@media (max-width:380px){
+
+  .wrap{
+    padding-left:10px;
+    padding-right:10px;
+  }
+
+  .card{
+    padding:23px 15px 20px;
+    border-radius:21px;
+  }
+
+  .orbit{
+    width:70px;
+    height:70px;
+    margin-bottom:16px;
+  }
+
+  .orbit:before{
+    width:45px;
+    height:45px;
+  }
+
+  h1{
+    font-size:23px;
+  }
+
+  .sub{
+    font-size:12px;
+    margin-bottom:21px;
+  }
+
+  .gender{
+    padding:12px 8px;
+    font-size:13px;
+  }
+
+  .ttid{
+    font-size:13px;
+  }
+}
+
+/* Prevent accidental desktop-width rendering caused by long content. */
+@media (max-width:700px){
+  .wrap,
+  .card,
+  .gender-grid,
+  .gender,
+  .ttbox,
+  input,
+  button{
+    max-width:100%;
+  }
+}
+
 </style>
 </head>
 
@@ -757,7 +985,7 @@ button:disabled{
      GALAXY LOADING
 ========================================= -->
 
-<div id="galaxyLoading">
+<div id="galaxyLoading" class="hide" aria-hidden="true">
 
   <div class="loading-stars"></div>
 
@@ -1070,26 +1298,17 @@ document
 function showProfileMaker(){
 
   /*
-   * First make the profile card ready.
+   * Profile Maker opens directly.
+   * No entrance animation after Google authentication.
    */
 
-  profileCard.classList.add(
-    "ready"
-  );
+  profileCard.classList.add("ready");
 
+  profileCard.style.opacity = "1";
+  profileCard.style.transform = "none";
 
-  /*
-   * Then slowly remove the galaxy screen.
-   */
-
-  setTimeout(
-    ()=>{
-      loader.classList.add(
-        "hide"
-      );
-    },
-    350
-  );
+  loader.classList.add("hide");
+  loader.setAttribute("aria-hidden","true");
 
 }
 
@@ -1229,14 +1448,7 @@ async function init(){
     profile.profile_completed
   ){
 
-    setTimeout(
-      ()=>{
-        window.location.replace(
-          "./chat.html"
-        );
-      },
-      850
-    );
+    window.location.replace("./chat.html");
 
     return;
 
