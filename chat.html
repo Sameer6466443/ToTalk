@@ -3030,62 +3030,100 @@
       if (!messageId || !messageElement) return;
 
       let pressTimer = null;
-      let longPressTriggered = false;
       let startX = 0;
       let startY = 0;
+      let longPressTriggered = false;
+      let touchActive = false;
 
       const cancelPress = () => {
-        if (pressTimer) clearTimeout(pressTimer);
-        pressTimer = null;
+        if (pressTimer) {
+          clearTimeout(pressTimer);
+          pressTimer = null;
+        }
       };
 
-      // Mobile-safe long press. Pointer events work consistently for both
-      // sender and receiver messages and do not depend on a menu button.
-      messageElement.addEventListener("pointerdown", (event) => {
-        if (event.pointerType === "mouse" && event.button !== 0) return;
+      const openReactionPicker = () => {
+        const picker = messageElement._reactionPicker;
+        if (!picker) return;
+        longPressTriggered = true;
+        toggleReactionPicker(messageElement, picker);
+      };
+
+      // Android/iOS reliable long-press. Touch events are used directly
+      // instead of pointer capture so the gesture also works on received
+      // messages and inside the scrollable chat area.
+      messageElement.addEventListener("touchstart", (event) => {
+        if (event.touches.length !== 1) return;
+        if (event.target.closest(".message-menu-wrap")) return;
+
+        touchActive = true;
+        longPressTriggered = false;
+        cancelPress();
+
+        const touch = event.touches[0];
+        startX = touch.clientX;
+        startY = touch.clientY;
+
+        pressTimer = setTimeout(() => {
+          if (!touchActive) return;
+          openReactionPicker();
+        }, 450);
+      }, { passive: true });
+
+      messageElement.addEventListener("touchmove", (event) => {
+        if (!touchActive || !pressTimer || !event.touches.length) return;
+        const touch = event.touches[0];
+        const moved = Math.hypot(touch.clientX - startX, touch.clientY - startY);
+        if (moved > 12) cancelPress();
+      }, { passive: true });
+
+      messageElement.addEventListener("touchend", (event) => {
+        touchActive = false;
+        cancelPress();
+        if (longPressTriggered) {
+          event.preventDefault();
+          event.stopPropagation();
+          setTimeout(() => { longPressTriggered = false; }, 0);
+        }
+      }, { passive: false });
+
+      messageElement.addEventListener("touchcancel", () => {
+        touchActive = false;
+        cancelPress();
+      }, { passive: true });
+
+      // Desktop fallback: hold the left mouse button.
+      messageElement.addEventListener("mousedown", (event) => {
+        if (event.button !== 0) return;
         if (event.target.closest(".message-menu-wrap")) return;
 
         longPressTriggered = false;
         cancelPress();
         startX = event.clientX;
         startY = event.clientY;
-
-        try { messageElement.setPointerCapture(event.pointerId); } catch (_) {}
-
-        pressTimer = setTimeout(() => {
-          longPressTriggered = true;
-          const picker = messageElement._reactionPicker;
-          if (picker) toggleReactionPicker(messageElement, picker);
-        }, 500);
+        pressTimer = setTimeout(openReactionPicker, 450);
       });
 
-      messageElement.addEventListener("pointermove", (event) => {
+      messageElement.addEventListener("mousemove", (event) => {
         if (!pressTimer) return;
-        const moved = Math.hypot(event.clientX - startX, event.clientY - startY);
-        if (moved > 10) cancelPress();
+        if (Math.hypot(event.clientX - startX, event.clientY - startY) > 12) cancelPress();
       });
 
-      ["pointerup", "pointercancel", "pointerleave"].forEach((eventName) => {
-        messageElement.addEventListener(eventName, (event) => {
-          cancelPress();
-          if (eventName === "pointerup") {
-            try { messageElement.releasePointerCapture(event.pointerId); } catch (_) {}
-          }
-        });
-      });
-
-      // Long press should never open text selection/context menus.
-      messageElement.addEventListener("contextmenu", (event) => {
-        event.preventDefault();
-      });
-
-      messageElement.addEventListener("click", (event) => {
+      messageElement.addEventListener("mouseup", (event) => {
+        cancelPress();
         if (longPressTriggered) {
           event.preventDefault();
           event.stopPropagation();
           longPressTriggered = false;
         }
-      }, true);
+      });
+
+      messageElement.addEventListener("mouseleave", cancelPress);
+
+      // Never show the browser's context menu for a message.
+      messageElement.addEventListener("contextmenu", (event) => {
+        event.preventDefault();
+      });
     }
 
     async function toggleReaction(messageId, reaction, messageElement) {
