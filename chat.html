@@ -2143,6 +2143,8 @@
 
       }
 
+      .mobile-find-person-btn{display:flex}
+
 
       .moon {
 
@@ -2267,6 +2269,7 @@
        FIND PERSON
     ====================================== */
     .find-person-btn{width:calc(100% - 30px);margin:16px 15px 4px;padding:12px 13px;border:1px solid rgba(145,76,255,.34);border-radius:12px;background:linear-gradient(135deg,rgba(95,37,165,.24),rgba(27,12,59,.45));color:var(--white);display:flex;align-items:center;gap:10px;font-size:13px;font-weight:800;cursor:pointer;transition:.2s ease}
+    .mobile-find-person-btn{display:none;align-items:center;justify-content:center;gap:5px;min-width:46px;height:30px;padding:0 8px;border:1px solid rgba(145,76,255,.28);border-radius:9px;background:rgba(95,37,165,.16);color:var(--white);cursor:pointer}.mobile-find-person-btn .find-person-icon{width:11px;height:11px;flex:0 0 11px;border-width:1.7px}.mobile-find-person-btn .find-person-icon:after{width:5px;height:1.7px;right:-5px;bottom:-2px}.mobile-find-label{font-size:9px;font-weight:900;letter-spacing:.2px}
     .find-person-btn:hover{border-color:rgba(170,105,255,.7);transform:translateY(-1px)}
     .find-person-icon{width:15px;height:15px;border:2px solid var(--purple-light);border-radius:50%;position:relative;flex:0 0 15px}
     .find-person-icon:after{content:"";position:absolute;width:7px;height:2px;background:var(--purple-light);right:-6px;bottom:-3px;transform:rotate(45deg);border-radius:2px}
@@ -2438,6 +2441,11 @@
 
 
 
+
+        <button class="mobile-find-person-btn" id="mobileFindPersonBtn" type="button" aria-label="Find Person">
+          <span class="find-person-icon" aria-hidden="true"></span>
+          <span class="mobile-find-label">Find</span>
+        </button>
 
         <button class="message-search-toggle" id="messageSearchToggle" type="button" aria-label="Search messages" aria-expanded="false">
           <span class="search-glass" aria-hidden="true"></span>
@@ -2665,6 +2673,7 @@
       );
 
     const findPersonBtn = document.getElementById("findPersonBtn");
+    const mobileFindPersonBtn = document.getElementById("mobileFindPersonBtn");
     const findPersonOverlay = document.getElementById("findPersonOverlay");
     const findPersonClose = document.getElementById("findPersonClose");
     const findPersonInput = document.getElementById("findPersonInput");
@@ -5000,6 +5009,7 @@
     );
 
     findPersonBtn.addEventListener("click", openFindPerson);
+    mobileFindPersonBtn.addEventListener("click", openFindPerson);
     findPersonClose.addEventListener("click", closeFindPerson);
     findPersonSearch.addEventListener("click", findPersonById);
     findPersonInput.addEventListener("input",()=>{findPersonInput.value=findPersonInput.value.toUpperCase().replace(/[^A-Z0-9-]/g,"");});
