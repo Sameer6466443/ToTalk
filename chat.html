@@ -2588,12 +2588,31 @@
           .eq("user_id", currentUser.id);
         error = result.error;
       } else {
-        const result = await supabaseClient
-          .upsert(
-            { message_id: messageId, user_id: currentUser.id, reaction },
-            { onConflict: "message_id,user_id" }
-          );
-        error = result.error;
+        // Use separate delete + insert instead of upsert.
+        // This works cleanly with the RLS policies on this table.
+        if (existing) {
+          const removeResult = await supabaseClient
+            .from("message_reactions")
+            .delete()
+            .eq("id", existing.id)
+            .eq("user_id", currentUser.id);
+
+          if (removeResult.error) {
+            console.error("Reaction replace error:", removeResult.error);
+            showStatus("Reaction could not be changed.");
+            return;
+          }
+        }
+
+        const insertResult = await supabaseClient
+          .from("message_reactions")
+          .insert({
+            message_id: messageId,
+            user_id: currentUser.id,
+            reaction: reaction
+          });
+
+        error = insertResult.error;
       }
 
       if (error) {
