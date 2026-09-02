@@ -1044,6 +1044,10 @@
 
     .message {
       position: relative;
+      -webkit-user-select: none;
+      user-select: none;
+      -webkit-touch-callout: none;
+      touch-action: manipulation;
       max-width: min(70%, 520px);
       align-self: flex-start;
       padding: 10px 13px 9px;
@@ -3023,35 +3027,58 @@
     });
 
     function attachReactionGestures(messageElement, messageId) {
-      if (!messageId) return;
+      if (!messageId || !messageElement) return;
+
       let pressTimer = null;
       let longPressTriggered = false;
+      let startX = 0;
+      let startY = 0;
 
-      // Reactions are intentionally available ONLY through long-press.
-      // There is no React button in the three-dot menu anymore.
-      messageElement.addEventListener("touchstart", () => {
-        longPressTriggered = false;
+      const cancelPress = () => {
         if (pressTimer) clearTimeout(pressTimer);
+        pressTimer = null;
+      };
+
+      // Mobile-safe long press. Pointer events work consistently for both
+      // sender and receiver messages and do not depend on a menu button.
+      messageElement.addEventListener("pointerdown", (event) => {
+        if (event.pointerType === "mouse" && event.button !== 0) return;
+        if (event.target.closest(".message-menu-wrap")) return;
+
+        longPressTriggered = false;
+        cancelPress();
+        startX = event.clientX;
+        startY = event.clientY;
+
+        try { messageElement.setPointerCapture(event.pointerId); } catch (_) {}
+
         pressTimer = setTimeout(() => {
           longPressTriggered = true;
           const picker = messageElement._reactionPicker;
-          toggleReactionPicker(messageElement, picker);
-        }, 550);
-      }, { passive: true });
-
-      ["touchend", "touchcancel"].forEach((eventName) => {
-        messageElement.addEventListener(eventName, () => {
-          if (pressTimer) clearTimeout(pressTimer);
-          pressTimer = null;
-        }, { passive: true });
+          if (picker) toggleReactionPicker(messageElement, picker);
+        }, 500);
       });
 
-      messageElement.addEventListener("touchmove", () => {
-        if (pressTimer) clearTimeout(pressTimer);
-        pressTimer = null;
-      }, { passive: true });
+      messageElement.addEventListener("pointermove", (event) => {
+        if (!pressTimer) return;
+        const moved = Math.hypot(event.clientX - startX, event.clientY - startY);
+        if (moved > 10) cancelPress();
+      });
 
-      // Prevent the normal tap/click after a long press from opening other UI.
+      ["pointerup", "pointercancel", "pointerleave"].forEach((eventName) => {
+        messageElement.addEventListener(eventName, (event) => {
+          cancelPress();
+          if (eventName === "pointerup") {
+            try { messageElement.releasePointerCapture(event.pointerId); } catch (_) {}
+          }
+        });
+      });
+
+      // Long press should never open text selection/context menus.
+      messageElement.addEventListener("contextmenu", (event) => {
+        event.preventDefault();
+      });
+
       messageElement.addEventListener("click", (event) => {
         if (longPressTriggered) {
           event.preventDefault();
