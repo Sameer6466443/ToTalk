@@ -1148,9 +1148,10 @@
 
       background:
         radial-gradient(
-          circle at center,
-          rgba(86,27,142,.25),
-          #03020b 55%
+          circle at 50% 42%,
+          rgba(122,48,210,.28),
+          rgba(12,5,30,.96) 38%,
+          #03020b 75%
         );
 
       color: var(--white);
@@ -1161,6 +1162,161 @@
 
       text-align: center;
 
+      opacity: 1;
+
+      visibility: visible;
+
+      transition:
+        opacity .65s ease,
+        visibility .65s ease;
+
+      overflow: hidden;
+
+    }
+
+
+    #loading::before {
+
+      content: "";
+
+      position: absolute;
+
+      width: 250px;
+
+      height: 250px;
+
+      border-radius: 50%;
+
+      border: 1px solid rgba(168,121,255,.22);
+
+      box-shadow:
+        0 0 55px rgba(142,77,255,.20),
+        0 0 110px rgba(77,54,190,.12);
+
+      animation: loadingOrbit 12s linear infinite;
+
+    }
+
+
+    #loading::after {
+
+      content: "";
+
+      position: absolute;
+
+      width: 105px;
+
+      height: 105px;
+
+      border-radius: 50%;
+
+      background:
+        radial-gradient(circle at 35% 30%, #fff8cf 0 4%, transparent 5%),
+        radial-gradient(circle at 60% 55%, #b8a8c7 0 8%, transparent 9%),
+        radial-gradient(circle at 42% 72%, #92869d 0 7%, transparent 8%),
+        radial-gradient(circle at 35% 35%, #e9e5ed, #77707f);
+
+      box-shadow:
+        -12px -10px 24px rgba(255,255,255,.18) inset,
+        15px 12px 30px rgba(0,0,0,.62) inset,
+        0 0 45px rgba(211,177,255,.25);
+
+      animation: loadingMoon 7s linear infinite;
+
+    }
+
+
+    #loading > * {
+      position: relative;
+      z-index: 2;
+    }
+
+
+    .loading-content {
+
+      width: min(340px, calc(100% - 40px));
+
+      padding: 190px 20px 20px;
+
+      position: relative;
+
+    }
+
+
+    .loading-title {
+
+      font-size: 25px;
+      font-weight: 900;
+      letter-spacing: -.7px;
+      margin-bottom: 8px;
+
+    }
+
+
+    .loading-subtitle {
+
+      color: #aaa1bc;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: .2px;
+
+    }
+
+
+    .loading-dots {
+
+      display: inline-flex;
+      gap: 5px;
+      margin-left: 5px;
+      vertical-align: middle;
+
+    }
+
+
+    .loading-dots span {
+
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: #a879ff;
+      box-shadow: 0 0 10px rgba(168,121,255,.8);
+      animation: loadingDot 1.2s ease-in-out infinite;
+
+    }
+
+
+    .loading-dots span:nth-child(2) {
+      animation-delay: .15s;
+    }
+
+
+    .loading-dots span:nth-child(3) {
+      animation-delay: .3s;
+    }
+
+
+    @keyframes loadingMoon {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+
+    @keyframes loadingOrbit {
+      from { transform: rotate(0deg) scaleX(1.35); }
+      to { transform: rotate(360deg) scaleX(1.35); }
+    }
+
+
+    @keyframes loadingDot {
+      0%, 60%, 100% { opacity: .3; transform: translateY(0); }
+      30% { opacity: 1; transform: translateY(-4px); }
+    }
+
+
+    #loading.fade-out {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
     }
 
 
@@ -1456,7 +1612,22 @@
 
   <div id="loading">
 
-    Opening ToTalk...
+    <div class="loading-content">
+
+      <div class="loading-title">
+        Entering ToTalk
+      </div>
+
+      <div class="loading-subtitle">
+        Opening your conversation space
+        <span class="loading-dots">
+          <span></span>
+          <span></span>
+          <span></span>
+        </span>
+      </div>
+
+    </div>
 
   </div>
 
@@ -1861,9 +2032,13 @@
         name;
 
 
-      loading.style.display =
-        "none";
+      /* Smoothly reveal the already-loaded chat.
+         Authentication and message logic are unchanged. */
+      loading.classList.add("fade-out");
 
+      setTimeout(() => {
+        loading.style.display = "none";
+      }, 700);
 
       authReady =
         true;
