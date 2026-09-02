@@ -1314,6 +1314,18 @@
       pointer-events: auto;
     }
 
+    .reaction-picker .reply-picker-button {
+      flex: 0 0 auto;
+      width: auto;
+      min-width: 48px;
+      padding: 0 9px;
+      font-size: 10px;
+      font-weight: 700;
+      color: rgba(255,255,255,.82);
+      background: rgba(145,76,255,.10);
+      border: 1px solid rgba(178,132,255,.18);
+    }
+
     .reaction-picker button {
       flex: 0 0 36px;
       width: 36px;
@@ -1354,6 +1366,13 @@
         width: 34px;
         height: 34px;
         font-size: 19px;
+      }
+      .reaction-picker .reply-picker-button {
+        flex-basis: auto;
+        width: auto;
+        min-width: 45px;
+        padding: 0 8px;
+        font-size: 9px;
       }
     }
 
@@ -1476,6 +1495,117 @@
     /* ======================================
        INPUT
     ====================================== */
+
+    .reply-compose {
+      display: none;
+      flex: 0 0 100%;
+      min-width: 0;
+      box-sizing: border-box;
+      margin: 0 0 2px;
+    }
+
+    .input-area.replying {
+      flex-wrap: wrap;
+    }
+
+    .reply-compose.show {
+      display: block;
+    }
+
+    .reply-compose-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+      padding: 7px 9px;
+      border-left: 2px solid rgba(170,112,255,.75);
+      border-radius: 8px;
+      background: rgba(145,76,255,.10);
+    }
+
+    .reply-compose-copy {
+      min-width: 0;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .reply-compose-label {
+      font-size: 8px;
+      line-height: 1;
+      font-weight: 700;
+      color: rgba(202,173,255,.88);
+      text-transform: uppercase;
+      letter-spacing: .05em;
+    }
+
+    .reply-compose-text {
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      font-size: 10px;
+      line-height: 1.25;
+      color: rgba(255,255,255,.72);
+    }
+
+    .reply-compose-close {
+      flex: 0 0 auto;
+      width: 24px;
+      height: 24px;
+      padding: 0;
+      border: 0;
+      border-radius: 50%;
+      background: rgba(255,255,255,.07);
+      color: rgba(255,255,255,.72);
+      font-size: 16px;
+      line-height: 1;
+      cursor: pointer;
+    }
+
+    .reply-compose-close:hover,
+    .reply-compose-close:focus-visible {
+      background: rgba(255,255,255,.13);
+      color: #fff;
+      outline: none;
+    }
+
+    .message-reply {
+      display: block;
+      margin: 0 0 7px;
+      padding: 6px 8px;
+      border-left: 2px solid rgba(214,177,255,.72);
+      border-radius: 7px;
+      background: rgba(0,0,0,.14);
+      min-width: 0;
+    }
+
+    .message-reply-label {
+      display: block;
+      margin-bottom: 2px;
+      font-size: 8px;
+      line-height: 1;
+      font-weight: 700;
+      color: rgba(230,211,255,.78);
+    }
+
+    .message-reply-text {
+      display: block;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      font-size: 9px;
+      line-height: 1.3;
+      color: rgba(255,255,255,.68);
+    }
+
+    .message-reply.unresolved {
+      opacity: .62;
+    }
+
+    .message-reply + .message-text {
+      margin-top: 0;
+    }
 
     .input-area {
 
@@ -2358,6 +2488,16 @@
 
         <div class="input-area">
 
+          <div class="reply-compose" id="replyCompose" aria-hidden="true">
+            <div class="reply-compose-bar">
+              <div class="reply-compose-copy">
+                <span class="reply-compose-label">Replying to</span>
+                <span class="reply-compose-text" id="replyComposeText"></span>
+              </div>
+              <button class="reply-compose-close" id="replyComposeClose" type="button" aria-label="Cancel reply">×</button>
+            </div>
+          </div>
+
           <input
             id="messageInput"
             type="text"
@@ -2503,6 +2643,17 @@
     let currentUser =
       null;
 
+    const messageCache = new Map();
+    let replyTarget = null;
+
+    const replyCompose =
+      document.getElementById("replyCompose");
+
+    const replyComposeText =
+      document.getElementById("replyComposeText");
+
+    const replyComposeClose =
+      document.getElementById("replyComposeClose");
 
     let authReady =
       false;
@@ -2676,6 +2827,110 @@
       });
     }
 
+    function truncateReplyText(value, max = 120) {
+      const text = String(value || "").replace(/\s+/g, " ").trim();
+      if (text.length <= max) return text;
+      return text.slice(0, max - 1) + "…";
+    }
+
+    function clearReplyTarget() {
+      replyTarget = null;
+      if (replyCompose) {
+        replyCompose.classList.remove("show");
+        replyCompose.setAttribute("aria-hidden", "true");
+      }
+      if (replyComposeText) replyComposeText.textContent = "";
+      const inputArea = document.querySelector(".input-area");
+      if (inputArea) inputArea.classList.remove("replying");
+    }
+
+    function setReplyTarget(messageData, messageElement) {
+      if (!messageData?.id) return;
+
+      const content = messageData.content || messageElement?.querySelector(".message-text")?.textContent || "";
+      replyTarget = {
+        id: messageData.id,
+        sender_id: messageData.sender_id || "",
+        content
+      };
+
+      if (replyComposeText) replyComposeText.textContent = truncateReplyText(content);
+      if (replyCompose) {
+        replyCompose.classList.add("show");
+        replyCompose.setAttribute("aria-hidden", "false");
+      }
+      const inputArea = document.querySelector(".input-area");
+      if (inputArea) inputArea.classList.add("replying");
+
+      closeAllMessageMenus();
+      document.querySelectorAll(".reaction-picker.open").forEach((picker) => picker.classList.remove("open"));
+      document.querySelectorAll(".reaction-target").forEach((el) => el.classList.remove("reaction-target"));
+
+      messageInput.focus();
+    }
+
+    function addReplyBlock(message, messageData) {
+      if (!messageData?.reply_to_id) return;
+
+      const reply = document.createElement("div");
+      reply.className = "message-reply unresolved";
+      reply.dataset.replyToId = messageData.reply_to_id;
+
+      const label = document.createElement("span");
+      label.className = "message-reply-label";
+      label.textContent = "Reply";
+
+      const replyText = document.createElement("span");
+      replyText.className = "message-reply-text";
+      replyText.textContent = "Loading message…";
+
+      reply.append(label, replyText);
+      message.appendChild(reply);
+
+      const cached = messageCache.get(messageData.reply_to_id);
+      if (cached) {
+        reply.classList.remove("unresolved");
+        replyText.textContent = truncateReplyText(cached.content);
+        return;
+      }
+
+      supabaseClient
+        .from("messages")
+        .select("id, sender_id, content, created_at, edited_at, reply_to_id")
+        .eq("id", messageData.reply_to_id)
+        .maybeSingle()
+        .then(({ data, error }) => {
+          if (error) {
+            console.error("Load replied message error:", error);
+            replyText.textContent = "Original message unavailable";
+            return;
+          }
+          if (data) {
+            messageCache.set(data.id, data);
+            if (reply.isConnected) {
+              reply.classList.remove("unresolved");
+              replyText.textContent = truncateReplyText(data.content);
+            }
+          } else {
+            replyText.textContent = "Original message unavailable";
+          }
+        });
+    }
+
+    function addReplyMenuButton(menu, messageData, messageElement) {
+      const replyButton = document.createElement("button");
+      replyButton.type = "button";
+      replyButton.textContent = "Reply";
+      replyButton.addEventListener("click", (event) => {
+        event.stopPropagation();
+        menu.classList.remove("open");
+        const ownerButton = menu._ownerButton;
+        if (ownerButton) ownerButton.setAttribute("aria-expanded", "false");
+        setReplyTarget(messageData, messageElement);
+      });
+      menu.appendChild(replyButton);
+    }
+
     function addMessage(messageData, animate = false, delay = 0) {
 
       const welcome =
@@ -2751,8 +3006,12 @@
         message.dataset.messageId =
           messageData.id;
 
+        messageCache.set(messageData.id, messageData);
+
       }
 
+
+      addReplyBlock(message, messageData);
 
       const text =
         document.createElement(
@@ -2830,6 +3089,19 @@
         menu.className = "message-menu";
 
         {
+          addReplyMenuButton(menu, messageData, message);
+
+          const reactButton = document.createElement("button");
+          reactButton.type = "button";
+          reactButton.textContent = "React";
+          reactButton.addEventListener("click", (event) => {
+            event.stopPropagation();
+            menu.classList.remove("open");
+            menuButton.setAttribute("aria-expanded", "false");
+            toggleReactionPicker(message, reactionPicker);
+          });
+          menu.appendChild(reactButton);
+
           const editButton = document.createElement("button");
           editButton.type = "button";
           editButton.textContent = "Edit";
@@ -3073,6 +3345,23 @@
       picker.className = "reaction-picker";
       picker.dataset.messageId = messageId || "";
       picker._messageElement = messageElement;
+
+      const replyButton = document.createElement("button");
+      replyButton.type = "button";
+      replyButton.className = "reply-picker-button";
+      replyButton.textContent = "Reply";
+      replyButton.setAttribute("aria-label", "Reply to this message");
+      replyButton.addEventListener("click", (event) => {
+        event.stopPropagation();
+        picker.classList.remove("open");
+        messageElement.classList.remove("reaction-target");
+        const data = messageCache.get(messageId) || {
+          id: messageId,
+          content: messageElement.querySelector(".message-text")?.textContent || ""
+        };
+        setReplyTarget(data, messageElement);
+      });
+      picker.appendChild(replyButton);
 
       REACTIONS.forEach((reaction) => {
         const button = document.createElement("button");
@@ -3527,7 +3816,7 @@
           .update({ content: newContent, edited_at: new Date().toISOString() })
           .eq("id", messageId)
           .eq("sender_id", currentUser.id)
-          .select("id, sender_id, content, created_at, edited_at")
+          .select("id, sender_id, content, created_at, edited_at, reply_to_id")
           .single();
 
         if (error) {
@@ -3616,7 +3905,7 @@
         await supabaseClient
           .from("messages")
           .select(
-            "id, sender_id, content, created_at, edited_at"
+            "id, sender_id, content, created_at, edited_at, reply_to_id"
           )
           .order(
             "created_at",
@@ -3681,6 +3970,8 @@
 
       data.forEach(
         (messageData, index) => {
+
+          if (messageData?.id) messageCache.set(messageData.id, messageData);
 
           addMessage(
             messageData,
@@ -3917,12 +4208,15 @@
                   user.id,
 
                 content:
-                  text
+                  text,
+
+                reply_to_id:
+                  replyTarget?.id || null
 
               }
             ])
             .select(
-              "id, sender_id, content, created_at, edited_at"
+              "id, sender_id, content, created_at, edited_at, reply_to_id"
             )
             .single();
 
@@ -3959,6 +4253,8 @@
 
         messageInput.value =
           "";
+
+        clearReplyTarget();
 
 
         /*
@@ -4238,6 +4534,7 @@
               }
 
               if (payload.eventType === "UPDATE" && payload.new?.id) {
+                messageCache.set(payload.new.id, payload.new);
                 const updatedMessage = document.querySelector(`[data-message-id="${payload.new.id}"]`);
                 if (updatedMessage) {
                   const updatedText = updatedMessage.querySelector(".message-text");
@@ -4263,6 +4560,7 @@
               }
 
               if (payload.eventType === "DELETE" && payload.old?.id) {
+                messageCache.delete(payload.old.id);
                 const deletedMessage = document.querySelector(`[data-message-id="${payload.old.id}"]`);
                 if (deletedMessage) {
                   deletedMessage.classList.add("deleting");
@@ -4623,6 +4921,14 @@
       sendMessage
     );
 
+
+    if (replyComposeClose) {
+      replyComposeClose.addEventListener("click", (event) => {
+        event.stopPropagation();
+        clearReplyTarget();
+        messageInput.focus();
+      });
+    }
 
     messageInput.addEventListener("input", handleTypingInput);
     messageInput.addEventListener("blur", stopTypingPresence);
