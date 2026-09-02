@@ -2679,7 +2679,7 @@
       message.appendChild(text);
       message.appendChild(time);
 
-      // Every message gets a three-dot menu so either person can react.
+      // Every message gets a three-dot menu. Reactions are long-press only.
       // Edit/Delete are only shown for the message owner.
       if (messageData.id) {
         const menuWrap = document.createElement("div");
@@ -2697,18 +2697,6 @@
 
         const reactionPicker = createReactionPicker(messageData.id, message);
         message._reactionPicker = reactionPicker;
-
-        const reactButton = document.createElement("button");
-        reactButton.type = "button";
-        reactButton.textContent = "React";
-        reactButton.addEventListener("click", (event) => {
-          event.stopPropagation();
-          menu.classList.remove("open");
-          menuButton.setAttribute("aria-expanded", "false");
-          if (typeof closeMessageSearch === "function") closeMessageSearch();
-          toggleReactionPicker(message, reactionPicker);
-        });
-        menu.appendChild(reactButton);
 
         if (currentUser && messageData.sender_id === currentUser.id) {
           const editButton = document.createElement("button");
@@ -3034,26 +3022,40 @@
     function attachReactionGestures(messageElement, messageId) {
       if (!messageId) return;
       let pressTimer = null;
+      let longPressTriggered = false;
 
-      messageElement.addEventListener("contextmenu", (event) => {
-        event.preventDefault();
-        const picker = messageElement._reactionPicker;
-        toggleReactionPicker(messageElement, picker);
-      });
-
+      // Reactions are intentionally available ONLY through long-press.
+      // There is no React button in the three-dot menu anymore.
       messageElement.addEventListener("touchstart", () => {
+        longPressTriggered = false;
+        if (pressTimer) clearTimeout(pressTimer);
         pressTimer = setTimeout(() => {
-          const picker = messageElement.querySelector(".reaction-picker");
+          longPressTriggered = true;
+          const picker = messageElement._reactionPicker;
           toggleReactionPicker(messageElement, picker);
         }, 550);
       }, { passive: true });
 
-      ["touchend", "touchmove", "touchcancel"].forEach((eventName) => {
+      ["touchend", "touchcancel"].forEach((eventName) => {
         messageElement.addEventListener(eventName, () => {
           if (pressTimer) clearTimeout(pressTimer);
           pressTimer = null;
         }, { passive: true });
       });
+
+      messageElement.addEventListener("touchmove", () => {
+        if (pressTimer) clearTimeout(pressTimer);
+        pressTimer = null;
+      }, { passive: true });
+
+      // Prevent the normal tap/click after a long press from opening other UI.
+      messageElement.addEventListener("click", (event) => {
+        if (longPressTriggered) {
+          event.preventDefault();
+          event.stopPropagation();
+          longPressTriggered = false;
+        }
+      }, true);
     }
 
     async function toggleReaction(messageId, reaction, messageElement) {
