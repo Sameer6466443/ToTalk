@@ -1138,7 +1138,7 @@
 
       inset: 0;
 
-      z-index: 100;
+      z-index: 9999;
 
       display: flex;
 
@@ -1146,21 +1146,178 @@
 
       justify-content: center;
 
+      overflow: hidden;
+
       background:
-        radial-gradient(
-          circle at center,
-          rgba(86,27,142,.25),
-          #03020b 55%
-        );
+        radial-gradient(circle at 50% 44%, rgba(91,35,170,.28), transparent 34%),
+        radial-gradient(circle at 18% 78%, rgba(38,20,100,.20), transparent 30%),
+        #03020b;
 
       color: var(--white);
 
-      font-size: 14px;
-
-      font-weight: 800;
-
       text-align: center;
 
+      opacity: 1;
+
+      visibility: visible;
+
+      transition: opacity .7s ease, visibility .7s ease;
+
+    }
+
+    #loading::before,
+    #loading::after {
+
+      content: "";
+
+      position: absolute;
+
+      border-radius: 50%;
+
+      pointer-events: none;
+
+    }
+
+    #loading::before {
+
+      width: 2px;
+      height: 2px;
+      top: 18%;
+      left: 17%;
+      background: rgba(255,255,255,.9);
+      box-shadow:
+        72vw 10vh 0 rgba(255,255,255,.65),
+        18vw 62vh 0 rgba(255,255,255,.7),
+        78vw 72vh 0 rgba(255,255,255,.55),
+        44vw 18vh 0 rgba(255,255,255,.5),
+        60vw 84vh 0 rgba(255,255,255,.45),
+        90vw 38vh 0 rgba(255,255,255,.65),
+        8vw 36vh 0 rgba(255,255,255,.5);
+
+    }
+
+    #loading::after {
+
+      width: 320px;
+      height: 320px;
+      background: radial-gradient(circle, rgba(116,53,220,.10), transparent 68%);
+      filter: blur(8px);
+
+    }
+
+    #loading.fade-out {
+
+      opacity: 0;
+      visibility: hidden;
+
+    }
+
+    .loading-content {
+
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      transform: translateY(-4px);
+
+    }
+
+    .loading-moon {
+
+      width: 82px;
+      height: 82px;
+      border-radius: 50%;
+      position: relative;
+      background: radial-gradient(circle at 34% 30%, #ffffff, #ddd8ea 48%, #9d93b9 100%);
+      box-shadow: 0 0 28px rgba(194,178,255,.42), 0 0 80px rgba(112,51,220,.24);
+      animation: loadingMoonFloat 2.8s ease-in-out infinite;
+
+    }
+
+    .loading-moon::before {
+
+      content: "";
+      position: absolute;
+      inset: -15px;
+      border: 1px solid rgba(187,160,255,.32);
+      border-radius: 50%;
+      border-left-color: transparent;
+      border-bottom-color: transparent;
+      animation: loadingOrbit 3.6s linear infinite;
+
+    }
+
+    .loading-moon::after {
+
+      content: "";
+      position: absolute;
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+      background: rgba(117,91,160,.22);
+      top: 22px;
+      left: 25px;
+      box-shadow: 23px 18px 0 4px rgba(117,91,160,.12), -7px 27px 0 2px rgba(117,91,160,.14);
+
+    }
+
+    .loading-title {
+
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: .1px;
+
+    }
+
+    .loading-subtitle {
+
+      margin-top: -8px;
+      color: rgba(220,214,235,.62);
+      font-size: 12px;
+      font-weight: 500;
+
+    }
+
+    .loading-dots {
+
+      display: flex;
+      gap: 6px;
+      margin-top: -2px;
+
+    }
+
+    .loading-dots span {
+
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: #d9d0f0;
+      opacity: .35;
+      animation: loadingDot 1.2s ease-in-out infinite;
+
+    }
+
+    .loading-dots span:nth-child(2) { animation-delay: .16s; }
+    .loading-dots span:nth-child(3) { animation-delay: .32s; }
+
+    @keyframes loadingMoonFloat {
+      0%,100% { transform: translateY(0); }
+      50% { transform: translateY(-7px); }
+    }
+
+    @keyframes loadingOrbit {
+      to { transform: rotate(360deg); }
+    }
+
+    @keyframes loadingDot {
+      0%,100% { opacity: .25; transform: translateY(0); }
+      50% { opacity: 1; transform: translateY(-3px); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .loading-moon, .loading-moon::before, .loading-dots span { animation: none; }
     }
 
 
@@ -1461,7 +1618,21 @@
 
   <div id="loading">
 
-    Opening ToTalk...
+    <div class="loading-content">
+
+      <div class="loading-moon"></div>
+
+      <div class="loading-title">Entering ToTalk</div>
+
+      <div class="loading-subtitle">Preparing your conversation space</div>
+
+      <div class="loading-dots">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+
+    </div>
 
   </div>
 
