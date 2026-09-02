@@ -646,6 +646,23 @@
        MESSAGE SEARCH
     ====================================== */
 
+
+    .chat-search-row {
+      flex: 0 0 auto;
+      padding: 8px 12px;
+      background: rgba(5,3,15,.96);
+      border-bottom: 1px solid rgba(145,76,255,.18);
+    }
+
+    .chat-search-row .message-search-bar {
+      width: 100%;
+      max-width: none;
+      margin: 0;
+      box-sizing: border-box;
+      height: 38px;
+      background: rgba(18,11,38,.78);
+    }
+
     .message-search-bar {
       margin-left: auto;
       width: min(260px, 34vw);
@@ -746,19 +763,15 @@
     }
 
     @media (max-width: 650px) {
-      .message-search-bar {
-        width: auto;
-        flex: 1;
-        min-width: 125px;
-        max-width: none;
-        height: 34px;
-        margin-left: 4px;
+      .chat-search-row {
+        padding: 7px 9px;
       }
-
+      .chat-search-row .message-search-bar {
+        height: 36px;
+      }
       .search-count {
         min-width: 34px;
       }
-
       .search-nav-btn {
         width: 23px;
         height: 23px;
@@ -2204,14 +2217,6 @@
 
 
 
-        <div class="message-search-bar" id="messageSearchBar">
-          <span class="search-glass" aria-hidden="true"></span>
-          <input class="message-search-input" id="messageSearchInput" type="search" placeholder="Search messages" autocomplete="off" maxlength="100" aria-label="Search messages">
-          <span class="search-count" id="searchCount">0</span>
-          <button class="search-nav-btn" id="searchPrev" type="button" aria-label="Previous result">↑</button>
-          <button class="search-nav-btn" id="searchNext" type="button" aria-label="Next result">↓</button>
-        </div>
-
 
         <div class="top-star">
           ☆
@@ -2219,6 +2224,16 @@
 
       </div>
 
+      <!-- MESSAGE SEARCH -->
+      <div class="chat-search-row" id="messageSearchBar">
+        <div class="message-search-bar">
+          <span class="search-glass" aria-hidden="true"></span>
+          <input class="message-search-input" id="messageSearchInput" type="search" placeholder="Search messages..." autocomplete="off" maxlength="100" aria-label="Search messages">
+          <span class="search-count" id="searchCount">0</span>
+          <button class="search-nav-btn" id="searchPrev" type="button" aria-label="Previous result">↑</button>
+          <button class="search-nav-btn" id="searchNext" type="button" aria-label="Next result">↓</button>
+        </div>
+      </div>
 
       <!-- SPACE -->
 
@@ -2542,6 +2557,27 @@
        MESSAGE ELEMENT
     ====================================== */
 
+    function closeAllMessageMenus(exceptMenu = null) {
+      document.querySelectorAll(".message-menu.open").forEach((menu) => {
+        if (menu !== exceptMenu) menu.classList.remove("open");
+      });
+      document.querySelectorAll(".message-menu-btn[aria-expanded=\"true\"]").forEach((button) => {
+        const wrap = button.closest(".message-menu-wrap");
+        const menu = wrap ? wrap.querySelector(".message-menu") : null;
+        if (!menu || menu !== exceptMenu) button.setAttribute("aria-expanded", "false");
+      });
+    }
+
+    function closeOtherEditors(exceptMessage = null) {
+      document.querySelectorAll(".edit-message-area").forEach((editor) => {
+        const message = editor.closest(".message");
+        if (message && message !== exceptMessage) {
+          const cancel = message.querySelector(".message-actions .message-action-btn:last-child");
+          if (cancel) cancel.click();
+        }
+      });
+    }
+
     function addMessage(messageData, animate = false, delay = 0) {
 
       const welcome =
@@ -2725,8 +2761,14 @@
 
         menuButton.addEventListener("click", (event) => {
           event.stopPropagation();
-          const isOpen = menu.classList.toggle("open");
-          menuButton.setAttribute("aria-expanded", String(isOpen));
+          const isOpen = menu.classList.contains("open");
+          closeAllMessageMenus(isOpen ? null : menu);
+          if (!isOpen) {
+            document.querySelectorAll(".reaction-picker.open").forEach((picker) => picker.classList.remove("open"));
+            document.querySelectorAll(".reaction-target").forEach((el) => el.classList.remove("reaction-target"));
+          }
+          menu.classList.toggle("open", !isOpen);
+          menuButton.setAttribute("aria-expanded", String(!isOpen));
         });
       }
 
@@ -3105,6 +3147,7 @@
     document.addEventListener("click", (event) => {
       if (!event.target.closest(".message-menu-wrap") && !event.target.closest(".reaction-picker")) {
         document.querySelectorAll(".message-menu.open").forEach((menu) => menu.classList.remove("open"));
+        document.querySelectorAll(".message-menu-btn[aria-expanded=\"true\"]").forEach((button) => button.setAttribute("aria-expanded", "false"));
         document.querySelectorAll(".reaction-picker.open").forEach((picker) => picker.classList.remove("open"));
         document.querySelectorAll(".reaction-target").forEach((message) => message.classList.remove("reaction-target"));
       }
@@ -3117,6 +3160,8 @@
     async function editMessage(messageId, messageElement, textElement) {
       if (!messageId || !currentUser || !textElement) return;
       if (messageElement.querySelector(".edit-message-area")) return;
+      closeOtherEditors(messageElement);
+      closeAllMessageMenus();
 
       const menuWrap = messageElement.querySelector(".message-menu-wrap");
 
