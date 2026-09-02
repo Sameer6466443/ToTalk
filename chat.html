@@ -1388,6 +1388,67 @@
       box-shadow: 0 0 0 1px rgba(188,142,255,.65), 0 8px 26px rgba(91,35,177,.30);
     }
 
+    .typing-indicator {
+      position: absolute;
+      z-index: 9;
+      left: 24px;
+      bottom: 86px;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 6px 10px;
+      border: 1px solid rgba(145,76,255,.28);
+      border-radius: 10px;
+      background: rgba(8,5,20,.78);
+      color: #a9a1bb;
+      font-size: 10px;
+      font-weight: 700;
+      opacity: 0;
+      transform: translateY(5px);
+      pointer-events: none;
+      transition: opacity .18s ease, transform .18s ease;
+      backdrop-filter: blur(10px);
+    }
+
+    .typing-indicator.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .typing-dots {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+    }
+
+    .typing-dots span {
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: #b887ff;
+      animation: typingDot 1s ease-in-out infinite;
+    }
+
+    .typing-dots span:nth-child(2) { animation-delay: .14s; }
+    .typing-dots span:nth-child(3) { animation-delay: .28s; }
+
+    @keyframes typingDot {
+      0%, 60%, 100% { transform: translateY(0); opacity: .45; }
+      30% { transform: translateY(-3px); opacity: 1; }
+    }
+
+    @media (max-width: 600px) {
+      .typing-indicator {
+        left: 22px;
+        bottom: 82px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .typing-indicator { transition: none; }
+      .typing-dots span { animation: none; opacity: .75; }
+    }
+
     /* ======================================
        INPUT
     ====================================== */
@@ -2266,6 +2327,11 @@
           <span id="newMessageLabel">New message</span>
         </button>
 
+        <div class="typing-indicator" id="typingIndicator" aria-live="polite" aria-hidden="true">
+          <span id="typingLabel">Typing</span>
+          <span class="typing-dots" aria-hidden="true"><span></span><span></span><span></span></span>
+        </div>
+
         <div class="input-area">
 
           <input
@@ -2391,6 +2457,16 @@
     const messages =
       document.getElementById(
         "messages"
+      );
+
+    const typingIndicator =
+      document.getElementById(
+        "typingIndicator"
+      );
+
+    const typingLabel =
+      document.getElementById(
+        "typingLabel"
       );
 
 
@@ -3598,6 +3674,8 @@
 
     async function sendMessage() {
 
+      stopTypingPresence();
+
       const text =
         messageInput.value.trim();
 
@@ -3776,6 +3854,77 @@
     ====================================== */
 
     let presenceChannel = null;
+    let typingStopTimer = null;
+    let typingBroadcastTimer = null;
+
+    function setTypingUI(isTyping, name) {
+      if (!typingIndicator) return;
+
+      if (isTyping) {
+        typingLabel.textContent = name ? name + " is typing" : "Typing";
+        typingIndicator.classList.add("show");
+        typingIndicator.setAttribute("aria-hidden", "false");
+      } else {
+        typingIndicator.classList.remove("show");
+        typingIndicator.setAttribute("aria-hidden", "true");
+      }
+    }
+
+    function updateTypingFromPresence() {
+      if (!presenceChannel || !currentUser) {
+        setTypingUI(false);
+        return;
+      }
+
+      const state = presenceChannel.presenceState();
+      let someoneTyping = false;
+      let typingName = "";
+
+      Object.entries(state).some(([key, metas]) => {
+        if (key === currentUser.id || !Array.isArray(metas)) return false;
+
+        const meta = metas[metas.length - 1];
+        if (meta && meta.typing === true) {
+          someoneTyping = true;
+          typingName = meta.name || "";
+          return true;
+        }
+        return false;
+      });
+
+      setTypingUI(someoneTyping, typingName);
+    }
+
+    async function setTypingPresence(isTyping) {
+      if (!presenceChannel || !currentUser) return;
+
+      try {
+        await presenceChannel.track({
+          user_id: currentUser.id,
+          name: currentUser.user_metadata?.full_name || currentUser.user_metadata?.name || "",
+          online_at: new Date().toISOString(),
+          typing: isTyping === true
+        });
+      } catch (error) {
+        console.error("Typing presence error:", error);
+      }
+    }
+
+    function handleTypingInput() {
+      if (!currentUser || !presenceChannel) return;
+
+      clearTimeout(typingStopTimer);
+      setTypingPresence(true);
+
+      typingStopTimer = window.setTimeout(() => {
+        setTypingPresence(false);
+      }, 900);
+    }
+
+    function stopTypingPresence() {
+      clearTimeout(typingStopTimer);
+      setTypingPresence(false);
+    }
 
     function setPresenceUI(isOnline) {
 
@@ -3820,22 +3969,27 @@
       presenceChannel.on("presence", { event: "sync" }, () => {
         const state = presenceChannel.presenceState();
         setPresenceUI(Object.keys(state).length > 0);
+        updateTypingFromPresence();
       });
 
       presenceChannel.on("presence", { event: "join" }, () => {
         setPresenceUI(true);
+        updateTypingFromPresence();
       });
 
       presenceChannel.on("presence", { event: "leave" }, () => {
         const state = presenceChannel.presenceState();
         setPresenceUI(Object.keys(state).length > 0);
+        updateTypingFromPresence();
       });
 
       const status = await presenceChannel.subscribe(async (status) => {
         if (status === "SUBSCRIBED") {
           await presenceChannel.track({
             user_id: currentUser.id,
-            online_at: new Date().toISOString()
+            name: currentUser.user_metadata?.full_name || currentUser.user_metadata?.name || "",
+            online_at: new Date().toISOString(),
+            typing: false
           });
           setPresenceUI(true);
         }
@@ -4262,6 +4416,9 @@
       sendMessage
     );
 
+
+    messageInput.addEventListener("input", handleTypingInput);
+    messageInput.addEventListener("blur", stopTypingPresence);
 
     /* ======================================
        ENTER KEY
