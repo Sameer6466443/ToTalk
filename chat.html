@@ -3034,6 +3034,7 @@
       let startY = 0;
       let longPressTriggered = false;
       let touchActive = false;
+      let suppressClickUntil = 0;
 
       const cancelPress = () => {
         if (pressTimer) {
@@ -3046,6 +3047,8 @@
         const picker = messageElement._reactionPicker;
         if (!picker) return;
         longPressTriggered = true;
+        suppressClickUntil = Date.now() + 900;
+        messageElement._suppressReactionClickUntil = suppressClickUntil;
         toggleReactionPicker(messageElement, picker);
       };
 
@@ -3083,7 +3086,8 @@
         if (longPressTriggered) {
           event.preventDefault();
           event.stopPropagation();
-          setTimeout(() => { longPressTriggered = false; }, 0);
+          suppressClickUntil = Date.now() + 900;
+          longPressTriggered = false;
         }
       }, { passive: false });
 
@@ -3114,6 +3118,7 @@
         if (longPressTriggered) {
           event.preventDefault();
           event.stopPropagation();
+          suppressClickUntil = Date.now() + 900;
           longPressTriggered = false;
         }
       });
@@ -3258,6 +3263,12 @@
     }
 
     document.addEventListener("click", (event) => {
+      const touchedMessage = event.target.closest && event.target.closest(".message");
+      if (touchedMessage && touchedMessage._suppressReactionClickUntil && Date.now() < touchedMessage._suppressReactionClickUntil) {
+        event.preventDefault();
+        event.stopPropagation();
+        return;
+      }
       if (!event.target.closest(".message-menu-wrap") && !event.target.closest(".reaction-picker")) {
         document.querySelectorAll(".message-menu.open").forEach((menu) => menu.classList.remove("open"));
         document.querySelectorAll(".message-menu-btn[aria-expanded=\"true\"]").forEach((button) => button.setAttribute("aria-expanded", "false"));
