@@ -4799,66 +4799,61 @@
       try {
 
         /*
-          ----------------------------------------------------------
-          STABLE LOGIN / SESSION
-          ----------------------------------------------------------
-
-          Do not redirect to index.html when the session is briefly
-          unavailable. Mobile browsers can take a moment to restore
-          Supabase storage after Google returns to chat.html.
+          AUTH IS THE ONLY THING THAT CAN SHOW THE LOGIN ERROR.
+          Once we have a valid Supabase session, errors from realtime,
+          presence, restore, or Find Person must NEVER throw the user
+          back to the login screen.
         */
-
         const session = await getStableSession();
 
         if (!session?.user) {
-
           showLoginError(
             "Your ToTalk login session could not be restored. Please return to the homepage and sign in with Google again."
           );
-
           return;
         }
 
-        /*
-          The session is valid. Keep it in memory for the whole page.
-        */
-
         showUser(session.user);
 
-        /*
-          ----------------------------------------------------------
-          RESTORE LAST PRIVATE CHAT
-          ----------------------------------------------------------
-        */
+        /* Restore the last person, but keep the page alive if this
+           optional step has a temporary network/realtime problem. */
+        try {
+          await restorePrivateConversation();
+        } catch (error) {
+          console.warn("Could not restore previous conversation:", error);
+        }
 
-        await restorePrivateConversation();
-
-        /*
-          Even if there is no saved person yet, the chat page itself
-          should remain open so the mobile Find button is available.
-        */
-
+        /* IMPORTANT: reveal the real chat UI before starting optional
+           realtime services. This guarantees Find Person stays usable. */
         finishLoading();
 
-        /*
-          ----------------------------------------------------------
-          REALTIME
-          ----------------------------------------------------------
-        */
+        try {
+          startRealtime();
+        } catch (error) {
+          console.warn("Realtime messages could not start:", error);
+        }
 
-        startRealtime();
-        startPresence();
+        try {
+          await startPresence();
+        } catch (error) {
+          console.warn("Presence/typing could not start:", error);
+          setPresenceUI(false);
+        }
 
       } catch (error) {
 
-        console.error(
-          "Chat startup error:",
-          error
-        );
+        console.error("Chat authentication/startup error:", error);
 
-        showLoginError(
-          "ToTalk could not finish opening your chat. Please return to the homepage and sign in again."
-        );
+        /* Only show the login screen when authentication itself failed.
+           A normal feature/network error must not look like a logout. */
+        if (!currentUser) {
+          showLoginError(
+            "Your ToTalk login session could not be restored. Please return to the homepage and sign in with Google again."
+          );
+        } else {
+          finishLoading();
+          showStatus("Some chat features are temporarily unavailable. Your login is still active.");
+        }
 
       } finally {
 
@@ -4867,6 +4862,47 @@
       }
 
     }
+
+
+    /* ----------------------------------------------------------
+       MOBILE / DESKTOP SESSION KEEP-ALIVE
+       ----------------------------------------------------------
+       Re-check the persisted Supabase session when Chrome restores
+       the page after closing/reopening it or switching page mode.
+       A temporary getSession failure must never log the user out.
+    */
+    async function refreshCurrentSession() {
+      try {
+        const { data, error } = await supabaseClient.auth.getSession();
+        if (error) {
+          console.warn("Session refresh read failed:", error);
+          return;
+        }
+
+        if (data?.session?.user) {
+          currentUser = data.session.user;
+          authReady = true;
+          showUser(data.session.user);
+          return;
+        }
+
+        /* Do not replace the chat with the login screen here. Supabase
+           may be restoring local auth storage or refreshing a token. */
+        console.warn("No session returned during temporary session check.");
+      } catch (error) {
+        console.warn("Session keep-alive check failed:", error);
+      }
+    }
+
+    window.addEventListener("pageshow", () => {
+      if (currentUser) refreshCurrentSession();
+    });
+
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "visible" && currentUser) {
+        refreshCurrentSession();
+      }
+    });
 
 
     /* ======================================
