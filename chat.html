@@ -646,36 +646,35 @@
        MESSAGE SEARCH
     ====================================== */
 
-    .chat-search-btn {
-      width: 34px;
-      height: 34px;
-      margin-left: 4px;
-      border: 1px solid rgba(181,143,255,.22);
-      border-radius: 50%;
-      background: rgba(255,255,255,.045);
-      color: rgba(255,255,255,.82);
-      cursor: pointer;
+    .message-search-bar {
+      margin-left: auto;
+      width: min(260px, 34vw);
+      height: 36px;
       display: flex;
       align-items: center;
-      justify-content: center;
-      transition: transform .2s ease, background .2s ease, border-color .2s ease, box-shadow .2s ease;
+      gap: 8px;
+      padding: 0 10px;
+      border: 1px solid rgba(181,143,255,.28);
+      border-radius: 12px;
+      background: rgba(255,255,255,.055);
+      box-shadow: inset 0 0 18px rgba(98,38,190,.08);
+      transition: border-color .2s ease, box-shadow .2s ease, transform .2s ease;
     }
 
-    .chat-search-btn:hover,
-    .chat-search-btn:focus-visible {
-      background: rgba(145,76,255,.16);
-      border-color: rgba(181,143,255,.5);
-      box-shadow: 0 0 18px rgba(145,76,255,.18);
-      transform: scale(1.05);
-      outline: none;
+    .message-search-bar:focus-within {
+      border-color: rgba(181,143,255,.58);
+      box-shadow: 0 0 20px rgba(145,76,255,.16), inset 0 0 18px rgba(98,38,190,.1);
+      transform: translateY(-1px);
     }
 
     .search-glass {
       width: 13px;
       height: 13px;
-      border: 1.7px solid currentColor;
+      flex: 0 0 13px;
+      border: 1.7px solid rgba(255,255,255,.72);
       border-radius: 50%;
       position: relative;
+      opacity: .9;
     }
 
     .search-glass::after {
@@ -683,81 +682,52 @@
       position: absolute;
       width: 6px;
       height: 1.7px;
-      background: currentColor;
+      background: rgba(255,255,255,.72);
       right: -5px;
       bottom: -2px;
       transform: rotate(45deg);
       border-radius: 2px;
     }
 
-    .message-search-panel {
-      position: absolute;
-      z-index: 30;
-      top: 70px;
-      right: 16px;
-      width: min(430px, calc(100% - 32px));
-      padding: 10px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      border: 1px solid rgba(181,143,255,.28);
-      border-radius: 15px;
-      background: rgba(8,5,20,.96);
-      box-shadow: 0 16px 45px rgba(0,0,0,.42), 0 0 28px rgba(98,38,190,.18);
-      backdrop-filter: blur(14px);
-      opacity: 0;
-      transform: translateY(-8px) scale(.98);
-      pointer-events: none;
-      transition: opacity .22s ease, transform .22s ease;
-    }
-
-    .message-search-panel.open {
-      opacity: 1;
-      transform: translateY(0) scale(1);
-      pointer-events: auto;
-    }
-
     .message-search-input {
       min-width: 0;
-      flex: 1;
-      height: 38px;
-      padding: 0 12px;
-      border: 1px solid rgba(181,143,255,.2);
-      border-radius: 10px;
-      background: rgba(255,255,255,.055);
+      width: 100%;
+      height: 32px;
+      padding: 0;
+      border: 0;
+      background: transparent;
       color: #fff;
       outline: none;
       font: inherit;
+      font-size: 11px;
     }
 
-    .message-search-input:focus {
-      border-color: rgba(181,143,255,.55);
-      box-shadow: 0 0 15px rgba(145,76,255,.14);
+    .message-search-input::placeholder {
+      color: rgba(255,255,255,.48);
     }
 
     .search-count {
-      min-width: 48px;
-      text-align: center;
-      color: rgba(255,255,255,.58);
-      font-size: 11px;
+      min-width: 42px;
+      text-align: right;
+      color: rgba(255,255,255,.55);
+      font-size: 9px;
       white-space: nowrap;
     }
 
-    .search-nav-btn,
-    .search-close-btn {
-      width: 34px;
-      height: 34px;
-      flex: 0 0 34px;
+    .search-nav-btn {
+      width: 24px;
+      height: 24px;
+      flex: 0 0 24px;
       border: 1px solid rgba(181,143,255,.2);
-      border-radius: 9px;
+      border-radius: 7px;
       background: rgba(255,255,255,.045);
-      color: rgba(255,255,255,.8);
+      color: rgba(255,255,255,.78);
       cursor: pointer;
+      font-size: 10px;
       transition: background .18s, transform .18s;
     }
 
-    .search-nav-btn:hover,
-    .search-close-btn:hover {
+    .search-nav-btn:hover {
       background: rgba(145,76,255,.15);
       transform: translateY(-1px);
     }
@@ -776,14 +746,23 @@
     }
 
     @media (max-width: 650px) {
-      .message-search-panel {
-        top: 68px;
-        right: 9px;
-        width: calc(100% - 18px);
+      .message-search-bar {
+        width: auto;
+        flex: 1;
+        min-width: 125px;
+        max-width: none;
+        height: 34px;
+        margin-left: 4px;
       }
-      .chat-search-btn {
-        width: 32px;
-        height: 32px;
+
+      .search-count {
+        min-width: 34px;
+      }
+
+      .search-nav-btn {
+        width: 23px;
+        height: 23px;
+        flex-basis: 23px;
       }
     }
 
@@ -1189,7 +1168,8 @@
 
     .message-menu {
       position: absolute;
-      top: 29px;
+      bottom: 29px;
+      top: auto;
       right: 0;
       min-width: 92px;
       padding: 5px;
@@ -2224,16 +2204,12 @@
 
 
 
-        <button class="chat-search-btn" id="chatSearchButton" type="button" aria-label="Search messages" aria-expanded="false">
+        <div class="message-search-bar" id="messageSearchBar">
           <span class="search-glass" aria-hidden="true"></span>
-        </button>
-
-        <div class="message-search-panel" id="messageSearchPanel" aria-hidden="true">
-          <input class="message-search-input" id="messageSearchInput" type="search" placeholder="Search messages..." autocomplete="off" maxlength="100">
+          <input class="message-search-input" id="messageSearchInput" type="search" placeholder="Search messages" autocomplete="off" maxlength="100" aria-label="Search messages">
           <span class="search-count" id="searchCount">0</span>
           <button class="search-nav-btn" id="searchPrev" type="button" aria-label="Previous result">↑</button>
           <button class="search-nav-btn" id="searchNext" type="button" aria-label="Next result">↓</button>
-          <button class="search-close-btn" id="searchClose" type="button" aria-label="Close search">×</button>
         </div>
 
 
@@ -2807,13 +2783,10 @@
        MESSAGE SEARCH
     ====================================== */
 
-    const chatSearchButton = document.getElementById("chatSearchButton");
-    const messageSearchPanel = document.getElementById("messageSearchPanel");
     const messageSearchInput = document.getElementById("messageSearchInput");
     const searchCount = document.getElementById("searchCount");
     const searchPrev = document.getElementById("searchPrev");
     const searchNext = document.getElementById("searchNext");
-    const searchClose = document.getElementById("searchClose");
     let searchMatches = [];
     let searchIndex = -1;
 
@@ -2880,41 +2853,20 @@
       const target = searchMatches[searchIndex];
       target.classList.add("search-active");
       target.scrollIntoView({ behavior: "smooth", block: "center" });
-      searchCount.textContent = `${searchIndex + 1} / ${searchMatches.length}`;
+      searchCount.textContent = `${searchIndex + 1}/${searchMatches.length}`;
     }
 
-    function openMessageSearch() {
-      messageSearchPanel.classList.add("open");
-      messageSearchPanel.setAttribute("aria-hidden", "false");
-      chatSearchButton.setAttribute("aria-expanded", "true");
-      setTimeout(() => messageSearchInput.focus(), 60);
-    }
-
-    function closeMessageSearch() {
-      messageSearchPanel.classList.remove("open");
-      messageSearchPanel.setAttribute("aria-hidden", "true");
-      chatSearchButton.setAttribute("aria-expanded", "false");
-      clearSearchHighlights();
-      searchMatches = [];
-      searchIndex = -1;
-      searchCount.textContent = "0";
-      messageSearchInput.value = "";
-    }
-
-    chatSearchButton.addEventListener("click", () => {
-      if (messageSearchPanel.classList.contains("open")) closeMessageSearch();
-      else openMessageSearch();
-    });
-
-    searchClose.addEventListener("click", closeMessageSearch);
     messageSearchInput.addEventListener("input", runMessageSearch);
     messageSearchInput.addEventListener("keydown", event => {
-      if (event.key === "Escape") {
-        closeMessageSearch();
-        return;
-      }
       if (event.key === "Enter" && searchMatches.length) {
         event.shiftKey ? searchPrev.click() : searchNext.click();
+      }
+      if (event.key === "Escape") {
+        messageSearchInput.value = "";
+        clearSearchHighlights();
+        searchMatches = [];
+        searchIndex = -1;
+        searchCount.textContent = "0";
       }
     });
 
