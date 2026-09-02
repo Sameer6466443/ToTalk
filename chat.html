@@ -1093,6 +1093,73 @@
       }
     }
 
+    .reaction-picker {
+      position: absolute;
+      right: 8px;
+      top: 34px;
+      z-index: 50;
+      display: none;
+      align-items: center;
+      gap: 3px;
+      padding: 5px 6px;
+      border: 1px solid rgba(165,102,255,.35);
+      border-radius: 12px;
+      background: rgba(13,8,30,.98);
+      box-shadow: 0 10px 28px rgba(0,0,0,.45);
+    }
+
+    .reaction-picker.open { display: flex; }
+
+    .reaction-picker button {
+      width: 30px;
+      height: 30px;
+      border: 0;
+      border-radius: 8px;
+      background: transparent;
+      color: #fff;
+      font-size: 17px;
+      cursor: pointer;
+    }
+
+    .reaction-picker button:hover,
+    .reaction-picker button:focus-visible {
+      background: rgba(145,76,255,.20);
+      outline: none;
+    }
+
+    .reaction-summary {
+      display: none;
+      align-items: center;
+      gap: 3px;
+      margin-top: 4px;
+      min-height: 18px;
+    }
+
+    .reaction-summary.has-reactions { display: flex; }
+
+    .reaction-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      min-height: 18px;
+      padding: 1px 6px;
+      border: 1px solid rgba(255,255,255,.13);
+      border-radius: 9px;
+      background: rgba(7,5,18,.58);
+      color: rgba(255,255,255,.86);
+      font-size: 10px;
+      line-height: 1;
+    }
+
+    .reaction-chip.mine {
+      border-color: rgba(188,142,255,.55);
+      background: rgba(145,76,255,.20);
+    }
+
+    .message.reaction-target {
+      box-shadow: 0 0 0 1px rgba(188,142,255,.65), 0 8px 26px rgba(91,35,177,.30);
+    }
+
     /* ======================================
        INPUT
     ====================================== */
@@ -2336,6 +2403,19 @@
         const menu = document.createElement("div");
         menu.className = "message-menu";
 
+        const reactButton = document.createElement("button");
+        reactButton.type = "button";
+        reactButton.textContent = "React";
+        reactButton.addEventListener("click", (event) => {
+          event.stopPropagation();
+          menu.classList.remove("open");
+          menuButton.setAttribute("aria-expanded", "false");
+          toggleReactionPicker(message, reactionPicker);
+        });
+
+        const reactionPicker = createReactionPicker(messageData.id, message);
+        message.appendChild(reactionPicker);
+
         const editButton = document.createElement("button");
         editButton.type = "button";
         editButton.textContent = "Edit";
@@ -2357,6 +2437,7 @@
           deleteMessage(messageData.id, message);
         });
 
+        menu.appendChild(reactButton);
         menu.appendChild(editButton);
         menu.appendChild(deleteButton);
         menuWrap.appendChild(menuButton);
@@ -2370,6 +2451,18 @@
         });
       }
 
+      const reactionPicker = message.querySelector(".reaction-picker");
+      if (!reactionPicker) {
+        const picker = createReactionPicker(messageData.id, message);
+        message.appendChild(picker);
+      }
+
+      const reactionSummary = document.createElement("div");
+      reactionSummary.className = "reaction-summary";
+      reactionSummary.dataset.reactionSummary = "true";
+      message.appendChild(reactionSummary);
+
+      attachReactionGestures(message, messageData.id);
       messages.appendChild(message);
 
     }
@@ -2403,6 +2496,191 @@
 
     }
 
+
+    /* ======================================
+       REACTIONS
+    ====================================== */
+
+    const REACTIONS = ["👍", "❤️", "😂", "😮", "😢", "😡"];
+
+    function createReactionPicker(messageId, messageElement) {
+      const picker = document.createElement("div");
+      picker.className = "reaction-picker";
+      picker.dataset.messageId = messageId || "";
+
+      REACTIONS.forEach((reaction) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.textContent = reaction;
+        button.setAttribute("aria-label", "React " + reaction);
+        button.addEventListener("click", async (event) => {
+          event.stopPropagation();
+          await toggleReaction(messageId, reaction, messageElement);
+          picker.classList.remove("open");
+          messageElement.classList.remove("reaction-target");
+        });
+        picker.appendChild(button);
+      });
+
+      return picker;
+    }
+
+    function toggleReactionPicker(messageElement, picker) {
+      if (!picker) return;
+      document.querySelectorAll(".reaction-picker.open").forEach((other) => {
+        if (other !== picker) other.classList.remove("open");
+      });
+      document.querySelectorAll(".reaction-target").forEach((other) => {
+        if (other !== messageElement) other.classList.remove("reaction-target");
+      });
+      const open = picker.classList.toggle("open");
+      messageElement.classList.toggle("reaction-target", open);
+    }
+
+    function attachReactionGestures(messageElement, messageId) {
+      if (!messageId) return;
+      let pressTimer = null;
+
+      messageElement.addEventListener("contextmenu", (event) => {
+        event.preventDefault();
+        const picker = messageElement.querySelector(".reaction-picker");
+        toggleReactionPicker(messageElement, picker);
+      });
+
+      messageElement.addEventListener("touchstart", () => {
+        pressTimer = setTimeout(() => {
+          const picker = messageElement.querySelector(".reaction-picker");
+          toggleReactionPicker(messageElement, picker);
+        }, 550);
+      }, { passive: true });
+
+      ["touchend", "touchmove", "touchcancel"].forEach((eventName) => {
+        messageElement.addEventListener(eventName, () => {
+          if (pressTimer) clearTimeout(pressTimer);
+          pressTimer = null;
+        }, { passive: true });
+      });
+    }
+
+    async function toggleReaction(messageId, reaction, messageElement) {
+      if (!messageId || !currentUser) return;
+
+      const { data: existing, error: existingError } = await supabaseClient
+        .from("message_reactions")
+        .select("id, reaction")
+        .eq("message_id", messageId)
+        .eq("user_id", currentUser.id)
+        .maybeSingle();
+
+      if (existingError) {
+        console.error("Reaction lookup error:", existingError);
+        showStatus("Reaction could not be changed.");
+        return;
+      }
+
+      let error = null;
+
+      if (existing && existing.reaction === reaction) {
+        const result = await supabaseClient
+          .from("message_reactions")
+          .delete()
+          .eq("id", existing.id)
+          .eq("user_id", currentUser.id);
+        error = result.error;
+      } else {
+        const result = await supabaseClient
+          .upsert(
+            { message_id: messageId, user_id: currentUser.id, reaction },
+            { onConflict: "message_id,user_id" }
+          );
+        error = result.error;
+      }
+
+      if (error) {
+        console.error("Reaction save error:", error);
+        showStatus("Reaction could not be changed.");
+        return;
+      }
+
+      await refreshReactionForMessage(messageId);
+    }
+
+    async function refreshReactionForMessage(messageId) {
+      if (!messageId) return;
+
+      const { data, error } = await supabaseClient
+        .from("message_reactions")
+        .select("user_id, reaction")
+        .eq("message_id", messageId);
+
+      if (error) {
+        console.error("Reaction load error:", error);
+        return;
+      }
+
+      renderReactionSummary(messageId, data || []);
+    }
+
+    function renderReactionSummary(messageId, reactions) {
+      const messageElement = document.querySelector(`[data-message-id="${messageId}"]`);
+      if (!messageElement) return;
+
+      let summary = messageElement.querySelector(".reaction-summary");
+      if (!summary) {
+        summary = document.createElement("div");
+        summary.className = "reaction-summary";
+        summary.dataset.reactionSummary = "true";
+        messageElement.appendChild(summary);
+      }
+
+      const counts = {};
+      const mine = new Set();
+      reactions.forEach((item) => {
+        counts[item.reaction] = (counts[item.reaction] || 0) + 1;
+        if (currentUser && item.user_id === currentUser.id) mine.add(item.reaction);
+      });
+
+      summary.innerHTML = "";
+      REACTIONS.forEach((reaction) => {
+        if (!counts[reaction]) return;
+        const chip = document.createElement("span");
+        chip.className = "reaction-chip" + (mine.has(reaction) ? " mine" : "");
+        chip.textContent = reaction + " " + counts[reaction];
+        summary.appendChild(chip);
+      });
+
+      summary.classList.toggle("has-reactions", Object.keys(counts).length > 0);
+    }
+
+    async function loadAllReactions() {
+      const { data, error } = await supabaseClient
+        .from("message_reactions")
+        .select("message_id, user_id, reaction");
+
+      if (error) {
+        console.error("Load reactions error:", error);
+        return;
+      }
+
+      const grouped = {};
+      (data || []).forEach((item) => {
+        if (!grouped[item.message_id]) grouped[item.message_id] = [];
+        grouped[item.message_id].push(item);
+      });
+
+      document.querySelectorAll("[data-message-id]").forEach((messageElement) => {
+        const id = messageElement.dataset.messageId;
+        renderReactionSummary(id, grouped[id] || []);
+      });
+    }
+
+    document.addEventListener("click", (event) => {
+      if (!event.target.closest(".message-menu-wrap") && !event.target.closest(".reaction-picker")) {
+        document.querySelectorAll(".message-menu.open").forEach((menu) => menu.classList.remove("open"));
+        document.querySelectorAll(".reaction-picker.open").forEach((picker) => picker.classList.remove("open"));
+        document.querySelectorAll(".reaction-target").forEach((message) => message.classList.remove("reaction-target"));
+      }
+    });
 
     /* ======================================
        EDIT MESSAGE
@@ -2649,6 +2927,8 @@
       scrollToBottom(
         false
       );
+
+      await loadAllReactions();
 
     }
 
@@ -2905,6 +3185,18 @@
             }
           )
 
+          .on(
+            "postgres_changes",
+            {
+              event: "*",
+              schema: "public",
+              table: "message_reactions"
+            },
+            async (payload) => {
+              const messageId = payload.new?.message_id || payload.old?.message_id;
+              if (messageId) await refreshReactionForMessage(messageId);
+            }
+          )
 
           .subscribe();
 
