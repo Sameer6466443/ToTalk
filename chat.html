@@ -1417,6 +1417,9 @@
         translateX(-50%);
 
       display: none;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .25s ease, transform .25s ease;
 
       max-width:
         calc(100% - 30px);
@@ -1439,6 +1442,9 @@
       text-align: center;
 
     }
+
+
+.status-visible{opacity:1;transform:translateX(-50%) translateY(-4px);}
 
 
     /* ======================================
@@ -1915,6 +1921,8 @@
   
 .message{opacity:0;transform:translateY(10px);}
 .message.message-enter{animation:messageEnter .42s cubic-bezier(.2,.75,.25,1) forwards;}
+.message.mine.message-enter{animation:messageSent .48s cubic-bezier(.18,.8,.25,1) forwards;}
+@keyframes messageSent{0%{opacity:0;transform:translateY(12px) scale(.97);filter:blur(1px)}60%{opacity:1;transform:translateY(-2px) scale(1.008);filter:blur(0)}100%{opacity:1;transform:translateY(0) scale(1);filter:blur(0)}}
 @keyframes messageEnter{to{opacity:1;transform:translateY(0);}}
 @media (prefers-reduced-motion:reduce){.message.message-enter{animation:none;opacity:1;transform:none;}}
 </style>
@@ -2277,6 +2285,9 @@
 
       status.style.display =
         "block";
+      requestAnimationFrame(() => {
+        status.classList.add("status-visible");
+      });
 
 
       clearTimeout(
@@ -2288,8 +2299,10 @@
         setTimeout(
           () => {
 
-            status.style.display =
-              "none";
+            status.classList.remove("status-visible");
+            setTimeout(() => {
+              status.style.display = "none";
+            }, 250);
 
           },
           3500
@@ -3235,7 +3248,9 @@
         ------------------------------- */
 
         addMessage(
-          data
+          data,
+          true,
+          0
         );
 
 
