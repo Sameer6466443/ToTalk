@@ -2302,8 +2302,7 @@
             messageData.created_at
           );
 
-
-        time.textContent =
+        const timeText =
           date.toLocaleTimeString(
             [],
             {
@@ -2311,6 +2310,11 @@
               minute: "2-digit"
             }
           );
+
+        time.textContent =
+          messageData.edited_at
+            ? timeText + " · edited"
+            : timeText;
 
       }
 
@@ -2457,10 +2461,10 @@
 
         const { data, error } = await supabaseClient
           .from("messages")
-          .update({ content: newContent })
+          .update({ content: newContent, edited_at: new Date().toISOString() })
           .eq("id", messageId)
           .eq("sender_id", currentUser.id)
-          .select("id, sender_id, content, created_at")
+          .select("id, sender_id, content, created_at, edited_at")
           .single();
 
         if (error) {
@@ -2473,6 +2477,31 @@
         }
 
         textElement.textContent = data.content;
+
+        const timeElement =
+          messageElement.querySelector(".message-time");
+
+        if (timeElement) {
+          const editedDate =
+            data.created_at
+              ? new Date(data.created_at)
+              : null;
+
+          const editedTimeText =
+            editedDate
+              ? editedDate.toLocaleTimeString(
+                  [],
+                  {
+                    hour: "2-digit",
+                    minute: "2-digit"
+                  }
+                )
+              : timeElement.textContent.split(" · ")[0];
+
+          timeElement.textContent =
+            editedTimeText + " · edited";
+        }
+
         editor.replaceWith(textElement);
         saveRow.remove();
         if (menuWrap) menuWrap.style.display = "block";
@@ -2537,7 +2566,7 @@
         await supabaseClient
           .from("messages")
           .select(
-            "id, sender_id, content, created_at"
+            "id, sender_id, content, created_at, edited_at"
           )
           .order(
             "created_at",
@@ -2726,7 +2755,7 @@
               }
             ])
             .select(
-              "id, sender_id, content, created_at"
+              "id, sender_id, content, created_at, edited_at"
             )
             .single();
 
@@ -2846,6 +2875,22 @@
                 if (updatedMessage) {
                   const updatedText = updatedMessage.querySelector(".message-text");
                   if (updatedText) updatedText.textContent = payload.new.content;
+
+                  const updatedTime = updatedMessage.querySelector(".message-time");
+                  if (updatedTime && payload.new.created_at) {
+                    const updatedDate = new Date(payload.new.created_at);
+                    const updatedTimeText = updatedDate.toLocaleTimeString(
+                      [],
+                      {
+                        hour: "2-digit",
+                        minute: "2-digit"
+                      }
+                    );
+                    updatedTime.textContent =
+                      payload.new.edited_at
+                        ? updatedTimeText + " · edited"
+                        : updatedTimeText;
+                  }
                 }
                 return;
               }
