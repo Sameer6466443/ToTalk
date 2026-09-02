@@ -1108,10 +1108,11 @@
     }
 
     .message-menu {
-      position: absolute;
-      bottom: 29px;
-      top: auto;
-      right: 0;
+      position: fixed;
+      bottom: auto;
+      top: 0;
+      left: 0;
+      right: auto;
       max-height: 180px;
       overflow: auto;
       min-width: 92px;
@@ -1129,7 +1130,7 @@
     }
 
     .message-menu.menu-down {
-      top: 29px;
+      top: auto;
       bottom: auto;
     }
 
@@ -2765,6 +2766,13 @@
           menu.classList.toggle("open", !isOpen);
           menuButton.setAttribute("aria-expanded", String(!isOpen));
           if (!isOpen) {
+            // Move the menu to the document layer so it can never be
+            // trapped underneath the chat header or other stacking layers.
+            if (menu.parentElement !== document.body) {
+              document.body.appendChild(menu);
+            }
+            menu._ownerMessage = message;
+            menu._ownerButton = menuButton;
             requestAnimationFrame(() => placeMessageMenu(message, menu));
           }
         });
@@ -2999,13 +3007,33 @@
     }
 
     function placeMessageMenu(messageElement, menu) {
+      if (!messageElement || !menu) return;
+
       menu.classList.remove("menu-down");
+
       const messageRect = messageElement.getBoundingClientRect();
+      const menuWidth = menu.offsetWidth || 110;
       const menuHeight = menu.offsetHeight || 90;
-      const topSpace = messageRect.top - 8;
-      if (topSpace < menuHeight) {
+      const gap = 8;
+
+      let left = messageRect.right - menuWidth;
+      left = Math.max(gap, Math.min(left, window.innerWidth - menuWidth - gap));
+
+      const spaceAbove = messageRect.top - gap;
+      const spaceBelow = window.innerHeight - messageRect.bottom - gap;
+
+      let top;
+      if (spaceAbove >= menuHeight || spaceAbove >= spaceBelow) {
+        top = messageRect.top - menuHeight - gap;
+      } else {
+        top = messageRect.bottom + gap;
         menu.classList.add("menu-down");
       }
+
+      top = Math.max(gap, Math.min(top, window.innerHeight - menuHeight - gap));
+
+      menu.style.left = Math.round(left) + "px";
+      menu.style.top = Math.round(top) + "px";
     }
 
     function toggleReactionPicker(messageElement, picker) {
@@ -3032,7 +3060,7 @@
 
     window.addEventListener("resize", () => {
       document.querySelectorAll(".message-menu.open").forEach((menu) => {
-        const message = menu.closest(".message");
+        const message = menu._ownerMessage || menu.closest(".message");
         if (message) placeMessageMenu(message, menu);
       });
     });
@@ -3295,7 +3323,7 @@
         event.stopPropagation();
         return;
       }
-      if (!event.target.closest(".message-menu-wrap") && !event.target.closest(".reaction-picker")) {
+      if (!event.target.closest(".message-menu-wrap") && !event.target.closest(".message-menu") && !event.target.closest(".reaction-picker")) {
         document.querySelectorAll(".message-menu.open").forEach((menu) => menu.classList.remove("open"));
         document.querySelectorAll(".message-menu-btn[aria-expanded=\"true\"]").forEach((button) => button.setAttribute("aria-expanded", "false"));
         document.querySelectorAll(".reaction-picker.open").forEach((picker) => picker.classList.remove("open"));
