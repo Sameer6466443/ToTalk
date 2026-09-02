@@ -1098,33 +1098,68 @@
       right: 8px;
       top: 34px;
       z-index: 50;
-      display: none;
+      display: flex;
       align-items: center;
-      gap: 3px;
-      padding: 5px 6px;
-      border: 1px solid rgba(165,102,255,.35);
-      border-radius: 12px;
-      background: rgba(13,8,30,.98);
-      box-shadow: 0 10px 28px rgba(0,0,0,.45);
+      gap: 2px;
+      padding: 6px 7px;
+      border: 1px solid rgba(165,102,255,.38);
+      border-radius: 16px;
+      background: rgba(10,6,26,.97);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      box-shadow: 0 12px 32px rgba(0,0,0,.48), 0 0 24px rgba(126,72,255,.12);
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(-5px) scale(.94);
+      transform-origin: top right;
+      pointer-events: none;
+      transition: opacity .18s ease, transform .2s cubic-bezier(.2,.8,.2,1), visibility .18s ease;
     }
 
-    .reaction-picker.open { display: flex; }
+    .reaction-picker.open {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0) scale(1);
+      pointer-events: auto;
+    }
 
     .reaction-picker button {
-      width: 30px;
-      height: 30px;
+      width: 34px;
+      height: 34px;
+      padding: 0;
       border: 0;
-      border-radius: 8px;
+      border-radius: 11px;
       background: transparent;
       color: #fff;
-      font-size: 17px;
+      font-size: 19px;
+      line-height: 1;
       cursor: pointer;
+      transform: translateY(0) scale(1);
+      transition: background .15s ease, transform .16s cubic-bezier(.2,.8,.2,1), filter .15s ease;
     }
 
     .reaction-picker button:hover,
     .reaction-picker button:focus-visible {
       background: rgba(145,76,255,.20);
+      transform: translateY(-3px) scale(1.14);
+      filter: drop-shadow(0 4px 8px rgba(0,0,0,.3));
       outline: none;
+    }
+
+    .reaction-picker button:active {
+      transform: translateY(0) scale(.96);
+    }
+
+    .reaction-chip {
+      transition: transform .16s ease, background .16s ease;
+    }
+
+    .reaction-chip:hover {
+      transform: translateY(-1px);
+    }
+
+    @media (prefers-reduced-motion:reduce) {
+      .reaction-picker, .reaction-picker button, .reaction-chip { transition: none; }
     }
 
     .reaction-summary {
@@ -2565,33 +2600,60 @@
     async function toggleReaction(messageId, reaction, messageElement) {
       if (!messageId || !currentUser) return;
 
-      // Set the selected reaction directly. We first remove any existing
-      // reaction from this user on this message, then insert the new one.
-      // This avoids upsert/conflict handling and also cleans up duplicates.
-      const removeResult = await supabaseClient
+      // If the user taps the same reaction again, remove it.
+      const existingResult = await supabaseClient
         .from("message_reactions")
-        .delete()
+        .select("id, reaction")
         .eq("message_id", messageId)
         .eq("user_id", currentUser.id);
 
-      if (removeResult.error) {
-        console.error("Reaction delete error:", removeResult.error);
+      if (existingResult.error) {
+        console.error("Reaction lookup error:", existingResult.error);
         showStatus("Reaction could not be changed.");
         return;
       }
 
-      const insertResult = await supabaseClient
-        .from("message_reactions")
-        .insert({
-          message_id: messageId,
-          user_id: currentUser.id,
-          reaction: reaction
-        });
+      const existing = existingResult.data && existingResult.data[0];
 
-      if (insertResult.error) {
-        console.error("Reaction insert error:", insertResult.error);
-        showStatus("Reaction could not be changed.");
-        return;
+      if (existing && existing.reaction === reaction) {
+        const removeResult = await supabaseClient
+          .from("message_reactions")
+          .delete()
+          .eq("message_id", messageId)
+          .eq("user_id", currentUser.id);
+
+        if (removeResult.error) {
+          console.error("Reaction delete error:", removeResult.error);
+          showStatus("Reaction could not be changed.");
+          return;
+        }
+      } else {
+        // Different reaction: remove the old one first, then save the new one.
+        const removeResult = await supabaseClient
+          .from("message_reactions")
+          .delete()
+          .eq("message_id", messageId)
+          .eq("user_id", currentUser.id);
+
+        if (removeResult.error) {
+          console.error("Reaction delete error:", removeResult.error);
+          showStatus("Reaction could not be changed.");
+          return;
+        }
+
+        const insertResult = await supabaseClient
+          .from("message_reactions")
+          .insert({
+            message_id: messageId,
+            user_id: currentUser.id,
+            reaction: reaction
+          });
+
+        if (insertResult.error) {
+          console.error("Reaction insert error:", insertResult.error);
+          showStatus("Reaction could not be changed.");
+          return;
+        }
       }
 
       await refreshReactionForMessage(messageId);
