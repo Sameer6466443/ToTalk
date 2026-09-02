@@ -2143,9 +2143,7 @@
 
       }
 
-      .mobile-find-person-btn{display:flex;position:relative;z-index:6;flex:0 0 auto}
-      .chat-top > div:nth-child(2){min-width:0;flex:1}
-      .chat-title{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+      .mobile-find-person-btn{display:flex}
 
 
       .moon {
@@ -2286,11 +2284,6 @@
     .find-person-input-row{display:flex;gap:9px}.find-person-input-row input{min-width:0;flex:1;height:44px;padding:0 13px;border:1px solid rgba(145,76,255,.35);border-radius:10px;background:rgba(2,1,8,.78);color:var(--white);outline:none;font-size:13px;text-transform:uppercase}.find-person-input-row input:focus{border-color:var(--purple-light);box-shadow:0 0 0 3px rgba(145,76,255,.1)}
     .find-person-input-row button{height:44px;padding:0 18px;border:0;border-radius:10px;background:linear-gradient(135deg,var(--purple-light),var(--purple-dark));color:white;font-weight:900;cursor:pointer}.find-person-input-row button:disabled{opacity:.55;cursor:wait}
     .find-person-result{min-height:76px;margin-top:16px}.find-person-card{display:flex;align-items:center;gap:12px;padding:13px;border:1px solid rgba(145,76,255,.28);border-radius:12px;background:rgba(17,8,39,.68)}
-
-    /* Mobile Find Person must override the desktop default above. */
-    @media (max-width:800px){
-      .mobile-find-person-btn{display:flex !important;position:relative;z-index:20;flex:0 0 auto;visibility:visible !important;opacity:1 !important;}
-    }
     .find-person-card .result-avatar{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#a45cff,#6321d8);font-weight:900;flex:0 0 42px}.find-person-copy{min-width:0;flex:1}.find-person-name{font-size:13px;font-weight:900}.find-person-id{margin-top:4px;color:var(--muted);font-size:11px}.start-private-chat{border:1px solid rgba(145,76,255,.35);border-radius:9px;padding:8px 10px;background:rgba(145,76,255,.12);color:var(--white);font-size:11px;font-weight:800;cursor:pointer}.find-person-error{color:#ff9fbc;font-size:12px;padding:12px;border:1px solid rgba(255,90,140,.2);border-radius:10px;background:rgba(80,10,35,.18)}
 
 </style>
@@ -4704,231 +4697,157 @@
        START CHAT / GOOGLE CALLBACK
     ====================================== */
 
-    async function startChat() {
+    let chatStartupRunning = false;
 
-      try {
+    async function getStableSession() {
+      /*
+        Read an already stored session first.
 
+        This is important on mobile: if Google has already finished
+        the PKCE callback, we must NOT try to exchange the same code
+        again. Re-exchanging an already-used code can make the page
+        look logged out for a moment.
+      */
+      let { data, error } =
+        await supabaseClient.auth.getSession();
 
-        /*
-          Google/Supabase sends us back
-          to chat.html with:
+      if (error) {
+        console.warn("Initial session read failed:", error);
+      }
 
-          ?code=........
-        */
+      if (data?.session?.user) {
+        return data.session;
+      }
 
-        const params =
-          new URLSearchParams(
-            window.location.search
-          );
+      /*
+        If there is no session yet, try the OAuth code from the URL.
+        Only do this when an actual code is present.
+      */
+      const params = new URLSearchParams(window.location.search);
+      const code = params.get("code");
 
+      if (code) {
+        const { data: exchangeData, error: exchangeError } =
+          await supabaseClient.auth.exchangeCodeForSession(code);
 
-        const code =
-          params.get("code");
-
-
-        /* -------------------------------
-           EXCHANGE GOOGLE CODE
-        ------------------------------- */
-
-        if (code) {
-
-
-          const {
-            data,
-            error
-          } =
-            await supabaseClient.auth
-              .exchangeCodeForSession(
-                code
-              );
-
-
-          if (error) {
-
-            console.error(
-              "OAuth code exchange error:",
-              error
-            );
-
-
-            showLoginError(
-              "Google login could not be completed. Please return to the homepage and try again."
-            );
-
-
-            return;
-
-          }
-
-
-          /*
-            Remove ?code=... from URL.
-
-            This also prevents the same
-            OAuth code being processed again
-            if the page is refreshed.
-          */
-
+        if (!exchangeError && exchangeData?.session?.user) {
           window.history.replaceState(
             {},
             document.title,
             window.location.pathname
           );
 
-
+          return exchangeData.session;
         }
-
-
-        /* -------------------------------
-           GET SESSION
-        ------------------------------- */
-
-        const {
-          data,
-          error
-        } =
-          await supabaseClient.auth
-            .getSession();
-
-
-        if (error) {
-
-          console.error(
-            "Session error:",
-            error
-          );
-
-
-          showLoginError(
-            "ToTalk could not read your login session. Please return to the homepage and try again."
-          );
-
-
-          return;
-
-        }
-
 
         /*
-          If the browser was closed and reopened, the saved
-          Supabase session can need a refresh before it becomes
-          available again. Try that once before treating the user
-          as logged out.
+          A second read is intentional. On some mobile browsers the
+          auth storage becomes available just after the callback.
         */
-        if (
-          !data ||
-          !data.session ||
-          !data.session.user
-        ) {
+        const retry = await supabaseClient.auth.getSession();
 
-          const {
-            data: refreshed,
-            error: refreshError
-          } = await supabaseClient.auth.refreshSession();
-
-          if (!refreshError && refreshed?.session?.user) {
-            data.session = refreshed.session;
-          }
-        }
-
-
-        if (
-          !data ||
-          !data.session ||
-          !data.session.user
-        ) {
-
-
-          /*
-            Give Supabase a short moment
-            in case the browser is still
-            finishing the OAuth callback.
-          */
-
-          setTimeout(
-            async () => {
-
-              const {
-                data: retryData,
-                error: retryError
-              } =
-                await supabaseClient
-                  .auth
-                  .getSession();
-
-
-              if (
-                !retryError &&
-                retryData?.session?.user
-              ) {
-
-                currentUser =
-                  retryData.session.user;
-
-
-                showUser(
-                  retryData.session.user
-                );
-
-
-                await restorePrivateConversation();
-
-                finishLoading();
-
-
-                startRealtime();
-                startPresence();
-
-
-                return;
-
-              }
-
-
-              showLoginError(
-                "No active Google login session was found. Please return to the homepage and tap Continue with Google again."
-              );
-
-
-            },
-            1200
+        if (retry.data?.session?.user) {
+          window.history.replaceState(
+            {},
+            document.title,
+            window.location.pathname
           );
 
-
-          return;
-
+          return retry.data.session;
         }
 
-
-        /* -------------------------------
-           LOGIN SUCCESS
-        ------------------------------- */
-
-        currentUser =
-          data.session.user;
-
-
-        showUser(
-          currentUser
+        console.error(
+          "OAuth code exchange failed:",
+          exchangeError
         );
+      }
+
+      /*
+        Give the browser a short opportunity to finish restoring the
+        persisted Supabase session.
+      */
+      for (let attempt = 0; attempt < 4; attempt++) {
+        await new Promise(resolve => setTimeout(resolve, 350));
+
+        const retry = await supabaseClient.auth.getSession();
+
+        if (retry.data?.session?.user) {
+          if (window.location.search.includes("code=")) {
+            window.history.replaceState(
+              {},
+              document.title,
+              window.location.pathname
+            );
+          }
+
+          return retry.data.session;
+        }
+      }
+
+      return null;
+    }
 
 
-        /* -------------------------------
-           LOAD DATABASE MESSAGES
-        ------------------------------- */
+    async function startChat() {
+
+      if (chatStartupRunning) {
+        return;
+      }
+
+      chatStartupRunning = true;
+
+      try {
+
+        /*
+          ----------------------------------------------------------
+          STABLE LOGIN / SESSION
+          ----------------------------------------------------------
+
+          Do not redirect to index.html when the session is briefly
+          unavailable. Mobile browsers can take a moment to restore
+          Supabase storage after Google returns to chat.html.
+        */
+
+        const session = await getStableSession();
+
+        if (!session?.user) {
+
+          showLoginError(
+            "Your ToTalk login session could not be restored. Please return to the homepage and sign in with Google again."
+          );
+
+          return;
+        }
+
+        /*
+          The session is valid. Keep it in memory for the whole page.
+        */
+
+        showUser(session.user);
+
+        /*
+          ----------------------------------------------------------
+          RESTORE LAST PRIVATE CHAT
+          ----------------------------------------------------------
+        */
 
         await restorePrivateConversation();
 
+        /*
+          Even if there is no saved person yet, the chat page itself
+          should remain open so the mobile Find button is available.
+        */
+
         finishLoading();
 
-
-        /* -------------------------------
-           START REALTIME
-        ------------------------------- */
+        /*
+          ----------------------------------------------------------
+          REALTIME
+          ----------------------------------------------------------
+        */
 
         startRealtime();
         startPresence();
-
 
       } catch (error) {
 
@@ -4937,10 +4856,13 @@
           error
         );
 
-
         showLoginError(
           "ToTalk could not finish opening your chat. Please return to the homepage and sign in again."
         );
+
+      } finally {
+
+        chatStartupRunning = false;
 
       }
 
