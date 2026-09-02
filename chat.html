@@ -2025,6 +2025,18 @@
 @keyframes messageSent{0%{opacity:0;transform:translateY(12px) scale(.97);filter:blur(1px)}60%{opacity:1;transform:translateY(-2px) scale(1.008);filter:blur(0)}100%{opacity:1;transform:translateY(0) scale(1);filter:blur(0)}}
 @keyframes messageEnter{to{opacity:1;transform:translateY(0);}}
 @media (prefers-reduced-motion:reduce){.message.message-enter{animation:none;opacity:1;transform:none;}}
+
+
+    /* Final reaction-picker visibility fix: never leave an empty shell visible. */
+    .reaction-picker {
+      display: none !important;
+    }
+    .reaction-picker.open {
+      display: flex !important;
+    }
+
+    .message-menu { display: none !important; }
+    .message-menu.open { display: block !important; }
 </style>
 
 </head>
