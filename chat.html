@@ -523,6 +523,11 @@
        CHAT BOX
     ====================================== */
 
+
+    /* UNREAD MESSAGE INDICATOR */
+    .unread-badge{display:none;min-width:17px;height:17px;padding:0 5px;align-items:center;justify-content:center;border-radius:999px;background:linear-gradient(135deg,#b67cff,#6d35e8);color:#fff;font-size:9px;font-weight:900;box-shadow:0 0 12px rgba(155,102,255,.55);animation:unreadPulse 1.8s ease-in-out infinite}.unread-badge.show{display:inline-flex}
+    .new-message-indicator{position:absolute;left:50%;bottom:78px;transform:translate(-50%,10px);z-index:30;display:inline-flex;align-items:center;gap:8px;padding:9px 14px;border:1px solid rgba(190,160,255,.28);border-radius:999px;background:rgba(20,13,42,.92);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);color:#eee8ff;font-size:11px;font-weight:800;box-shadow:0 8px 30px rgba(0,0,0,.35),0 0 22px rgba(137,82,255,.18);opacity:0;pointer-events:none;transition:opacity .28s ease,transform .28s cubic-bezier(.2,.75,.25,1)}.new-message-indicator.show{opacity:1;transform:translate(-50%,0)}.new-message-indicator .unread-dot{width:6px;height:6px;border-radius:50%;background:#c9b1ff;box-shadow:0 0 9px rgba(201,177,255,.85)}@keyframes unreadPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+
     .chat-box {
 
       position: relative;
@@ -2024,6 +2029,8 @@
             <span class="presence-label">Online</span>
           </div>
 
+          <span class="unread-badge" id="sideUnread" aria-label="Unread messages">0</span>
+
         </div>
 
       </div>
@@ -2107,6 +2114,11 @@
 
 
         <!-- INPUT -->
+
+        <button class="new-message-indicator" id="newMessageIndicator" type="button" aria-label="Jump to new messages">
+          <span class="unread-dot" aria-hidden="true"></span>
+          <span id="newMessageLabel">New message</span>
+        </button>
 
         <div class="input-area">
 
@@ -2612,6 +2624,30 @@
     }
 
 
+
+    /* ======================================
+       UNREAD MESSAGE INDICATOR
+    ====================================== */
+    let unreadCount = 0;
+    const defaultPageTitle = document.title;
+
+    function isNearBottom(){
+      return (messages.scrollHeight - messages.scrollTop - messages.clientHeight) < 90;
+    }
+    function updateUnreadUI(){
+      const badge=document.getElementById("sideUnread");
+      const indicator=document.getElementById("newMessageIndicator");
+      const label=document.getElementById("newMessageLabel");
+      if(badge){badge.textContent=unreadCount>99?"99+":String(unreadCount);badge.classList.toggle("show",unreadCount>0)}
+      if(label) label.textContent=unreadCount===1?"1 new message":`${unreadCount} new messages`;
+      if(indicator) indicator.classList.toggle("show",unreadCount>0);
+      document.title=unreadCount>0?`(${unreadCount>99?"99+":unreadCount}) ${defaultPageTitle}`:defaultPageTitle;
+    }
+    function markMessagesRead(){unreadCount=0;updateUnreadUI()}
+    const newMessageIndicator=document.getElementById("newMessageIndicator");
+    if(newMessageIndicator)newMessageIndicator.addEventListener("click",()=>{markMessagesRead();scrollToBottom(true)});
+    messages.addEventListener("scroll",()=>{if(isNearBottom()&&unreadCount>0)markMessagesRead()});
+
     /* ======================================
        REACTIONS
     ====================================== */
@@ -3062,6 +3098,7 @@
         false
       );
 
+      markMessagesRead();
       await loadAllReactions();
 
     }
@@ -3214,6 +3251,7 @@
         scrollToBottom(
           true
         );
+        markMessagesRead();
 
 
       } catch (error) {
@@ -3354,8 +3392,15 @@
             },
             (payload) => {
               if (payload.eventType === "INSERT") {
+                const wasNearBottom = isNearBottom();
                 addMessage(payload.new);
-                scrollToBottom(true);
+                if (wasNearBottom) {
+                  scrollToBottom(true);
+                  markMessagesRead();
+                } else {
+                  unreadCount += 1;
+                  updateUnreadUI();
+                }
                 return;
               }
 
