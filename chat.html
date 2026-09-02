@@ -1103,6 +1103,8 @@
       bottom: 29px;
       top: auto;
       right: 0;
+      max-height: 180px;
+      overflow: auto;
       min-width: 92px;
       padding: 5px;
       border: 1px solid rgba(165,102,255,.35);
@@ -1114,7 +1116,12 @@
 
     .message-menu.open {
       display: block;
-      z-index: 1000;
+      z-index: 10000;
+    }
+
+    .message-menu.menu-down {
+      top: 29px;
+      bottom: auto;
     }
 
     .message-menu button {
@@ -1258,7 +1265,8 @@
 
     .reaction-picker {
       position: absolute;
-      right: 8px;
+      right: 0;
+      left: auto;
       top: 34px;
       z-index: 950;
       display: flex;
@@ -1284,6 +1292,22 @@
       visibility: visible;
       transform: translateY(0) scale(1);
       pointer-events: auto;
+    }
+
+    .reaction-picker.picker-left {
+      left: 0;
+      right: auto;
+      transform-origin: top left;
+    }
+
+    .reaction-picker.picker-above {
+      top: auto;
+      bottom: 34px;
+      transform-origin: bottom right;
+    }
+
+    .reaction-picker.picker-left.picker-above {
+      transform-origin: bottom left;
     }
 
     .reaction-picker button {
@@ -2735,6 +2759,9 @@
 
           menu.classList.toggle("open", !isOpen);
           menuButton.setAttribute("aria-expanded", String(!isOpen));
+          if (!isOpen) {
+            requestAnimationFrame(() => placeMessageMenu(message, menu));
+          }
         });
       }
 
@@ -2933,6 +2960,32 @@
       return picker;
     }
 
+    function placeReactionPicker(messageElement, picker) {
+      picker.classList.remove("picker-left", "picker-above");
+      const messageRect = messageElement.getBoundingClientRect();
+      const pickerWidth = Math.min(245, Math.max(190, picker.scrollWidth || 220));
+      const pickerHeight = picker.offsetHeight || 48;
+      const viewportLeft = 8;
+      const viewportRight = window.innerWidth - 8;
+      if (messageRect.right - pickerWidth < viewportLeft) {
+        picker.classList.add("picker-left");
+      }
+      const rectAfter = messageElement.getBoundingClientRect();
+      if (rectAfter.bottom + pickerHeight > window.innerHeight - 8) {
+        picker.classList.add("picker-above");
+      }
+    }
+
+    function placeMessageMenu(messageElement, menu) {
+      menu.classList.remove("menu-down");
+      const messageRect = messageElement.getBoundingClientRect();
+      const menuHeight = menu.offsetHeight || 90;
+      const topSpace = messageRect.top - 8;
+      if (topSpace < menuHeight) {
+        menu.classList.add("menu-down");
+      }
+    }
+
     function toggleReactionPicker(messageElement, picker) {
       if (!picker) return;
       if (typeof closeMessageSearch === "function") closeMessageSearch();
@@ -2944,7 +2997,21 @@
       });
       const open = picker.classList.toggle("open");
       messageElement.classList.toggle("reaction-target", open);
+      if (open) {
+        requestAnimationFrame(() => placeReactionPicker(messageElement, picker));
+      }
     }
+
+    window.addEventListener("resize", () => {
+      document.querySelectorAll(".reaction-picker.open").forEach((picker) => {
+        const message = picker.closest(".message");
+        if (message) placeReactionPicker(message, picker);
+      });
+      document.querySelectorAll(".message-menu.open").forEach((menu) => {
+        const message = menu.closest(".message");
+        if (message) placeMessageMenu(message, menu);
+      });
+    });
 
     function attachReactionGestures(messageElement, messageId) {
       if (!messageId) return;
