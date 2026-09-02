@@ -2683,8 +2683,11 @@
       message.appendChild(text);
       message.appendChild(time);
 
-      // Only your own messages get the three-dot menu.
-      // Received messages stay clean; reactions are long-press only.
+      // Every message supports long-press reactions, but only your own
+      // messages show the three-dot Edit/Delete menu.
+      const reactionPicker = createReactionPicker(messageData.id, message);
+      message._reactionPicker = reactionPicker;
+
       if (messageData.id && currentUser && messageData.sender_id === currentUser.id) {
         const menuWrap = document.createElement("div");
         menuWrap.className = "message-menu-wrap";
@@ -2698,9 +2701,6 @@
 
         const menu = document.createElement("div");
         menu.className = "message-menu";
-
-        const reactionPicker = createReactionPicker(messageData.id, message);
-        message._reactionPicker = reactionPicker;
 
         {
           const editButton = document.createElement("button");
