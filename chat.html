@@ -1265,71 +1265,72 @@
 
     .reaction-picker {
       position: fixed;
-      left: 0;
-      top: 0;
-      z-index: 999999;
+      left: 50%;
+      bottom: 92px;
+      top: auto;
+      z-index: 2147483647;
       display: flex;
       align-items: center;
-      gap: 2px;
-      padding: 6px 7px;
-      border: 1px solid rgba(165,102,255,.38);
-      border-radius: 16px;
-      background: rgba(10,6,26,.97);
-      backdrop-filter: blur(14px);
-      -webkit-backdrop-filter: blur(14px);
-      box-shadow: 0 12px 32px rgba(0,0,0,.48), 0 0 24px rgba(126,72,255,.12);
+      justify-content: center;
+      gap: 4px;
+      padding: 8px 10px;
+      border: 1px solid rgba(165,102,255,.45);
+      border-radius: 20px;
+      background: rgba(8,5,22,.98);
+      box-shadow: 0 16px 42px rgba(0,0,0,.58), 0 0 28px rgba(126,72,255,.22);
       opacity: 0;
       visibility: hidden;
-      transform: translateY(-5px) scale(.94);
-      transform-origin: top right;
+      transform: translate(-50%, 10px) scale(.94);
       pointer-events: none;
-      transition: opacity .18s ease, transform .2s cubic-bezier(.2,.8,.2,1), visibility .18s ease;
+      transition: opacity .16s ease, transform .18s cubic-bezier(.2,.8,.2,1), visibility .16s ease;
+      max-width: calc(100vw - 24px);
     }
 
     .reaction-picker.open {
       opacity: 1;
       visibility: visible;
-      transform: translateY(0) scale(1);
+      transform: translate(-50%, 0) scale(1);
       pointer-events: auto;
     }
 
-    .reaction-picker.picker-left {
-      transform-origin: top left;
-    }
-
-    .reaction-picker.picker-above {
-      transform-origin: bottom right;
-    }
-
-    .reaction-picker.picker-left.picker-above {
-      transform-origin: bottom left;
-    }
-
     .reaction-picker button {
-      width: 34px;
-      height: 34px;
+      flex: 0 0 38px;
+      width: 38px;
+      height: 38px;
       padding: 0;
       border: 0;
-      border-radius: 11px;
+      border-radius: 12px;
       background: transparent;
       color: #fff;
-      font-size: 19px;
+      font-size: 21px;
       line-height: 1;
       cursor: pointer;
-      transform: translateY(0) scale(1);
-      transition: background .15s ease, transform .16s cubic-bezier(.2,.8,.2,1), filter .15s ease;
+      transition: background .14s ease, transform .14s ease;
     }
 
     .reaction-picker button:hover,
     .reaction-picker button:focus-visible {
-      background: rgba(145,76,255,.20);
-      transform: translateY(-3px) scale(1.14);
-      filter: drop-shadow(0 4px 8px rgba(0,0,0,.3));
+      background: rgba(145,76,255,.22);
+      transform: translateY(-2px) scale(1.08);
       outline: none;
     }
 
     .reaction-picker button:active {
-      transform: translateY(0) scale(.96);
+      transform: scale(.94);
+    }
+
+    @media (max-width: 520px) {
+      .reaction-picker {
+        bottom: 82px;
+        gap: 1px;
+        padding: 7px 8px;
+      }
+      .reaction-picker button {
+        flex-basis: 35px;
+        width: 35px;
+        height: 35px;
+        font-size: 19px;
+      }
     }
 
     .reaction-chip {
@@ -3004,15 +3005,14 @@
       const open = picker.classList.toggle("open");
       messageElement.classList.toggle("reaction-target", open);
       if (open) {
-        requestAnimationFrame(() => placeReactionPicker(messageElement, picker));
+        // The picker is a fixed bottom sheet, so it can never be clipped by the message area.
+        picker.style.left = "50%";
+        picker.style.top = "auto";
+        picker.style.bottom = window.innerWidth <= 520 ? "82px" : "92px";
       }
     }
 
     window.addEventListener("resize", () => {
-      document.querySelectorAll(".reaction-picker.open").forEach((picker) => {
-        const message = picker._messageElement;
-        if (message) placeReactionPicker(message, picker);
-      });
       document.querySelectorAll(".message-menu.open").forEach((menu) => {
         const message = menu.closest(".message");
         if (message) placeMessageMenu(message, menu);
