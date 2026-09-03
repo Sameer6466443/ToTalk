@@ -1172,25 +1172,62 @@ header{
 .message-menu{
   display:none;
 
-  position:absolute;
+  position:fixed;
   box-sizing:border-box;
-  right:8px;
-  top:34px;
 
-  z-index:100;
+  z-index:999999;
 
-  min-width:132px;
+  width:148px;
+  min-width:148px;
 
   padding:5px;
 
-  border:1px solid rgba(184,143,255,.45);
-  border-radius:12px;
+  border:1px solid rgba(184,143,255,.48);
+  border-radius:14px;
 
-  background:rgba(14,7,29,.98);
-  backdrop-filter:blur(14px);
-  -webkit-backdrop-filter:blur(14px);
+  background:rgba(12,6,26,.98);
+  backdrop-filter:blur(18px);
+  -webkit-backdrop-filter:blur(18px);
 
-  box-shadow:0 14px 34px rgba(0,0,0,.48);
+  box-shadow:
+    0 16px 40px rgba(0,0,0,.58),
+    0 0 24px rgba(120,60,255,.10);
+
+  transform-origin:top right;
+}
+
+.message-menu.open{
+  display:block;
+}
+
+.message-menu button{
+  display:block;
+
+  width:100%;
+  min-height:42px;
+
+  padding:10px 12px;
+
+  border:0;
+  border-radius:9px;
+
+  background:transparent;
+
+  color:#eee9f8;
+
+  text-align:left;
+
+  font-size:14px;
+  font-weight:600;
+
+  cursor:pointer;
+
+  -webkit-tap-highlight-color:transparent;
+}
+
+.message-menu button:hover,
+.message-menu button:active{
+  background:rgba(145,76,255,.18);
 }
 
 .message-menu.open{
@@ -3538,23 +3575,44 @@ function openMessageMenu(data,bubble){
   closeActiveEdit();
 
   const menu=createMessageMenu(data,bubble);
-  bubble.appendChild(menu);
+  document.body.appendChild(menu);
   menu.classList.add("open");
+
+  const menuButton = bubble.querySelector(".message-menu-btn");
+  const anchor = menuButton || bubble;
+  const gap = 8;
+  const padding = 10;
 
   requestAnimationFrame(()=>{
     if(!menu.isConnected) return;
 
-    menu.style.top="34px";
-    menu.style.bottom="auto";
+    const anchorRect = anchor.getBoundingClientRect();
+    const menuRect = menu.getBoundingClientRect();
 
-    const rect=bubble.getBoundingClientRect();
-    const menuRect=menu.getBoundingClientRect();
-    const gap=8;
+    let left = anchorRect.right - menuRect.width;
+    let top = anchorRect.bottom + gap;
 
-    if(rect.bottom + menuRect.height + gap > window.innerHeight){
-      menu.style.top="auto";
-      menu.style.bottom="calc(100% + 8px)";
+    /* Keep the menu beside the exact message button. */
+    if(left < padding) left = padding;
+    if(left + menuRect.width > window.innerWidth - padding){
+      left = window.innerWidth - menuRect.width - padding;
     }
+
+    /* If there is not enough room below, place it above the button. */
+    if(top + menuRect.height > window.innerHeight - padding){
+      top = anchorRect.top - menuRect.height - gap;
+    }
+
+    /* Final viewport safety. */
+    if(top < padding) top = padding;
+    if(top + menuRect.height > window.innerHeight - padding){
+      top = window.innerHeight - menuRect.height - padding;
+    }
+
+    menu.style.left = Math.round(left) + "px";
+    menu.style.top = Math.round(top) + "px";
+    menu.style.right = "auto";
+    menu.style.bottom = "auto";
   });
 }
 
