@@ -645,6 +645,15 @@ body:before{
   box-shadow:0 0 0 3px rgba(130,80,255,.12);
 }
 
+.ttbox.copied{
+  border-color:rgba(167,124,255,.55);
+  box-shadow:0 0 0 2px rgba(139,92,255,.08);
+}
+
+.ttbox.copied .ttid{
+  color:#fff;
+}
+
 .ttbox{
   border:1px solid rgba(255,255,255,.10);
   border-radius:14px;
@@ -1111,8 +1120,11 @@ const statusEl =
 const loader =
   document.getElementById("galaxyLoading");
 
-const copyIdBtn =
-  document.getElementById("copyIdBtn");
+const copyIdArea =
+  document.getElementById("copyIdArea");
+
+const copyNote =
+  document.getElementById("copyNote");
 
 
 const profileCard =
@@ -1123,38 +1135,69 @@ let currentUser = null;
 let generatedId = "";
 
 function copyToTalkId(){
-  const id = String(generatedId || ttidEl.textContent || "").trim();
-  if(!/^TT-[A-Z0-9]{6}$/.test(id)) return;
+
+  const id = String(
+    generatedId ||
+    ttidEl.textContent ||
+    ""
+  ).trim();
+
+  if(!/^TT-[A-Z0-9]{6}$/.test(id)){
+    return;
+  }
 
   const done = ()=>{
-    copyIdBtn.classList.add("copied");
-    copyIdBtn.textContent = "✓";
-    copyIdBtn.title = "Copied";
+    copyIdArea.classList.add("copied");
+
+    if(copyNote){
+      copyNote.textContent = "Copied ✓";
+    }
+
     setTimeout(()=>{
-      copyIdBtn.classList.remove("copied");
-      copyIdBtn.textContent = "⧉";
-      copyIdBtn.title = "Copy ToTalk ID";
+      copyIdArea.classList.remove("copied");
+      if(copyNote){
+        copyNote.textContent = "Tap your ID to copy it.";
+      }
     },1200);
   };
 
   if(navigator.clipboard && window.isSecureContext){
-    navigator.clipboard.writeText(id).then(done).catch(()=>{});
+    navigator.clipboard.writeText(id)
+      .then(done)
+      .catch(()=>fallbackCopy(id, done));
     return;
   }
 
+  fallbackCopy(id, done);
+}
+
+function fallbackCopy(id, done){
   const temp = document.createElement("textarea");
   temp.value = id;
+  temp.setAttribute("readonly", "");
   temp.style.position = "fixed";
-  temp.style.opacity = "0";
+  temp.style.left = "-9999px";
+  temp.style.top = "0";
   document.body.appendChild(temp);
   temp.focus();
   temp.select();
+
+  let copied = false;
   try{
-    if(document.execCommand("copy")) done();
-  }finally{
-    temp.remove();
+    copied = document.execCommand("copy");
+  }catch(err){
+    copied = false;
+  }
+
+  temp.remove();
+
+  if(copied){
+    done();
+  }else if(copyNote){
+    copyNote.textContent = "Long-press the ID to copy it.";
   }
 }
+
 
 
 /* =========================================
@@ -1472,11 +1515,17 @@ async function init(){
 }
 
 
-copyIdBtn.addEventListener("click", copyToTalkId);
+if(copyIdArea){
+  copyIdArea.addEventListener("click", copyToTalkId);
+  copyIdArea.addEventListener("keydown", (event)=>{
+    if(event.key === "Enter" || event.key === " "){
+      event.preventDefault();
+      copyToTalkId();
+    }
+  });
+}
 
 
-const copyIdArea = document.getElementById("copyIdArea");
-const copyNote = document.getElementById("copyNote");
 
 async function copyToTalkId(){
   const id = document.getElementById("ttid").textContent.trim();
