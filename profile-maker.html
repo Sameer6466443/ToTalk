@@ -381,55 +381,69 @@ async function saveProfile(){
 
   try{
     const {data:{user},error:userError}=await supabaseClient.auth.getUser();
+    if(userError||!user) throw new Error("Your login session has expired. Please log in again.");
 
-    if(userError||!user){
-      throw new Error("Your login session has expired.");
-    }
+    // Never generate a new ID when editing an existing profile.
+    const permanentId=existingProfile?.totalk_id||generatedId||makeId();
 
     const payload={
       user_id:user.id,
-      name:name,
-      gender:gender,
-      age:age,
-      totalk_id:existingProfile?.totalk_id||generatedId,
-      location:location,
+      name,
+      gender,
+      age,
+      totalk_id:permanentId,
+      location,
       location_visibility:visibility,
       profile_completed:true
     };
 
-    let result;
+    let saved;
 
-    if(existingProfile){
-      result=await supabaseClient
+    if(existingProfile?.id){
+      const result=await supabaseClient
         .from("profiles")
         .update(payload)
-        .eq("user_id",user.id);
+        .eq("id",existingProfile.id)
+        .eq("user_id",user.id)
+        .select("id,user_id,name,gender,age,totalk_id,profile_completed,location,location_visibility")
+        .maybeSingle();
+
+      if(result.error) throw result.error;
+      if(!result.data) throw new Error("Supabase did not allow this profile update. Run the RLS policy SQL, then refresh this page.");
+      saved=result.data;
     }else{
-      result=await supabaseClient
+      const result=await supabaseClient
         .from("profiles")
-        .insert(payload);
+        .insert(payload)
+        .select("id,user_id,name,gender,age,totalk_id,profile_completed,location,location_visibility")
+        .single();
+
+      if(result.error) throw result.error;
+      saved=result.data;
     }
 
-    if(result.error) throw result.error;
-
-    existingProfile={...(existingProfile||{}),...payload};
-    generatedId=payload.totalk_id;
+    existingProfile=saved;
+    generatedId=saved.totalk_id;
     idEl.textContent=generatedId;
     updateAvatar();
 
-    status("Saved. Opening ToTalk…",true);
+    status("Saved successfully.",true);
+    saveBtn.textContent="Saved ✓";
 
     setTimeout(()=>{
       window.location.replace("./chat.html");
-    },500);
+    },700);
 
   }catch(error){
-    console.error(error);
-    status(error.message||"Could not save your profile.");
+    console.error("Profile save error:",error);
+    const message=error?.message||"Could not save your profile.";
+    status(message);
     saveBtn.disabled=false;
     saveBtn.textContent=existingProfile?.profile_completed?"Save Changes":"Create Profile";
   }
 }
+
+saveBtn.addEventListener("click",saveProfile);
 
 supabaseClient.auth.onAuthStateChange(event=>{
   if(event==="SIGNED_OUT"){
