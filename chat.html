@@ -1916,6 +1916,57 @@ header{
 .message-row{
   will-change:transform,opacity;
 }
+
+/* Final edit UI safety: one editor only, compact glass controls. */
+.message.editing{
+  position:relative;
+  z-index:20;
+}
+.edit-editor{
+  display:block;
+  width:100%;
+  min-height:78px;
+  resize:vertical;
+  box-sizing:border-box;
+  margin:2px 0 10px;
+  padding:12px 14px;
+  border:1px solid rgba(170,120,255,.55);
+  border-radius:14px;
+  outline:none;
+  background:rgba(11,7,28,.72);
+  color:#fff;
+  font:inherit;
+  line-height:1.45;
+  box-shadow:0 8px 30px rgba(85,35,180,.18), inset 0 1px 0 rgba(255,255,255,.06);
+}
+.edit-editor:focus{
+  border-color:rgba(180,130,255,.95);
+  box-shadow:0 0 0 3px rgba(150,90,255,.12), 0 10px 34px rgba(80,30,170,.22);
+}
+.edit-actions{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin-top:2px;
+}
+.edit-action{
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:10px;
+  padding:8px 14px;
+  font:600 14px/1 system-ui,sans-serif;
+  cursor:pointer;
+  transition:transform .16s ease,opacity .16s ease,background .16s ease;
+}
+.edit-action:hover{transform:translateY(-1px);}
+.edit-save{
+  color:#fff;
+  background:linear-gradient(135deg,#7b32ff,#a65cff);
+}
+.edit-cancel{
+  color:rgba(255,255,255,.86);
+  background:rgba(255,255,255,.07);
+}
+.edit-action:disabled{opacity:.55;cursor:not-allowed;transform:none;}
 </style>
 </head>
 
@@ -3540,61 +3591,93 @@ function closeMenus(){
 ===================================================== */
 
 let activeEditCancel = null;
+let activeEditBubble = null;
 
-async function editMessage(
-  data,
-  bubble
-){
+function closeActiveEdit(){
+  if(typeof activeEditCancel === "function"){
+    try{ activeEditCancel(true); }catch(error){ console.warn("Close edit:",error); }
+  }
 
-  const oldText =
-    bubble.querySelector(".message-text");
+  activeEditCancel = null;
+  activeEditBubble = null;
 
-  if(!oldText || !data?.id){
+  /* Hard guarantee: never leave two editors open. */
+  document.querySelectorAll(".message.editing").forEach(bubble=>{
+    const editor = bubble.querySelector(".edit-editor");
+    const original = bubble.querySelector(".message-text");
+    const actions = bubble.querySelector(".edit-actions");
+
+    if(editor && original){
+      original.textContent = editor.value;
+      editor.replaceWith(original);
+    }else if(editor){
+      editor.remove();
+    }
+
+    actions?.remove();
+    bubble.classList.remove("editing");
+  });
+}
+
+function getLatestMessageForBubble(bubble){
+  const id = bubble?.closest?.("[data-message-id]")?.dataset?.messageId;
+  if(id){
+    const cached = messageCache.get(id);
+    if(cached) return {...cached};
+  }
+
+  const text = bubble?.querySelector?.(".message-text")?.textContent || "";
+  return {
+    id,
+    content:text,
+    sender_id:currentUser?.id || null
+  };
+}
+
+async function editMessage(data,bubble){
+
+  if(!bubble || !currentUser){
     return;
   }
 
-  /* Only one message can be edited at a time. */
-  if(activeEditCancel){
-    activeEditCancel();
-    activeEditCancel = null;
-  }
+  /* Always close every previous editor before opening a new one. */
+  closeActiveEdit();
 
-  if(bubble.classList.contains("editing")){
+  const row = bubble.closest("[data-message-id]");
+  const messageId = row?.dataset?.messageId || data?.id;
+  if(!messageId || messageId.startsWith("local-")){
     return;
   }
 
-  /* Always use the newest cached content. */
-  const latest =
-    messageCache.get(data.id) || data;
+  const latest = messageCache.get(messageId) || data || {};
+  const originalContent = String(
+    latest.content ?? bubble.querySelector(".message-text")?.textContent ?? ""
+  );
 
-  const originalContent =
-    latest.content || "";
+  const oldText = bubble.querySelector(".message-text");
+  if(!oldText){
+    return;
+  }
 
   bubble.classList.add("editing");
+  activeEditBubble = bubble;
 
-  const editor =
-    document.createElement("textarea");
-
+  const editor = document.createElement("textarea");
   editor.className = "edit-editor";
   editor.maxLength = 5000;
   editor.value = originalContent;
   editor.setAttribute("aria-label","Edit message");
+  editor.spellcheck = true;
 
-  const actions =
-    document.createElement("div");
-
+  const actions = document.createElement("div");
   actions.className = "edit-actions";
 
-  const save =
-    document.createElement("button");
-
+  const save = document.createElement("button");
   save.type = "button";
   save.className = "edit-action edit-save";
   save.textContent = "Save";
 
-  const cancel =
-    document.createElement("button");
-
+  const cancel = document.createElement("button");
   cancel.type = "button";
   cancel.className = "edit-action edit-cancel";
   cancel.textContent = "Cancel";
@@ -3604,19 +3687,21 @@ async function editMessage(
   bubble.appendChild(actions);
 
   let closed = false;
+  let saving = false;
 
   function closeEditor(restore=true){
-
-    if(closed){
-      return;
-    }
-
+    if(closed) return;
     closed = true;
 
-    if(restore && editor.isConnected){
-      editor.replaceWith(oldText);
-    }else if(editor.isConnected){
-      editor.remove();
+    if(editor.isConnected){
+      if(restore && oldText){
+        /* Restore the CURRENT cached text, not a stale closure value. */
+        const current = messageCache.get(messageId);
+        oldText.textContent = current?.content ?? originalContent;
+        editor.replaceWith(oldText);
+      }else{
+        editor.remove();
+      }
     }
 
     if(actions.isConnected){
@@ -3627,101 +3712,107 @@ async function editMessage(
 
     if(activeEditCancel === closeEditor){
       activeEditCancel = null;
+      activeEditBubble = null;
     }
   }
 
   activeEditCancel = closeEditor;
 
-  cancel.onclick = ()=>{
-    closeEditor(true);
-  };
+  cancel.onclick = ()=>closeEditor(true);
 
   editor.addEventListener("keydown",event=>{
     if(event.key === "Escape"){
       event.preventDefault();
       closeEditor(true);
+      return;
+    }
+
+    if((event.ctrlKey || event.metaKey) && event.key === "Enter"){
+      event.preventDefault();
+      save.click();
     }
   });
 
   save.onclick = async ()=>{
+    if(saving) return;
 
-    const content =
-      editor.value.trim();
-
+    const content = editor.value.trim();
     if(!content){
       showStatus("Message cannot be empty.");
       editor.focus();
       return;
     }
 
-    if(content === originalContent){
+    /* Compare against the LIVE cached value. */
+    const liveBeforeSave = messageCache.get(messageId)?.content ?? originalContent;
+    if(content === liveBeforeSave){
       closeEditor(true);
       return;
     }
 
+    saving = true;
     save.disabled = true;
     cancel.disabled = true;
     save.textContent = "Saving…";
 
     try{
+      const {data:updated,error} = await supabaseClient
+        .from("messages")
+        .update({
+          content,
+          edited_at:new Date().toISOString()
+        })
+        .eq("id",messageId)
+        .eq("sender_id",currentUser.id)
+        .select("id,sender_id,content,created_at,edited_at,reply_to_id")
+        .single();
 
-      const {
-        data:updated,
-        error
-      } =
-        await supabaseClient
-          .from("messages")
-          .update({
-            content:content,
-            edited_at:new Date().toISOString()
-          })
-          .eq("id",latest.id)
-          .eq("sender_id",currentUser.id)
-          .select("id,sender_id,content,created_at,edited_at,reply_to_id")
-          .single();
+      if(error) throw error;
 
-      if(error){
-        throw error;
+      /* Make the NEW value authoritative everywhere. */
+      messageCache.set(updated.id,updated);
+
+      const liveRow = document.querySelector(
+        `[data-message-id="${CSS.escape(updated.id)}"]`
+      );
+
+      if(liveRow){
+        liveRow.dataset.messageContent = updated.content || "";
+        const liveBubble = liveRow.querySelector(".message");
+        const liveText = liveBubble?.querySelector(".message-text");
+        if(liveText) liveText.textContent = updated.content || "";
+
+        const time = liveBubble?.querySelector(".message-time");
+        if(time){
+          time.textContent = formatTime(updated.created_at) +
+            (updated.edited_at ? " · edited" : "");
+        }
       }
 
-      messageCache.set(updated.id,updated);
-      data.content = updated.content;
-      data.edited_at = updated.edited_at;
-
-      oldText.textContent = updated.content;
-
-      const time =
-        bubble.querySelector(".message-time");
-
-      if(time){
-        time.textContent =
-          formatTime(updated.created_at) + " · edited";
+      /* Also update the object captured by the old menu. */
+      if(data){
+        data.content = updated.content;
+        data.edited_at = updated.edited_at;
       }
 
       closeEditor(false);
 
     }catch(error){
-
       console.error("Edit error:",error);
-
+      saving = false;
       save.disabled = false;
       cancel.disabled = false;
       save.textContent = "Save";
       showStatus("Message could not be edited.");
       editor.focus();
-
     }
-
   };
 
   requestAnimationFrame(()=>{
+    if(!editor.isConnected) return;
     editor.focus();
-    editor.setSelectionRange(
-      editor.value.length,
-      editor.value.length
-    );
+    editor.setSelectionRange(editor.value.length,editor.value.length);
   });
-
 }
 
 /* =====================================================
@@ -4186,6 +4277,7 @@ function startRealtime(){
               (localMessage?.reply_to_id || null) === (data.reply_to_id || null)
             ){
               row.dataset.messageId = data.id;
+  row.dataset.messageContent = data.content || "";
               messageCache.delete(localMessage.id);
               messageCache.set(data.id, data);
 
