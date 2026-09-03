@@ -1701,10 +1701,70 @@ header{
 }
 
 /* =====================================================
-   MOBILE
+   MOBILE CHAT LIST / CONVERSATION NAVIGATION
 ===================================================== */
 
+.mobile-chat-back{
+  display:none;
+}
+
 @media(max-width:800px){
+
+  /* Start mobile on the chat list. */
+  .chat-layout{
+    display:block;
+  }
+
+  .chat-layout.mobile-chat-open .sidebar{
+    display:none;
+  }
+
+  .chat-layout:not(.mobile-chat-open) .chat-box{
+    display:none;
+  }
+
+  .chat-layout.mobile-chat-open .chat-box{
+    display:block;
+  }
+
+  .chat-layout:not(.mobile-chat-open) .sidebar{
+    display:block;
+    width:100%;
+    height:100%;
+  }
+
+  .chat-layout:not(.mobile-chat-open) .chat-person{
+    cursor:pointer;
+    min-height:68px;
+    margin:14px 12px;
+    padding:12px;
+    -webkit-tap-highlight-color:transparent;
+  }
+
+  .chat-layout:not(.mobile-chat-open) .chat-person:active{
+    transform:scale(.99);
+  }
+
+  .chat-layout.mobile-chat-open .mobile-chat-back{
+    display:grid;
+    place-items:center;
+    width:36px;
+    height:36px;
+    flex:0 0 36px;
+    margin-right:1px;
+    border:1px solid rgba(145,76,255,.38);
+    border-radius:11px;
+    background:rgba(30,15,62,.72);
+    color:#eee7ff;
+    font-size:21px;
+    line-height:1;
+    cursor:pointer;
+    -webkit-tap-highlight-color:transparent;
+  }
+
+  .chat-layout.mobile-chat-open .mobile-chat-back:active{
+    transform:scale(.95);
+  }
 
   header{
     height:62px;
@@ -1764,7 +1824,7 @@ header{
   }
 
   .sidebar{
-    display:none;
+    width:100%;
   }
 
   .chat-box{
@@ -2182,6 +2242,15 @@ header{
 
     <div class="chat-top">
 
+      <button
+        class="mobile-chat-back"
+        id="mobileChatBack"
+        type="button"
+        aria-label="Back to chats"
+      >
+        ←
+      </button>
+
       <div
         class="chat-avatar"
         id="chatAvatar"
@@ -2404,6 +2473,62 @@ const sideAvatar =
 
 const statusBox =
   document.getElementById("status");
+
+const chatLayout =
+  document.querySelector(".chat-layout");
+
+const mobileChatBack =
+  document.getElementById("mobileChatBack");
+
+const mobileChatPerson =
+  document.querySelector(".chat-person");
+
+/* =====================================================
+   MOBILE CHAT LIST NAVIGATION
+===================================================== */
+
+function isMobileLayout(){
+  return window.matchMedia("(max-width:800px)").matches;
+}
+
+function openMobileConversation(){
+  if(!chatLayout || !isMobileLayout()) return;
+
+  chatLayout.classList.add("mobile-chat-open");
+
+  window.setTimeout(()=>{
+    if(messages){
+      messages.scrollTop =
+        messages.scrollHeight;
+    }
+  },40);
+}
+
+function closeMobileConversation(){
+  if(!chatLayout || !isMobileLayout()) return;
+
+  chatLayout.classList.remove("mobile-chat-open");
+
+  if(searchPanel){
+    searchPanel.classList.remove("open");
+  }
+}
+
+if(mobileChatPerson){
+  mobileChatPerson.addEventListener("click",openMobileConversation);
+}
+
+if(mobileChatBack){
+  mobileChatBack.addEventListener("click",closeMobileConversation);
+}
+
+window.addEventListener("resize",()=>{
+  if(!chatLayout) return;
+
+  if(!isMobileLayout()){
+    chatLayout.classList.remove("mobile-chat-open");
+  }
+});
 
 /* Safety guard: realtime connection text can NEVER become a visible toast. */
 const realtimeToastGuard = new MutationObserver(()=>{
