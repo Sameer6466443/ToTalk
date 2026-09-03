@@ -2191,6 +2191,18 @@ const sideAvatar =
 const statusBox =
   document.getElementById("status");
 
+/* Safety guard: realtime text can never become a visible toast. */
+const realtimeToastGuard = new MutationObserver(()=>{
+  const value = String(statusBox?.textContent || "");
+  if(/realtime/i.test(value)){
+    statusBox.classList.remove("show");
+    statusBox.textContent = "";
+  }
+});
+if(statusBox){
+  realtimeToastGuard.observe(statusBox,{childList:true,subtree:true,characterData:true});
+}
+
 const searchPanel =
   document.getElementById("searchPanel");
 
@@ -2274,6 +2286,26 @@ function showLoading(
 ===================================================== */
 
 function showStatus(text){
+
+  /* NEVER show realtime connection notices in the UI. */
+  const cleanText = String(text || "");
+  if(/realtime/i.test(cleanText)){
+    statusBox.classList.remove("show");
+    statusBox.textContent = "";
+    return;
+  }
+
+  /* Realtime connection state is intentionally silent.
+     It must never appear as a popup/toast to the user. */
+  const silentRealtimeStatus =
+    /realtime\s+(connected|reconnecting|connection error|timed out)/i.test(
+      String(text || "")
+    );
+
+  if(silentRealtimeStatus){
+    statusBox.classList.remove("show");
+    return;
+  }
 
   statusBox.textContent =
     text;
@@ -3888,112 +3920,137 @@ async function warmUpSupabase(){
 
 async function sendMessage(){
 
-  const text =
-    messageInput.value.trim();
-
-  if(!text){
-    return;
-  }
+  const text = messageInput.value.trim();
+  if(!text) return;
 
   if(!currentUser){
-
-    showStatus(
-      "Your login session is not ready."
-    );
-
+    showStatus("Your login session is not ready.");
     return;
-
   }
 
-  sendButton.disabled =
-    true;
+  const replyId = replyTarget?.id || null;
+  const tempId = "local-" + Date.now() + "-" + Math.random().toString(36).slice(2);
 
-  sendButton.textContent =
-    "Sending";
+  /*
+   * Put the message on screen immediately.
+   * The small "Sending…" state makes it feel natural instead of
+   * looking like the message magically appeared before saving.
+   */
+  const optimistic = {
+    id: tempId,
+    sender_id: currentUser.id,
+    content: text,
+    created_at: new Date().toISOString(),
+    edited_at: null,
+    reply_to_id: replyId,
+    _optimistic: true
+  };
+
+  addMessage(optimistic, true);
+
+  const optimisticRow = document.querySelector(
+    `[data-message-id="${tempId}"]`
+  );
+
+  const optimisticStatus = optimisticRow?.querySelector(
+    ".message-status"
+  );
+
+  if(optimisticStatus){
+    optimisticStatus.textContent = "Sending…";
+    optimisticStatus.classList.remove("seen");
+  }
+
+  messageInput.value = "";
+  clearReplyTarget();
+
+  requestAnimationFrame(()=>{
+    messages.scrollTop = messages.scrollHeight;
+  });
+
+  sendButton.disabled = true;
+  sendButton.classList.add("sending");
 
   try{
 
     const payload = {
-
-      sender_id:
-        currentUser.id,
-
-      content:
-        text,
-
-      reply_to_id:
-        replyTarget?.id ||
-        null
-
+      sender_id: currentUser.id,
+      content: text,
+      reply_to_id: replyId
     };
 
-    const {
-      data,
-      error
-    } =
-      await supabaseClient
-        .from("messages")
-        .insert(
-          payload
-        )
-        .select(
-          "id,sender_id,content,created_at,edited_at,reply_to_id"
-        )
-        .single();
+    const {data,error} = await supabaseClient
+      .from("messages")
+      .insert(payload)
+      .select("id,sender_id,content,created_at,edited_at,reply_to_id")
+      .single();
 
     if(error){
-
-      console.error(
-        "Supabase send error:",
-        error
-      );
-
+      console.error("Supabase send error:", error);
       throw error;
-
     }
 
-    addMessage(
-      data,
-      true
-    );
+    /* Convert the optimistic row into the real database message. */
+    messageCache.delete(tempId);
+    messageCache.set(data.id, data);
 
-    messageInput.value =
-      "";
+    if(optimisticRow){
+      optimisticRow.dataset.messageId = data.id;
 
-    clearReplyTarget();
-
-    requestAnimationFrame(
-      ()=>{
-
-        messages.scrollTop =
-          messages.scrollHeight;
-
+      const status = optimisticRow.querySelector(".message-status");
+      if(status){
+        status.textContent = "Sent";
       }
-    );
+
+      /* Keep the same smooth visual row; do not remove/re-add it. */
+      const menuButton = optimisticRow.querySelector(".message-menu-btn");
+      if(menuButton){
+        menuButton.replaceWith(menuButton.cloneNode(true));
+        const newMenuButton = optimisticRow.querySelector(".message-menu-btn");
+        newMenuButton.addEventListener("click", event=>{
+          event.stopPropagation();
+          closeMenus();
+          const bubble = optimisticRow.querySelector(".message");
+          const menu = createMessageMenu(data, bubble);
+          document.body.appendChild(menu);
+          const rect = bubble.getBoundingClientRect();
+          menu.style.left = Math.max(8, Math.min(rect.right - 130, window.innerWidth - 138)) + "px";
+          menu.style.top = Math.min(window.innerHeight - 120, rect.bottom + 7) + "px";
+          menu.classList.add("open");
+        });
+      }
+
+      /* Reaction picker keeps the real message id. */
+      const bubble = optimisticRow.querySelector(".message");
+      if(bubble){
+        const oldPicker = bubble._reactionPicker;
+        if(oldPicker) oldPicker.remove();
+        const picker = createReactionPicker(data, bubble);
+        bubble._reactionPicker = picker;
+      }
+    }
 
   }catch(error){
 
-    console.error(
-      "Send message error:",
-      error
-    );
+    console.error("Send message error:", error);
+
+    /* Failed messages stay visible briefly with a useful state. */
+    if(optimisticStatus){
+      optimisticStatus.textContent = "Not sent";
+      optimisticStatus.classList.add("send-failed");
+    }
 
     showStatus(
       "Message was not saved: " +
-      (
-        error.message ||
-        "Unknown error"
-      )
+      (error.message || "Unknown error")
     );
 
+    /* Restore text so the user does not lose what they typed. */
+    messageInput.value = text;
+
   }finally{
-
-    sendButton.disabled =
-      false;
-
-    sendButton.textContent =
-      "Send";
-
+    sendButton.disabled = false;
+    sendButton.classList.remove("sending");
   }
 
 }
@@ -4010,75 +4067,140 @@ function startRealtime(){
   }
 
   if(realtimeChannel){
-    try{
-      supabaseClient.removeChannel(realtimeChannel);
-    }catch(error){
-      console.warn("Realtime old channel removal:",error);
-    }
-    realtimeChannel=null;
+    try{ supabaseClient.removeChannel(realtimeChannel); }catch(e){}
+    realtimeChannel = null;
   }
 
-  const channelName="totalk-messages-"+currentUser.id+"-"+Date.now();
+  const channelName = "totalk-messages-" + currentUser.id;
 
-  console.log("Realtime: creating channel",channelName);
+  console.log("Realtime: creating channel", channelName);
 
-  realtimeChannel=supabaseClient
-    .channel(channelName)
-    .on("postgres_changes",{event:"INSERT",schema:"public",table:"messages"},payload=>{
-      console.log("Realtime INSERT:",payload);
-      const data=payload?.new;
-      if(!data?.id) return;
-      messageCache.set(data.id,data);
-      const exists=document.querySelector(`[data-message-id="${data.id}"]`);
-      if(exists) return;
-      const wasNearBottom=messages.scrollHeight-messages.scrollTop-messages.clientHeight<180;
-      addMessage(data,true);
-      if(wasNearBottom){
-        requestAnimationFrame(()=>{messages.scrollTop=messages.scrollHeight;});
+  const channel = supabaseClient.channel(channelName, {
+    config:{
+      broadcast:{self:false},
+      presence:{key:currentUser.id}
+    }
+  });
+
+  channel
+    .on(
+      "postgres_changes",
+      {event:"INSERT",schema:"public",table:"messages"},
+      payload=>{
+        const data = payload?.new;
+        if(!data?.id) return;
+
+        console.log("Realtime INSERT:", data);
+
+        messageCache.set(data.id, data);
+
+        const exists = document.querySelector(
+          `[data-message-id="${data.id}"]`
+        );
+
+        if(exists) return;
+
+        const nearBottom =
+          messages.scrollHeight - messages.scrollTop - messages.clientHeight < 180;
+
+        addMessage(data, true);
+
+        if(nearBottom){
+          requestAnimationFrame(()=>{
+            messages.scrollTo({
+              top:messages.scrollHeight,
+              behavior:"smooth"
+            });
+          });
+        }
       }
-    })
-    .on("postgres_changes",{event:"UPDATE",schema:"public",table:"messages"},payload=>{
-      console.log("Realtime UPDATE:",payload);
-      const data=payload?.new;
-      if(!data?.id) return;
-      messageCache.set(data.id,data);
-      const row=document.querySelector(`[data-message-id="${data.id}"]`);
-      if(!row) return;
-      const bubble=row.querySelector(".message");
-      const text=bubble?.querySelector(".message-text");
-      if(text) text.textContent=data.content||"";
-    })
-    .on("postgres_changes",{event:"DELETE",schema:"public",table:"messages"},payload=>{
-      console.log("Realtime DELETE:",payload);
-      const id=payload?.old?.id;
-      if(!id) return;
-      document.querySelector(`[data-message-id="${id}"]`)?.remove();
-      messageCache.delete(id);
-    })
-    .on("postgres_changes",{event:"*",schema:"public",table:"message_reactions"},async payload=>{
-      console.log("Realtime REACTION:",payload);
-      const id=payload?.new?.message_id||payload?.old?.message_id;
-      if(!id) return;
-      const row=document.querySelector(`[data-message-id="${id}"]`);
-      const bubble=row?.querySelector(".message");
-      if(bubble){
-        try{ await refreshReaction(id,bubble); }
-        catch(error){ console.error("Realtime reaction refresh:",error); }
+    )
+    .on(
+      "postgres_changes",
+      {event:"UPDATE",schema:"public",table:"messages"},
+      payload=>{
+        const data = payload?.new;
+        if(!data?.id) return;
+
+        console.log("Realtime UPDATE:", data);
+        messageCache.set(data.id, data);
+
+        const row = document.querySelector(
+          `[data-message-id="${data.id}"]`
+        );
+        if(!row) return;
+
+        const text = row.querySelector(".message-text");
+        if(text) text.textContent = data.content || "";
+
+        const time = row.querySelector(".message-time");
+        if(time){
+          time.textContent = formatTime(data.created_at) +
+            (data.edited_at ? " · edited" : "");
+        }
       }
-    })
-    .subscribe(status=>{
-      console.log("ToTalk Realtime status:",status);
-      if(status==="SUBSCRIBED"){
-        console.log("ToTalk Realtime connected");
-        showStatus("Realtime connected");
-      }else if(status==="CHANNEL_ERROR"){
-        console.error("ToTalk Realtime channel error");
-        showStatus("Realtime connection error");
-      }else if(status==="TIMED_OUT"){
-        console.error("ToTalk Realtime timed out");
-        showStatus("Realtime timed out");
+    )
+    .on(
+      "postgres_changes",
+      {event:"DELETE",schema:"public",table:"messages"},
+      payload=>{
+        const id = payload?.old?.id;
+        if(!id) return;
+
+        console.log("Realtime DELETE:", id);
+        document.querySelector(`[data-message-id="${id}"]`)?.remove();
+        messageCache.delete(id);
       }
-    });
+    )
+    .on(
+      "postgres_changes",
+      {event:"*",schema:"public",table:"message_reactions"},
+      async payload=>{
+        const id = payload?.new?.message_id || payload?.old?.message_id;
+        if(!id) return;
+
+        console.log("Realtime REACTION:", payload);
+
+        const row = document.querySelector(
+          `[data-message-id="${id}"]`
+        );
+        const bubble = row?.querySelector(".message");
+
+        if(bubble){
+          try{
+            await refreshReaction(id, bubble);
+          }catch(error){
+            console.error("Realtime reaction refresh:", error);
+          }
+        }
+      }
+    );
+
+  realtimeChannel = channel;
+
+  channel.subscribe(status=>{
+    console.log("ToTalk Realtime status:", status);
+
+    if(status === "SUBSCRIBED"){
+      console.log("ToTalk Realtime connected");
+      // Keep realtime status silent in the UI.
+      // Do not show a popup/toast when the realtime channel connects.
+      return;
+    }
+
+    if(status === "CHANNEL_ERROR" || status === "TIMED_OUT"){
+      console.error("ToTalk Realtime connection problem:", status);
+      showStatus("Realtime reconnecting…");
+
+      /* Retry without requiring a page refresh. */
+      setTimeout(()=>{
+        if(realtimeChannel === channel){
+          realtimeChannel = null;
+          startRealtime();
+        }
+      }, 1500);
+    }
+  });
 }
 
 /* =====================================================
@@ -4576,6 +4698,26 @@ supabaseClient.auth.onAuthStateChange(
   }
 );
 
+
+/* Smooth message sending states */
+.message-status{
+  min-width:46px;
+  transition:opacity .18s ease, color .18s ease;
+}
+
+.message-status.send-failed{
+  color:#ff9a9a;
+}
+
+#sendButton.sending,
+#sendButton.sending:hover{
+  opacity:.82;
+}
+
+.message-row{
+  will-change:transform,opacity;
+}
+
 /* =====================================================
    START APPLICATION
 ===================================================== */
@@ -4801,17 +4943,15 @@ async function startApp(){
     updateUserUI();
 
     /*
-     * Load chat.
-     */
-
-    await loadMessages();
-
-    /*
-     * Start realtime after
-     * initial loading.
+     * Connect realtime BEFORE loading the message history.
+     * This removes the startup gap where a new message could
+     * arrive while history was still being fetched.
      */
 
     startRealtime();
+
+    /* Load the existing chat history. */
+    await loadMessages();
 
     startPresence();
 
