@@ -1173,6 +1173,7 @@ header{
   display:none;
 
   position:absolute;
+  box-sizing:border-box;
   right:8px;
   top:34px;
 
@@ -2930,19 +2931,7 @@ function addMessage(
 
         event.stopPropagation();
 
-        /* One message action menu at a time.
-           Keep it INSIDE the message bubble so it stays attached
-           to the exact message while the chat scrolls. */
-        closeMenus();
-        closeActiveEdit();
-
-        const menu = createMessageMenu(
-          data,
-          bubble
-        );
-
-        bubble.appendChild(menu);
-        menu.classList.add("open");
+        openMessageMenu(data,bubble);
 
       }
     );
@@ -3538,6 +3527,37 @@ function createMessageMenu(
   return menu;
 }
 
+/* Open the action menu next to the EXACT message.
+   It stays inside that message bubble, never in <body>, and
+   automatically flips above the bubble when there is not enough
+   room below it. */
+function openMessageMenu(data,bubble){
+  if(!bubble) return;
+
+  closeMenus();
+  closeActiveEdit();
+
+  const menu=createMessageMenu(data,bubble);
+  bubble.appendChild(menu);
+  menu.classList.add("open");
+
+  requestAnimationFrame(()=>{
+    if(!menu.isConnected) return;
+
+    menu.style.top="34px";
+    menu.style.bottom="auto";
+
+    const rect=bubble.getBoundingClientRect();
+    const menuRect=menu.getBoundingClientRect();
+    const gap=8;
+
+    if(rect.bottom + menuRect.height + gap > window.innerHeight){
+      menu.style.top="auto";
+      menu.style.bottom="calc(100% + 8px)";
+    }
+  });
+}
+
 /* =====================================================
    CLOSE MENUS
 ===================================================== */
@@ -3686,8 +3706,10 @@ async function editMessage(data,bubble){
     closed = true;
 
     if(editor.isConnected){
-      if(restore && oldText){
-        /* Restore the CURRENT cached text, not a stale closure value. */
+      /* ALWAYS put the message text node back. The previous version
+         removed the textarea on Save without restoring this node,
+         which made the message disappear. */
+      if(oldText){
         const current = messageCache.get(messageId);
         oldText.textContent = current?.content ?? originalContent;
         editor.replaceWith(oldText);
@@ -4167,14 +4189,8 @@ async function sendMessage(){
         const newMenuButton = optimisticRow.querySelector(".message-menu-btn");
         newMenuButton.addEventListener("click", event=>{
           event.stopPropagation();
-          closeMenus();
           const bubble = optimisticRow.querySelector(".message");
-          const menu = createMessageMenu(data, bubble);
-          document.body.appendChild(menu);
-          const rect = bubble.getBoundingClientRect();
-          menu.style.left = Math.max(8, Math.min(rect.right - 130, window.innerWidth - 138)) + "px";
-          menu.style.top = Math.min(window.innerHeight - 120, rect.bottom + 7) + "px";
-          menu.classList.add("open");
+          openMessageMenu(data,bubble);
         });
       }
 
@@ -4323,8 +4339,13 @@ function startRealtime(){
         );
         if(!row) return;
 
-        const text = row.querySelector(".message-text");
-        if(text) text.textContent = data.content || "";
+        /* If this message is currently being edited, leave the textarea
+           alone. The cache is already updated and Save will reconcile
+           the latest value when the editor closes. */
+        if(!row.querySelector(".message.editing")){
+          const text = row.querySelector(".message-text");
+          if(text) text.textContent = data.content || "";
+        }
 
         const time = row.querySelector(".message-time");
         if(time){
@@ -4730,22 +4751,11 @@ document.addEventListener(
   event=>{
 
     if(
-      !event.target.closest(
-        ".message-menu"
-      ) &&
-      !event.target.closest(
-        ".message-menu-btn"
-      ) &&
-      !event.target.closest(
-        ".reaction-picker"
-      ) &&
-      !event.target.closest(
-        ".message"
-      )
+      !event.target.closest(".message-menu") &&
+      !event.target.closest(".message-menu-btn") &&
+      !event.target.closest(".reaction-picker")
     ){
-
       closeMenus();
-
     }
 
   }
