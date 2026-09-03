@@ -1419,6 +1419,11 @@ header{
     transform .2s ease;
 }
 
+/* Realtime connection messages are intentionally invisible. */
+#status.realtime-hidden{
+  display:none !important;
+}
+
 #status.show{
   opacity:1;
 
@@ -2191,17 +2196,20 @@ const sideAvatar =
 const statusBox =
   document.getElementById("status");
 
-/* Safety guard: realtime text can never become a visible toast. */
+/* Safety guard: realtime connection text can NEVER become a visible toast. */
 const realtimeToastGuard = new MutationObserver(()=>{
-  const value = String(statusBox?.textContent || "");
+  if(!statusBox) return;
+  const value = String(statusBox.textContent || "");
   if(/realtime/i.test(value)){
     statusBox.classList.remove("show");
+    statusBox.classList.add("realtime-hidden");
     statusBox.textContent = "";
   }
 });
 if(statusBox){
   realtimeToastGuard.observe(statusBox,{childList:true,subtree:true,characterData:true});
 }
+
 
 const searchPanel =
   document.getElementById("searchPanel");
@@ -2291,9 +2299,12 @@ function showStatus(text){
   const cleanText = String(text || "");
   if(/realtime/i.test(cleanText)){
     statusBox.classList.remove("show");
+    statusBox.classList.add("realtime-hidden");
     statusBox.textContent = "";
     return;
   }
+
+  statusBox.classList.remove("realtime-hidden");
 
   /* Realtime connection state is intentionally silent.
      It must never appear as a popup/toast to the user. */
@@ -4190,7 +4201,7 @@ function startRealtime(){
 
     if(status === "CHANNEL_ERROR" || status === "TIMED_OUT"){
       console.error("ToTalk Realtime connection problem:", status);
-      showStatus("Realtime reconnecting…");
+      /* Realtime reconnects silently. Never show a toast. */
 
       /* Retry without requiring a page refresh. */
       setTimeout(()=>{
