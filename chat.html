@@ -1701,6 +1701,165 @@ header{
 }
 
 /* =====================================================
+   PRIVATE CONVERSATIONS / USER SEARCH
+===================================================== */
+
+.user-search-row{
+  display:flex;
+  gap:7px;
+  margin-top:13px;
+}
+
+#userSearchInput{
+  min-width:0;
+  flex:1;
+  height:38px;
+  padding:0 11px;
+  border:1px solid rgba(145,76,255,.28);
+  border-radius:11px;
+  outline:none;
+  background:rgba(255,255,255,.045);
+  color:#fff;
+  font:700 11px/1 system-ui,sans-serif;
+}
+
+#userSearchInput:focus{
+  border-color:rgba(166,116,255,.65);
+  box-shadow:0 0 0 3px rgba(145,76,255,.08);
+}
+
+#userSearchInput::placeholder{color:#777080;}
+
+#userSearchButton{
+  width:38px;
+  height:38px;
+  flex:0 0 38px;
+  border:1px solid rgba(145,76,255,.38);
+  border-radius:11px;
+  background:linear-gradient(135deg,#7130e8,#a35cff);
+  color:#fff;
+  font-size:18px;
+  cursor:pointer;
+}
+
+.user-search-result{
+  margin-top:8px;
+}
+
+.user-search-card{
+  display:flex;
+  align-items:center;
+  gap:9px;
+  width:100%;
+  padding:9px;
+  border:1px solid rgba(145,76,255,.25);
+  border-radius:11px;
+  background:rgba(145,76,255,.08);
+}
+
+.user-search-card .mini-avatar,
+.conversation-item .mini-avatar{
+  width:38px;
+  height:38px;
+  flex:0 0 38px;
+  display:grid;
+  place-items:center;
+  border-radius:50%;
+  background:linear-gradient(135deg,#a45cff,#6321d8);
+  color:#fff;
+  font-weight:900;
+  box-shadow:0 0 14px rgba(145,76,255,.24);
+}
+
+.user-search-info{min-width:0;flex:1;}
+.user-search-name{font-size:12px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.user-search-id{margin-top:3px;color:#a99bbd;font-size:10px;}
+
+.user-search-open{
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:9px;
+  padding:8px 9px;
+  background:rgba(255,255,255,.06);
+  color:#fff;
+  font-size:10px;
+  font-weight:800;
+  cursor:pointer;
+}
+
+.user-search-error{
+  padding:8px 3px 2px;
+  color:#d7c7e9;
+  font-size:10px;
+}
+
+.conversation-list{
+  overflow:auto;
+  height:calc(100% - 157px);
+  padding:7px 8px 12px;
+}
+
+.conversation-item{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:11px 9px;
+  margin:4px 0;
+  border:1px solid transparent;
+  border-radius:12px;
+  background:transparent;
+  cursor:pointer;
+  transition:background .16s ease,border-color .16s ease,transform .16s ease;
+  -webkit-tap-highlight-color:transparent;
+}
+
+.conversation-item:hover{
+  background:rgba(145,76,255,.08);
+  border-color:rgba(145,76,255,.16);
+}
+
+.conversation-item.active{
+  background:linear-gradient(135deg,rgba(112,45,210,.28),rgba(30,14,62,.68));
+  border-color:rgba(145,76,255,.34);
+}
+
+.conversation-copy{min-width:0;flex:1;}
+.conversation-top{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.conversation-name{font-size:12px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.conversation-time{color:#776c84;font-size:9px;white-space:nowrap;}
+.conversation-preview{margin-top:4px;color:#8f859c;font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+
+.conversation-empty{
+  min-height:190px;
+  padding:28px 18px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex-direction:column;
+  gap:7px;
+  text-align:center;
+  color:#8f859c;
+  font-size:10px;
+}
+
+.conversation-empty strong{color:#cfc3df;font-size:12px;}
+.conversation-empty span{line-height:1.5;max-width:180px;}
+.empty-orbit{
+  width:42px;height:42px;border:1px solid rgba(145,76,255,.3);
+  border-radius:50%;display:grid;place-items:center;color:#b789ff;
+  box-shadow:0 0 20px rgba(145,76,255,.12);
+  margin-bottom:4px;
+}
+
+.chat-box.empty-chat .input-area{opacity:.45;pointer-events:none;}
+.chat-box.empty-chat .chat-actions{opacity:.45;pointer-events:none;}
+
+@media(max-width:800px){
+  .conversation-list{height:calc(100% - 157px);padding:4px 8px 20px;}
+  .sidebar-title{padding:16px 13px 12px;}
+  .conversation-item{min-height:68px;margin:5px 0;padding:12px 10px;}
+}
+
+/* =====================================================
    MOBILE CHAT LIST / CONVERSATION NAVIGATION
 ===================================================== */
 
@@ -2190,48 +2349,35 @@ header{
   <aside class="sidebar">
 
     <div class="sidebar-title">
+      <h2 id="sideTitle">Chats</h2>
+      <p>Your private ToTalk conversations</p>
 
-      <h2 id="sideTitle">
-        Sameer's Chats
-      </h2>
+      <div class="user-search-row">
+        <input
+          id="userSearchInput"
+          type="text"
+          inputmode="text"
+          maxlength="20"
+          placeholder="Search ToTalk ID"
+          autocomplete="off"
+          spellcheck="false"
+        >
+        <button
+          id="userSearchButton"
+          type="button"
+          aria-label="Search ToTalk ID"
+        >⌕</button>
+      </div>
 
-      <p>
-        Your personal conversation space
-      </p>
-
+      <div id="userSearchResult" class="user-search-result"></div>
     </div>
 
-    <div class="chat-person">
-
-      <div
-        class="avatar"
-        id="sideAvatar"
-        aria-label="Your profile picture"
-      >
-        S
+    <div id="conversationList" class="conversation-list">
+      <div class="conversation-empty">
+        <div class="empty-orbit">✦</div>
+        <strong>No conversations yet</strong>
+        <span>Search a ToTalk ID above to start a private chat.</span>
       </div>
-
-      <div>
-
-        <div
-          class="person-name"
-          id="sideName"
-        >
-          Sameer
-        </div>
-
-        <div class="presence">
-
-          <span class="presence-dot"></span>
-
-          <span id="sidePresence">
-            Online
-          </span>
-
-        </div>
-
-      </div>
-
     </div>
 
   </aside>
@@ -2468,6 +2614,9 @@ const chatTitle =
 const chatAvatar =
   document.getElementById("chatAvatar");
 
+const chatPresence =
+  document.getElementById("chatPresence");
+
 const sideAvatar =
   document.getElementById("sideAvatar");
 
@@ -2480,8 +2629,17 @@ const chatLayout =
 const mobileChatBack =
   document.getElementById("mobileChatBack");
 
-const mobileChatPerson =
-  document.querySelector(".chat-person");
+const conversationList =
+  document.getElementById("conversationList");
+
+const userSearchInput =
+  document.getElementById("userSearchInput");
+
+const userSearchButton =
+  document.getElementById("userSearchButton");
+
+const userSearchResult =
+  document.getElementById("userSearchResult");
 
 /* =====================================================
    MOBILE CHAT LIST NAVIGATION
@@ -2493,29 +2651,17 @@ function isMobileLayout(){
 
 function openMobileConversation(){
   if(!chatLayout || !isMobileLayout()) return;
-
+  if(!currentConversationId) return;
   chatLayout.classList.add("mobile-chat-open");
-
   window.setTimeout(()=>{
-    if(messages){
-      messages.scrollTop =
-        messages.scrollHeight;
-    }
+    if(messages) messages.scrollTop = messages.scrollHeight;
   },40);
 }
 
 function closeMobileConversation(){
   if(!chatLayout || !isMobileLayout()) return;
-
   chatLayout.classList.remove("mobile-chat-open");
-
-  if(searchPanel){
-    searchPanel.classList.remove("open");
-  }
-}
-
-if(mobileChatPerson){
-  mobileChatPerson.addEventListener("click",openMobileConversation);
+  searchPanel?.classList.remove("open");
 }
 
 if(mobileChatBack){
@@ -2524,10 +2670,7 @@ if(mobileChatBack){
 
 window.addEventListener("resize",()=>{
   if(!chatLayout) return;
-
-  if(!isMobileLayout()){
-    chatLayout.classList.remove("mobile-chat-open");
-  }
+  if(!isMobileLayout()) chatLayout.classList.remove("mobile-chat-open");
 });
 
 /* Safety guard: realtime connection text can NEVER become a visible toast. */
@@ -2554,6 +2697,10 @@ const searchInput =
 let currentUser = null;
 
 let currentProfile = null;
+
+let currentConversationId = null;
+let currentConversationPartner = null;
+let conversations = [];
 
 let realtimeChannel = null;
 
@@ -2782,40 +2929,62 @@ function updateUserUI(){
     currentUser?.email?.split("@")[0] ||
     "ToTalk User";
 
-  const first =
-    name.trim().charAt(0).toUpperCase() ||
-    "T";
+  const first = name.trim().charAt(0).toUpperCase() || "T";
 
-  if(userName){
-    userName.textContent =
-      name;
+  if(userName) userName.textContent = name;
+  if(sideName) sideName.textContent = name;
+  if(sideAvatar) sideAvatar.textContent = first;
+
+  const sideTitle = document.getElementById("sideTitle");
+  if(sideTitle) sideTitle.textContent = "Chats";
+
+  setEmptyChatState();
+  document.title = "ToTalk";
+}
+
+function setEmptyChatState(){
+  currentConversationId = null;
+  currentConversationPartner = null;
+  chatBoxEmpty(true);
+
+  if(chatTitle) chatTitle.textContent = "Select a conversation";
+  if(chatPresence) chatPresence.textContent = "Choose a person to start";
+  if(chatAvatar) chatAvatar.textContent = "T";
+  if(messages){
+    messages.innerHTML = `
+      <div class="welcome-message" id="welcomeMessage">
+        <h3>Your ToTalk space</h3>
+        <p>Search a ToTalk ID on the left, then open a private conversation.</p>
+      </div>
+    `;
   }
-
-  sideName.textContent =
-    name;
-
-  chatTitle.textContent =
-    name + "'s ToTalk";
-
-  sideAvatar.textContent =
-    first;
-
-  chatAvatar.textContent =
-    first;
-
-  const sideTitle =
-    document.getElementById(
-      "sideTitle"
-    );
-
-  if(sideTitle){
-    sideTitle.textContent =
-      name + "'s Chats";
+  if(messageInput){
+    messageInput.value = "";
+    messageInput.placeholder = "Select a conversation first...";
+    messageInput.disabled = true;
   }
+  if(sendButton) sendButton.disabled = true;
+}
 
-  document.title =
-    "ToTalk";
+function chatBoxEmpty(value){
+  const box = document.querySelector(".chat-box");
+  if(box) box.classList.toggle("empty-chat",!!value);
+}
 
+function renderActivePartner(){
+  const p = currentConversationPartner;
+  if(!p) return;
+  const name = p.name || "ToTalk User";
+  const first = name.trim().charAt(0).toUpperCase() || "T";
+  if(chatTitle) chatTitle.textContent = name;
+  if(chatAvatar) chatAvatar.textContent = first;
+  if(chatPresence) chatPresence.textContent = p.totalk_id || "ToTalk";
+  if(messageInput){
+    messageInput.disabled = false;
+    messageInput.placeholder = "Write a message...";
+  }
+  if(sendButton) sendButton.disabled = false;
+  chatBoxEmpty(false);
 }
 
 /* =====================================================
@@ -3816,7 +3985,7 @@ async function editMessage(data,bubble){
         })
         .eq("id",messageId)
         .eq("sender_id",currentUser.id)
-        .select("id,sender_id,content,created_at,edited_at,reply_to_id")
+        .select("id,sender_id,content,created_at,edited_at,reply_to_id,conversation_id")
         .single();
 
       if(error) throw error;
@@ -3972,112 +4141,301 @@ async function deleteMessage(
 
 async function loadMessages(){
 
-  const {
-    data,
-    error
-  } =
-    await supabaseClient
-      .from("messages")
-      .select(
-        "id,sender_id,content,created_at,edited_at,reply_to_id"
-      )
-      .order(
-        "created_at",
-        {
-          ascending:true
-        }
-      );
-
-  if(error){
-
-    console.error(
-      "Message load error:",
-      error
-    );
-
-    throw error;
-
+  if(!currentConversationId){
+    setEmptyChatState();
+    return;
   }
 
-  messages.innerHTML =
-    "";
+  const {data,error} = await supabaseClient
+    .from("messages")
+    .select("id,sender_id,content,created_at,edited_at,reply_to_id,conversation_id")
+    .eq("conversation_id",currentConversationId)
+    .order("created_at",{ascending:true});
 
-  if(
-    !data ||
-    data.length === 0
-  ){
+  if(error){
+    console.error("Message load error:",error);
+    throw error;
+  }
 
+  messages.innerHTML = "";
+
+  messageCache.clear();
+
+  if(!data || data.length === 0){
     messages.innerHTML = `
-      <div
-        class="welcome-message"
-        id="welcomeMessage"
-      >
-        <h3>
-          Welcome to ToTalk
-        </h3>
+      <div class="welcome-message" id="welcomeMessage">
+        <h3>Private conversation</h3>
+        <p>Say hello to ${escapeHtml(currentConversationPartner?.name || "your new connection")}.</p>
+      </div>
+    `;
+    return;
+  }
 
-        <p>
-          Your conversation space is ready.
-          Write a message below to begin.
-        </p>
+  data.forEach(message=>messageCache.set(message.id,message));
+
+  data.forEach(message=>addMessage(message,false));
+
+  requestAnimationFrame(()=>{
+    messages.scrollTop = messages.scrollHeight;
+  });
+
+  await loadAllReactions();
+}
+
+function escapeHtml(value){
+  return String(value ?? "")
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;")
+    .replace(/\"/g,"&quot;")
+    .replace(/'/g,"&#039;");
+}
+
+/* =====================================================
+   CONVERSATION SYSTEM
+===================================================== */
+
+function normalizedId(value){
+  return String(value || "").trim().toUpperCase();
+}
+
+function orderedPair(a,b){
+  return String(a) < String(b) ? [a,b] : [b,a];
+}
+
+async function findUserByToTalkId(raw){
+  const id = normalizedId(raw);
+  if(!/^TT-[A-Z0-9]{6}$/.test(id)){
+    throw new Error("Enter a valid ToTalk ID like TT-ABC123.");
+  }
+
+  const {data,error} = await supabaseClient
+    .from("profiles")
+    .select("id,user_id,name,totalk_id,profile_completed")
+    .eq("totalk_id",id)
+    .eq("profile_completed",true)
+    .neq("user_id",currentUser.id)
+    .maybeSingle();
+
+  if(error) throw error;
+  return data || null;
+}
+
+async function getOrCreateConversation(otherUserId){
+  const [user1_id,user2_id] = orderedPair(currentUser.id,otherUserId);
+
+  let {data,error} = await supabaseClient
+    .from("conversations")
+    .select("id,user1_id,user2_id,created_at,updated_at")
+    .eq("user1_id",user1_id)
+    .eq("user2_id",user2_id)
+    .maybeSingle();
+
+  if(error) throw error;
+  if(data) return data;
+
+  const result = await supabaseClient
+    .from("conversations")
+    .insert({user1_id,user2_id})
+    .select("id,user1_id,user2_id,created_at,updated_at")
+    .single();
+
+  if(!result.error) return result.data;
+
+  /* Another device can create the same pair at the same moment. */
+  if(result.error.code === "23505") {
+    const retry = await supabaseClient
+      .from("conversations")
+      .select("id,user1_id,user2_id,created_at,updated_at")
+      .eq("user1_id",user1_id)
+      .eq("user2_id",user2_id)
+      .single();
+    if(retry.error) throw retry.error;
+    return retry.data;
+  }
+
+  throw result.error;
+}
+
+async function loadConversationList(){
+  if(!conversationList || !currentUser) return;
+
+  const {data,error} = await supabaseClient
+    .from("conversations")
+    .select("id,user1_id,user2_id,created_at,updated_at")
+    .or(`user1_id.eq.${currentUser.id},user2_id.eq.${currentUser.id}`)
+    .order("updated_at",{ascending:false});
+
+  if(error) throw error;
+
+  const rows = data || [];
+  conversations = rows;
+
+  if(!rows.length){
+    conversationList.innerHTML = `
+      <div class="conversation-empty">
+        <div class="empty-orbit">✦</div>
+        <strong>No conversations yet</strong>
+        <span>Search a ToTalk ID above to start a private chat.</span>
+      </div>
+    `;
+    return;
+  }
+
+  const ids = [...new Set(rows.map(row=>row.user1_id === currentUser.id ? row.user2_id : row.user1_id))];
+  const {data:profiles,error:profileError} = await supabaseClient
+    .from("profiles")
+    .select("user_id,name,totalk_id,profile_completed")
+    .in("user_id",ids);
+
+  if(profileError) throw profileError;
+
+  const profileMap = new Map((profiles || []).map(p=>[p.user_id,p]));
+
+  let latestMap = new Map();
+  const conversationIds = rows.map(row=>row.id);
+
+  if(conversationIds.length){
+    const latest = await supabaseClient
+      .from("messages")
+      .select("conversation_id,content,created_at")
+      .in("conversation_id",conversationIds)
+      .order("created_at",{ascending:false})
+      .limit(200);
+
+    if(!latest.error){
+      for(const item of (latest.data || [])){
+        if(!latestMap.has(item.conversation_id)) latestMap.set(item.conversation_id,item);
+      }
+    }
+  }
+
+  conversationList.innerHTML = "";
+
+  rows.forEach(row=>{
+    const partnerId = row.user1_id === currentUser.id ? row.user2_id : row.user1_id;
+    const partner = profileMap.get(partnerId);
+    if(!partner) return;
+
+    const item = document.createElement("button");
+    item.type = "button";
+    item.className = "conversation-item" + (row.id === currentConversationId ? " active" : "");
+    item.dataset.conversationId = row.id;
+
+    const name = partner.name || "ToTalk User";
+    const first = name.trim().charAt(0).toUpperCase() || "T";
+    const latest = latestMap.get(row.id);
+
+    item.innerHTML = `
+      <span class="mini-avatar">${escapeHtml(first)}</span>
+      <span class="conversation-copy">
+        <span class="conversation-top">
+          <span class="conversation-name">${escapeHtml(name)}</span>
+          <span class="conversation-time">${latest ? escapeHtml(formatTime(latest.created_at)) : ""}</span>
+        </span>
+        <span class="conversation-preview">${escapeHtml(latest?.content || partner.totalk_id || "New conversation")}</span>
+      </span>
+    `;
+
+    item.addEventListener("click",()=>openConversation(row,partner));
+    conversationList.appendChild(item);
+  });
+}
+
+async function openConversation(row,partner){
+  if(!row?.id || !partner) return;
+
+  currentConversationId = row.id;
+  currentConversationPartner = partner;
+
+  document.querySelectorAll(".conversation-item").forEach(item=>{
+    item.classList.toggle("active",item.dataset.conversationId === row.id);
+  });
+
+  renderActivePartner();
+  showLoading("ToTalk",`Opening ${partner.name || "conversation"}…`);
+
+  try{
+    closeMenus();
+    closeActiveEdit();
+    clearReplyTarget();
+    await loadMessages();
+    if(isMobileLayout()) openMobileConversation();
+  }catch(error){
+    console.error("Conversation open error:",error);
+    showStatus("This conversation could not be opened.");
+  }finally{
+    finishLoading();
+  }
+}
+
+async function startConversationWithUser(partner){
+  if(!partner || partner.user_id === currentUser.id) return;
+
+  showLoading("ToTalk",`Opening ${partner.name || "conversation"}…`);
+
+  try{
+    const row = await getOrCreateConversation(partner.user_id);
+    await loadConversationList();
+    await openConversation(row,partner);
+  }catch(error){
+    console.error("Start conversation error:",error);
+    showStatus(error.message || "Could not start the conversation.");
+    finishLoading();
+  }
+}
+
+async function searchToTalkUser(){
+  if(!currentUser || !userSearchInput) return;
+  const value = normalizedId(userSearchInput.value);
+  userSearchInput.value = value;
+  if(userSearchResult) userSearchResult.innerHTML = "";
+
+  if(!value){
+    return;
+  }
+
+  if(userSearchResult){
+    userSearchResult.innerHTML = `<div class="user-search-error">Searching…</div>`;
+  }
+
+  try{
+    const user = await findUserByToTalkId(value);
+    if(!user){
+      userSearchResult.innerHTML = `<div class="user-search-error">No user found for ${escapeHtml(value)}.</div>`;
+      return;
+    }
+
+    const first = (user.name || "T").trim().charAt(0).toUpperCase() || "T";
+    userSearchResult.innerHTML = `
+      <div class="user-search-card">
+        <div class="mini-avatar">${escapeHtml(first)}</div>
+        <div class="user-search-info">
+          <div class="user-search-name">${escapeHtml(user.name || "ToTalk User")}</div>
+          <div class="user-search-id">${escapeHtml(user.totalk_id)}</div>
+        </div>
+        <button class="user-search-open" type="button">Chat</button>
       </div>
     `;
 
-    return;
-
+    userSearchResult.querySelector(".user-search-open")?.addEventListener("click",async()=>{
+      userSearchResult.innerHTML = "";
+      userSearchInput.value = "";
+      await startConversationWithUser(user);
+    });
+  }catch(error){
+    console.error("User search error:",error);
+    userSearchResult.innerHTML = `<div class="user-search-error">${escapeHtml(error.message || "Search failed.")}</div>`;
   }
-
-  /* Cache first */
-
-  data.forEach(
-    message=>{
-      messageCache.set(
-        message.id,
-        message
-      );
-    }
-  );
-
-  /*
-   * Use a fragment so the browser performs
-   * fewer layout/repaint operations.
-   */
-
-  const fragment =
-    document.createDocumentFragment();
-
-  const originalAppend =
-    messages.appendChild;
-
-  /*
-   * Build messages normally.
-   * Layout is contained, so this is much
-   * cheaper than forcing scroll/layout each time.
-   */
-
-  data.forEach(
-    message=>{
-
-      addMessage(
-        message,
-        false
-      );
-
-    }
-  );
-
-  requestAnimationFrame(
-    ()=>{
-
-      messages.scrollTop =
-        messages.scrollHeight;
-
-    }
-  );
-
-  await loadAllReactions();
-
 }
+
+userSearchButton?.addEventListener("click",searchToTalkUser);
+userSearchInput?.addEventListener("keydown",event=>{
+  if(event.key === "Enter"){
+    event.preventDefault();
+    searchToTalkUser();
+  }
+});
 
 /* =====================================================
    CONNECTION WARM-UP
@@ -4156,6 +4514,7 @@ async function sendMessage(){
     created_at: new Date().toISOString(),
     edited_at: null,
     reply_to_id: replyId,
+    conversation_id: currentConversationId,
     _optimistic: true
   };
 
@@ -4188,16 +4547,21 @@ async function sendMessage(){
 
   try{
 
+    if(!currentConversationId){
+      throw new Error("Select a conversation first.");
+    }
+
     const payload = {
       sender_id: currentUser.id,
       content: text,
-      reply_to_id: replyId
+      reply_to_id: replyId,
+      conversation_id: currentConversationId
     };
 
     const {data,error} = await supabaseClient
       .from("messages")
       .insert(payload)
-      .select("id,sender_id,content,created_at,edited_at,reply_to_id")
+      .select("id,sender_id,content,created_at,edited_at,reply_to_id,conversation_id")
       .single();
 
     if(error){
@@ -4238,6 +4602,9 @@ async function sendMessage(){
         bubble._reactionPicker = picker;
       }
     }
+
+    /* Keep the sidebar preview/order current after a successful send. */
+    void loadConversationList();
 
   }catch(error){
 
@@ -4299,6 +4666,7 @@ function startRealtime(){
       payload=>{
         const data = payload?.new;
         if(!data?.id) return;
+        if(!currentConversationId || data.conversation_id !== currentConversationId) return;
 
         console.log("Realtime INSERT:", data);
 
@@ -4365,6 +4733,7 @@ function startRealtime(){
       payload=>{
         const data = payload?.new;
         if(!data?.id) return;
+        if(!currentConversationId || data.conversation_id !== currentConversationId) return;
 
         console.log("Realtime UPDATE:", data);
         messageCache.set(data.id, data);
@@ -4395,6 +4764,8 @@ function startRealtime(){
       payload=>{
         const id = payload?.old?.id;
         if(!id) return;
+        const oldConversationId = payload?.old?.conversation_id;
+        if(!currentConversationId || oldConversationId !== currentConversationId) return;
 
         console.log("Realtime DELETE:", id);
         document.querySelector(`[data-message-id="${id}"]`)?.remove();
@@ -4406,7 +4777,7 @@ function startRealtime(){
       {event:"*",schema:"public",table:"message_reactions"},
       async payload=>{
         const id = payload?.new?.message_id || payload?.old?.message_id;
-        if(!id) return;
+        if(!id || !messageCache.has(id)) return;
 
         console.log("Realtime REACTION:", payload);
 
@@ -5161,16 +5532,11 @@ async function startApp(){
 
     updateUserUI();
 
-    /*
-     * Connect realtime BEFORE loading the message history.
-     * This removes the startup gap where a new message could
-     * arrive while history was still being fetched.
-     */
+    /* Load the real private conversation list. */
+    await loadConversationList();
 
+    /* Realtime stays connected, but only the active conversation is rendered. */
     startRealtime();
-
-    /* Load the existing chat history. */
-    await loadMessages();
 
     startPresence();
 
