@@ -1265,32 +1265,31 @@ header{
 ===================================================== */
 
 .reaction-picker{
-  display:none;
-
+  display:flex;
   position:fixed;
-
   z-index:999998;
-
   align-items:center;
-
   gap:3px;
-
   padding:6px;
-
-  border:
-    1px solid
-    rgba(145,76,255,.45);
-
+  border:1px solid rgba(145,76,255,.45);
   border-radius:14px;
-
-  background:#0c061c;
-
-  box-shadow:
-    0 12px 28px rgba(0,0,0,.45);
+  background:rgba(12,6,28,.96);
+  box-shadow:0 12px 28px rgba(0,0,0,.45),0 0 24px rgba(132,74,255,.12);
+  opacity:0;
+  visibility:hidden;
+  pointer-events:none;
+  transform:translateY(6px) scale(.94);
+  transform-origin:center bottom;
+  transition:opacity .14s ease,transform .16s cubic-bezier(.2,.8,.2,1),visibility .14s ease;
+  backdrop-filter:blur(14px);
+  -webkit-backdrop-filter:blur(14px);
 }
 
 .reaction-picker.open{
-  display:flex;
+  opacity:1;
+  visibility:visible;
+  pointer-events:auto;
+  transform:translateY(0) scale(1);
 }
 
 .reaction-picker button{
@@ -3009,164 +3008,114 @@ function createReactionPicker(
   bubble
 ){
 
-  const picker =
-    document.createElement(
-      "div"
-    );
+  const picker = document.createElement("div");
+  picker.className = "reaction-picker";
 
-  picker.className =
-    "reaction-picker";
+  const reply = document.createElement("button");
+  reply.className = "reply-picker";
+  reply.type = "button";
+  reply.textContent = "Reply";
 
-  const reply =
-    document.createElement(
-      "button"
-    );
+  reply.addEventListener("click", event=>{
+    event.stopPropagation();
+    picker.classList.remove("open");
+    setReplyTarget(data);
+  });
 
-  reply.className =
-    "reply-picker";
+  picker.appendChild(reply);
 
-  reply.textContent =
-    "Reply";
+  REACTIONS.forEach(reaction=>{
+    const button = document.createElement("button");
+    button.type = "button";
+    button.textContent = reaction;
+    button.setAttribute("aria-label", "React " + reaction);
 
-  reply.addEventListener(
-    "click",
-    event=>{
-
+    button.addEventListener("click", event=>{
       event.stopPropagation();
+      picker.classList.remove("open");
 
-      picker.classList.remove(
-        "open"
-      );
+      /* Update the UI immediately. Database work happens in the background. */
+      void toggleReaction(data.id, reaction, bubble);
+    });
 
-      setReplyTarget(
-        data
-      );
-
-    }
-  );
-
-  picker.appendChild(
-    reply
-  );
-
-  REACTIONS.forEach(
-    reaction=>{
-
-      const button =
-        document.createElement(
-          "button"
-        );
-
-      button.type =
-        "button";
-
-      button.textContent =
-        reaction;
-
-      button.addEventListener(
-        "click",
-        async event=>{
-
-          event.stopPropagation();
-
-          picker.classList.remove(
-            "open"
-          );
-
-          await toggleReaction(
-            data.id,
-            reaction,
-            bubble
-          );
-
-        }
-      );
-
-      picker.appendChild(
-        button
-      );
-
-    }
-  );
-
-  /* Long press */
+    picker.appendChild(button);
+  });
 
   let timer = null;
+  let startX = 0;
+  let startY = 0;
 
-  bubble.addEventListener(
-    "touchstart",
-    event=>{
+  const cancelLongPress = ()=>{
+    if(timer){
+      clearTimeout(timer);
+      timer = null;
+    }
+  };
 
-      if(
-        event.touches.length !== 1
-      ){
-        return;
+  bubble.addEventListener("touchstart", event=>{
+    if(event.touches.length !== 1) return;
+
+    startX = event.touches[0].clientX;
+    startY = event.touches[0].clientY;
+    cancelLongPress();
+
+    timer = setTimeout(()=>{
+      timer = null;
+
+      closeMenus();
+
+      const rect = bubble.getBoundingClientRect();
+
+      document.body.appendChild(picker);
+
+      /* Measure after insertion so the picker can be positioned precisely. */
+      const pickerWidth = picker.offsetWidth || 250;
+      const pickerHeight = picker.offsetHeight || 45;
+      const gap = 8;
+      const padding = 8;
+
+      let left = rect.left + (rect.width / 2) - (pickerWidth / 2);
+      let top = rect.top - pickerHeight - gap;
+
+      if(top < padding){
+        top = rect.bottom + gap;
       }
 
-      timer =
-        setTimeout(
-          ()=>{
+      left = Math.max(
+        padding,
+        Math.min(left, window.innerWidth - pickerWidth - padding)
+      );
 
-            closeMenus();
+      top = Math.max(
+        padding,
+        Math.min(top, window.innerHeight - pickerHeight - padding)
+      );
 
-            const rect =
-              bubble.getBoundingClientRect();
+      picker.style.left = Math.round(left) + "px";
+      picker.style.top = Math.round(top) + "px";
+      picker.style.right = "auto";
+      picker.style.bottom = "auto";
 
-            document.body.appendChild(
-              picker
-            );
+      requestAnimationFrame(()=>picker.classList.add("open"));
 
-            picker.style.left =
-              Math.max(
-                8,
-                Math.min(
-                  rect.left,
-                  window.innerWidth - 250
-                )
-              ) + "px";
+      if(navigator.vibrate){
+        try{ navigator.vibrate(10); }catch(e){}
+      }
+    }, 360);
+  }, {passive:true});
 
-            picker.style.top =
-              Math.max(
-                8,
-                rect.top - 55
-              ) + "px";
-
-            picker.classList.add(
-              "open"
-            );
-
-          },
-          520
-        );
-
-    },
-    {
-      passive:true
+  bubble.addEventListener("touchmove", event=>{
+    if(!timer) return;
+    const touch = event.touches[0];
+    if(Math.abs(touch.clientX - startX) > 10 || Math.abs(touch.clientY - startY) > 10){
+      cancelLongPress();
     }
-  );
+  }, {passive:true});
 
-  bubble.addEventListener(
-    "touchend",
-    ()=>{
-      clearTimeout(timer);
-    },
-    {
-      passive:true
-    }
-  );
-
-  bubble.addEventListener(
-    "touchmove",
-    ()=>{
-      clearTimeout(timer);
-    },
-    {
-      passive:true
-    }
-  );
+  bubble.addEventListener("touchend", cancelLongPress, {passive:true});
+  bubble.addEventListener("touchcancel", cancelLongPress, {passive:true});
 
   return picker;
-
 }
 
 /* =====================================================
@@ -3179,109 +3128,113 @@ async function toggleReaction(
   bubble
 ){
 
-  if(!currentUser){
+  if(!currentUser || !messageId || String(messageId).startsWith("local-")){
     return;
   }
 
-  try{
-
-    const {
-      data:existing,
-      error:readError
-    } =
-      await supabaseClient
-        .from("message_reactions")
-        .select(
-          "user_id,reaction"
-        )
-        .eq(
-          "message_id",
-          messageId
-        )
-        .eq(
-          "user_id",
-          currentUser.id
-        )
-        .maybeSingle();
-
-    if(readError){
-      throw readError;
-    }
-
-    if(
-      existing &&
-      existing.reaction ===
-      reaction
-    ){
-
-      const {
-        error
-      } =
-        await supabaseClient
-          .from("message_reactions")
-          .delete()
-          .eq(
-            "message_id",
-            messageId
-          )
-          .eq(
-            "user_id",
-            currentUser.id
-          );
-
-      if(error){
-        throw error;
-      }
-
-    }else{
-
-      await supabaseClient
-        .from("message_reactions")
-        .delete()
-        .eq(
-          "message_id",
-          messageId
-        )
-        .eq(
-          "user_id",
-          currentUser.id
-        );
-
-      const {
-        error
-      } =
-        await supabaseClient
-          .from("message_reactions")
-          .insert({
-            message_id:messageId,
-            user_id:currentUser.id,
-            reaction:reaction
-          });
-
-      if(error){
-        throw error;
-      }
-
-    }
-
-    await refreshReaction(
-      messageId,
-      bubble
-    );
-
-  }catch(error){
-
-    console.error(
-      "Reaction error:",
-      error
-    );
-
-    showStatus(
-      "Reaction could not be changed."
-    );
-
+  /* Keep reaction state on the exact message bubble. */
+  if(!bubble._reactionState){
+    bubble._reactionState = {
+      counts:{},
+      mine:null
+    };
   }
 
+  const state = bubble._reactionState;
+  const previousReaction = state.mine || null;
+  const isRemoving = previousReaction === reaction;
+
+  /* OPTIMISTIC UI: update instantly, without waiting for Supabase. */
+  if(previousReaction){
+    state.counts[previousReaction] = Math.max(
+      0,
+      (state.counts[previousReaction] || 0) - 1
+    );
+    if(state.counts[previousReaction] === 0){
+      delete state.counts[previousReaction];
+    }
+  }
+
+  if(isRemoving){
+    state.mine = null;
+  }else{
+    state.counts[reaction] = (state.counts[reaction] || 0) + 1;
+    state.mine = reaction;
+  }
+
+  renderReactionState(bubble, state);
+
+  try{
+    /* Preserve the existing database model, but do it after the UI responds. */
+    const {data:existing,error:readError} = await supabaseClient
+      .from("message_reactions")
+      .select("user_id,reaction")
+      .eq("message_id",messageId)
+      .eq("user_id",currentUser.id)
+      .maybeSingle();
+
+    if(readError) throw readError;
+
+    if(existing && existing.reaction === reaction){
+      const {error} = await supabaseClient
+        .from("message_reactions")
+        .delete()
+        .eq("message_id",messageId)
+        .eq("user_id",currentUser.id);
+      if(error) throw error;
+    }else{
+      if(existing){
+        const {error} = await supabaseClient
+          .from("message_reactions")
+          .delete()
+          .eq("message_id",messageId)
+          .eq("user_id",currentUser.id);
+        if(error) throw error;
+      }
+
+      const {error} = await supabaseClient
+        .from("message_reactions")
+        .insert({
+          message_id:messageId,
+          user_id:currentUser.id,
+          reaction:reaction
+        });
+      if(error) throw error;
+    }
+
+  }catch(error){
+    console.error("Reaction error:",error);
+    /* If the server failed, restore the real server state. */
+    await refreshReaction(messageId,bubble);
+    showStatus("Reaction could not be changed.");
+  }
+}
+
+function renderReactionState(bubble,state){
+
+  if(!bubble) return;
+
+  bubble.querySelector(".reaction-summary")?.remove();
+
+  const entries = Object.entries(state?.counts || {})
+    .filter(([,count])=>Number(count) > 0);
+
+  if(!entries.length) return;
+
+  const summary = document.createElement("div");
+  summary.className = "reaction-summary";
+
+  entries.forEach(([reaction,count])=>{
+    const chip = document.createElement("span");
+    chip.className = "reaction-chip";
+    if(state.mine === reaction){
+      chip.classList.add("mine");
+    }
+    chip.textContent = reaction + " " + count;
+    summary.appendChild(chip);
+  });
+
+  bubble.appendChild(summary);
 }
 
 /* =====================================================
@@ -3293,86 +3246,29 @@ async function refreshReaction(
   bubble
 ){
 
-  const {
-    data,
-    error
-  } =
-    await supabaseClient
-      .from("message_reactions")
-      .select(
-        "user_id,reaction"
-      )
-      .eq(
-        "message_id",
-        messageId
-      );
+  const {data,error} = await supabaseClient
+    .from("message_reactions")
+    .select("user_id,reaction")
+    .eq("message_id",messageId);
 
-  if(error){
-    return;
-  }
+  if(error) return;
 
-  const old =
-    bubble.querySelector(
-      ".reaction-summary"
-    );
+  const state = {
+    counts:{},
+    mine:null
+  };
 
-  if(old){
-    old.remove();
-  }
+  (data || []).forEach(item=>{
+    state.counts[item.reaction] =
+      (state.counts[item.reaction] || 0) + 1;
 
-  if(!data?.length){
-    return;
-  }
-
-  const summary =
-    document.createElement(
-      "div"
-    );
-
-  summary.className =
-    "reaction-summary";
-
-  const counts = {};
-
-  data.forEach(
-    item=>{
-
-      counts[item.reaction] =
-        (counts[item.reaction] || 0) +
-        1;
-
+    if(currentUser && item.user_id === currentUser.id){
+      state.mine = item.reaction;
     }
-  );
+  });
 
-  Object.entries(
-    counts
-  ).forEach(
-    ([reaction,count])=>{
-
-      const chip =
-        document.createElement(
-          "span"
-        );
-
-      chip.className =
-        "reaction-chip";
-
-      chip.textContent =
-        reaction +
-        " " +
-        count;
-
-      summary.appendChild(
-        chip
-      );
-
-    }
-  );
-
-  bubble.appendChild(
-    summary
-  );
-
+  bubble._reactionState = state;
+  renderReactionState(bubble,state);
 }
 
 /* =====================================================
@@ -3442,63 +3338,19 @@ async function loadAllReactions(){
         return;
       }
 
-      const old =
-        bubble.querySelector(
-          ".reaction-summary"
-        );
+      const state = { counts:{}, mine:null };
 
-      if(old){
-        old.remove();
-      }
+      reactions.forEach(item=>{
+        state.counts[item.reaction] =
+          (state.counts[item.reaction] || 0) + 1;
 
-      const summary =
-        document.createElement(
-          "div"
-        );
-
-      summary.className =
-        "reaction-summary";
-
-      const counts = {};
-
-      reactions.forEach(
-        item=>{
-
-          counts[item.reaction] =
-            (counts[item.reaction] || 0) +
-            1;
-
+        if(currentUser && item.user_id === currentUser.id){
+          state.mine = item.reaction;
         }
-      );
+      });
 
-      Object.entries(
-        counts
-      ).forEach(
-        ([reaction,count])=>{
-
-          const chip =
-            document.createElement(
-              "span"
-            );
-
-          chip.className =
-            "reaction-chip";
-
-          chip.textContent =
-            reaction +
-            " " +
-            count;
-
-          summary.appendChild(
-            chip
-          );
-
-        }
-      );
-
-      bubble.appendChild(
-        summary
-      );
+      bubble._reactionState = state;
+      renderReactionState(bubble,state);
 
     }
   );
