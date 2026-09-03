@@ -1,1168 +1,897 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#020108">
-<title>ToTalk</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>ToTalk Sameer</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
-*{box-sizing:border-box;margin:0;padding:0}
-
-:root{
-  --black:#020108;
-  --dark:#070313;
-  --panel:#090517;
-  --panel2:#0d071b;
-  --purple:#914cff;
-  --purple2:#aa69ff;
-  --purple3:#6324ca;
-  --white:#f8f5ff;
-  --muted:#928ba8;
-  --green:#52e69a;
-  --yellow:#ffe34f;
-  --border:rgba(145,76,255,.40);
+*{
+  box-sizing:border-box;
+  margin:0;
+  padding:0;
 }
 
-html,body{
-  width:100%;
-  height:100%;
-  overflow:hidden;
-  background:#020108;
+html{
+  scroll-behavior:smooth;
 }
 
 body{
+  min-height:100vh;
+  color:#fff;
   font-family:Arial,Helvetica,sans-serif;
-  color:var(--white);
   background:
-    radial-gradient(ellipse at 70% 25%,rgba(111,36,191,.25),transparent 32%),
-    radial-gradient(ellipse at 15% 85%,rgba(81,29,160,.20),transparent 30%),
-    linear-gradient(135deg,#020108,#070313 50%,#020108);
+    radial-gradient(circle at 70% 35%,rgba(92,50,190,.24),transparent 28%),
+    radial-gradient(circle at 35% 75%,rgba(60,45,170,.18),transparent 32%),
+    linear-gradient(180deg,#02030d 0%,#07091d 48%,#01020b 100%);
+  overflow-x:hidden;
 }
 
-/* =====================================================
-   BACKGROUND STARS
-===================================================== */
-
-body:before{
+/* STAR FIELD */
+body::before{
   content:"";
   position:fixed;
   inset:0;
   pointer-events:none;
-  z-index:0;
-  opacity:.72;
+  opacity:.8;
   background-image:
-    radial-gradient(circle,rgba(255,255,255,.9) 1px,transparent 1.5px),
-    radial-gradient(circle,rgba(210,190,255,.8) 1px,transparent 1.5px),
-    radial-gradient(circle,rgba(255,255,255,.65) 1px,transparent 1.5px);
-  background-size:115px 115px,175px 175px,245px 245px;
-  background-position:15px 25px,70px 90px,130px 45px;
+    radial-gradient(circle at 5% 12%,#fff 0 1px,transparent 1.5px),
+    radial-gradient(circle at 18% 24%,#fff 0 1px,transparent 1.5px),
+    radial-gradient(circle at 29% 8%,#cda8ff 0 1px,transparent 1.5px),
+    radial-gradient(circle at 42% 18%,#fff 0 1px,transparent 1.5px),
+    radial-gradient(circle at 56% 9%,#fff 0 1px,transparent 1.5px),
+    radial-gradient(circle at 69% 19%,#cda8ff 0 1px,transparent 1.5px),
+    radial-gradient(circle at 84% 11%,#fff 0 1px,transparent 1.5px),
+    radial-gradient(circle at 94% 30%,#fff 0 1px,transparent 1.5px),
+    radial-gradient(circle at 11% 46%,#fff 0 1px,transparent 1.5px),
+    radial-gradient(circle at 24% 58%,#cda8ff 0 1px,transparent 1.5px),
+    radial-gradient(circle at 38% 44%,#fff 0 1px,transparent 1.5px),
+    radial-gradient(circle at 52% 59%,#fff 0 1px,transparent 1.5px),
+    radial-gradient(circle at 67% 47%,#cda8ff 0 1px,transparent 1.5px),
+    radial-gradient(circle at 81% 57%,#fff 0 1px,transparent 1.5px),
+    radial-gradient(circle at 92% 69%,#fff 0 1px,transparent 1.5px),
+    radial-gradient(circle at 8% 82%,#cda8ff 0 1px,transparent 1.5px),
+    radial-gradient(circle at 31% 91%,#fff 0 1px,transparent 1.5px),
+    radial-gradient(circle at 48% 78%,#fff 0 1px,transparent 1.5px),
+    radial-gradient(circle at 73% 88%,#cda8ff 0 1px,transparent 1.5px),
+    radial-gradient(circle at 88% 93%,#fff 0 1px,transparent 1.5px);
 }
 
-/* =====================================================
-   PREMIUM TO TALK LOADING — ONLY THE STARTUP OVERLAY
-===================================================== */
-#loading{position:fixed;inset:0;z-index:999999;display:flex;align-items:center;justify-content:center;flex-direction:column;overflow:hidden;background:radial-gradient(circle at 50% 44%,rgba(113,63,255,.16),transparent 28%),radial-gradient(circle at 20% 80%,rgba(71,42,175,.10),transparent 32%),#020108;opacity:1;visibility:visible;transition:opacity .42s ease,visibility .42s ease}
-#loading.hide{opacity:0;visibility:hidden;pointer-events:none}
-.loading-stars{position:absolute;inset:0;pointer-events:none;background-image:radial-gradient(circle at 8% 14%,rgba(255,255,255,.75) 0 1px,transparent 1.6px),radial-gradient(circle at 18% 48%,rgba(185,151,255,.7) 0 1px,transparent 1.6px),radial-gradient(circle at 28% 82%,rgba(255,255,255,.65) 0 1px,transparent 1.6px),radial-gradient(circle at 38% 22%,rgba(255,255,255,.72) 0 1px,transparent 1.6px),radial-gradient(circle at 55% 72%,rgba(185,151,255,.6) 0 1px,transparent 1.6px),radial-gradient(circle at 66% 16%,rgba(255,255,255,.7) 0 1px,transparent 1.6px),radial-gradient(circle at 78% 62%,rgba(255,255,255,.65) 0 1px,transparent 1.6px),radial-gradient(circle at 92% 24%,rgba(185,151,255,.65) 0 1px,transparent 1.6px)}
-.loading-nebula{position:absolute;width:330px;height:330px;border-radius:50%;background:radial-gradient(circle,rgba(126,73,255,.16),rgba(76,42,180,.06) 46%,transparent 70%);filter:blur(20px);animation:loadingNebula 4s ease-in-out infinite}
-.loading-system{position:relative;width:190px;height:145px;display:flex;align-items:center;justify-content:center}
-.loading-orbit{position:absolute;width:170px;height:58px;border:1px solid rgba(174,132,255,.36);border-radius:50%;transform:rotate(-16deg);box-shadow:0 0 22px rgba(123,72,255,.10);animation:loadingOrbit 7s linear infinite}
-.loading-orbit.two{width:182px;height:64px;transform:rotate(25deg);border-color:rgba(145,95,255,.18);animation:loadingOrbitTwo 9s linear infinite reverse}
-.loading-moon{width:62px;height:62px;border-radius:50%;position:relative;background:radial-gradient(circle at 31% 25%,#fff,#eeeaff 52%,#d5d0e5 100%);box-shadow:0 0 15px rgba(255,255,255,.28),0 0 45px rgba(127,72,255,.30);animation:loadingFloat 3.5s ease-in-out infinite}
-.loading-moon:before,.loading-moon:after{content:"";position:absolute;border-radius:50%;background:rgba(130,120,160,.16)}
-.loading-moon:before{width:10px;height:10px;left:15px;top:19px}
-.loading-moon:after{width:15px;height:15px;right:12px;top:29px}
-.loading-title{position:relative;margin-top:4px;font-size:25px;line-height:1;font-weight:800;letter-spacing:-.5px;text-align:center}
-.loading-subtitle{position:relative;margin-top:10px;color:#9d96ae;font-size:13px;text-align:center}
-.loading-dots{position:relative;display:flex;gap:7px;margin-top:15px}
-.loading-dots span{width:6px;height:6px;border-radius:50%;background:#bfa4ff;animation:loadingDot 1.25s ease-in-out infinite}
-.loading-dots span:nth-child(2){animation-delay:.16s}.loading-dots span:nth-child(3){animation-delay:.32s}
-@keyframes loadingDot{0%,100%{transform:translateY(0);opacity:.25}50%{transform:translateY(-4px);opacity:.9}}
-@keyframes loadingFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
-@keyframes loadingOrbit{from{transform:rotate(-16deg) rotate(0deg)}to{transform:rotate(-16deg) rotate(360deg)}}
-@keyframes loadingOrbitTwo{from{transform:rotate(25deg) rotate(0deg)}to{transform:rotate(25deg) rotate(360deg)}}
-@keyframes loadingNebula{0%,100%{transform:scale(.96);opacity:.65}50%{transform:scale(1.04);opacity:.9}}
+/* PURPLE NEBULA */
+body::after{
+  content:"";
+  position:fixed;
+  width:650px;
+  height:650px;
+  right:-250px;
+  top:180px;
+  border-radius:50%;
+  background:radial-gradient(
+    circle,
+    rgba(116,65,255,.20),
+    rgba(73,42,180,.08) 45%,
+    transparent 70%
+  );
+  filter:blur(20px);
+  pointer-events:none;
+}
 
-/* =====================================================
-   HEADER
-===================================================== */
-
-header{
+/* PAGE */
+.page{
   position:relative;
-  z-index:20;
-  height:78px;
+  z-index:2;
+  width:min(1180px,92%);
+  margin:auto;
+}
+
+/* HEADER */
+header{
+  height:92px;
   display:flex;
   align-items:center;
   justify-content:space-between;
-  padding:0 24px;
-  background:rgba(3,2,10,.96);
-  border-bottom:1px solid var(--border);
-  box-shadow:0 0 25px rgba(104,42,190,.12);
+  border-bottom:1px solid rgba(180,140,255,.16);
 }
 
-.brand{
+.logo{
   font-size:26px;
-  font-weight:900;
-  letter-spacing:-.8px;
+  font-weight:800;
+  letter-spacing:-1.5px;
 }
 
-.brand-main{color:#fff}
-.brand-name{color:var(--purple2)}
+.logo span{
+  color:#a970ff;
+}
 
 .header-right{
-  display:flex;
-  align-items:center;
-  gap:15px;
+  color:#aaa8ba;
+  font-size:14px;
 }
 
-#userName{
-  color:#aaa3bb;
-  font-size:13px;
-  font-weight:700;
-}
-
-#logoutBtn{
-  width:104px;
-  height:42px;
-  border:1px solid rgba(160,120,255,.24);
-  background:rgba(255,255,255,.035);
-  color:#fff;
-  padding:0;
-  border-radius:14px;
-  font:inherit;
-  font-size:13px;
-  font-weight:700;
-  cursor:pointer;
-  transition:.2s ease;
-}
-
-#logoutBtn:hover{
-  border-color:rgba(166,116,255,.52);
-  background:rgba(125,76,255,.1);
-  transform:translateY(-1px);
-}
-
-/* =====================================================
-   MAIN
-===================================================== */
-
-.chat-layout{
-  position:relative;
-  z-index:2;
-  width:100%;
-  height:calc(100dvh - 78px);
-  padding:16px;
+/* HERO */
+.hero{
+  min-height:650px;
   display:grid;
-  grid-template-columns:235px minmax(0,1fr);
-  gap:14px;
-}
-
-/* =====================================================
-   SIDEBAR
-===================================================== */
-
-.sidebar{
-  min-width:0;
-  overflow:hidden;
-  border:1px solid var(--border);
-  border-radius:14px;
-  background:linear-gradient(180deg,rgba(9,6,23,.97),rgba(3,2,12,.98));
-  box-shadow:0 0 30px rgba(95,35,180,.10);
-}
-
-.sidebar-title{
-  padding:22px 20px 18px;
-  border-bottom:1px solid rgba(145,76,255,.18);
-}
-
-.sidebar-title h2{
-  font-size:18px;
-  margin-bottom:7px;
-}
-
-.sidebar-title p{
-  color:var(--muted);
-  font-size:11px;
-}
-
-.chat-person{
+  grid-template-columns:1fr 1fr;
+  align-items:center;
+  gap:30px;
   position:relative;
-  margin:17px 15px;
-  padding:13px;
+}
+
+.hero-copy{
+  padding:40px 0;
+}
+
+.kicker{
+  color:#ae7cff;
+  font-size:13px;
+  font-weight:700;
+  letter-spacing:2px;
+  margin-bottom:24px;
+}
+
+h1{
+  font-size:84px;
+  line-height:.88;
+  letter-spacing:-5px;
+  margin-bottom:42px;
+}
+
+h1 span{
+  display:block;
+  color:#a66cff;
+  font-style:italic;
+}
+
+/* DESCRIPTION */
+.hero-title{
+  font-size:24px;
+  line-height:1.25;
+  max-width:520px;
+  margin-bottom:18px;
+}
+
+.hero-description{
+  color:#aaa8ba;
+  font-size:17px;
+  line-height:1.7;
+  max-width:530px;
+  margin-bottom:32px;
+}
+
+/* GOOGLE BUTTON */
+.google-button{
+  width:320px;
+  min-height:80px;
+  padding:12px 18px;
+  border:1px solid #9b59ff;
+  border-radius:28px;
+  background:
+    linear-gradient(
+      135deg,
+      rgba(255,255,255,.035),
+      rgba(117,63,255,.035)
+    );
+  color:#fff;
   display:flex;
   align-items:center;
-  gap:11px;
-  border:1px solid rgba(145,76,255,.32);
-  border-radius:12px;
-  background:linear-gradient(135deg,rgba(95,37,165,.35),rgba(27,12,59,.65));
+  gap:20px;
+  cursor:pointer;
+  box-shadow:
+    0 0 24px rgba(131,70,255,.13),
+    inset 0 0 18px rgba(120,70,255,.04);
+  transition:.3s ease;
 }
 
-.avatar,
-.chat-avatar{
+.google-button:hover{
+  transform:translateY(-2px);
+  box-shadow:
+    0 0 34px rgba(146,85,255,.25),
+    inset 0 0 20px rgba(120,70,255,.08);
+}
+
+.google-icon{
+  width:54px;
+  height:54px;
+  border-radius:50%;
+  background:#fff;
+  display:grid;
+  place-items:center;
+  flex:none;
+  box-shadow:0 0 18px rgba(255,255,255,.16);
+}
+
+.google-g{
+  font-size:33px;
+  font-weight:900;
+  font-family:Arial,sans-serif;
+  background:conic-gradient(
+    from 20deg,
+    #4285f4 0 25%,
+    #34a853 25% 45%,
+    #fbbc05 45% 68%,
+    #ea4335 68% 85%,
+    #4285f4 85% 100%
+  );
+  -webkit-background-clip:text;
+  background-clip:text;
+  color:transparent;
+}
+
+.google-text{
+  font-size:18px;
+  font-weight:700;
+  flex:1;
+  text-align:left;
+}
+
+.google-arrow{
+  font-size:30px;
+  color:#b879ff;
+}
+
+/* HERO SPACE */
+.hero-space{
+  height:560px;
+  position:relative;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+}
+
+/* MOON */
+.moon-system{
+  width:360px;
+  height:360px;
+  position:relative;
+  display:grid;
+  place-items:center;
+  animation:moonFloat 5s ease-in-out infinite;
+}
+
+.moon-glow{
+  position:absolute;
+  width:340px;
+  height:340px;
+  border-radius:50%;
+  background:rgba(121,78,255,.22);
+  filter:blur(34px);
+  animation:moonGlow 4s ease-in-out infinite;
+}
+
+.moon-orbit{
+  position:absolute;
+  width:440px;
+  height:150px;
+  border:1px solid rgba(160,105,255,.32);
+  border-radius:50%;
+  transform:rotate(-22deg);
+  box-shadow:0 0 25px rgba(112,70,255,.12);
+}
+
+.moon-orbit.two{
+  width:410px;
+  height:190px;
+  transform:rotate(28deg);
+  opacity:.55;
+}
+
+.moon{
+  width:255px;
+  height:255px;
+  border-radius:50%;
+  position:relative;
+  overflow:hidden;
+  background:
+    radial-gradient(circle at 31% 29%,rgba(80,80,100,.24) 0 15px,transparent 16px),
+    radial-gradient(circle at 67% 29%,rgba(80,80,100,.20) 0 25px,transparent 26px),
+    radial-gradient(circle at 39% 65%,rgba(80,80,100,.18) 0 20px,transparent 21px),
+    radial-gradient(circle at 69% 70%,rgba(80,80,100,.18) 0 18px,transparent 19px),
+    radial-gradient(circle at 57% 48%,rgba(80,80,100,.15) 0 13px,transparent 14px),
+    radial-gradient(circle at 40% 42%,rgba(255,255,255,.65),transparent 38%),
+    linear-gradient(145deg,#f7f7fb,#aaaab7 72%,#777785);
+  box-shadow:
+    inset -28px -22px 45px rgba(30,30,50,.20),
+    inset 18px 15px 28px rgba(255,255,255,.65),
+    0 0 55px rgba(177,135,255,.38);
+  animation:moonRotate 18s linear infinite;
+}
+
+.moon::after{
+  content:"";
+  position:absolute;
+  inset:-10%;
+  border-radius:50%;
+  background:linear-gradient(
+    110deg,
+    transparent 35%,
+    rgba(255,255,255,.18) 48%,
+    transparent 60%
+  );
+  animation:moonLight 7s ease-in-out infinite;
+}
+
+@keyframes moonRotate{
+  from{transform:rotate(0deg)}
+  to{transform:rotate(360deg)}
+}
+
+@keyframes moonFloat{
+  0%,100%{transform:translateY(0)}
+  50%{transform:translateY(-12px)}
+}
+
+@keyframes moonGlow{
+  0%,100%{transform:scale(.96);opacity:.65}
+  50%{transform:scale(1.05);opacity:.95}
+}
+
+@keyframes moonLight{
+  0%,100%{transform:translateX(-100%)}
+  50%{transform:translateX(100%)}
+}
+
+/* SECTION */
+.inside{
+  border-top:1px solid rgba(180,140,255,.16);
+  padding:55px 0 45px;
+}
+
+.section-title{
+  color:#b17cff;
+  font-size:14px;
+  font-weight:800;
+  letter-spacing:2px;
+  margin-bottom:28px;
+}
+
+/* CARDS */
+.cards{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:18px;
+}
+
+.card{
+  min-height:300px;
+  padding:26px 22px 24px;
+  border:1px solid rgba(155,115,255,.20);
+  border-radius:25px;
+  background:
+    radial-gradient(circle at 70% 20%,rgba(92,52,190,.08),transparent 45%),
+    rgba(3,5,19,.72);
+  position:relative;
+  overflow:hidden;
+}
+
+.card h2{
+  font-size:21px;
+  margin-top:22px;
+  margin-bottom:12px;
+}
+
+.card p{
+  color:#aaa8ba;
+  line-height:1.65;
+  font-size:14px;
+}
+
+/* PLANET AREA ABOVE TEXT */
+.planet-area{
+  height:105px;
+  position:relative;
   display:flex;
   align-items:center;
   justify-content:center;
+}
+
+/* PLANET ORBIT */
+.planet-orbit{
+  position:absolute;
+  width:125px;
+  height:48px;
+  border:1px solid rgba(170,115,255,.45);
   border-radius:50%;
-  background:linear-gradient(135deg,#a45cff,#6321d8);
-  font-weight:900;
-  box-shadow:0 0 20px rgba(145,76,255,.45);
+  transform:rotate(-18deg);
+  animation:orbitSpin 8s linear infinite;
 }
 
-.avatar{
-  width:43px;
-  height:43px;
-  flex:0 0 43px;
+@keyframes orbitSpin{
+  from{transform:rotate(-18deg)}
+  to{transform:rotate(342deg)}
 }
 
-.person-name{
-  font-size:13px;
-  font-weight:800;
-}
-
-.presence{
-  margin-top:5px;
-  display:flex;
-  align-items:center;
-  gap:6px;
-  color:#bda8ff;
-  font-size:10px;
-  font-weight:700;
-}
-
-.presence-dot{
-  width:7px;
-  height:7px;
+/* SATURN */
+.saturn{
+  width:52px;
+  height:52px;
   border-radius:50%;
-  background:var(--green);
-  box-shadow:0 0 9px rgba(82,230,154,.7);
-}
-
-/* =====================================================
-   CHAT BOX
-===================================================== */
-
-.chat-box{
+  background:
+    radial-gradient(circle at 30% 27%,rgba(255,255,255,.55),transparent 18%),
+    linear-gradient(145deg,#f4d18a,#9d6932 72%,#70451e);
+  box-shadow:
+    0 0 24px rgba(235,179,93,.32),
+    inset -8px -7px 13px rgba(70,35,10,.25);
   position:relative;
-  min-width:0;
-  min-height:0;
-  overflow:hidden;
-  border:1px solid var(--border);
-  border-radius:14px;
-  background:rgba(3,2,12,.85);
-  box-shadow:0 0 30px rgba(95,35,180,.12);
+  animation:planetFloat 4s ease-in-out infinite;
 }
 
-.chat-top{
-  height:64px;
-  display:flex;
-  align-items:center;
-  gap:11px;
-  padding:10px 16px;
-  border-bottom:1px solid rgba(145,76,255,.28);
-  background:rgba(5,3,14,.92);
-  position:relative;
-  z-index:5;
-}
-
-.chat-avatar{
-  width:40px;
-  height:40px;
-  flex:0 0 40px;
-}
-
-.chat-title{
-  font-size:14px;
-  font-weight:900;
-}
-
-.chat-status{
-  display:flex;
-  align-items:center;
-  gap:6px;
-  margin-top:4px;
-  color:#bda8ff;
-  font-size:10px;
-  font-weight:700;
-}
-
-.chat-actions{
-  margin-left:auto;
-  display:flex;
-  align-items:center;
-  gap:12px;
-}
-
-.search-btn,
-.star-btn{
-  border:0;
-  background:transparent;
-  color:#d9d0ed;
-  cursor:pointer;
-  font-size:22px;
-}
-
-.search-btn{
-  font-size:19px;
-}
-
-/* =====================================================
-   MESSAGE AREA
-===================================================== */
-
-#messages{
-  position:absolute;
-  inset:64px 0 0 0;
-  overflow-y:auto;
-  padding:20px 20px 100px;
-  scroll-behavior:smooth;
-}
-
-#messages::-webkit-scrollbar{
-  width:6px;
-}
-
-#messages::-webkit-scrollbar-thumb{
-  background:rgba(145,76,255,.25);
-  border-radius:10px;
-}
-
-.chat-space{
-  position:absolute;
-  inset:64px 0 0;
-  pointer-events:none;
-  overflow:hidden;
-}
-
-.chat-moon{
-  position:absolute;
-  left:55px;
-  top:28px;
-  width:64px;
-  height:64px;
-  border-radius:50%;
-  background:#fff9a8;
-  box-shadow:0 0 35px rgba(255,225,60,.35);
-}
-
-.chat-moon:after{
+.saturn::before{
   content:"";
   position:absolute;
-  width:64px;
-  height:64px;
-  border-radius:50%;
-  background:#05020f;
-  left:20px;
-  top:-4px;
-}
-
-.chat-planet{
-  position:absolute;
-  right:35px;
-  top:55px;
-  width:78px;
-  height:78px;
-  border-radius:50%;
-  background:radial-gradient(circle at 30% 30%,#6d739a,#252841 70%,#17182b);
-  box-shadow:0 0 25px rgba(100,100,180,.25);
-}
-
-.chat-planet:after{
-  content:"";
-  position:absolute;
-  width:130px;
-  height:30px;
-  border:1px solid rgba(173,135,255,.45);
-  border-radius:50%;
-  left:-26px;
-  top:23px;
-  transform:rotate(-14deg);
-}
-
-.nebula{
-  position:absolute;
-  width:320px;
-  height:230px;
-  left:50%;
-  top:100px;
-  transform:translateX(-50%);
-  border-radius:50%;
-  background:radial-gradient(circle,rgba(115,39,190,.24),transparent 68%);
-  filter:blur(12px);
-}
-
-.welcome-message{
-  position:absolute;
-  left:50%;
-  top:50%;
-  transform:translate(-50%,-42%);
-  width:min(90%,500px);
-  text-align:center;
-  z-index:2;
-}
-
-.welcome-message h3{
-  font-size:18px;
-  margin-bottom:8px;
-}
-
-.welcome-message p{
-  color:#777187;
-  font-size:11px;
-}
-
-/* =====================================================
-   MESSAGES
-===================================================== */
-
-.message-row{
-  position:relative;
-  display:flex;
-  margin-bottom:13px;
-  z-index:3;
-}
-
-.message-row.mine{
-  justify-content:flex-end;
-}
-
-.message{
-  position:relative;
-  max-width:min(70%,560px);
-  padding:11px 13px 8px;
-  border:1px solid rgba(145,76,255,.25);
-  border-radius:15px 15px 15px 4px;
-  background:linear-gradient(135deg,rgba(15,8,31,.96),rgba(25,11,47,.94));
-  box-shadow:0 5px 22px rgba(0,0,0,.18);
-  animation:messageIn .35s ease both;
-}
-
-.mine .message{
-  border-radius:15px 15px 4px 15px;
-  background:linear-gradient(135deg,#5620b0,#7c3ee1);
-  border-color:rgba(184,143,255,.55);
-}
-
-.message-text{
-  white-space:pre-wrap;
-  word-break:break-word;
-  font-size:13px;
-  line-height:1.45;
-  padding-right:30px;
-}
-
-.message-time{
-  display:inline-block;
-  margin-top:5px;
-  color:rgba(255,255,255,.52);
-  font-size:9px;
-}
-
-.message-status{
-  display:inline-block;
-  margin-left:7px;
-  color:rgba(255,255,255,.62);
-  font-size:9px;
-}
-
-.message-status.seen{
-  color:#d8c5ff;
-}
-
-@keyframes messageIn{
-  from{opacity:0;transform:translateY(10px) scale(.98)}
-  to{opacity:1;transform:translateY(0) scale(1)}
-}
-
-.message.deleting{
-  opacity:0;
-  transform:scale(.95);
-  transition:.22s ease;
-}
-
-.reply-preview{
-  margin-bottom:7px;
-  padding:6px 8px;
-  border-left:2px solid #c39cff;
-  border-radius:5px;
-  background:rgba(255,255,255,.08);
-}
-
-.reply-name{
-  font-size:9px;
-  font-weight:800;
-  color:#d0b8ff;
-  margin-bottom:2px;
-}
-
-.reply-text{
-  color:rgba(255,255,255,.65);
-  font-size:9px;
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
-}
-
-/* =====================================================
-   MESSAGE MENU
-===================================================== */
-
-.message-menu-btn{
-  position:absolute;
-  right:5px;
-  top:5px;
-  width:25px;
+  width:86px;
   height:25px;
-  border:0;
+  left:-17px;
+  top:14px;
+  border:5px solid rgba(226,188,119,.82);
   border-radius:50%;
-  background:rgba(0,0,0,.15);
-  color:#fff;
-  cursor:pointer;
-  opacity:.7;
+  transform:rotate(-16deg);
 }
 
-.message-menu{
-  display:none;
-  position:fixed;
-  z-index:999999;
-  min-width:125px;
-  padding:5px;
-  border:1px solid var(--border);
-  border-radius:10px;
-  background:#100820;
-  box-shadow:0 15px 35px rgba(0,0,0,.45);
-}
-
-.message-menu.open{
-  display:block;
-}
-
-.message-menu button{
-  display:block;
-  width:100%;
-  padding:9px 10px;
-  border:0;
-  border-radius:7px;
-  background:transparent;
-  color:#eee9f8;
-  text-align:left;
-  font-size:12px;
-  cursor:pointer;
-}
-
-.message-menu button:hover{
-  background:rgba(145,76,255,.18);
-}
-
-/* =====================================================
-   REACTION PICKER
-===================================================== */
-
-.reaction-picker{
-  display:none;
-  position:fixed;
-  z-index:999998;
-  align-items:center;
-  gap:3px;
-  padding:6px;
-  border:1px solid rgba(145,76,255,.45);
-  border-radius:14px;
-  background:rgba(12,6,28,.98);
-  box-shadow:0 15px 35px rgba(0,0,0,.5);
-}
-
-.reaction-picker.open{
-  display:flex;
-}
-
-.reaction-picker button{
-  min-width:31px;
-  height:31px;
-  border:0;
-  border-radius:8px;
-  background:transparent;
-  color:#fff;
-  cursor:pointer;
-  font-size:17px;
-}
-
-.reaction-picker button:hover{
-  background:rgba(145,76,255,.2);
-  transform:scale(1.08);
-}
-
-.reply-picker{
-  padding:0 9px!important;
-  font-size:10px!important;
-  color:#cdb9ff!important;
-}
-
-.reaction-summary{
-  display:flex;
-  flex-wrap:wrap;
-  gap:4px;
-  margin-top:4px;
-}
-
-.reaction-chip{
-  padding:3px 6px;
-  border-radius:10px;
-  background:rgba(0,0,0,.22);
-  font-size:10px;
-}
-
-.reaction-chip.mine{
-  box-shadow:0 0 0 1px rgba(220,190,255,.25);
-}
-
-/* =====================================================
-   INPUT
-===================================================== */
-
-.input-area{
+.saturn::after{
+  content:"";
   position:absolute;
-  left:12px;
-  right:12px;
-  bottom:10px;
-  z-index:20;
-  display:flex;
-  gap:8px;
-  padding:7px;
-  border:1px solid rgba(145,76,255,.45);
-  border-radius:13px;
-  background:rgba(11,5,25,.96);
-  box-shadow:0 10px 30px rgba(0,0,0,.35);
+  width:78px;
+  height:19px;
+  left:-13px;
+  top:17px;
+  border:2px solid rgba(104,63,27,.65);
+  border-radius:50%;
+  transform:rotate(-16deg);
 }
 
-#messageInput{
-  min-width:0;
-  flex:1;
-  height:40px;
-  resize:none;
-  outline:none;
-  border:0;
-  background:transparent;
-  color:#fff;
-  padding:11px 9px;
-  font-family:inherit;
-  font-size:13px;
+/* NEPTUNE */
+.neptune{
+  width:56px;
+  height:56px;
+  border-radius:50%;
+  background:
+    radial-gradient(circle at 30% 25%,rgba(255,255,255,.4),transparent 18%),
+    radial-gradient(circle at 55% 50%,#5f8fff,#2449b8 72%,#142c72);
+  box-shadow:
+    0 0 30px rgba(71,117,255,.38),
+    inset -9px -7px 16px rgba(5,18,70,.3);
+  animation:planetFloat 4.5s ease-in-out infinite;
 }
 
-#messageInput::placeholder{
-  color:#716a7e;
+/* PLUTO */
+.pluto{
+  width:51px;
+  height:51px;
+  border-radius:50%;
+  background:
+    radial-gradient(circle at 34% 27%,rgba(255,255,255,.42),transparent 15%),
+    radial-gradient(circle at 64% 58%,rgba(75,47,35,.32) 0 8px,transparent 9px),
+    linear-gradient(145deg,#d7a07c,#8e523d 72%,#543326);
+  box-shadow:
+    0 0 26px rgba(216,136,91,.26),
+    inset -9px -8px 15px rgba(50,25,20,.3);
+  animation:planetFloat 5s ease-in-out infinite;
 }
 
-#sendButton{
-  min-width:68px;
-  border:0;
-  border-radius:10px;
-  background:linear-gradient(135deg,#914cff,#aa69ff);
-  color:#fff;
-  font-size:11px;
-  font-weight:900;
-  cursor:pointer;
+@keyframes planetFloat{
+  0%,100%{transform:translateY(0) rotate(0)}
+  50%{transform:translateY(-7px) rotate(5deg)}
 }
 
-#sendButton:disabled{
-  opacity:.6;
-}
-
-/* =====================================================
-   SEARCH
-===================================================== */
-
-.search-panel{
-  position:absolute;
-  top:69px;
-  right:14px;
-  z-index:100;
-  width:min(310px,calc(100% - 28px));
-  display:none;
-  padding:9px;
-  border:1px solid var(--border);
-  border-radius:12px;
-  background:#0e071d;
-  box-shadow:0 15px 35px rgba(0,0,0,.45);
-}
-
-.search-panel.open{
-  display:flex;
-  gap:6px;
-}
-
-#searchInput{
-  min-width:0;
-  flex:1;
-  border:1px solid rgba(145,76,255,.25);
-  border-radius:8px;
-  outline:none;
-  padding:9px;
-  background:#080411;
-  color:#fff;
-}
-
-.search-panel button{
-  border:1px solid rgba(145,76,255,.3);
-  border-radius:8px;
-  background:#140925;
-  color:#fff;
-  padding:0 9px;
-  cursor:pointer;
-}
-
-/* =====================================================
-   STATUS
-===================================================== */
-
-#status{
-  position:fixed;
-  left:50%;
-  bottom:78px;
-  z-index:999999;
-  transform:translateX(-50%) translateY(10px);
-  opacity:0;
-  pointer-events:none;
-  padding:9px 14px;
-  border:1px solid var(--border);
-  border-radius:10px;
-  background:#110820;
-  color:#ddd4ee;
-  font-size:11px;
-  transition:.25s ease;
-}
-
-#status.show{
-  opacity:1;
-  transform:translateX(-50%) translateY(0);
-}
-
-/* =====================================================
-   ERROR
-===================================================== */
-
-.login-error{
-  position:relative;
-  z-index:5;
-  width:min(90%,420px);
-  padding:30px;
-  border:1px solid var(--border);
-  border-radius:20px;
-  background:rgba(10,5,22,.92);
+/* FOOTER */
+footer{
+  border-top:1px solid rgba(180,140,255,.16);
+  padding:35px 0 120px;
   text-align:center;
-}
-
-.login-error h2{
-  margin-bottom:10px;
-}
-
-.login-error p{
-  color:#9b94aa;
+  color:#77758b;
   font-size:13px;
-  line-height:1.5;
-  margin-bottom:20px;
 }
 
-.back-button{
-  display:inline-block;
-  padding:10px 18px;
-  border-radius:10px;
-  background:linear-gradient(135deg,#914cff,#aa69ff);
-  color:#fff;
-  text-decoration:none;
-  font-size:12px;
-  font-weight:800;
+footer span{
+  color:#a66cff;
 }
 
+/* LOGIN STATE */
+.loading{
+  opacity:.7;
+  pointer-events:none;
+}
 
-/* PROFILE BUTTON */
-.profile-header-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:42px;padding:0 15px;border-radius:14px;border:1px solid rgba(160,120,255,.24);background:rgba(255,255,255,.035);color:#eee9f8;font:inherit;font-size:13px;font-weight:700;cursor:pointer;transition:.2s ease}
-.profile-header-btn:hover{border-color:rgba(166,116,255,.52);background:rgba(125,76,255,.1);transform:translateY(-1px)}
-.profile-icon{width:22px;height:22px;display:grid;place-items:center;border-radius:50%;color:#cbb7ff;border:1px solid rgba(187,153,255,.38);font-size:13px}
+.spinner{
+  width:17px;
+  height:17px;
+  border:2px solid rgba(255,255,255,.22);
+  border-top-color:#b875ff;
+  border-radius:50%;
+  animation:spin .7s linear infinite;
+}
 
-/* =====================================================
-   MOBILE
-===================================================== */
+@keyframes spin{
+  to{transform:rotate(360deg)}
+}
 
+/* MOBILE */
 @media(max-width:800px){
 
+  .page{
+    width:91%;
+  }
+
   header{
-    height:62px;
-    padding:0 13px;
+    height:72px;
   }
 
-  .brand{
-    font-size:20px;
-  }
-
-  #userName{
-    display:none;
-  }
-
-  .header-right{
-    gap:7px;
-  }
-
-  .profile-header-btn{
-    width:86px;
-    height:36px;
-    min-height:36px;
-    padding:0;
-    gap:5px;
-    border-radius:11px;
-    font-size:10px;
-  }
-
-  .profile-icon{
-    width:18px;
-    height:18px;
-    font-size:10px;
-  }
-
-  #logoutBtn{
-    width:86px;
-    height:36px;
-    padding:0;
-    font-size:10px;
-    border-radius:11px;
-  }
-
-  .chat-layout{
-    height:calc(100dvh - 62px);
-    padding:7px;
-    display:block;
-  }
-
-  .sidebar{
-    display:none;
-  }
-
-  .chat-box{
-    width:100%;
-    height:100%;
-    border-radius:11px;
-  }
-
-  .chat-top{
-    height:62px;
-    padding:9px 11px;
-  }
-
-  .chat-avatar{
-    width:38px;
-    height:38px;
-    flex-basis:38px;
-  }
-
-  .chat-title{
-    font-size:13px;
-  }
-
-  .star-btn{
-    font-size:20px;
-  }
-
-  #messages{
-    inset:62px 0 0;
-    padding:16px 11px 95px;
-  }
-
-  .message{
-    max-width:84%;
-    padding:10px 11px 7px;
-  }
-
-  .message-text{
-    font-size:13px;
-  }
-
-  .input-area{
-    left:7px;
-    right:7px;
-    bottom:7px;
-  }
-
-  #messageInput{
-    font-size:13px;
-  }
-
-  #sendButton{
-    min-width:62px;
-  }
-
-  .chat-moon{
-    left:30px;
-    top:23px;
-    width:57px;
-    height:57px;
-  }
-
-  .chat-moon:after{
-    width:57px;
-    height:57px;
-    left:17px;
-  }
-
-  .chat-planet{
-    right:17px;
-    top:48px;
-    width:70px;
-    height:70px;
-  }
-
-  .chat-planet:after{
-    width:115px;
-    left:-23px;
-    top:21px;
-  }
-
-  .nebula{
-    width:260px;
-    height:190px;
-    top:75px;
-  }
-
-  .loading-system{
-    width:260px;
-    height:225px;
-  }
-
-  .loading-orbit{
-    width:220px;
-    height:80px;
-  }
-
-  .loading-orbit.two{
-    width:240px;
-    height:93px;
-  }
-
-  .loading-moon{
-    width:88px;
-    height:88px;
-  }
-
-  .loading-title{
+  .logo{
     font-size:21px;
   }
 
-  .loading-subtitle{
+  .header-right{
+    font-size:11px;
+  }
+
+  .hero{
+    min-height:auto;
+    display:flex;
+    flex-direction:column;
+    align-items:stretch;
+    gap:0;
+  }
+
+  .hero-copy{
+    padding:72px 0 0;
+  }
+
+  .kicker{
+    font-size:11px;
+    margin-bottom:20px;
+  }
+
+  h1{
+    font-size:61px;
+    letter-spacing:-4px;
+    margin-bottom:30px;
+  }
+
+  .hero-title{
+    font-size:21px;
+    max-width:100%;
+  }
+
+  .hero-description{
+    font-size:15px;
+    line-height:1.65;
+    margin-bottom:25px;
+  }
+
+  .google-button{
+    width:100%;
+    min-height:70px;
+    border-radius:23px;
+  }
+
+  .google-icon{
+    width:48px;
+    height:48px;
+  }
+
+  .google-g{
+    font-size:29px;
+  }
+
+  .google-text{
+    font-size:16px;
+  }
+
+  .hero-space{
+    height:310px;
+    margin-top:15px;
+    overflow:hidden;
+  }
+
+  /*
+     IMPORTANT:
+     The moon is now part of the hero and stays
+     at a natural phone size.
+  */
+  .moon-system{
+    width:240px;
+    height:240px;
+  }
+
+  .moon-glow{
+    width:225px;
+    height:225px;
+    filter:blur(25px);
+  }
+
+  .moon{
+    width:170px;
+    height:170px;
+  }
+
+  .moon-orbit{
+    width:270px;
+    height:100px;
+  }
+
+  .moon-orbit.two{
+    width:250px;
+    height:125px;
+  }
+
+  .inside{
+    padding:45px 0 35px;
+  }
+
+  .section-title{
     font-size:12px;
+    margin-bottom:22px;
+  }
+
+  .cards{
+    grid-template-columns:1fr;
+    gap:16px;
+  }
+
+  .card{
+    min-height:285px;
+    padding:24px 21px;
+    border-radius:23px;
+  }
+
+  .planet-area{
+    height:100px;
+  }
+
+  .card h2{
+    font-size:23px;
+    margin-top:17px;
+  }
+
+  .card p{
+    font-size:15px;
+    line-height:1.7;
+  }
+
+  footer{
+    padding-bottom:80px;
   }
 }
 
+/* SMALL PHONES */
+@media(max-width:390px){
+
+  h1{
+    font-size:53px;
+  }
+
+  .hero-title{
+    font-size:19px;
+  }
+
+  .hero-space{
+    height:285px;
+  }
+
+  .moon{
+    width:155px;
+    height:155px;
+  }
+
+  .moon-system{
+    width:220px;
+    height:220px;
+  }
+
+  .moon-orbit{
+    width:245px;
+  }
+}
+
+/* REDUCED MOTION */
 @media(prefers-reduced-motion:reduce){
-  *,*:before,*:after{
-    animation:none!important;
-    transition:none!important;
+  *,
+  *::before,
+  *::after{
+    animation-duration:.01ms!important;
+    animation-iteration-count:1!important;
     scroll-behavior:auto!important;
   }
 }
+
+/* FULL-SCREEN GALAXY LOGIN TRANSITION */
+#loginGalaxy{position:fixed;inset:0;z-index:999999;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;background:radial-gradient(circle at 50% 45%,rgba(111,66,255,.20),transparent 25%),radial-gradient(circle at 20% 80%,rgba(72,38,180,.16),transparent 32%),linear-gradient(180deg,#01020a 0%,#050817 52%,#010109 100%);opacity:0;visibility:hidden;pointer-events:none;transition:opacity .7s ease,visibility .7s ease}
+#loginGalaxy.show{opacity:1;visibility:visible;pointer-events:auto}
+#loginGalaxy::before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.9;background-image:radial-gradient(circle at 7% 14%,#fff 0 1px,transparent 1.5px),radial-gradient(circle at 19% 72%,#cdb4ff 0 1px,transparent 1.5px),radial-gradient(circle at 31% 24%,#fff 0 1px,transparent 1.5px),radial-gradient(circle at 44% 82%,#fff 0 1px,transparent 1.5px),radial-gradient(circle at 58% 13%,#d9c4ff 0 1px,transparent 1.5px),radial-gradient(circle at 70% 67%,#fff 0 1px,transparent 1.5px),radial-gradient(circle at 83% 20%,#cdb4ff 0 1px,transparent 1.5px),radial-gradient(circle at 94% 84%,#fff 0 1px,transparent 1.5px);animation:loginStars 3s ease-in-out infinite alternate}
+#loginGalaxy::after{content:"";position:absolute;width:90vmax;height:55vmax;border-radius:50%;background:radial-gradient(ellipse,rgba(129,77,255,.20),rgba(73,40,190,.07) 45%,transparent 72%);filter:blur(28px);animation:loginNebula 7s ease-in-out infinite alternate}
+.login-nebula{position:absolute;width:55vmax;height:22vmax;border-radius:50%;background:radial-gradient(ellipse,rgba(169,105,255,.11),transparent 70%);filter:blur(24px);transform:rotate(-18deg);animation:loginNebula2 6s ease-in-out infinite alternate}
+.login-system{width:300px;height:300px;position:relative;display:grid;place-items:center;z-index:2;animation:loginFloat 4s ease-in-out infinite}
+.login-orbit{position:absolute;width:330px;height:105px;border:1px solid rgba(178,121,255,.48);border-radius:50%;transform:rotate(-22deg);box-shadow:0 0 28px rgba(118,67,255,.15);animation:loginOrbit 5s linear infinite}
+.login-orbit.orbit-b{width:300px;height:155px;transform:rotate(32deg);opacity:.55;animation-duration:7s;animation-direction:reverse}
+.login-moon{width:145px;height:145px;border-radius:50%;position:relative;overflow:hidden;background:radial-gradient(circle at 28% 30%,rgba(80,80,100,.28) 0 11px,transparent 12px),radial-gradient(circle at 67% 28%,rgba(80,80,100,.22) 0 19px,transparent 20px),radial-gradient(circle at 40% 66%,rgba(80,80,100,.20) 0 16px,transparent 17px),radial-gradient(circle at 70% 70%,rgba(80,80,100,.18) 0 13px,transparent 14px),radial-gradient(circle at 42% 40%,rgba(255,255,255,.68),transparent 38%),linear-gradient(145deg,#fafaff,#aaaab8 72%,#686876);box-shadow:inset -18px -16px 30px rgba(25,25,45,.24),inset 10px 10px 22px rgba(255,255,255,.65),0 0 55px rgba(177,135,255,.52);animation:loginMoonRotate 12s linear infinite}
+.login-moon::after{content:"";position:absolute;inset:-15%;border-radius:50%;background:linear-gradient(110deg,transparent 35%,rgba(255,255,255,.22) 48%,transparent 60%);animation:loginMoonLight 4s ease-in-out infinite}
+.login-moon span{position:absolute;border-radius:50%;background:rgba(90,90,105,.18);z-index:2}.login-moon span:nth-child(1){width:9px;height:9px;left:28px;top:70px}.login-moon span:nth-child(2){width:15px;height:15px;right:28px;top:47px}.login-moon span:nth-child(3){width:11px;height:11px;left:73px;bottom:25px}
+.login-galaxy-title{z-index:3;margin-top:30px;font-size:28px;font-weight:800;letter-spacing:-.8px;text-shadow:0 0 25px rgba(177,126,255,.65);animation:loginTextIn 1s ease both}.login-galaxy-sub{z-index:3;margin-top:10px;color:#aaa8ba;font-size:14px;letter-spacing:1px;animation:loginTextIn 1s .15s ease both}.login-loading-dots{z-index:3;display:flex;gap:7px;margin-top:22px}.login-loading-dots i{width:6px;height:6px;border-radius:50%;background:#b875ff;box-shadow:0 0 12px rgba(184,117,255,.9);animation:loginDot 1s ease-in-out infinite}.login-loading-dots i:nth-child(2){animation-delay:.15s}.login-loading-dots i:nth-child(3){animation-delay:.3s}
+@keyframes loginStars{to{opacity:.5;transform:scale(1.015)}}@keyframes loginNebula{to{transform:translate(5%,4%) scale(1.08)}}@keyframes loginNebula2{to{transform:rotate(-18deg) translate(8%,-5%) scale(1.12)}}@keyframes loginFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}@keyframes loginOrbit{from{transform:rotate(-22deg)}to{transform:rotate(338deg)}}@keyframes loginMoonRotate{from{transform:rotate(0)}to{transform:rotate(360deg)}}@keyframes loginMoonLight{0%,100%{transform:translateX(-100%)}50%{transform:translateX(100%)}}@keyframes loginTextIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}@keyframes loginDot{0%,100%{transform:translateY(0);opacity:.4}50%{transform:translateY(-5px);opacity:1}}
+@media(max-width:800px){.login-system{width:250px;height:250px}.login-orbit{width:285px;height:92px}.login-orbit.orbit-b{width:260px;height:135px}.login-moon{width:125px;height:125px}.login-galaxy-title{font-size:24px}.login-galaxy-sub{font-size:12px}.login-nebula{width:90vw;height:35vw}}
+@media(prefers-reduced-motion:reduce){#loginGalaxy *,#loginGalaxy::before,#loginGalaxy::after{animation-duration:.01ms!important;animation-iteration-count:1!important}}
 </style>
 </head>
 
 <body>
+<!-- GALAXY LOGIN TRANSITION -->
+<div id="loginGalaxy" aria-hidden="true"><div class="login-nebula"></div><div class="login-system"><div class="login-orbit orbit-a"></div><div class="login-orbit orbit-b"></div><div class="login-moon"><span></span><span></span><span></span></div></div><div class="login-galaxy-title">Entering ToTalk</div><div class="login-galaxy-sub">Connecting your account</div><div class="login-loading-dots" aria-hidden="true"><i></i><i></i><i></i></div></div>
 
-<!-- =====================================================
-     GALAXY LOADING
-===================================================== -->
 
-<div id="loading">
-
-  <div class="loading-stars"></div>
-  <div class="loading-nebula"></div>
-
-  <div class="loading-system">
-    <div class="loading-orbit"></div>
-    <div class="loading-orbit two"></div>
-    <div class="loading-moon"></div>
-  </div>
-
-  <div class="loading-title" id="loadingTitle">
-    ToTalk
-  </div>
-
-  <div class="loading-subtitle" id="loadingSubtitle">
-    Connecting…
-  </div>
-
-  <div class="loading-dots">
-    <span></span>
-    <span></span>
-    <span></span>
-  </div>
-
-</div>
-
-<!-- =====================================================
-     HEADER
-===================================================== -->
+<div class="page">
 
 <header>
-  <div class="brand"><span class="brand-main">ToTalk</span></div>
+  <div class="logo">
+    ToTalk <span>Sameer</span>
+  </div>
+
   <div class="header-right">
-    <button class="profile-header-btn" id="profileBtn" type="button" aria-label="Open your profile"><span class="profile-icon">◉</span><span>Profile</span></button>
-    <button id="logoutBtn">Logout</button>
+    Sameer's personal chat space
   </div>
 </header>
 
-<!-- =====================================================
-     MAIN CHAT
-===================================================== -->
 
-<main class="chat-layout">
+<section class="hero">
 
-  <aside class="sidebar">
+  <div class="hero-copy">
 
-    <div class="sidebar-title">
-      <h2 id="sideTitle">Sameer's Chats</h2>
-      <p>Your personal conversation space</p>
+    <div class="kicker">
+      WELCOME TO TOTAlK SAMEER
     </div>
 
-    <div class="chat-person">
+    <h1>
+      ToTalk
+      <span>Sameer</span>
+    </h1>
 
-      <div class="avatar" id="sideAvatar" aria-label="Your profile picture">S</div>
+    <div class="hero-title">
+      My space. My conversations. You're welcome here.
+    </div>
 
-      <div>
+    <div class="hero-description">
+      ToTalk Sameer is a simple personal space to chat,
+      connect, and have a real conversation with Sameer.
+      Sign in with Google and enter Sameer's chat.
+    </div>
 
-        <div class="person-name" id="sideName">
-          Sameer
-        </div>
+    <button class="google-button" id="googleLogin">
 
-        <div class="presence">
-          <span class="presence-dot"></span>
-          <span id="sidePresence">
-            Online
-          </span>
-        </div>
+      <div class="google-icon">
+        <div class="google-g">G</div>
+      </div>
+
+      <div class="google-text">
+        Sign in with Google
+      </div>
+
+      <div class="google-arrow">
+        →
+      </div>
+
+    </button>
+
+  </div>
+
+
+  <div class="hero-space">
+
+    <div class="moon-system">
+
+      <div class="moon-glow"></div>
+
+      <div class="moon-orbit"></div>
+      <div class="moon-orbit two"></div>
+
+      <div class="moon"></div>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+<section class="inside">
+
+  <div class="section-title">
+    INSIDE SAMEER'S SPACE
+  </div>
+
+  <div class="cards">
+
+
+    <!-- SATURN -->
+    <div class="card">
+
+      <div class="planet-area">
+
+        <div class="planet-orbit"></div>
+
+        <div class="saturn"></div>
 
       </div>
 
+      <h2>
+        Just Talk
+      </h2>
+
+      <p>
+        A simple place for conversations with
+        Sameer, without unnecessary distractions.
+      </p>
+
     </div>
 
-  </aside>
 
-  <section class="chat-box">
+    <!-- NEPTUNE -->
+    <div class="card">
 
-    <div class="chat-top">
+      <div class="planet-area">
 
-      <div class="chat-avatar" id="chatAvatar" aria-label="Your profile picture">S</div>
+        <div class="planet-orbit"></div>
 
-      <div>
-
-        <div class="chat-title" id="chatTitle">
-          Sameer's ToTalk
-        </div>
-
-        <div class="chat-status">
-          <span class="presence-dot"></span>
-          <span id="chatPresence">
-            Online
-          </span>
-        </div>
+        <div class="neptune"></div>
 
       </div>
 
-      <div class="chat-actions">
+      <h2>
+        Any Time
+      </h2>
 
-        <button
-          class="search-btn"
-          id="searchBtn"
-          type="button"
-          aria-label="Search messages"
-        >
-          ⌕
-        </button>
+      <p>
+        Come in, say hello, and enjoy a calm
+        little corner of Sameer's online space.
+      </p>
 
-        <button
-          class="star-btn"
-          type="button"
-          aria-label="Favorite"
-        >
-          ☆
-        </button>
+    </div>
+
+
+    <!-- PLUTO -->
+    <div class="card">
+
+      <div class="planet-area">
+
+        <div class="planet-orbit"></div>
+
+        <div class="pluto"></div>
 
       </div>
 
-    </div>
+      <h2>
+        Made by Sameer
+      </h2>
 
-    <div class="search-panel" id="searchPanel">
-
-      <input
-        id="searchInput"
-        type="search"
-        placeholder="Search messages..."
-        autocomplete="off"
-      >
-
-      <button id="searchPrev" type="button">
-        ↑
-      </button>
-
-      <button id="searchNext" type="button">
-        ↓
-      </button>
-
-      <button id="searchClose" type="button">
-        ×
-      </button>
+      <p>
+        ToTalk is Sameer's own personal chat
+        website, created for connecting through
+        conversation.
+      </p>
 
     </div>
 
-    <div class="chat-space">
+  </div>
 
-      <div class="chat-moon"></div>
-      <div class="chat-planet"></div>
-      <div class="nebula"></div>
+</section>
 
-    </div>
 
-    <div id="messages">
+<footer>
+  ToTalk <span>Sameer</span>
+  &nbsp;·&nbsp;
+  Made by Sameer
+  &nbsp;·&nbsp;
+  © 2026
+</footer>
 
-      <div class="welcome-message" id="welcomeMessage">
+</div>
 
-        <h3>
-          Welcome to ToTalk
-        </h3>
-
-        <p>
-          Your conversation space is ready.
-          Write a message below to begin.
-        </p>
-
-      </div>
-
-    </div>
-
-    <div class="input-area">
-
-      <textarea
-        id="messageInput"
-        maxlength="5000"
-        placeholder="Write a message..."
-        rows="1"
-      ></textarea>
-
-      <button id="sendButton">
-        Send
-      </button>
-
-    </div>
-
-  </section>
-
-</main>
-
-<div id="status"></div>
 
 <script>
 
-/* =====================================================
-   SUPABASE
-===================================================== */
-
+/* SUPABASE */
 const SUPABASE_URL =
   "https://qiynczbrhpxwuabwuyiy.supabase.co";
 
@@ -1183,2462 +912,64 @@ const supabaseClient =
     }
   );
 
-/* =====================================================
-   ELEMENTS
-===================================================== */
 
-const loading =
-  document.getElementById("loading");
+/* GOOGLE LOGIN + GALAXY TRANSITION */
+const googleLogin = document.getElementById("googleLogin");
+const loginGalaxy = document.getElementById("loginGalaxy");
+let loginStarted = false;
 
-const loadingTitle =
-  document.getElementById("loadingTitle");
-
-const loadingSubtitle =
-  document.getElementById("loadingSubtitle");
-
-const messages =
-  document.getElementById("messages");
-
-const messageInput =
-  document.getElementById("messageInput");
-
-const sendButton =
-  document.getElementById("sendButton");
-
-const logoutBtn =
-  document.getElementById("logoutBtn");
-
-const userName=document.getElementById("userName");
-const profileBtn=document.getElementById("profileBtn");
-
-const sideName =
-  document.getElementById("sideName");
-
-const chatTitle =
-  document.getElementById("chatTitle");
-
-const chatAvatar =
-  document.getElementById("chatAvatar");
-
-const sideAvatar =
-  document.getElementById("sideAvatar");
-
-const statusBox =
-  document.getElementById("status");
-
-const searchPanel =
-  document.getElementById("searchPanel");
-
-const searchInput =
-  document.getElementById("searchInput");
-
-let currentUser = null;
-let currentProfile = null;
-let realtimeChannel = null;
-let presenceChannel = null;
-
-let replyTarget = null;
-
-const messageCache =
-  new Map();
-
-const REACTIONS =
-  ["👍","❤️","😂","😮","😢","😡"];
-
-/* =====================================================
-   LOADING HELPERS
-===================================================== */
-
-function setLoadingText(title,subtitle){
-
-  loadingTitle.textContent =
-    title;
-
-  loadingSubtitle.textContent =
-    subtitle;
-
+function showLoginGalaxy(){
+  if(!loginGalaxy) return;
+  loginGalaxy.classList.add("show");
+  loginGalaxy.setAttribute("aria-hidden","false");
 }
 
-function finishLoading(){
-
-  loading.classList.add("hide");
-
-  setTimeout(()=>{
-
-    loading.style.display =
-      "none";
-
-  },450);
-
+function hideLoginGalaxy(){
+  if(!loginGalaxy) return;
+  loginGalaxy.classList.remove("show");
+  loginGalaxy.setAttribute("aria-hidden","true");
 }
 
-function showLoading(title,subtitle){
-
-  loading.style.display =
-    "flex";
-
-  loading.classList.remove("hide");
-
-  setLoadingText(
-    title,
-    subtitle
-  );
-
+function resetGoogleButton(){
+  if(!googleLogin) return;
+  googleLogin.classList.remove("loading");
+  googleLogin.innerHTML = `
+    <div class="google-icon"><div class="google-g">G</div></div>
+    <div class="google-text">Sign in with Google</div>
+    <div class="google-arrow">→</div>
+  `;
 }
 
-/* =====================================================
-   STATUS
-===================================================== */
+googleLogin.addEventListener("click", async function(){
+  if(loginStarted) return;
+  loginStarted = true;
 
-function showStatus(text){
+  googleLogin.classList.add("loading");
+  googleLogin.innerHTML = `
+    <div class="google-icon"><div class="google-g">G</div></div>
+    <div class="google-text">Preparing your journey...</div>
+    <div class="spinner"></div>
+  `;
 
-  statusBox.textContent =
-    text;
+  showLoginGalaxy();
 
-  statusBox.classList.add("show");
+  const redirectURL = new URL("./profile-maker.html",window.location.href).href;
 
-  clearTimeout(showStatus.timer);
+  await new Promise(function(resolve){setTimeout(resolve,850);});
 
-  showStatus.timer =
-    setTimeout(()=>{
-
-      statusBox.classList.remove("show");
-
-    },3000);
-
-}
-
-/* =====================================================
-   AUTH
-===================================================== */
-
-async function getLoggedInUser(){
-
-  const {
-    data,
-    error
-  } =
-    await supabaseClient.auth.getSession();
-
-  if(error){
-
-    console.error(
-      "Session error:",
-      error
-    );
-
-    return null;
-
-  }
-
-  return data?.session?.user || null;
-
-}
-
-/* =====================================================
-   PROFILE CHECK
-===================================================== */
-
-async function checkProfile(){
-
-  if(!currentUser){
-    return null;
-  }
-
-  const {
-    data,
-    error
-  } =
-    await supabaseClient
-      .from("profiles")
-      .select(
-        "id,user_id,name,gender,age,totalk_id,profile_completed,location,location_visibility"
-      )
-      .eq(
-        "user_id",
-        currentUser.id
-      )
-      .maybeSingle();
-
-  if(error){
-
-    console.error(
-      "Profile check error:",
-      error
-    );
-
-    throw error;
-
-  }
-
-  return data || null;
-
-}
-
-/* =====================================================
-   PROFILE REDIRECT
-===================================================== */
-
-function goToProfileMaker(){
-
-  showLoading(
-    "Connecting…",
-    "Create your ToTalk identity"
-  );
-
-  setTimeout(()=>{
-
-    window.location.replace(
-      "./profile-maker.html"
-    );
-
-  },500);
-
-}
-
-/* =====================================================
-   USER UI
-===================================================== */
-
-function updateUserUI(){
-  const name=currentProfile?.name||currentUser?.user_metadata?.full_name||currentUser?.user_metadata?.name||currentUser?.email?.split("@")[0]||"ToTalk User";
-  const first=name.trim().charAt(0).toUpperCase()||"T";
-
-  if(userName) userName.textContent=name;
-  sideName.textContent=name;
-  chatTitle.textContent=name+"'s ToTalk";
-  sideAvatar.textContent=first;
-  chatAvatar.textContent=first;
-
-  const sideTitle=document.getElementById("sideTitle");
-  if(sideTitle) sideTitle.textContent=name+"'s Chats";
-  document.title="ToTalk";
-}
-
-/* =====================================================
-   FORMAT TIME
-===================================================== */
-
-function formatTime(value){
-
-  if(!value){
-    return "";
-  }
-
-  const date =
-    new Date(value);
-
-  if(
-    Number.isNaN(
-      date.getTime()
-    )
-  ){
-    return "";
-  }
-
-  return date.toLocaleTimeString(
-    [],
-    {
-      hour:"2-digit",
-      minute:"2-digit"
-    }
-  );
-
-}
-
-/* =====================================================
-   REPLY TARGET
-===================================================== */
-
-function setReplyTarget(data){
-
-  replyTarget =
-    data;
-
-  messageInput.placeholder =
-    "Reply to message...";
-
-  messageInput.focus();
-
-  showStatus(
-    "Replying to message"
-  );
-
-}
-
-function clearReplyTarget(){
-
-  replyTarget =
-    null;
-
-  messageInput.placeholder =
-    "Write a message...";
-
-}
-
-/* =====================================================
-   ADD MESSAGE
-===================================================== */
-
-function addMessage(data,animate=true){
-
-  if(!data?.id){
-    return;
-  }
-
-  if(
-    document.querySelector(
-      `[data-message-id="${data.id}"]`
-    )
-  ){
-    return;
-  }
-
-  const welcome =
-    document.getElementById(
-      "welcomeMessage"
-    );
-
-  if(welcome){
-    welcome.remove();
-  }
-
-  messageCache.set(
-    data.id,
-    data
-  );
-
-  const mine =
-    currentUser &&
-    data.sender_id ===
-      currentUser.id;
-
-  const row =
-    document.createElement("div");
-
-  row.className =
-    "message-row" +
-    (mine ? " mine" : "");
-
-  row.dataset.messageId =
-    data.id;
-
-  const bubble =
-    document.createElement("div");
-
-  bubble.className =
-    "message";
-
-  if(!animate){
-
-    bubble.style.animation =
-      "none";
-
-  }
-
-  /* Reply preview */
-
-  if(data.reply_to_id){
-
-    const replied =
-      messageCache.get(
-        data.reply_to_id
-      );
-
-    if(replied){
-
-      const reply =
-        document.createElement("div");
-
-      reply.className =
-        "reply-preview";
-
-      const replyName =
-        document.createElement("div");
-
-      replyName.className =
-        "reply-name";
-
-      replyName.textContent =
-        replied.sender_id === currentUser.id
-          ? "You"
-          : "Message";
-
-      const replyText =
-        document.createElement("div");
-
-      replyText.className =
-        "reply-text";
-
-      replyText.textContent =
-        replied.content || "";
-
-      reply.append(
-        replyName,
-        replyText
-      );
-
-      bubble.appendChild(
-        reply
-      );
-
-    }
-
-  }
-
-  const text =
-    document.createElement("div");
-
-  text.className =
-    "message-text";
-
-  text.textContent =
-    data.content || "";
-
-  bubble.appendChild(
-    text
-  );
-
-  const time =
-    document.createElement("span");
-
-  time.className =
-    "message-time";
-
-  time.textContent =
-    formatTime(
-      data.created_at
-    );
-
-  if(data.edited_at){
-
-    time.textContent +=
-      " · edited";
-
-  }
-
-  bubble.appendChild(
-    time
-  );
-
-  /* Sent / Delivered / Seen */
-
-  if(mine){
-
-    const status =
-      document.createElement("span");
-
-    status.className =
-      "message-status";
-
-    status.dataset.status =
-      "true";
-
-    status.textContent =
-      "Sent";
-
-    bubble.appendChild(
-      status
-    );
-
-  }
-
-  /* Own-message menu */
-
-  if(mine){
-
-    const menuButton =
-      document.createElement("button");
-
-    menuButton.className =
-      "message-menu-btn";
-
-    menuButton.type =
-      "button";
-
-    menuButton.textContent =
-      "⋮";
-
-    menuButton.addEventListener(
-      "click",
-      event=>{
-
-        event.stopPropagation();
-
-        closeMenus();
-
-        const menu =
-          createMessageMenu(
-            data,
-            bubble
-          );
-
-        document.body.appendChild(
-          menu
-        );
-
-        const rect =
-          bubble.getBoundingClientRect();
-
-        menu.style.left =
-          Math.max(
-            8,
-            Math.min(
-              rect.right - 130,
-              window.innerWidth - 138
-            )
-          ) + "px";
-
-        menu.style.top =
-          Math.min(
-            window.innerHeight - 120,
-            rect.bottom + 7
-          ) + "px";
-
-        menu.classList.add(
-          "open"
-        );
-
-      }
-    );
-
-    bubble.appendChild(
-      menuButton
-    );
-
-  }
-
-  /* Reaction picker */
-
-  const picker =
-    createReactionPicker(
-      data,
-      bubble
-    );
-
-  bubble._reactionPicker =
-    picker;
-
-  row.appendChild(
-    bubble
-  );
-
-  messages.appendChild(
-    row
-  );
-
-}
-
-/* =====================================================
-   REACTION PICKER
-===================================================== */
-
-function createReactionPicker(
-  data,
-  bubble
-){
-
-  const picker =
-    document.createElement("div");
-
-  picker.className =
-    "reaction-picker";
-
-  const reply =
-    document.createElement("button");
-
-  reply.className =
-    "reply-picker";
-
-  reply.textContent =
-    "Reply";
-
-  reply.addEventListener(
-    "click",
-    event=>{
-
-      event.stopPropagation();
-
-      picker.classList.remove(
-        "open"
-      );
-
-      setReplyTarget(
-        data
-      );
-
-    }
-  );
-
-  picker.appendChild(
-    reply
-  );
-
-  REACTIONS.forEach(
-    reaction=>{
-
-      const button =
-        document.createElement("button");
-
-      button.type =
-        "button";
-
-      button.textContent =
-        reaction;
-
-      button.addEventListener(
-        "click",
-        async event=>{
-
-          event.stopPropagation();
-
-          picker.classList.remove(
-            "open"
-          );
-
-          await toggleReaction(
-            data.id,
-            reaction,
-            bubble
-          );
-
-        }
-      );
-
-      picker.appendChild(
-        button
-      );
-
-    }
-  );
-
-  /* Long press */
-
-  let timer = null;
-
-  bubble.addEventListener(
-    "touchstart",
-    event=>{
-
-      if(
-        event.touches.length !== 1
-      ){
-        return;
-      }
-
-      timer =
-        setTimeout(()=>{
-
-          closeMenus();
-
-          const rect =
-            bubble.getBoundingClientRect();
-
-          document.body.appendChild(
-            picker
-          );
-
-          picker.style.left =
-            Math.max(
-              8,
-              Math.min(
-                rect.left,
-                window.innerWidth - 250
-              )
-            ) + "px";
-
-          picker.style.top =
-            Math.max(
-              8,
-              rect.top - 55
-            ) + "px";
-
-          picker.classList.add(
-            "open"
-          );
-
-        },520);
-
-    },
-    {
-      passive:true
-    }
-  );
-
-  bubble.addEventListener(
-    "touchend",
-    ()=>{
-
-      clearTimeout(timer);
-
-    },
-    {
-      passive:true
-    }
-  );
-
-  bubble.addEventListener(
-    "touchmove",
-    ()=>{
-
-      clearTimeout(timer);
-
-    },
-    {
-      passive:true
-    }
-  );
-
-  return picker;
-
-}
-
-/* =====================================================
-   REACTION SAVE
-===================================================== */
-
-async function toggleReaction(
-  messageId,
-  reaction,
-  bubble
-){
-
-  if(!currentUser){
-    return;
-  }
-
-  try{
-
-    const {
-      data:existing,
-      error:readError
-    } =
-      await supabaseClient
-        .from("message_reactions")
-        .select(
-          "user_id,reaction"
-        )
-        .eq(
-          "message_id",
-          messageId
-        )
-        .eq(
-          "user_id",
-          currentUser.id
-        )
-        .maybeSingle();
-
-    if(readError){
-      throw readError;
-    }
-
-    if(
-      existing &&
-      existing.reaction === reaction
-    ){
-
-      const {
-        error
-      } =
-        await supabaseClient
-          .from("message_reactions")
-          .delete()
-          .eq(
-            "message_id",
-            messageId
-          )
-          .eq(
-            "user_id",
-            currentUser.id
-          );
-
-      if(error){
-        throw error;
-      }
-
-    }else{
-
-      await supabaseClient
-        .from("message_reactions")
-        .delete()
-        .eq(
-          "message_id",
-          messageId
-        )
-        .eq(
-          "user_id",
-          currentUser.id
-        );
-
-      const {
-        error
-      } =
-        await supabaseClient
-          .from("message_reactions")
-          .insert({
-            message_id:messageId,
-            user_id:currentUser.id,
-            reaction:reaction
-          });
-
-      if(error){
-        throw error;
-      }
-
-    }
-
-    await refreshReaction(
-      messageId,
-      bubble
-    );
-
-  }catch(error){
-
-    console.error(
-      "Reaction error:",
-      error
-    );
-
-    showStatus(
-      "Reaction could not be changed."
-    );
-
-  }
-
-}
-
-/* =====================================================
-   REACTION DISPLAY
-===================================================== */
-
-async function refreshReaction(
-  messageId,
-  bubble
-){
-
-  const {
-    data,
-    error
-  } =
-    await supabaseClient
-      .from("message_reactions")
-      .select(
-        "user_id,reaction"
-      )
-      .eq(
-        "message_id",
-        messageId
-      );
-
-  if(error){
-    return;
-  }
-
-  const old =
-    bubble.querySelector(
-      ".reaction-summary"
-    );
-
-  if(old){
-    old.remove();
-  }
-
-  if(!data?.length){
-    return;
-  }
-
-  const summary =
-    document.createElement("div");
-
-  summary.className =
-    "reaction-summary";
-
-  const counts = {};
-
-  data.forEach(
-    item=>{
-
-      counts[item.reaction] =
-        (counts[item.reaction] || 0) + 1;
-
-    }
-  );
-
-  Object.entries(
-    counts
-  ).forEach(
-    ([reaction,count])=>{
-
-      const chip =
-        document.createElement("span");
-
-      chip.className =
-        "reaction-chip";
-
-      chip.textContent =
-        reaction + " " + count;
-
-      summary.appendChild(
-        chip
-      );
-
-    }
-  );
-
-  bubble.appendChild(
-    summary
-  );
-
-}
-
-/* =====================================================
-   LOAD REACTIONS
-===================================================== */
-
-async function loadAllReactions(){
-
-  const {
-    data,
-    error
-  } =
-    await supabaseClient
-      .from("message_reactions")
-      .select(
-        "message_id,user_id,reaction"
-      );
-
-  if(error){
-    console.error(
-      "Reaction load error:",
-      error
-    );
-    return;
-  }
-
-  const grouped = {};
-
-  (data || []).forEach(
-    item=>{
-
-      if(
-        !grouped[item.message_id]
-      ){
-        grouped[item.message_id] =
-          [];
-      }
-
-      grouped[
-        item.message_id
-      ].push(item);
-
-    }
-  );
-
-  Object.entries(
-    grouped
-  ).forEach(
-    ([id,reactions])=>{
-
-      const row =
-        document.querySelector(
-          `[data-message-id="${id}"]`
-        );
-
-      const bubble =
-        row?.querySelector(
-          ".message"
-        );
-
-      if(!bubble){
-        return;
-      }
-
-      const old =
-        bubble.querySelector(
-          ".reaction-summary"
-        );
-
-      if(old){
-        old.remove();
-      }
-
-      const summary =
-        document.createElement(
-          "div"
-        );
-
-      summary.className =
-        "reaction-summary";
-
-      const counts = {};
-
-      reactions.forEach(
-        item=>{
-
-          counts[item.reaction] =
-            (counts[item.reaction] || 0) + 1;
-
-        }
-      );
-
-      Object.entries(
-        counts
-      ).forEach(
-        ([reaction,count])=>{
-
-          const chip =
-            document.createElement(
-              "span"
-            );
-
-          chip.className =
-            "reaction-chip";
-
-          chip.textContent =
-            reaction + " " + count;
-
-          summary.appendChild(
-            chip
-          );
-
-        }
-      );
-
-      bubble.appendChild(
-        summary
-      );
-
-    }
-  );
-
-}
-
-/* =====================================================
-   MESSAGE MENU
-===================================================== */
-
-function createMessageMenu(
-  data,
-  bubble
-){
-
-  const menu =
-    document.createElement(
-      "div"
-    );
-
-  menu.className =
-    "message-menu";
-
-  const reply =
-    document.createElement(
-      "button"
-    );
-
-  reply.textContent =
-    "Reply";
-
-  reply.onclick =
-    ()=>{
-
-      menu.remove();
-
-      setReplyTarget(
-        data
-      );
-
-    };
-
-  const edit =
-    document.createElement(
-      "button"
-    );
-
-  edit.textContent =
-    "Edit";
-
-  edit.onclick =
-    ()=>{
-
-      menu.remove();
-
-      editMessage(
-        data,
-        bubble
-      );
-
-    };
-
-  const remove =
-    document.createElement(
-      "button"
-    );
-
-  remove.textContent =
-    "Delete";
-
-  remove.onclick =
-    ()=>{
-
-      menu.remove();
-
-      deleteMessage(
-        data,
-        bubble
-      );
-
-    };
-
-  menu.append(
-    reply,
-    edit,
-    remove
-  );
-
-  return menu;
-
-}
-
-/* =====================================================
-   CLOSE MENUS
-===================================================== */
-
-function closeMenus(){
-
-  document
-    .querySelectorAll(
-      ".message-menu.open,.reaction-picker.open"
-    )
-    .forEach(
-      element=>{
-        element.classList.remove(
-          "open"
-        );
-      }
-    );
-
-}
-
-/* =====================================================
-   EDIT MESSAGE
-===================================================== */
-
-async function editMessage(
-  data,
-  bubble
-){
-
-  const oldText =
-    bubble.querySelector(
-      ".message-text"
-    );
-
-  if(!oldText){
-    return;
-  }
-
-  if(
-    bubble.classList.contains(
-      "editing"
-    )
-  ){
-    return;
-  }
-
-  bubble.classList.add(
-    "editing"
-  );
-
-  const editor =
-    document.createElement(
-      "textarea"
-    );
-
-  editor.value =
-    data.content || "";
-
-  editor.maxLength =
-    5000;
-
-  editor.style.width =
-    "100%";
-
-  editor.style.minHeight =
-    "65px";
-
-  editor.style.border =
-    "1px solid rgba(255,255,255,.2)";
-
-  editor.style.borderRadius =
-    "8px";
-
-  editor.style.padding =
-    "8px";
-
-  editor.style.background =
-    "rgba(0,0,0,.2)";
-
-  editor.style.color =
-    "#fff";
-
-  editor.style.outline =
-    "none";
-
-  oldText.replaceWith(
-    editor
-  );
-
-  const actions =
-    document.createElement(
-      "div"
-    );
-
-  actions.style.display =
-    "flex";
-
-  actions.style.gap =
-    "6px";
-
-  actions.style.marginTop =
-    "6px";
-
-  const save =
-    document.createElement(
-      "button"
-    );
-
-  save.textContent =
-    "Save";
-
-  const cancel =
-    document.createElement(
-      "button"
-    );
-
-  cancel.textContent =
-    "Cancel";
-
-  [save,cancel].forEach(
-    button=>{
-
-      button.style.border =
-        "0";
-
-      button.style.borderRadius =
-        "7px";
-
-      button.style.padding =
-        "6px 9px";
-
-      button.style.cursor =
-        "pointer";
-
-    }
-  );
-
-  actions.append(
-    save,
-    cancel
-  );
-
-  bubble.appendChild(
-    actions
-  );
-
-  cancel.onclick =
-    ()=>{
-
-      editor.replaceWith(
-        oldText
-      );
-
-      actions.remove();
-
-      bubble.classList.remove(
-        "editing"
-      );
-
-    };
-
-  save.onclick =
-    async ()=>{
-
-      const content =
-        editor.value.trim();
-
-      if(!content){
-        showStatus(
-          "Message cannot be empty."
-        );
-        return;
-      }
-
-      save.disabled =
-        true;
-
-      try{
-
-        const {
-          data:updated,
-          error
-        } =
-          await supabaseClient
-            .from("messages")
-            .update({
-              content:content,
-              edited_at:
-                new Date().toISOString()
-            })
-            .eq(
-              "id",
-              data.id
-            )
-            .eq(
-              "sender_id",
-              currentUser.id
-            )
-            .select(
-              "id,sender_id,content,created_at,edited_at,reply_to_id"
-            )
-            .single();
-
-        if(error){
-          throw error;
-        }
-
-        messageCache.set(
-          updated.id,
-          updated
-        );
-
-        oldText.textContent =
-          updated.content;
-
-        editor.replaceWith(
-          oldText
-        );
-
-        const time =
-          bubble.querySelector(
-            ".message-time"
-          );
-
-        if(time){
-
-          time.textContent =
-            formatTime(
-              updated.created_at
-            ) +
-            " · edited";
-
-        }
-
-        actions.remove();
-
-        bubble.classList.remove(
-          "editing"
-        );
-
-      }catch(error){
-
-        console.error(
-          "Edit error:",
-          error
-        );
-
-        save.disabled =
-          false;
-
-        showStatus(
-          "Message could not be edited."
-        );
-
-      }
-
-    };
-
-}
-
-/* =====================================================
-   DELETE MESSAGE
-===================================================== */
-
-async function deleteMessage(
-  data,
-  bubble
-){
-
-  if(
-    !confirm(
-      "Delete this message?"
-    )
-  ){
-    return;
-  }
-
-  try{
-
-    const {
-      error
-    } =
-      await supabaseClient
-        .from("messages")
-        .delete()
-        .eq(
-          "id",
-          data.id
-        )
-        .eq(
-          "sender_id",
-          currentUser.id
-        );
-
-    if(error){
-      throw error;
-    }
-
-    const row =
-      bubble.parentElement;
-
-    row.classList.add(
-      "deleting"
-    );
-
-    setTimeout(
-      ()=>{
-
-        row.remove();
-
-        if(
-          !messages.querySelector(
-            ".message-row"
-          )
-        ){
-
-          messages.innerHTML = `
-            <div class="welcome-message" id="welcomeMessage">
-              <h3>Welcome to ToTalk</h3>
-              <p>Your conversation space is ready. Write a message below to begin.</p>
-            </div>
-          `;
-
-        }
-
-      },
-      220
-    );
-
-  }catch(error){
-
-    console.error(
-      "Delete error:",
-      error
-    );
-
-    showStatus(
-      "Message could not be deleted."
-    );
-
-  }
-
-}
-
-/* =====================================================
-   LOAD MESSAGES
-===================================================== */
-
-async function loadMessages(){
-
-  const {
-    data,
-    error
-  } =
-    await supabaseClient
-      .from("messages")
-      .select(
-        "id,sender_id,content,created_at,edited_at,reply_to_id"
-      )
-      .order(
-        "created_at",
-        {
-          ascending:true
-        }
-      );
-
-  if(error){
-
-    console.error(
-      "Message load error:",
-      error
-    );
-
-    throw error;
-
-  }
-
-  messages.innerHTML =
-    "";
-
-  if(
-    !data ||
-    data.length === 0
-  ){
-
-    messages.innerHTML = `
-      <div class="welcome-message" id="welcomeMessage">
-        <h3>Welcome to ToTalk</h3>
-        <p>Your conversation space is ready. Write a message below to begin.</p>
-      </div>
-    `;
-
-    return;
-
-  }
-
-  data.forEach(
-    message=>{
-
-      messageCache.set(
-        message.id,
-        message
-      );
-
-    }
-  );
-
-  data.forEach(
-    (message,index)=>{
-
-      addMessage(
-        message,
-        true
-      );
-
-    }
-  );
-
-  requestAnimationFrame(
-    ()=>{
-
-      messages.scrollTop =
-        messages.scrollHeight;
-
-    }
-  );
-
-  await loadAllReactions();
-
-}
-
-/* =====================================================
-   SEND MESSAGE
-===================================================== */
-
-async function sendMessage(){
-
-  const text =
-    messageInput.value.trim();
-
-  if(!text){
-    return;
-  }
-
-  if(!currentUser){
-
-    showStatus(
-      "Your login session is not ready."
-    );
-
-    return;
-
-  }
-
-  sendButton.disabled =
-    true;
-
-  sendButton.textContent =
-    "Saving";
-
-  try{
-
-    const {
-      data,
-      error
-    } =
-      await supabaseClient
-        .from("messages")
-        .insert({
-          sender_id:
-            currentUser.id,
-
-          content:
-            text,
-
-          reply_to_id:
-            replyTarget?.id || null
-        })
-        .select(
-          "id,sender_id,content,created_at,edited_at,reply_to_id"
-        )
-        .single();
-
-    if(error){
-      throw error;
-    }
-
-    addMessage(
-      data,
-      true
-    );
-
-    messageInput.value =
-      "";
-
-    clearReplyTarget();
-
-    requestAnimationFrame(
-      ()=>{
-
-        messages.scrollTop =
-          messages.scrollHeight;
-
-      }
-    );
-
-  }catch(error){
-
-    console.error(
-      "Send message error:",
-      error
-    );
-
-    showStatus(
-      "Message was not saved: " +
-      (error.message || "")
-    );
-
-  }finally{
-
-    sendButton.disabled =
-      false;
-
-    sendButton.textContent =
-      "Send";
-
-  }
-
-}
-
-/* =====================================================
-   REALTIME
-===================================================== */
-
-function startRealtime(){
-
-  if(realtimeChannel){
-    return;
-  }
-
-  realtimeChannel =
-    supabaseClient
-      .channel(
-        "totalk-chat-" +
-        currentUser.id
-      )
-
-      .on(
-        "postgres_changes",
-        {
-          event:"INSERT",
-          schema:"public",
-          table:"messages"
-        },
-        payload=>{
-
-          const data =
-            payload.new;
-
-          if(!data?.id){
-            return;
-          }
-
-          messageCache.set(
-            data.id,
-            data
-          );
-
-          const exists =
-            document.querySelector(
-              `[data-message-id="${data.id}"]`
-            );
-
-          if(!exists){
-
-            addMessage(
-              data,
-              true
-            );
-
-            const nearBottom =
-              messages.scrollHeight -
-              messages.scrollTop -
-              messages.clientHeight <
-              160;
-
-            if(nearBottom){
-
-              requestAnimationFrame(
-                ()=>{
-
-                  messages.scrollTop =
-                    messages.scrollHeight;
-
-                }
-              );
-
-            }
-
-          }
-
-        }
-      )
-
-      .on(
-        "postgres_changes",
-        {
-          event:"UPDATE",
-          schema:"public",
-          table:"messages"
-        },
-        payload=>{
-
-          const data =
-            payload.new;
-
-          messageCache.set(
-            data.id,
-            data
-          );
-
-          const row =
-            document.querySelector(
-              `[data-message-id="${data.id}"]`
-            );
-
-          if(!row){
-            return;
-          }
-
-          const bubble =
-            row.querySelector(
-              ".message"
-            );
-
-          const text =
-            bubble?.querySelector(
-              ".message-text"
-            );
-
-          if(text){
-            text.textContent =
-              data.content;
-          }
-
-        }
-      )
-
-      .on(
-        "postgres_changes",
-        {
-          event:"DELETE",
-          schema:"public",
-          table:"messages"
-        },
-        payload=>{
-
-          const id =
-            payload.old?.id;
-
-          if(!id){
-            return;
-          }
-
-          document
-            .querySelector(
-              `[data-message-id="${id}"]`
-            )
-            ?.remove();
-
-          messageCache.delete(
-            id
-          );
-
-        }
-      )
-
-      .on(
-        "postgres_changes",
-        {
-          event:"*",
-          schema:"public",
-          table:"message_reactions"
-        },
-        async payload=>{
-
-          const id =
-            payload.new?.message_id ||
-            payload.old?.message_id;
-
-          if(!id){
-            return;
-          }
-
-          const row =
-            document.querySelector(
-              `[data-message-id="${id}"]`
-            );
-
-          const bubble =
-            row?.querySelector(
-              ".message"
-            );
-
-          if(bubble){
-
-            await refreshReaction(
-              id,
-              bubble
-            );
-
-          }
-
-        }
-      )
-
-      .subscribe(
-        status=>{
-
-          console.log(
-            "Realtime:",
-            status
-          );
-
-        }
-      );
-
-}
-
-/* =====================================================
-   PRESENCE
-===================================================== */
-
-function startPresence(){
-
-  if(!currentUser){
-    return;
-  }
-
-  if(presenceChannel){
-    return;
-  }
-
-  presenceChannel =
-    supabaseClient
-      .channel(
-        "totalk-presence"
-      );
-
-  presenceChannel
-    .on(
-      "presence",
-      {
-        event:"sync"
-      },
-      ()=>{
-        updatePresence();
-      }
-    )
-    .on(
-      "presence",
-      {
-        event:"join"
-      },
-      ()=>{
-        updatePresence();
-      }
-    )
-    .on(
-      "presence",
-      {
-        event:"leave"
-      },
-      ()=>{
-        updatePresence();
-      }
-    )
-    .subscribe(
-      async status=>{
-
-        if(
-          status ===
-          "SUBSCRIBED"
-        ){
-
-          await presenceChannel.track({
-            user_id:
-              currentUser.id,
-
-            online_at:
-              new Date().toISOString()
-          });
-
-        }
-
-      }
-    );
-
-}
-
-function updatePresence(){
-
-  document.getElementById(
-    "sidePresence"
-  ).textContent =
-    "Online";
-
-  document.getElementById(
-    "chatPresence"
-  ).textContent =
-    "Online";
-
-}
-
-/* =====================================================
-   SEARCH
-===================================================== */
-
-let searchMatches = [];
-let searchIndex = -1;
-
-function runSearch(){
-
-  const query =
-    searchInput.value
-      .trim()
-      .toLowerCase();
-
-  document
-    .querySelectorAll(
-      ".message-row"
-    )
-    .forEach(
-      row=>{
-        row.style.opacity =
-          "1";
-      }
-    );
-
-  searchMatches = [];
-
-  if(!query){
-    return;
-  }
-
-  document
-    .querySelectorAll(
-      ".message-row"
-    )
-    .forEach(
-      row=>{
-
-        const text =
-          row
-            .querySelector(
-              ".message-text"
-            )
-            ?.textContent
-            .toLowerCase() ||
-          "";
-
-        if(
-          text.includes(query)
-        ){
-
-          searchMatches.push(
-            row
-          );
-
-          row.style.opacity =
-            ".55";
-
-        }else{
-
-          row.style.opacity =
-            ".15";
-
-        }
-
-      }
-    );
-
-  if(searchMatches.length){
-
-    searchIndex =
-      0;
-
-    focusSearch();
-
-  }
-
-}
-
-function focusSearch(){
-
-  if(
-    !searchMatches.length
-  ){
-    return;
-  }
-
-  searchMatches.forEach(
-    row=>{
-      row.style.opacity =
-        ".55";
-    }
-  );
-
-  const row =
-    searchMatches[
-      searchIndex
-    ];
-
-  row.style.opacity =
-    "1";
-
-  row.scrollIntoView({
-    behavior:"smooth",
-    block:"center"
+  const { error } = await supabaseClient.auth.signInWithOAuth({
+    provider:"google",
+    options:{redirectTo:redirectURL}
   });
 
-}
-
-document
-  .getElementById(
-    "searchBtn"
-  )
-  .addEventListener(
-    "click",
-    ()=>{
-
-      searchPanel.classList.toggle(
-        "open"
-      );
-
-      if(
-        searchPanel.classList.contains(
-          "open"
-        )
-      ){
-
-        searchInput.focus();
-
-      }
-
-    }
-  );
-
-searchInput.addEventListener(
-  "input",
-  runSearch
-);
-
-document
-  .getElementById(
-    "searchClose"
-  )
-  .addEventListener(
-    "click",
-    ()=>{
-
-      searchPanel.classList.remove(
-        "open"
-      );
-
-      searchInput.value =
-        "";
-
-      document
-        .querySelectorAll(
-          ".message-row"
-        )
-        .forEach(
-          row=>{
-            row.style.opacity =
-              "1";
-          }
-        );
-
-    }
-  );
-
-document
-  .getElementById(
-    "searchNext"
-  )
-  .addEventListener(
-    "click",
-    ()=>{
-
-      if(
-        !searchMatches.length
-      ){
-        return;
-      }
-
-      searchIndex =
-        (searchIndex + 1) %
-        searchMatches.length;
-
-      focusSearch();
-
-    }
-  );
-
-document
-  .getElementById(
-    "searchPrev"
-  )
-  .addEventListener(
-    "click",
-    ()=>{
-
-      if(
-        !searchMatches.length
-      ){
-        return;
-      }
-
-      searchIndex =
-        (searchIndex - 1 +
-        searchMatches.length) %
-        searchMatches.length;
-
-      focusSearch();
-
-    }
-  );
-
-/* =====================================================
-   GLOBAL CLICK
-===================================================== */
-
-document.addEventListener(
-  "click",
-  event=>{
-
-    if(
-      !event.target.closest(
-        ".message-menu"
-      ) &&
-      !event.target.closest(
-        ".message-menu-btn"
-      ) &&
-      !event.target.closest(
-        ".reaction-picker"
-      ) &&
-      !event.target.closest(
-        ".message"
-      )
-    ){
-
-      closeMenus();
-
-    }
-
-  }
-);
-
-/* =====================================================
-   INPUT
-===================================================== */
-
-sendButton.addEventListener(
-  "click",
-  sendMessage
-);
-
-messageInput.addEventListener(
-  "keydown",
-  event=>{
-
-    if(
-      event.key === "Enter" &&
-      !event.shiftKey
-    ){
-
-      event.preventDefault();
-
-      sendMessage();
-
-    }
-
-  }
-);
-
-/* =====================================================
-   PROFILE
-===================================================== */
-profileBtn?.addEventListener("click",()=>{ window.location.href="./profile-maker.html"; });
-
-/* =====================================================
-   LOGOUT
-===================================================== */
-
-logoutBtn.addEventListener(
-  "click",
-  async ()=>{
-
-    logoutBtn.disabled =
-      true;
-
-    logoutBtn.textContent =
-      "Logging out";
-
-    try{
-
-      if(realtimeChannel){
-
-        await supabaseClient
-          .removeChannel(
-            realtimeChannel
-          );
-
-      }
-
-      if(presenceChannel){
-
-        await supabaseClient
-          .removeChannel(
-            presenceChannel
-          );
-
-      }
-
-      await supabaseClient
-        .auth
-        .signOut();
-
-      window.location.replace(
-        "./index.html"
-      );
-
-    }catch(error){
-
-      console.error(
-        "Logout error:",
-        error
-      );
-
-      logoutBtn.disabled =
-        false;
-
-      logoutBtn.textContent =
-        "Logout";
-
-    }
-
-  }
-);
-
-/* =====================================================
-   AUTH STATE
-===================================================== */
-
-supabaseClient.auth.onAuthStateChange(
-  (event,session)=>{
-
-    console.log(
-      "Auth event:",
-      event
-    );
-
-    if(
-      event ===
-      "SIGNED_OUT"
-    ){
-
-      window.location.replace(
-        "./index.html"
-      );
-
-    }
-
-  }
-);
-
-/* =====================================================
-   START APPLICATION
-===================================================== */
-
-async function startApp(){
-
-  try{
-
-    /*
-     * Keep galaxy loading visible immediately.
-     */
-    showLoading(
-      "ToTalk",
-      "Checking your account"
-    );
-
-    let user=await getLoggedInUser();
-    if(!user){ await new Promise(resolve=>setTimeout(resolve,300)); user=await getLoggedInUser(); }
-
-    if(!user){
-
-      showLoading(
-        "Login required",
-        "Returning to ToTalk"
-      );
-
-      setTimeout(
-        ()=>{
-
-          window.location.replace(
-            "./index.html"
-          );
-
-        },
-        800
-      );
-
-      return;
-
-    }
-
-    currentUser =
-      user;
-
-    /*
-     * IMPORTANT:
-     * Check the profiles table BEFORE
-     * opening the chat.
-     */
-    setLoadingText(
-      "ToTalk",
-      "Connecting…"
-    );
-
-    currentProfile =
-      await checkProfile();
-
-    /*
-     * Do not interrupt the user with a profile screen after login.
-     * If there is no profile yet, create a lightweight profile automatically
-     * using the Google account name and a permanent ToTalk ID.
-     * The user can edit everything later from the Profile button.
-     */
-    if(!currentProfile){
-      const fallbackName =
-        currentUser?.user_metadata?.full_name ||
-        currentUser?.user_metadata?.name ||
-        currentUser?.email?.split("@")[0] ||
-        "ToTalk User";
-
-      const newId = makeTTId();
-      const {data:created,error:createError}=await supabaseClient
-        .from("profiles")
-        .insert({
-          user_id:currentUser.id,
-          name:fallbackName,
-          gender:null,
-          age:null,
-          totalk_id:newId,
-          profile_completed:true,
-          location:"",
-          location_visibility:"city_country"
-        })
-        .select("id,user_id,name,gender,age,totalk_id,profile_completed,location,location_visibility")
-        .single();
-
-      if(createError){
-        // Another request may have created it at the same time.
-        currentProfile=await checkProfile();
-        if(!currentProfile) throw createError;
-      }else{
-        currentProfile=created;
-      }
-    }else if(currentProfile.profile_completed !== true){
-      // Let the user enter chat immediately; Profile remains available for editing.
-      const {data:completed,error:completeError}=await supabaseClient
-        .from("profiles")
-        .update({profile_completed:true})
-        .eq("id",currentProfile.id)
-        .eq("user_id",currentUser.id)
-        .select("id,user_id,name,gender,age,totalk_id,profile_completed,location,location_visibility")
-        .maybeSingle();
-
-      if(completeError) throw completeError;
-      if(completed) currentProfile=completed;
-    }
-
-    /*
-     * Profile exists.
-     */
-    setLoadingText(
-      "ToTalk",
-      "Opening your space…"
-    );
-
-    updateUserUI();
-
-    /*
-     * Load messages.
-     */
-    await loadMessages();
-
-    /*
-     * Start realtime only AFTER
-     * profile + messages are ready.
-     */
-    startRealtime();
-    startPresence();
-
-    /*
-     * Keep galaxy visible long enough
-     * to create the smooth transition.
-     */
-    finishLoading();
-
-  }catch(error){
-
-    console.error(
-      "ToTalk startup error:",
-      error
-    );
-
-    loading.innerHTML = `
-      <div class="login-error">
-        <h2>Unable to open ToTalk</h2>
-        <p>
-          Something went wrong while preparing your conversation space.
-        </p>
-        <a class="back-button" href="./index.html">
-          Back to ToTalk
-        </a>
-      </div>
-    `;
-
+  if(error){
+    loginStarted = false;
+    hideLoginGalaxy();
+    resetGoogleButton();
+    alert("Unable to start Google sign-in. Please try again.");
   }
 
-}
-
-/* =====================================================
-   START
-===================================================== */
-
-startApp();
+});
 
 </script>
 
