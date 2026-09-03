@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -10,7 +9,11 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
-*{box-sizing:border-box;margin:0;padding:0}
+*{
+  box-sizing:border-box;
+  margin:0;
+  padding:0;
+}
 
 :root{
   --black:#020108;
@@ -27,7 +30,8 @@
   --border:rgba(145,76,255,.40);
 }
 
-html,body{
+html,
+body{
   width:100%;
   height:100%;
   overflow:hidden;
@@ -37,10 +41,50 @@ html,body{
 body{
   font-family:Arial,Helvetica,sans-serif;
   color:var(--white);
+
   background:
-    radial-gradient(ellipse at 70% 25%,rgba(111,36,191,.25),transparent 32%),
-    radial-gradient(ellipse at 15% 85%,rgba(81,29,160,.20),transparent 30%),
-    linear-gradient(135deg,#020108,#070313 50%,#020108);
+    radial-gradient(
+      ellipse at 70% 25%,
+      rgba(111,36,191,.20),
+      transparent 32%
+    ),
+    radial-gradient(
+      ellipse at 15% 85%,
+      rgba(81,29,160,.15),
+      transparent 30%
+    ),
+    linear-gradient(
+      135deg,
+      #020108,
+      #070313 50%,
+      #020108
+    );
+}
+
+/* =====================================================
+   PERFORMANCE OPTIMIZATION
+===================================================== */
+
+button,
+input,
+textarea{
+  -webkit-tap-highlight-color:transparent;
+}
+
+.chat-box,
+.sidebar,
+.input-area,
+.chat-top,
+#messages{
+  transform:translateZ(0);
+}
+
+.chat-box{
+  contain:layout paint;
+}
+
+.sidebar{
+  contain:layout paint;
 }
 
 /* =====================================================
@@ -53,39 +97,325 @@ body:before{
   inset:0;
   pointer-events:none;
   z-index:0;
-  opacity:.72;
+  opacity:.58;
+
   background-image:
-    radial-gradient(circle,rgba(255,255,255,.9) 1px,transparent 1.5px),
-    radial-gradient(circle,rgba(210,190,255,.8) 1px,transparent 1.5px),
-    radial-gradient(circle,rgba(255,255,255,.65) 1px,transparent 1.5px);
-  background-size:115px 115px,175px 175px,245px 245px;
-  background-position:15px 25px,70px 90px,130px 45px;
+    radial-gradient(
+      circle,
+      rgba(255,255,255,.78) 1px,
+      transparent 1.5px
+    ),
+    radial-gradient(
+      circle,
+      rgba(210,190,255,.65) 1px,
+      transparent 1.5px
+    ),
+    radial-gradient(
+      circle,
+      rgba(255,255,255,.50) 1px,
+      transparent 1.5px
+    );
+
+  background-size:
+    115px 115px,
+    175px 175px,
+    245px 245px;
+
+  background-position:
+    15px 25px,
+    70px 90px,
+    130px 45px;
+
+  contain:strict;
 }
 
 /* =====================================================
-   PREMIUM TO TALK LOADING — ONLY THE STARTUP OVERLAY
+   LOADING
 ===================================================== */
-#loading{position:fixed;inset:0;z-index:999999;display:flex;align-items:center;justify-content:center;flex-direction:column;overflow:hidden;background:radial-gradient(circle at 50% 44%,rgba(113,63,255,.16),transparent 28%),radial-gradient(circle at 20% 80%,rgba(71,42,175,.10),transparent 32%),#020108;opacity:1;visibility:visible;transition:opacity .42s ease,visibility .42s ease}
-#loading.hide{opacity:0;visibility:hidden;pointer-events:none}
-.loading-stars{position:absolute;inset:0;pointer-events:none;background-image:radial-gradient(circle at 8% 14%,rgba(255,255,255,.75) 0 1px,transparent 1.6px),radial-gradient(circle at 18% 48%,rgba(185,151,255,.7) 0 1px,transparent 1.6px),radial-gradient(circle at 28% 82%,rgba(255,255,255,.65) 0 1px,transparent 1.6px),radial-gradient(circle at 38% 22%,rgba(255,255,255,.72) 0 1px,transparent 1.6px),radial-gradient(circle at 55% 72%,rgba(185,151,255,.6) 0 1px,transparent 1.6px),radial-gradient(circle at 66% 16%,rgba(255,255,255,.7) 0 1px,transparent 1.6px),radial-gradient(circle at 78% 62%,rgba(255,255,255,.65) 0 1px,transparent 1.6px),radial-gradient(circle at 92% 24%,rgba(185,151,255,.65) 0 1px,transparent 1.6px)}
-.loading-nebula{position:absolute;width:330px;height:330px;border-radius:50%;background:radial-gradient(circle,rgba(126,73,255,.16),rgba(76,42,180,.06) 46%,transparent 70%);filter:blur(20px);animation:loadingNebula 4s ease-in-out infinite}
-.loading-system{position:relative;width:190px;height:145px;display:flex;align-items:center;justify-content:center}
-.loading-orbit{position:absolute;width:170px;height:58px;border:1px solid rgba(174,132,255,.36);border-radius:50%;transform:rotate(-16deg);box-shadow:0 0 22px rgba(123,72,255,.10);animation:loadingOrbit 7s linear infinite}
-.loading-orbit.two{width:182px;height:64px;transform:rotate(25deg);border-color:rgba(145,95,255,.18);animation:loadingOrbitTwo 9s linear infinite reverse}
-.loading-moon{width:62px;height:62px;border-radius:50%;position:relative;background:radial-gradient(circle at 31% 25%,#fff,#eeeaff 52%,#d5d0e5 100%);box-shadow:0 0 15px rgba(255,255,255,.28),0 0 45px rgba(127,72,255,.30);animation:loadingFloat 3.5s ease-in-out infinite}
-.loading-moon:before,.loading-moon:after{content:"";position:absolute;border-radius:50%;background:rgba(130,120,160,.16)}
-.loading-moon:before{width:10px;height:10px;left:15px;top:19px}
-.loading-moon:after{width:15px;height:15px;right:12px;top:29px}
-.loading-title{position:relative;margin-top:4px;font-size:25px;line-height:1;font-weight:800;letter-spacing:-.5px;text-align:center}
-.loading-subtitle{position:relative;margin-top:10px;color:#9d96ae;font-size:13px;text-align:center}
-.loading-dots{position:relative;display:flex;gap:7px;margin-top:15px}
-.loading-dots span{width:6px;height:6px;border-radius:50%;background:#bfa4ff;animation:loadingDot 1.25s ease-in-out infinite}
-.loading-dots span:nth-child(2){animation-delay:.16s}.loading-dots span:nth-child(3){animation-delay:.32s}
-@keyframes loadingDot{0%,100%{transform:translateY(0);opacity:.25}50%{transform:translateY(-4px);opacity:.9}}
-@keyframes loadingFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
-@keyframes loadingOrbit{from{transform:rotate(-16deg) rotate(0deg)}to{transform:rotate(-16deg) rotate(360deg)}}
-@keyframes loadingOrbitTwo{from{transform:rotate(25deg) rotate(0deg)}to{transform:rotate(25deg) rotate(360deg)}}
-@keyframes loadingNebula{0%,100%{transform:scale(.96);opacity:.65}50%{transform:scale(1.04);opacity:.9}}
+
+#loading{
+  position:fixed;
+  inset:0;
+  z-index:999999;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex-direction:column;
+
+  overflow:hidden;
+
+  background:
+    radial-gradient(
+      circle at 50% 44%,
+      rgba(113,63,255,.16),
+      transparent 28%
+    ),
+    radial-gradient(
+      circle at 20% 80%,
+      rgba(71,42,175,.10),
+      transparent 32%
+    ),
+    #020108;
+
+  opacity:1;
+  visibility:visible;
+
+  transition:
+    opacity .42s ease,
+    visibility .42s ease;
+}
+
+#loading.hide{
+  opacity:0;
+  visibility:hidden;
+  pointer-events:none;
+}
+
+.loading-stars{
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+
+  background-image:
+    radial-gradient(
+      circle at 8% 14%,
+      rgba(255,255,255,.75) 0 1px,
+      transparent 1.6px
+    ),
+    radial-gradient(
+      circle at 18% 48%,
+      rgba(185,151,255,.7) 0 1px,
+      transparent 1.6px
+    ),
+    radial-gradient(
+      circle at 28% 82%,
+      rgba(255,255,255,.65) 0 1px,
+      transparent 1.6px
+    ),
+    radial-gradient(
+      circle at 38% 22%,
+      rgba(255,255,255,.72) 0 1px,
+      transparent 1.6px
+    ),
+    radial-gradient(
+      circle at 55% 72%,
+      rgba(185,151,255,.6) 0 1px,
+      transparent 1.6px
+    ),
+    radial-gradient(
+      circle at 66% 16%,
+      rgba(255,255,255,.7) 0 1px,
+      transparent 1.6px
+    ),
+    radial-gradient(
+      circle at 78% 62%,
+      rgba(255,255,255,.65) 0 1px,
+      transparent 1.6px
+    ),
+    radial-gradient(
+      circle at 92% 24%,
+      rgba(185,151,255,.65) 0 1px,
+      transparent 1.6px
+    );
+}
+
+.loading-nebula{
+  position:absolute;
+  width:330px;
+  height:330px;
+  border-radius:50%;
+
+  background:
+    radial-gradient(
+      circle,
+      rgba(126,73,255,.16),
+      rgba(76,42,180,.06) 46%,
+      transparent 70%
+    );
+
+  /* Removed expensive blur */
+  animation:loadingNebula 4s ease-in-out infinite;
+}
+
+.loading-system{
+  position:relative;
+  width:190px;
+  height:145px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.loading-orbit{
+  position:absolute;
+  width:170px;
+  height:58px;
+
+  border:1px solid rgba(174,132,255,.36);
+  border-radius:50%;
+
+  animation:loadingOrbit 7s linear infinite;
+}
+
+.loading-orbit.two{
+  width:182px;
+  height:64px;
+
+  border-color:rgba(145,95,255,.18);
+
+  animation:
+    loadingOrbitTwo
+    9s linear infinite reverse;
+}
+
+.loading-moon{
+  width:62px;
+  height:62px;
+
+  border-radius:50%;
+
+  background:
+    radial-gradient(
+      circle at 31% 25%,
+      #fff,
+      #eeeaff 52%,
+      #d5d0e5 100%
+    );
+
+  box-shadow:
+    0 0 15px rgba(255,255,255,.20),
+    0 0 35px rgba(127,72,255,.22);
+
+  animation:
+    loadingFloat
+    3.5s ease-in-out infinite;
+}
+
+.loading-moon:before,
+.loading-moon:after{
+  content:"";
+  position:absolute;
+  border-radius:50%;
+  background:rgba(130,120,160,.16);
+}
+
+.loading-moon:before{
+  width:10px;
+  height:10px;
+  left:15px;
+  top:19px;
+}
+
+.loading-moon:after{
+  width:15px;
+  height:15px;
+  right:12px;
+  top:29px;
+}
+
+.loading-title{
+  position:relative;
+  margin-top:4px;
+
+  font-size:25px;
+  line-height:1;
+  font-weight:800;
+  letter-spacing:-.5px;
+  text-align:center;
+}
+
+.loading-subtitle{
+  position:relative;
+  margin-top:10px;
+
+  color:#9d96ae;
+  font-size:13px;
+  text-align:center;
+}
+
+.loading-dots{
+  position:relative;
+
+  display:flex;
+  gap:7px;
+  margin-top:15px;
+}
+
+.loading-dots span{
+  width:6px;
+  height:6px;
+
+  border-radius:50%;
+  background:#bfa4ff;
+
+  animation:
+    loadingDot
+    1.25s ease-in-out infinite;
+}
+
+.loading-dots span:nth-child(2){
+  animation-delay:.16s;
+}
+
+.loading-dots span:nth-child(3){
+  animation-delay:.32s;
+}
+
+@keyframes loadingDot{
+  0%,100%{
+    transform:translateY(0);
+    opacity:.25;
+  }
+
+  50%{
+    transform:translateY(-4px);
+    opacity:.9;
+  }
+}
+
+@keyframes loadingFloat{
+  0%,100%{
+    transform:translateY(0);
+  }
+
+  50%{
+    transform:translateY(-4px);
+  }
+}
+
+@keyframes loadingOrbit{
+  from{
+    transform:rotate(-16deg) rotate(0deg);
+  }
+
+  to{
+    transform:rotate(-16deg) rotate(360deg);
+  }
+}
+
+@keyframes loadingOrbitTwo{
+  from{
+    transform:rotate(25deg) rotate(0deg);
+  }
+
+  to{
+    transform:rotate(25deg) rotate(360deg);
+  }
+}
+
+@keyframes loadingNebula{
+  0%,100%{
+    transform:scale(.96);
+    opacity:.65;
+  }
+
+  50%{
+    transform:scale(1.04);
+    opacity:.9;
+  }
+}
 
 /* =====================================================
    HEADER
@@ -94,14 +424,21 @@ body:before{
 header{
   position:relative;
   z-index:20;
+
   height:78px;
+
   display:flex;
   align-items:center;
   justify-content:space-between;
+
   padding:0 24px;
+
   background:rgba(3,2,10,.96);
+
   border-bottom:1px solid var(--border);
-  box-shadow:0 0 25px rgba(104,42,190,.12);
+
+  box-shadow:
+    0 0 20px rgba(104,42,190,.10);
 }
 
 .brand{
@@ -110,8 +447,9 @@ header{
   letter-spacing:-.8px;
 }
 
-.brand-main{color:#fff}
-.brand-name{color:var(--purple2)}
+.brand-main{
+  color:#fff;
+}
 
 .header-right{
   display:flex;
@@ -128,22 +466,31 @@ header{
 #logoutBtn{
   width:104px;
   height:42px;
+
   border:1px solid rgba(160,120,255,.24);
+
   background:rgba(255,255,255,.035);
+
   color:#fff;
+
   padding:0;
+
   border-radius:14px;
+
   font:inherit;
   font-size:13px;
   font-weight:700;
+
   cursor:pointer;
-  transition:.2s ease;
+
+  transition:
+    border-color .18s ease,
+    background .18s ease;
 }
 
 #logoutBtn:hover{
   border-color:rgba(166,116,255,.52);
   background:rgba(125,76,255,.1);
-  transform:translateY(-1px);
 }
 
 /* =====================================================
@@ -153,11 +500,18 @@ header{
 .chat-layout{
   position:relative;
   z-index:2;
+
   width:100%;
   height:calc(100dvh - 78px);
+
   padding:16px;
+
   display:grid;
-  grid-template-columns:235px minmax(0,1fr);
+
+  grid-template-columns:
+    235px
+    minmax(0,1fr);
+
   gap:14px;
 }
 
@@ -168,15 +522,26 @@ header{
 .sidebar{
   min-width:0;
   overflow:hidden;
+
   border:1px solid var(--border);
   border-radius:14px;
-  background:linear-gradient(180deg,rgba(9,6,23,.97),rgba(3,2,12,.98));
-  box-shadow:0 0 30px rgba(95,35,180,.10);
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(9,6,23,.97),
+      rgba(3,2,12,.98)
+    );
+
+  box-shadow:
+    0 0 22px rgba(95,35,180,.08);
 }
 
 .sidebar-title{
   padding:22px 20px 18px;
-  border-bottom:1px solid rgba(145,76,255,.18);
+
+  border-bottom:
+    1px solid rgba(145,76,255,.18);
 }
 
 .sidebar-title h2{
@@ -191,14 +556,23 @@ header{
 
 .chat-person{
   position:relative;
+
   margin:17px 15px;
   padding:13px;
+
   display:flex;
   align-items:center;
   gap:11px;
+
   border:1px solid rgba(145,76,255,.32);
   border-radius:12px;
-  background:linear-gradient(135deg,rgba(95,37,165,.35),rgba(27,12,59,.65));
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(95,37,165,.35),
+      rgba(27,12,59,.65)
+    );
 }
 
 .avatar,
@@ -206,10 +580,20 @@ header{
   display:flex;
   align-items:center;
   justify-content:center;
+
   border-radius:50%;
-  background:linear-gradient(135deg,#a45cff,#6321d8);
+
+  background:
+    linear-gradient(
+      135deg,
+      #a45cff,
+      #6321d8
+    );
+
   font-weight:900;
-  box-shadow:0 0 20px rgba(145,76,255,.45);
+
+  box-shadow:
+    0 0 16px rgba(145,76,255,.32);
 }
 
 .avatar{
@@ -225,10 +609,13 @@ header{
 
 .presence{
   margin-top:5px;
+
   display:flex;
   align-items:center;
   gap:6px;
+
   color:#bda8ff;
+
   font-size:10px;
   font-weight:700;
 }
@@ -236,9 +623,13 @@ header{
 .presence-dot{
   width:7px;
   height:7px;
+
   border-radius:50%;
+
   background:var(--green);
-  box-shadow:0 0 9px rgba(82,230,154,.7);
+
+  box-shadow:
+    0 0 7px rgba(82,230,154,.55);
 }
 
 /* =====================================================
@@ -247,23 +638,35 @@ header{
 
 .chat-box{
   position:relative;
+
   min-width:0;
   min-height:0;
+
   overflow:hidden;
+
   border:1px solid var(--border);
   border-radius:14px;
-  background:rgba(3,2,12,.85);
-  box-shadow:0 0 30px rgba(95,35,180,.12);
+
+  background:rgba(3,2,12,.88);
+
+  box-shadow:
+    0 0 24px rgba(95,35,180,.10);
 }
 
 .chat-top{
   height:64px;
+
   display:flex;
   align-items:center;
   gap:11px;
+
   padding:10px 16px;
-  border-bottom:1px solid rgba(145,76,255,.28);
-  background:rgba(5,3,14,.92);
+
+  border-bottom:
+    1px solid rgba(145,76,255,.28);
+
+  background:rgba(5,3,14,.94);
+
   position:relative;
   z-index:5;
 }
@@ -283,14 +686,18 @@ header{
   display:flex;
   align-items:center;
   gap:6px;
+
   margin-top:4px;
+
   color:#bda8ff;
+
   font-size:10px;
   font-weight:700;
 }
 
 .chat-actions{
   margin-left:auto;
+
   display:flex;
   align-items:center;
   gap:12px;
@@ -315,92 +722,164 @@ header{
 
 #messages{
   position:absolute;
+
   inset:64px 0 0 0;
+
   overflow-y:auto;
-  padding:20px 20px 100px;
-  scroll-behavior:smooth;
+
+  padding:
+    20px
+    20px
+    100px;
+
+  scroll-behavior:auto;
+
+  overscroll-behavior:contain;
+
+  -webkit-overflow-scrolling:touch;
+
+  contain:
+    layout
+    paint
+    style;
 }
 
 #messages::-webkit-scrollbar{
-  width:6px;
+  width:5px;
 }
 
 #messages::-webkit-scrollbar-thumb{
-  background:rgba(145,76,255,.25);
+  background:rgba(145,76,255,.22);
   border-radius:10px;
 }
 
+/* =====================================================
+   GALAXY CHAT BACKGROUND
+===================================================== */
+
 .chat-space{
   position:absolute;
+
   inset:64px 0 0;
+
   pointer-events:none;
+
   overflow:hidden;
+
+  contain:strict;
 }
 
 .chat-moon{
   position:absolute;
+
   left:55px;
   top:28px;
+
   width:64px;
   height:64px;
+
   border-radius:50%;
+
   background:#fff9a8;
-  box-shadow:0 0 35px rgba(255,225,60,.35);
+
+  box-shadow:
+    0 0 25px rgba(255,225,60,.28);
 }
 
 .chat-moon:after{
   content:"";
+
   position:absolute;
+
   width:64px;
   height:64px;
+
   border-radius:50%;
+
   background:#05020f;
+
   left:20px;
   top:-4px;
 }
 
 .chat-planet{
   position:absolute;
+
   right:35px;
   top:55px;
+
   width:78px;
   height:78px;
+
   border-radius:50%;
-  background:radial-gradient(circle at 30% 30%,#6d739a,#252841 70%,#17182b);
-  box-shadow:0 0 25px rgba(100,100,180,.25);
+
+  background:
+    radial-gradient(
+      circle at 30% 30%,
+      #6d739a,
+      #252841 70%,
+      #17182b
+    );
+
+  box-shadow:
+    0 0 20px rgba(100,100,180,.20);
 }
 
 .chat-planet:after{
   content:"";
+
   position:absolute;
+
   width:130px;
   height:30px;
-  border:1px solid rgba(173,135,255,.45);
+
+  border:
+    1px solid
+    rgba(173,135,255,.40);
+
   border-radius:50%;
+
   left:-26px;
   top:23px;
+
   transform:rotate(-14deg);
 }
 
 .nebula{
   position:absolute;
+
   width:320px;
   height:230px;
+
   left:50%;
   top:100px;
+
   transform:translateX(-50%);
+
   border-radius:50%;
-  background:radial-gradient(circle,rgba(115,39,190,.24),transparent 68%);
-  filter:blur(12px);
+
+  /* No blur filter */
+  background:
+    radial-gradient(
+      ellipse,
+      rgba(115,39,190,.20),
+      rgba(80,30,150,.08) 40%,
+      transparent 70%
+    );
 }
 
 .welcome-message{
   position:absolute;
+
   left:50%;
   top:50%;
+
   transform:translate(-50%,-42%);
+
   width:min(90%,500px);
+
   text-align:center;
+
   z-index:2;
 }
 
@@ -420,9 +899,14 @@ header{
 
 .message-row{
   position:relative;
+
   display:flex;
+
   margin-bottom:13px;
+
   z-index:3;
+
+  contain:layout;
 }
 
 .message-row.mine{
@@ -431,40 +915,74 @@ header{
 
 .message{
   position:relative;
+
   max-width:min(70%,560px);
+
   padding:11px 13px 8px;
-  border:1px solid rgba(145,76,255,.25);
-  border-radius:15px 15px 15px 4px;
-  background:linear-gradient(135deg,rgba(15,8,31,.96),rgba(25,11,47,.94));
-  box-shadow:0 5px 22px rgba(0,0,0,.18);
-  animation:messageIn .35s ease both;
+
+  border:
+    1px solid
+    rgba(145,76,255,.25);
+
+  border-radius:
+    15px 15px 15px 4px;
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(15,8,31,.96),
+      rgba(25,11,47,.94)
+    );
+
+  box-shadow:
+    0 4px 15px rgba(0,0,0,.16);
+
+  animation:
+    messageIn .25s ease both;
 }
 
 .mine .message{
-  border-radius:15px 15px 4px 15px;
-  background:linear-gradient(135deg,#5620b0,#7c3ee1);
-  border-color:rgba(184,143,255,.55);
+  border-radius:
+    15px 15px 4px 15px;
+
+  background:
+    linear-gradient(
+      135deg,
+      #5620b0,
+      #7c3ee1
+    );
+
+  border-color:
+    rgba(184,143,255,.55);
 }
 
 .message-text{
   white-space:pre-wrap;
   word-break:break-word;
+
   font-size:13px;
   line-height:1.45;
+
   padding-right:30px;
 }
 
 .message-time{
   display:inline-block;
+
   margin-top:5px;
+
   color:rgba(255,255,255,.52);
+
   font-size:9px;
 }
 
 .message-status{
   display:inline-block;
+
   margin-left:7px;
+
   color:rgba(255,255,255,.62);
+
   font-size:9px;
 }
 
@@ -473,34 +991,59 @@ header{
 }
 
 @keyframes messageIn{
-  from{opacity:0;transform:translateY(10px) scale(.98)}
-  to{opacity:1;transform:translateY(0) scale(1)}
+  from{
+    opacity:0;
+    transform:translateY(6px);
+  }
+
+  to{
+    opacity:1;
+    transform:translateY(0);
+  }
 }
 
 .message.deleting{
   opacity:0;
+
   transform:scale(.95);
-  transition:.22s ease;
+
+  transition:
+    opacity .18s ease,
+    transform .18s ease;
 }
+
+/* =====================================================
+   REPLY
+===================================================== */
 
 .reply-preview{
   margin-bottom:7px;
+
   padding:6px 8px;
-  border-left:2px solid #c39cff;
+
+  border-left:
+    2px solid
+    #c39cff;
+
   border-radius:5px;
+
   background:rgba(255,255,255,.08);
 }
 
 .reply-name{
   font-size:9px;
   font-weight:800;
+
   color:#d0b8ff;
+
   margin-bottom:2px;
 }
 
 .reply-text{
   color:rgba(255,255,255,.65);
+
   font-size:9px;
+
   white-space:nowrap;
   overflow:hidden;
   text-overflow:ellipsis;
@@ -512,28 +1055,47 @@ header{
 
 .message-menu-btn{
   position:absolute;
+
   right:5px;
   top:5px;
+
   width:25px;
   height:25px;
+
   border:0;
+
   border-radius:50%;
+
   background:rgba(0,0,0,.15);
+
   color:#fff;
+
   cursor:pointer;
+
   opacity:.7;
 }
 
 .message-menu{
   display:none;
+
   position:fixed;
+
   z-index:999999;
+
   min-width:125px;
+
   padding:5px;
-  border:1px solid var(--border);
+
+  border:
+    1px solid
+    var(--border);
+
   border-radius:10px;
+
   background:#100820;
-  box-shadow:0 15px 35px rgba(0,0,0,.45);
+
+  box-shadow:
+    0 12px 28px rgba(0,0,0,.40);
 }
 
 .message-menu.open{
@@ -542,14 +1104,23 @@ header{
 
 .message-menu button{
   display:block;
+
   width:100%;
+
   padding:9px 10px;
+
   border:0;
+
   border-radius:7px;
+
   background:transparent;
+
   color:#eee9f8;
+
   text-align:left;
+
   font-size:12px;
+
   cursor:pointer;
 }
 
@@ -563,15 +1134,27 @@ header{
 
 .reaction-picker{
   display:none;
+
   position:fixed;
+
   z-index:999998;
+
   align-items:center;
+
   gap:3px;
+
   padding:6px;
-  border:1px solid rgba(145,76,255,.45);
+
+  border:
+    1px solid
+    rgba(145,76,255,.45);
+
   border-radius:14px;
-  background:rgba(12,6,28,.98);
-  box-shadow:0 15px 35px rgba(0,0,0,.5);
+
+  background:#0c061c;
+
+  box-shadow:
+    0 12px 28px rgba(0,0,0,.45);
 }
 
 .reaction-picker.open{
@@ -581,41 +1164,56 @@ header{
 .reaction-picker button{
   min-width:31px;
   height:31px;
+
   border:0;
+
   border-radius:8px;
+
   background:transparent;
+
   color:#fff;
+
   cursor:pointer;
+
   font-size:17px;
 }
 
 .reaction-picker button:hover{
   background:rgba(145,76,255,.2);
-  transform:scale(1.08);
 }
 
 .reply-picker{
   padding:0 9px!important;
+
   font-size:10px!important;
+
   color:#cdb9ff!important;
 }
 
 .reaction-summary{
   display:flex;
+
   flex-wrap:wrap;
+
   gap:4px;
+
   margin-top:4px;
 }
 
 .reaction-chip{
   padding:3px 6px;
+
   border-radius:10px;
+
   background:rgba(0,0,0,.22);
+
   font-size:10px;
 }
 
 .reaction-chip.mine{
-  box-shadow:0 0 0 1px rgba(220,190,255,.25);
+  box-shadow:
+    0 0 0 1px
+    rgba(220,190,255,.25);
 }
 
 /* =====================================================
@@ -624,31 +1222,59 @@ header{
 
 .input-area{
   position:absolute;
+
   left:12px;
   right:12px;
   bottom:10px;
+
   z-index:20;
+
   display:flex;
+
   gap:8px;
+
   padding:7px;
-  border:1px solid rgba(145,76,255,.45);
+
+  border:
+    1px solid
+    rgba(145,76,255,.45);
+
   border-radius:13px;
-  background:rgba(11,5,25,.96);
-  box-shadow:0 10px 30px rgba(0,0,0,.35);
+
+  background:#0b0519;
+
+  box-shadow:
+    0 8px 24px rgba(0,0,0,.30);
 }
 
 #messageInput{
   min-width:0;
+
   flex:1;
+
   height:40px;
+
   resize:none;
+
   outline:none;
+
   border:0;
+
   background:transparent;
+
   color:#fff;
-  padding:11px 9px;
+
+  padding:
+    11px 9px;
+
   font-family:inherit;
-  font-size:13px;
+
+  font-size:16px;
+
+  line-height:18px;
+
+  /* Prevent mobile browser weird repaint */
+  -webkit-appearance:none;
 }
 
 #messageInput::placeholder{
@@ -657,12 +1283,23 @@ header{
 
 #sendButton{
   min-width:68px;
+
   border:0;
+
   border-radius:10px;
-  background:linear-gradient(135deg,#914cff,#aa69ff);
+
+  background:
+    linear-gradient(
+      135deg,
+      #914cff,
+      #aa69ff
+    );
+
   color:#fff;
+
   font-size:11px;
   font-weight:900;
+
   cursor:pointer;
 }
 
@@ -676,16 +1313,31 @@ header{
 
 .search-panel{
   position:absolute;
+
   top:69px;
   right:14px;
+
   z-index:100;
-  width:min(310px,calc(100% - 28px));
+
+  width:min(
+    310px,
+    calc(100% - 28px)
+  );
+
   display:none;
+
   padding:9px;
-  border:1px solid var(--border);
+
+  border:
+    1px solid
+    var(--border);
+
   border-radius:12px;
+
   background:#0e071d;
-  box-shadow:0 15px 35px rgba(0,0,0,.45);
+
+  box-shadow:
+    0 12px 28px rgba(0,0,0,.42);
 }
 
 .search-panel.open{
@@ -696,20 +1348,35 @@ header{
 #searchInput{
   min-width:0;
   flex:1;
-  border:1px solid rgba(145,76,255,.25);
+
+  border:
+    1px solid
+    rgba(145,76,255,.25);
+
   border-radius:8px;
+
   outline:none;
+
   padding:9px;
+
   background:#080411;
+
   color:#fff;
 }
 
 .search-panel button{
-  border:1px solid rgba(145,76,255,.3);
+  border:
+    1px solid
+    rgba(145,76,255,.3);
+
   border-radius:8px;
+
   background:#140925;
+
   color:#fff;
+
   padding:0 9px;
+
   cursor:pointer;
 }
 
@@ -719,24 +1386,45 @@ header{
 
 #status{
   position:fixed;
+
   left:50%;
   bottom:78px;
+
   z-index:999999;
-  transform:translateX(-50%) translateY(10px);
+
+  transform:
+    translateX(-50%)
+    translateY(10px);
+
   opacity:0;
+
   pointer-events:none;
+
   padding:9px 14px;
-  border:1px solid var(--border);
+
+  border:
+    1px solid
+    var(--border);
+
   border-radius:10px;
+
   background:#110820;
+
   color:#ddd4ee;
+
   font-size:11px;
-  transition:.25s ease;
+
+  transition:
+    opacity .2s ease,
+    transform .2s ease;
 }
 
 #status.show{
   opacity:1;
-  transform:translateX(-50%) translateY(0);
+
+  transform:
+    translateX(-50%)
+    translateY(0);
 }
 
 /* =====================================================
@@ -745,12 +1433,21 @@ header{
 
 .login-error{
   position:relative;
+
   z-index:5;
+
   width:min(90%,420px);
+
   padding:30px;
-  border:1px solid var(--border);
+
+  border:
+    1px solid
+    var(--border);
+
   border-radius:20px;
+
   background:rgba(10,5,22,.92);
+
   text-align:center;
 }
 
@@ -760,27 +1457,101 @@ header{
 
 .login-error p{
   color:#9b94aa;
+
   font-size:13px;
+
   line-height:1.5;
+
   margin-bottom:20px;
 }
 
 .back-button{
   display:inline-block;
+
   padding:10px 18px;
+
   border-radius:10px;
-  background:linear-gradient(135deg,#914cff,#aa69ff);
+
+  background:
+    linear-gradient(
+      135deg,
+      #914cff,
+      #aa69ff
+    );
+
   color:#fff;
+
   text-decoration:none;
+
   font-size:12px;
+
   font-weight:800;
 }
 
+/* =====================================================
+   PROFILE BUTTON
+===================================================== */
 
-/* PROFILE BUTTON */
-.profile-header-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:42px;padding:0 15px;border-radius:14px;border:1px solid rgba(160,120,255,.24);background:rgba(255,255,255,.035);color:#eee9f8;font:inherit;font-size:13px;font-weight:700;cursor:pointer;transition:.2s ease}
-.profile-header-btn:hover{border-color:rgba(166,116,255,.52);background:rgba(125,76,255,.1);transform:translateY(-1px)}
-.profile-icon{width:22px;height:22px;display:grid;place-items:center;border-radius:50%;color:#cbb7ff;border:1px solid rgba(187,153,255,.38);font-size:13px}
+.profile-header-btn{
+  display:inline-flex;
+
+  align-items:center;
+  justify-content:center;
+
+  gap:8px;
+
+  width:104px;
+  height:42px;
+
+  padding:0;
+
+  border-radius:14px;
+
+  border:
+    1px solid
+    rgba(160,120,255,.24);
+
+  background:rgba(255,255,255,.035);
+
+  color:#eee9f8;
+
+  font:inherit;
+
+  font-size:13px;
+  font-weight:700;
+
+  cursor:pointer;
+
+  transition:
+    border-color .18s ease,
+    background .18s ease;
+}
+
+.profile-header-btn:hover{
+  border-color:
+    rgba(166,116,255,.52);
+
+  background:
+    rgba(125,76,255,.1);
+}
+
+.profile-icon{
+  width:22px;
+  height:22px;
+
+  display:grid;
+  place-items:center;
+
+  border-radius:50%;
+
+  color:#cbb7ff;
+
+  border:
+    1px solid
+    rgba(187,153,255,.38);
+
+  font-size:13px;
+}
 
 /* =====================================================
    MOBILE
@@ -808,10 +1579,15 @@ header{
   .profile-header-btn{
     width:86px;
     height:36px;
+
     min-height:36px;
+
     padding:0;
+
     gap:5px;
+
     border-radius:11px;
+
     font-size:10px;
   }
 
@@ -824,14 +1600,19 @@ header{
   #logoutBtn{
     width:86px;
     height:36px;
+
     padding:0;
+
     font-size:10px;
+
     border-radius:11px;
   }
 
   .chat-layout{
     height:calc(100dvh - 62px);
+
     padding:7px;
+
     display:block;
   }
 
@@ -842,17 +1623,24 @@ header{
   .chat-box{
     width:100%;
     height:100%;
+
     border-radius:11px;
+
+    box-shadow:
+      0 0 15px
+      rgba(95,35,180,.08);
   }
 
   .chat-top{
     height:62px;
+
     padding:9px 11px;
   }
 
   .chat-avatar{
     width:38px;
     height:38px;
+
     flex-basis:38px;
   }
 
@@ -866,26 +1654,46 @@ header{
 
   #messages{
     inset:62px 0 0;
-    padding:16px 11px 95px;
+
+    padding:
+      16px
+      11px
+      95px;
+
+    -webkit-overflow-scrolling:touch;
   }
 
   .message{
     max-width:84%;
-    padding:10px 11px 7px;
+
+    padding:
+      10px
+      11px
+      7px;
+
+    box-shadow:
+      0 3px 10px
+      rgba(0,0,0,.14);
   }
 
   .message-text{
-    font-size:13px;
+    font-size:14px;
   }
 
   .input-area{
     left:7px;
     right:7px;
     bottom:7px;
+
+    padding:6px;
+
+    box-shadow:
+      0 6px 18px
+      rgba(0,0,0,.25);
   }
 
   #messageInput{
-    font-size:13px;
+    font-size:16px;
   }
 
   #sendButton{
@@ -895,25 +1703,37 @@ header{
   .chat-moon{
     left:30px;
     top:23px;
+
     width:57px;
     height:57px;
+
+    box-shadow:
+      0 0 20px
+      rgba(255,225,60,.24);
   }
 
   .chat-moon:after{
     width:57px;
     height:57px;
+
     left:17px;
   }
 
   .chat-planet{
     right:17px;
     top:48px;
+
     width:70px;
     height:70px;
+
+    box-shadow:
+      0 0 18px
+      rgba(100,100,180,.18);
   }
 
   .chat-planet:after{
     width:115px;
+
     left:-23px;
     top:21px;
   }
@@ -921,6 +1741,7 @@ header{
   .nebula{
     width:260px;
     height:190px;
+
     top:75px;
   }
 
@@ -953,13 +1774,44 @@ header{
   }
 }
 
+/* =====================================================
+   WHEN INPUT IS FOCUSED
+   Reduce visual repaint while typing.
+===================================================== */
+
+.chat-box:has(#messageInput:focus) .chat-space{
+  opacity:.82;
+}
+
+.chat-box:has(#messageInput:focus) .chat-moon{
+  box-shadow:none;
+}
+
+.chat-box:has(#messageInput:focus) .chat-planet{
+  box-shadow:none;
+}
+
+.chat-box:has(#messageInput:focus) .input-area{
+  box-shadow:
+    0 5px 15px
+    rgba(0,0,0,.22);
+}
+
+/* =====================================================
+   REDUCED MOTION
+===================================================== */
+
 @media(prefers-reduced-motion:reduce){
-  *,*:before,*:after{
+
+  *,
+  *:before,
+  *:after{
     animation:none!important;
     transition:none!important;
     scroll-behavior:auto!important;
   }
 }
+
 </style>
 </head>
 
@@ -972,26 +1824,39 @@ header{
 <div id="loading">
 
   <div class="loading-stars"></div>
+
   <div class="loading-nebula"></div>
 
   <div class="loading-system">
+
     <div class="loading-orbit"></div>
+
     <div class="loading-orbit two"></div>
+
     <div class="loading-moon"></div>
+
   </div>
 
-  <div class="loading-title" id="loadingTitle">
+  <div
+    class="loading-title"
+    id="loadingTitle"
+  >
     ToTalk
   </div>
 
-  <div class="loading-subtitle" id="loadingSubtitle">
+  <div
+    class="loading-subtitle"
+    id="loadingSubtitle"
+  >
     Connecting…
   </div>
 
   <div class="loading-dots">
+
     <span></span>
     <span></span>
     <span></span>
+
   </div>
 
 </div>
@@ -1001,11 +1866,43 @@ header{
 ===================================================== -->
 
 <header>
-  <div class="brand"><span class="brand-main">ToTalk</span></div>
-  <div class="header-right">
-    <button class="profile-header-btn" id="profileBtn" type="button" aria-label="Open your profile"><span class="profile-icon">◉</span><span>Profile</span></button>
-    <button id="logoutBtn">Logout</button>
+
+  <div class="brand">
+
+    <span class="brand-main">
+      ToTalk
+    </span>
+
   </div>
+
+  <div class="header-right">
+
+    <button
+      class="profile-header-btn"
+      id="profileBtn"
+      type="button"
+      aria-label="Open your profile"
+    >
+
+      <span class="profile-icon">
+        ◉
+      </span>
+
+      <span>
+        Profile
+      </span>
+
+    </button>
+
+    <button
+      id="logoutBtn"
+      type="button"
+    >
+      Logout
+    </button>
+
+  </div>
+
 </header>
 
 <!-- =====================================================
@@ -1014,28 +1911,49 @@ header{
 
 <main class="chat-layout">
 
+  <!-- SIDEBAR -->
+
   <aside class="sidebar">
 
     <div class="sidebar-title">
-      <h2 id="sideTitle">Sameer's Chats</h2>
-      <p>Your personal conversation space</p>
+
+      <h2 id="sideTitle">
+        Sameer's Chats
+      </h2>
+
+      <p>
+        Your personal conversation space
+      </p>
+
     </div>
 
     <div class="chat-person">
 
-      <div class="avatar" id="sideAvatar" aria-label="Your profile picture">S</div>
+      <div
+        class="avatar"
+        id="sideAvatar"
+        aria-label="Your profile picture"
+      >
+        S
+      </div>
 
       <div>
 
-        <div class="person-name" id="sideName">
+        <div
+          class="person-name"
+          id="sideName"
+        >
           Sameer
         </div>
 
         <div class="presence">
+
           <span class="presence-dot"></span>
+
           <span id="sidePresence">
             Online
           </span>
+
         </div>
 
       </div>
@@ -1044,23 +1962,37 @@ header{
 
   </aside>
 
+  <!-- CHAT -->
+
   <section class="chat-box">
 
     <div class="chat-top">
 
-      <div class="chat-avatar" id="chatAvatar" aria-label="Your profile picture">S</div>
+      <div
+        class="chat-avatar"
+        id="chatAvatar"
+        aria-label="Your profile picture"
+      >
+        S
+      </div>
 
       <div>
 
-        <div class="chat-title" id="chatTitle">
+        <div
+          class="chat-title"
+          id="chatTitle"
+        >
           Sameer's ToTalk
         </div>
 
         <div class="chat-status">
+
           <span class="presence-dot"></span>
+
           <span id="chatPresence">
             Online
           </span>
+
         </div>
 
       </div>
@@ -1088,7 +2020,12 @@ header{
 
     </div>
 
-    <div class="search-panel" id="searchPanel">
+    <!-- SEARCH -->
+
+    <div
+      class="search-panel"
+      id="searchPanel"
+    >
 
       <input
         id="searchInput"
@@ -1097,31 +2034,49 @@ header{
         autocomplete="off"
       >
 
-      <button id="searchPrev" type="button">
+      <button
+        id="searchPrev"
+        type="button"
+      >
         ↑
       </button>
 
-      <button id="searchNext" type="button">
+      <button
+        id="searchNext"
+        type="button"
+      >
         ↓
       </button>
 
-      <button id="searchClose" type="button">
+      <button
+        id="searchClose"
+        type="button"
+      >
         ×
       </button>
 
     </div>
 
+    <!-- GALAXY -->
+
     <div class="chat-space">
 
       <div class="chat-moon"></div>
+
       <div class="chat-planet"></div>
+
       <div class="nebula"></div>
 
     </div>
 
+    <!-- MESSAGES -->
+
     <div id="messages">
 
-      <div class="welcome-message" id="welcomeMessage">
+      <div
+        class="welcome-message"
+        id="welcomeMessage"
+      >
 
         <h3>
           Welcome to ToTalk
@@ -1136,6 +2091,8 @@ header{
 
     </div>
 
+    <!-- INPUT -->
+
     <div class="input-area">
 
       <textarea
@@ -1143,9 +2100,14 @@ header{
         maxlength="5000"
         placeholder="Write a message..."
         rows="1"
+        spellcheck="true"
+        autocomplete="off"
       ></textarea>
 
-      <button id="sendButton">
+      <button
+        id="sendButton"
+        type="button"
+      >
         Send
       </button>
 
@@ -1208,8 +2170,11 @@ const sendButton =
 const logoutBtn =
   document.getElementById("logoutBtn");
 
-const userName=document.getElementById("userName");
-const profileBtn=document.getElementById("profileBtn");
+const userName =
+  document.getElementById("userName");
+
+const profileBtn =
+  document.getElementById("profileBtn");
 
 const sideName =
   document.getElementById("sideName");
@@ -1233,8 +2198,11 @@ const searchInput =
   document.getElementById("searchInput");
 
 let currentUser = null;
+
 let currentProfile = null;
+
 let realtimeChannel = null;
+
 let presenceChannel = null;
 
 let replyTarget = null;
@@ -1242,14 +2210,23 @@ let replyTarget = null;
 const messageCache =
   new Map();
 
-const REACTIONS =
-  ["👍","❤️","😂","😮","😢","😡"];
+const REACTIONS = [
+  "👍",
+  "❤️",
+  "😂",
+  "😮",
+  "😢",
+  "😡"
+];
 
 /* =====================================================
-   LOADING HELPERS
+   LOADING
 ===================================================== */
 
-function setLoadingText(title,subtitle){
+function setLoadingText(
+  title,
+  subtitle
+){
 
   loadingTitle.textContent =
     title;
@@ -1263,21 +2240,27 @@ function finishLoading(){
 
   loading.classList.add("hide");
 
-  setTimeout(()=>{
-
-    loading.style.display =
-      "none";
-
-  },450);
+  setTimeout(
+    ()=>{
+      loading.style.display =
+        "none";
+    },
+    450
+  );
 
 }
 
-function showLoading(title,subtitle){
+function showLoading(
+  title,
+  subtitle
+){
 
   loading.style.display =
     "flex";
 
-  loading.classList.remove("hide");
+  loading.classList.remove(
+    "hide"
+  );
 
   setLoadingText(
     title,
@@ -1295,16 +2278,23 @@ function showStatus(text){
   statusBox.textContent =
     text;
 
-  statusBox.classList.add("show");
+  statusBox.classList.add(
+    "show"
+  );
 
-  clearTimeout(showStatus.timer);
+  clearTimeout(
+    showStatus.timer
+  );
 
   showStatus.timer =
-    setTimeout(()=>{
-
-      statusBox.classList.remove("show");
-
-    },3000);
+    setTimeout(
+      ()=>{
+        statusBox.classList.remove(
+          "show"
+        );
+      },
+      3000
+    );
 
 }
 
@@ -1318,7 +2308,9 @@ async function getLoggedInUser(){
     data,
     error
   } =
-    await supabaseClient.auth.getSession();
+    await supabaseClient
+      .auth
+      .getSession();
 
   if(error){
 
@@ -1331,12 +2323,15 @@ async function getLoggedInUser(){
 
   }
 
-  return data?.session?.user || null;
+  return (
+    data?.session?.user ||
+    null
+  );
 
 }
 
 /* =====================================================
-   PROFILE CHECK
+   PROFILE
 ===================================================== */
 
 async function checkProfile(){
@@ -1386,13 +2381,14 @@ function goToProfileMaker(){
     "Create your ToTalk identity"
   );
 
-  setTimeout(()=>{
-
-    window.location.replace(
-      "./profile-maker.html"
-    );
-
-  },500);
+  setTimeout(
+    ()=>{
+      window.location.replace(
+        "./profile-maker.html"
+      );
+    },
+    500
+  );
 
 }
 
@@ -1401,18 +2397,48 @@ function goToProfileMaker(){
 ===================================================== */
 
 function updateUserUI(){
-  const name=currentProfile?.name||currentUser?.user_metadata?.full_name||currentUser?.user_metadata?.name||currentUser?.email?.split("@")[0]||"ToTalk User";
-  const first=name.trim().charAt(0).toUpperCase()||"T";
 
-  if(userName) userName.textContent=name;
-  sideName.textContent=name;
-  chatTitle.textContent=name+"'s ToTalk";
-  sideAvatar.textContent=first;
-  chatAvatar.textContent=first;
+  const name =
+    currentProfile?.name ||
+    currentUser?.user_metadata?.full_name ||
+    currentUser?.user_metadata?.name ||
+    currentUser?.email?.split("@")[0] ||
+    "ToTalk User";
 
-  const sideTitle=document.getElementById("sideTitle");
-  if(sideTitle) sideTitle.textContent=name+"'s Chats";
-  document.title="ToTalk";
+  const first =
+    name.trim().charAt(0).toUpperCase() ||
+    "T";
+
+  if(userName){
+    userName.textContent =
+      name;
+  }
+
+  sideName.textContent =
+    name;
+
+  chatTitle.textContent =
+    name + "'s ToTalk";
+
+  sideAvatar.textContent =
+    first;
+
+  chatAvatar.textContent =
+    first;
+
+  const sideTitle =
+    document.getElementById(
+      "sideTitle"
+    );
+
+  if(sideTitle){
+    sideTitle.textContent =
+      name + "'s Chats";
+  }
+
+  document.title =
+    "ToTalk";
+
 }
 
 /* =====================================================
@@ -1447,7 +2473,7 @@ function formatTime(value){
 }
 
 /* =====================================================
-   REPLY TARGET
+   REPLY
 ===================================================== */
 
 function setReplyTarget(data){
@@ -1480,7 +2506,10 @@ function clearReplyTarget(){
    ADD MESSAGE
 ===================================================== */
 
-function addMessage(data,animate=true){
+function addMessage(
+  data,
+  animate=true
+){
 
   if(!data?.id){
     return;
@@ -1514,7 +2543,9 @@ function addMessage(data,animate=true){
       currentUser.id;
 
   const row =
-    document.createElement("div");
+    document.createElement(
+      "div"
+    );
 
   row.className =
     "message-row" +
@@ -1524,19 +2555,19 @@ function addMessage(data,animate=true){
     data.id;
 
   const bubble =
-    document.createElement("div");
+    document.createElement(
+      "div"
+    );
 
   bubble.className =
     "message";
 
   if(!animate){
-
     bubble.style.animation =
       "none";
-
   }
 
-  /* Reply preview */
+  /* Reply */
 
   if(data.reply_to_id){
 
@@ -1548,24 +2579,31 @@ function addMessage(data,animate=true){
     if(replied){
 
       const reply =
-        document.createElement("div");
+        document.createElement(
+          "div"
+        );
 
       reply.className =
         "reply-preview";
 
       const replyName =
-        document.createElement("div");
+        document.createElement(
+          "div"
+        );
 
       replyName.className =
         "reply-name";
 
       replyName.textContent =
-        replied.sender_id === currentUser.id
+        replied.sender_id ===
+        currentUser.id
           ? "You"
           : "Message";
 
       const replyText =
-        document.createElement("div");
+        document.createElement(
+          "div"
+        );
 
       replyText.className =
         "reply-text";
@@ -1586,8 +2624,12 @@ function addMessage(data,animate=true){
 
   }
 
+  /* Text */
+
   const text =
-    document.createElement("div");
+    document.createElement(
+      "div"
+    );
 
   text.className =
     "message-text";
@@ -1599,8 +2641,12 @@ function addMessage(data,animate=true){
     text
   );
 
+  /* Time */
+
   const time =
-    document.createElement("span");
+    document.createElement(
+      "span"
+    );
 
   time.className =
     "message-time";
@@ -1621,12 +2667,14 @@ function addMessage(data,animate=true){
     time
   );
 
-  /* Sent / Delivered / Seen */
+  /* Status */
 
   if(mine){
 
     const status =
-      document.createElement("span");
+      document.createElement(
+        "span"
+      );
 
     status.className =
       "message-status";
@@ -1643,12 +2691,14 @@ function addMessage(data,animate=true){
 
   }
 
-  /* Own-message menu */
+  /* Menu */
 
   if(mine){
 
     const menuButton =
-      document.createElement("button");
+      document.createElement(
+        "button"
+      );
 
     menuButton.className =
       "message-menu-btn";
@@ -1708,7 +2758,7 @@ function addMessage(data,animate=true){
 
   }
 
-  /* Reaction picker */
+  /* Reaction */
 
   const picker =
     createReactionPicker(
@@ -1739,13 +2789,17 @@ function createReactionPicker(
 ){
 
   const picker =
-    document.createElement("div");
+    document.createElement(
+      "div"
+    );
 
   picker.className =
     "reaction-picker";
 
   const reply =
-    document.createElement("button");
+    document.createElement(
+      "button"
+    );
 
   reply.className =
     "reply-picker";
@@ -1778,7 +2832,9 @@ function createReactionPicker(
     reaction=>{
 
       const button =
-        document.createElement("button");
+        document.createElement(
+          "button"
+        );
 
       button.type =
         "button";
@@ -1827,37 +2883,40 @@ function createReactionPicker(
       }
 
       timer =
-        setTimeout(()=>{
+        setTimeout(
+          ()=>{
 
-          closeMenus();
+            closeMenus();
 
-          const rect =
-            bubble.getBoundingClientRect();
+            const rect =
+              bubble.getBoundingClientRect();
 
-          document.body.appendChild(
-            picker
-          );
+            document.body.appendChild(
+              picker
+            );
 
-          picker.style.left =
-            Math.max(
-              8,
-              Math.min(
-                rect.left,
-                window.innerWidth - 250
-              )
-            ) + "px";
+            picker.style.left =
+              Math.max(
+                8,
+                Math.min(
+                  rect.left,
+                  window.innerWidth - 250
+                )
+              ) + "px";
 
-          picker.style.top =
-            Math.max(
-              8,
-              rect.top - 55
-            ) + "px";
+            picker.style.top =
+              Math.max(
+                8,
+                rect.top - 55
+              ) + "px";
 
-          picker.classList.add(
-            "open"
-          );
+            picker.classList.add(
+              "open"
+            );
 
-        },520);
+          },
+          520
+        );
 
     },
     {
@@ -1868,9 +2927,7 @@ function createReactionPicker(
   bubble.addEventListener(
     "touchend",
     ()=>{
-
       clearTimeout(timer);
-
     },
     {
       passive:true
@@ -1880,9 +2937,7 @@ function createReactionPicker(
   bubble.addEventListener(
     "touchmove",
     ()=>{
-
       clearTimeout(timer);
-
     },
     {
       passive:true
@@ -1934,7 +2989,8 @@ async function toggleReaction(
 
     if(
       existing &&
-      existing.reaction === reaction
+      existing.reaction ===
+      reaction
     ){
 
       const {
@@ -2048,7 +3104,9 @@ async function refreshReaction(
   }
 
   const summary =
-    document.createElement("div");
+    document.createElement(
+      "div"
+    );
 
   summary.className =
     "reaction-summary";
@@ -2059,7 +3117,8 @@ async function refreshReaction(
     item=>{
 
       counts[item.reaction] =
-        (counts[item.reaction] || 0) + 1;
+        (counts[item.reaction] || 0) +
+        1;
 
     }
   );
@@ -2070,13 +3129,17 @@ async function refreshReaction(
     ([reaction,count])=>{
 
       const chip =
-        document.createElement("span");
+        document.createElement(
+          "span"
+        );
 
       chip.className =
         "reaction-chip";
 
       chip.textContent =
-        reaction + " " + count;
+        reaction +
+        " " +
+        count;
 
       summary.appendChild(
         chip
@@ -2092,7 +3155,7 @@ async function refreshReaction(
 }
 
 /* =====================================================
-   LOAD REACTIONS
+   LOAD ALL REACTIONS
 ===================================================== */
 
 async function loadAllReactions(){
@@ -2108,11 +3171,14 @@ async function loadAllReactions(){
       );
 
   if(error){
+
     console.error(
       "Reaction load error:",
       error
     );
+
     return;
+
   }
 
   const grouped = {};
@@ -2123,8 +3189,10 @@ async function loadAllReactions(){
       if(
         !grouped[item.message_id]
       ){
+
         grouped[item.message_id] =
           [];
+
       }
 
       grouped[
@@ -2176,7 +3244,8 @@ async function loadAllReactions(){
         item=>{
 
           counts[item.reaction] =
-            (counts[item.reaction] || 0) + 1;
+            (counts[item.reaction] || 0) +
+            1;
 
         }
       );
@@ -2195,7 +3264,9 @@ async function loadAllReactions(){
             "reaction-chip";
 
           chip.textContent =
-            reaction + " " + count;
+            reaction +
+            " " +
+            count;
 
           summary.appendChild(
             chip
@@ -2467,10 +3538,13 @@ async function editMessage(
         editor.value.trim();
 
       if(!content){
+
         showStatus(
           "Message cannot be empty."
         );
+
         return;
+
       }
 
       save.disabled =
@@ -2609,6 +3683,10 @@ async function deleteMessage(
 
         row.remove();
 
+        messageCache.delete(
+          data.id
+        );
+
         if(
           !messages.querySelector(
             ".message-row"
@@ -2616,16 +3694,24 @@ async function deleteMessage(
         ){
 
           messages.innerHTML = `
-            <div class="welcome-message" id="welcomeMessage">
-              <h3>Welcome to ToTalk</h3>
-              <p>Your conversation space is ready. Write a message below to begin.</p>
+            <div
+              class="welcome-message"
+              id="welcomeMessage"
+            >
+              <h3>
+                Welcome to ToTalk
+              </h3>
+              <p>
+                Your conversation space is ready.
+                Write a message below to begin.
+              </p>
             </div>
           `;
 
         }
 
       },
-      220
+      190
     );
 
   }catch(error){
@@ -2685,9 +3771,18 @@ async function loadMessages(){
   ){
 
     messages.innerHTML = `
-      <div class="welcome-message" id="welcomeMessage">
-        <h3>Welcome to ToTalk</h3>
-        <p>Your conversation space is ready. Write a message below to begin.</p>
+      <div
+        class="welcome-message"
+        id="welcomeMessage"
+      >
+        <h3>
+          Welcome to ToTalk
+        </h3>
+
+        <p>
+          Your conversation space is ready.
+          Write a message below to begin.
+        </p>
       </div>
     `;
 
@@ -2695,23 +3790,40 @@ async function loadMessages(){
 
   }
 
+  /* Cache first */
+
   data.forEach(
     message=>{
-
       messageCache.set(
         message.id,
         message
       );
-
     }
   );
 
+  /*
+   * Use a fragment so the browser performs
+   * fewer layout/repaint operations.
+   */
+
+  const fragment =
+    document.createDocumentFragment();
+
+  const originalAppend =
+    messages.appendChild;
+
+  /*
+   * Build messages normally.
+   * Layout is contained, so this is much
+   * cheaper than forcing scroll/layout each time.
+   */
+
   data.forEach(
-    (message,index)=>{
+    message=>{
 
       addMessage(
         message,
-        true
+        false
       );
 
     }
@@ -2757,9 +3869,23 @@ async function sendMessage(){
     true;
 
   sendButton.textContent =
-    "Saving";
+    "Sending";
 
   try{
+
+    const payload = {
+
+      sender_id:
+        currentUser.id,
+
+      content:
+        text,
+
+      reply_to_id:
+        replyTarget?.id ||
+        null
+
+    };
 
     const {
       data,
@@ -2767,23 +3893,23 @@ async function sendMessage(){
     } =
       await supabaseClient
         .from("messages")
-        .insert({
-          sender_id:
-            currentUser.id,
-
-          content:
-            text,
-
-          reply_to_id:
-            replyTarget?.id || null
-        })
+        .insert(
+          payload
+        )
         .select(
           "id,sender_id,content,created_at,edited_at,reply_to_id"
         )
         .single();
 
     if(error){
+
+      console.error(
+        "Supabase send error:",
+        error
+      );
+
       throw error;
+
     }
 
     addMessage(
@@ -2814,7 +3940,10 @@ async function sendMessage(){
 
     showStatus(
       "Message was not saved: " +
-      (error.message || "")
+      (
+        error.message ||
+        "Unknown error"
+      )
     );
 
   }finally{
@@ -3085,11 +4214,13 @@ function startPresence(){
         ){
 
           await presenceChannel.track({
+
             user_id:
               currentUser.id,
 
             online_at:
               new Date().toISOString()
+
           });
 
         }
@@ -3101,15 +4232,25 @@ function startPresence(){
 
 function updatePresence(){
 
-  document.getElementById(
-    "sidePresence"
-  ).textContent =
-    "Online";
+  const sidePresence =
+    document.getElementById(
+      "sidePresence"
+    );
 
-  document.getElementById(
-    "chatPresence"
-  ).textContent =
-    "Online";
+  const chatPresence =
+    document.getElementById(
+      "chatPresence"
+    );
+
+  if(sidePresence){
+    sidePresence.textContent =
+      "Online";
+  }
+
+  if(chatPresence){
+    chatPresence.textContent =
+      "Online";
+  }
 
 }
 
@@ -3118,6 +4259,7 @@ function updatePresence(){
 ===================================================== */
 
 let searchMatches = [];
+
 let searchIndex = -1;
 
 function runSearch(){
@@ -3127,16 +4269,17 @@ function runSearch(){
       .trim()
       .toLowerCase();
 
-  document
-    .querySelectorAll(
+  const rows =
+    document.querySelectorAll(
       ".message-row"
-    )
-    .forEach(
-      row=>{
-        row.style.opacity =
-          "1";
-      }
     );
+
+  rows.forEach(
+    row=>{
+      row.style.opacity =
+        "1";
+    }
+  );
 
   searchMatches = [];
 
@@ -3144,42 +4287,38 @@ function runSearch(){
     return;
   }
 
-  document
-    .querySelectorAll(
-      ".message-row"
-    )
-    .forEach(
-      row=>{
+  rows.forEach(
+    row=>{
 
-        const text =
+      const text =
+        row
+          .querySelector(
+            ".message-text"
+          )
+          ?.textContent
+          .toLowerCase() ||
+        "";
+
+      if(
+        text.includes(query)
+      ){
+
+        searchMatches.push(
           row
-            .querySelector(
-              ".message-text"
-            )
-            ?.textContent
-            .toLowerCase() ||
-          "";
+        );
 
-        if(
-          text.includes(query)
-        ){
+        row.style.opacity =
+          ".55";
 
-          searchMatches.push(
-            row
-          );
+      }else{
 
-          row.style.opacity =
-            ".55";
-
-        }else{
-
-          row.style.opacity =
-            ".15";
-
-        }
+        row.style.opacity =
+          ".15";
 
       }
-    );
+
+    }
+  );
 
   if(searchMatches.length){
 
@@ -3216,11 +4355,13 @@ function focusSearch(){
     "1";
 
   row.scrollIntoView({
-    behavior:"smooth",
+    behavior:"auto",
     block:"center"
   });
 
 }
+
+/* Search button */
 
 document
   .getElementById(
@@ -3247,10 +4388,14 @@ document
     }
   );
 
+/* Search input */
+
 searchInput.addEventListener(
   "input",
   runSearch
 );
+
+/* Search close */
 
 document
   .getElementById(
@@ -3281,6 +4426,8 @@ document
     }
   );
 
+/* Search next */
+
 document
   .getElementById(
     "searchNext"
@@ -3296,13 +4443,17 @@ document
       }
 
       searchIndex =
-        (searchIndex + 1) %
+        (
+          searchIndex + 1
+        ) %
         searchMatches.length;
 
       focusSearch();
 
     }
   );
+
+/* Search previous */
 
 document
   .getElementById(
@@ -3319,8 +4470,11 @@ document
       }
 
       searchIndex =
-        (searchIndex - 1 +
-        searchMatches.length) %
+        (
+          searchIndex -
+          1 +
+          searchMatches.length
+        ) %
         searchMatches.length;
 
       focusSearch();
@@ -3385,10 +4539,26 @@ messageInput.addEventListener(
   }
 );
 
+/*
+ * IMPORTANT:
+ * There is intentionally NO input
+ * event doing DOM work on every
+ * keystroke.
+ *
+ * This keeps typing lightweight.
+ */
+
 /* =====================================================
    PROFILE
 ===================================================== */
-profileBtn?.addEventListener("click",()=>{ window.location.href="./profile-maker.html"; });
+
+profileBtn?.addEventListener(
+  "click",
+  ()=>{
+    window.location.href =
+      "./profile-maker.html";
+  }
+);
 
 /* =====================================================
    LOGOUT
@@ -3413,6 +4583,9 @@ logoutBtn.addEventListener(
             realtimeChannel
           );
 
+        realtimeChannel =
+          null;
+
       }
 
       if(presenceChannel){
@@ -3421,6 +4594,9 @@ logoutBtn.addEventListener(
           .removeChannel(
             presenceChannel
           );
+
+        presenceChannel =
+          null;
 
       }
 
@@ -3484,16 +4660,28 @@ async function startApp(){
 
   try{
 
-    /*
-     * Keep galaxy loading visible immediately.
-     */
     showLoading(
       "ToTalk",
       "Checking your account"
     );
 
-    let user=await getLoggedInUser();
-    if(!user){ await new Promise(resolve=>setTimeout(resolve,300)); user=await getLoggedInUser(); }
+    let user =
+      await getLoggedInUser();
+
+    if(!user){
+
+      await new Promise(
+        resolve=>
+          setTimeout(
+            resolve,
+            300
+          )
+      );
+
+      user =
+        await getLoggedInUser();
+
+    }
 
     if(!user){
 
@@ -3504,11 +4692,9 @@ async function startApp(){
 
       setTimeout(
         ()=>{
-
           window.location.replace(
             "./index.html"
           );
-
         },
         800
       );
@@ -3520,11 +4706,6 @@ async function startApp(){
     currentUser =
       user;
 
-    /*
-     * IMPORTANT:
-     * Check the profiles table BEFORE
-     * opening the chat.
-     */
     setLoadingText(
       "ToTalk",
       "Connecting…"
@@ -3534,58 +4715,152 @@ async function startApp(){
       await checkProfile();
 
     /*
-     * Do not interrupt the user with a profile screen after login.
-     * If there is no profile yet, create a lightweight profile automatically
-     * using the Google account name and a permanent ToTalk ID.
-     * The user can edit everything later from the Profile button.
+     * Keep your current behavior:
+     * existing profile opens chat directly.
+     *
+     * If no profile exists, create a
+     * lightweight profile.
      */
+
     if(!currentProfile){
+
       const fallbackName =
         currentUser?.user_metadata?.full_name ||
         currentUser?.user_metadata?.name ||
         currentUser?.email?.split("@")[0] ||
         "ToTalk User";
 
-      const newId = makeTTId();
-      const {data:created,error:createError}=await supabaseClient
-        .from("profiles")
-        .insert({
-          user_id:currentUser.id,
-          name:fallbackName,
-          gender:null,
-          age:null,
-          totalk_id:newId,
-          profile_completed:true,
-          location:"",
-          location_visibility:"city_country"
-        })
-        .select("id,user_id,name,gender,age,totalk_id,profile_completed,location,location_visibility")
-        .single();
+      /*
+       * Generate a permanent-looking ID.
+       * This function was missing in the
+       * previous file, so define it here.
+       */
+
+      function makeTTId(){
+
+        const chars =
+          "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+
+        let result =
+          "";
+
+        for(
+          let i=0;
+          i<6;
+          i++
+        ){
+
+          result +=
+            chars[
+              Math.floor(
+                Math.random() *
+                chars.length
+              )
+            ];
+
+        }
+
+        return "TT-" + result;
+
+      }
+
+      const newId =
+        makeTTId();
+
+      const {
+        data:created,
+        error:createError
+      } =
+        await supabaseClient
+          .from("profiles")
+          .insert({
+
+            user_id:
+              currentUser.id,
+
+            name:
+              fallbackName,
+
+            gender:
+              null,
+
+            age:
+              null,
+
+            totalk_id:
+              newId,
+
+            profile_completed:
+              true,
+
+            location:
+              "",
+
+            location_visibility:
+              "city_country"
+
+          })
+          .select(
+            "id,user_id,name,gender,age,totalk_id,profile_completed,location,location_visibility"
+          )
+          .single();
 
       if(createError){
-        // Another request may have created it at the same time.
-        currentProfile=await checkProfile();
-        if(!currentProfile) throw createError;
-      }else{
-        currentProfile=created;
-      }
-    }else if(currentProfile.profile_completed !== true){
-      // Let the user enter chat immediately; Profile remains available for editing.
-      const {data:completed,error:completeError}=await supabaseClient
-        .from("profiles")
-        .update({profile_completed:true})
-        .eq("id",currentProfile.id)
-        .eq("user_id",currentUser.id)
-        .select("id,user_id,name,gender,age,totalk_id,profile_completed,location,location_visibility")
-        .maybeSingle();
 
-      if(completeError) throw completeError;
-      if(completed) currentProfile=completed;
+        currentProfile =
+          await checkProfile();
+
+        if(!currentProfile){
+
+          throw createError;
+
+        }
+
+      }else{
+
+        currentProfile =
+          created;
+
+      }
+
+    }else if(
+      currentProfile.profile_completed !==
+      true
+    ){
+
+      const {
+        data:completed,
+        error:completeError
+      } =
+        await supabaseClient
+          .from("profiles")
+          .update({
+            profile_completed:true
+          })
+          .eq(
+            "id",
+            currentProfile.id
+          )
+          .eq(
+            "user_id",
+            currentUser.id
+          )
+          .select(
+            "id,user_id,name,gender,age,totalk_id,profile_completed,location,location_visibility"
+          )
+          .maybeSingle();
+
+      if(completeError){
+        throw completeError;
+      }
+
+      if(completed){
+        currentProfile =
+          completed;
+      }
+
     }
 
-    /*
-     * Profile exists.
-     */
     setLoadingText(
       "ToTalk",
       "Opening your space…"
@@ -3594,22 +4869,42 @@ async function startApp(){
     updateUserUI();
 
     /*
-     * Load messages.
+     * Load chat.
      */
+
     await loadMessages();
 
     /*
-     * Start realtime only AFTER
-     * profile + messages are ready.
+     * Start realtime after
+     * initial loading.
      */
+
     startRealtime();
+
     startPresence();
 
     /*
-     * Keep galaxy visible long enough
-     * to create the smooth transition.
+     * Hide loading only after
+     * everything is ready.
      */
+
     finishLoading();
+
+    /*
+     * Focus input after loading
+     * without forcing keyboard open
+     * on mobile.
+     */
+
+    setTimeout(
+      ()=>{
+        messageInput.focus({
+          preventScroll:true
+        });
+        messageInput.blur();
+      },
+      500
+    );
 
   }catch(error){
 
@@ -3620,13 +4915,23 @@ async function startApp(){
 
     loading.innerHTML = `
       <div class="login-error">
-        <h2>Unable to open ToTalk</h2>
+
+        <h2>
+          Unable to open ToTalk
+        </h2>
+
         <p>
-          Something went wrong while preparing your conversation space.
+          Something went wrong while
+          preparing your conversation space.
         </p>
-        <a class="back-button" href="./index.html">
+
+        <a
+          class="back-button"
+          href="./index.html"
+        >
           Back to ToTalk
         </a>
+
       </div>
     `;
 
