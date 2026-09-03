@@ -1683,21 +1683,39 @@ header{
 }
 
 .profile-icon{
-  width:22px;
-  height:22px;
+  width:25px;
+  height:25px;
 
   display:grid;
   place-items:center;
 
   border-radius:50%;
 
-  color:#cbb7ff;
+  color:#b66cff;
 
-  border:
-    1px solid
-    rgba(187,153,255,.38);
+  border:2px solid rgba(166,102,255,.95);
 
-  font-size:13px;
+  flex:0 0 25px;
+}
+
+.profile-icon svg,
+.logout-icon svg{
+  width:100%;
+  height:100%;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:1.8;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+
+.logout-icon{
+  width:25px;
+  height:25px;
+  display:grid;
+  place-items:center;
+  color:#b66cff;
+  flex:0 0 25px;
 }
 
 /* =====================================================
@@ -1795,42 +1813,47 @@ header{
 .conversation-list{
   overflow:auto;
   height:calc(100% - 157px);
-  padding:7px 8px 12px;
+  padding:10px 10px 20px;
 }
 
 .conversation-item{
-  color:#fff;
+  color:#fff !important;
   text-align:left;
   font-family:inherit;
+  width:100%;
+  min-height:82px;
   display:flex;
   align-items:center;
-  gap:10px;
-  padding:11px 9px;
-  margin:4px 0;
-  border:1px solid transparent;
-  border-radius:12px;
-  background:transparent;
+  gap:14px;
+  padding:14px 15px;
+  margin:7px 0;
+  border:1px solid rgba(145,76,255,.24);
+  border-radius:20px;
+  background:linear-gradient(135deg,rgba(25,17,48,.92),rgba(8,7,22,.96));
   cursor:pointer;
   transition:background .16s ease,border-color .16s ease,transform .16s ease;
   -webkit-tap-highlight-color:transparent;
 }
 
 .conversation-item:hover{
-  background:rgba(145,76,255,.08);
-  border-color:rgba(145,76,255,.16);
+  background:linear-gradient(135deg,rgba(54,28,94,.95),rgba(12,8,28,.98));
+  border-color:rgba(166,103,255,.55);
+  transform:translateY(-1px);
 }
 
 .conversation-item.active{
-  background:linear-gradient(135deg,rgba(112,45,210,.28),rgba(30,14,62,.68));
-  border-color:rgba(145,76,255,.34);
+  background:linear-gradient(135deg,rgba(87,42,160,.52),rgba(27,13,58,.94));
+  border-color:rgba(166,103,255,.72);
 }
 
-.conversation-copy{min-width:0;flex:1;color:#fff;}
+.conversation-copy{min-width:0;flex:1;color:#fff !important;}
 .conversation-top{display:flex;align-items:center;justify-content:space-between;gap:8px;}
-.conversation-name{color:#fff;font-size:12px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.conversation-time{color:#776c84;font-size:9px;white-space:nowrap;}
-.conversation-preview{margin-top:4px;color:#8f859c;font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-
+.conversation-name{color:#fff !important;font-size:15px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.conversation-time{color:#9285a7;font-size:11px;white-space:nowrap;}
+.conversation-preview{margin-top:5px;color:#a69ab8;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.conversation-status{display:flex;align-items:center;gap:5px;margin-top:5px;color:#b8a8ca;font-size:11px;font-weight:800;}
+.conversation-status-icon{font-size:14px;line-height:1;}
+.unread-badge{min-width:22px;height:22px;padding:0 6px;border-radius:999px;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#a45cff,#6321d8);color:#fff;font-size:11px;font-weight:900;box-shadow:0 0 14px rgba(145,76,255,.4);}
 .conversation-empty{
   min-height:190px;
   padding:28px 18px;
@@ -1960,10 +1983,11 @@ header{
     font-size:10px;
   }
 
-  .profile-icon{
-    width:18px;
-    height:18px;
-    font-size:10px;
+  .profile-icon,
+  .logout-icon{
+    width:20px;
+    height:20px;
+    flex-basis:20px;
   }
 
   #logoutBtn{
@@ -2320,8 +2344,11 @@ header{
       aria-label="Open your profile"
     >
 
-      <span class="profile-icon">
-        ◉
+      <span class="profile-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" role="img">
+          <circle cx="12" cy="8" r="3.2"></circle>
+          <path d="M5.5 19.2c.8-3.2 3.1-5 6.5-5s5.7 1.8 6.5 5"></path>
+        </svg>
       </span>
 
       <span>
@@ -2333,8 +2360,16 @@ header{
     <button
       id="logoutBtn"
       type="button"
+      aria-label="Log out of ToTalk"
     >
-      Logout
+      <span class="logout-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" role="img">
+          <path d="M14 4H5.8A1.8 1.8 0 0 0 4 5.8v12.4A1.8 1.8 0 0 0 5.8 20H14"></path>
+          <path d="M13 12h8"></path>
+          <path d="m18 8 4 4-4 4"></path>
+        </svg>
+      </span>
+      <span>Logout</span>
     </button>
 
   </div>
@@ -2708,6 +2743,7 @@ let conversations = [];
 let realtimeChannel = null;
 
 let presenceChannel = null;
+let onlineUserIds = new Set();
 
 let replyTarget = null;
 
@@ -4367,7 +4403,7 @@ async function loadConversationList(){
 
   const {data:latestMessages,error:latestError} = await supabaseClient
     .from("messages")
-    .select("conversation_id,content,created_at")
+    .select("conversation_id,sender_id,content,created_at")
     .in("conversation_id",conversationIds)
     .order("created_at",{ascending:false})
     .limit(500);
@@ -4377,6 +4413,13 @@ async function loadConversationList(){
       if(!latestMap.has(item.conversation_id)){
         latestMap.set(item.conversation_id,item);
       }
+    }
+  }
+
+  const unreadMap = new Map();
+  for(const item of (latestMessages || [])){
+    if(item.sender_id && item.sender_id !== currentUser.id){
+      unreadMap.set(item.conversation_id,(unreadMap.get(item.conversation_id) || 0) + 1);
     }
   }
 
@@ -4402,23 +4445,23 @@ async function loadConversationList(){
       name.trim().charAt(0).toUpperCase() || "T";
     const latest = latestMap.get(row.id);
 
+    const isOnline = onlineUserIds.has(partner.user_id);
+    const unreadCount = unreadMap.get(row.id) || 0;
+
     item.innerHTML = `
       <span class="mini-avatar">${escapeHtml(first)}</span>
       <span class="conversation-copy">
         <span class="conversation-top">
           <span class="conversation-name">${escapeHtml(name)}</span>
-          <span class="conversation-time">
-            ${latest ? escapeHtml(formatTime(latest.created_at)) : ""}
-          </span>
+          <span class="conversation-time">${latest ? escapeHtml(formatTime(latest.created_at)) : ""}</span>
         </span>
-        <span class="conversation-preview">
-          ${escapeHtml(
-            latest?.content ||
-            partner.totalk_id ||
-            "New conversation"
-          )}
+        <span class="conversation-preview">${escapeHtml(latest?.content || "No messages yet")}</span>
+        <span class="conversation-status">
+          <span class="conversation-status-icon">${isOnline ? "🌙" : "☀️"}</span>
+          <span>${isOnline ? "Online" : "Offline"}</span>
         </span>
       </span>
+      ${unreadCount ? `<span class="unread-badge">${unreadCount > 99 ? "99+" : unreadCount}</span>` : ""}
     `;
 
     item.addEventListener(
@@ -4996,27 +5039,35 @@ function startPresence(){
 
 function updatePresence(){
 
-  const sidePresence =
-    document.getElementById(
-      "sidePresence"
-    );
+  onlineUserIds = new Set();
 
-  const chatPresence =
-    document.getElementById(
-      "chatPresence"
-    );
+  if(presenceChannel){
+    const state = presenceChannel.presenceState();
+    Object.values(state || {}).forEach(entries=>{
+      (entries || []).forEach(entry=>{
+        if(entry?.user_id) onlineUserIds.add(entry.user_id);
+      });
+    });
+  }
+
+  const sidePresence = document.getElementById("sidePresence");
+  const chatPresence = document.getElementById("chatPresence");
+
+  const partnerOnline = currentConversationPartner
+    ? onlineUserIds.has(currentConversationPartner.user_id)
+    : false;
 
   if(sidePresence){
-    sidePresence.textContent =
-      "Online";
+    sidePresence.textContent = partnerOnline ? "Online" : "Offline";
   }
 
   if(chatPresence){
-    chatPresence.textContent =
-      "Online";
+    chatPresence.textContent = partnerOnline ? "Online" : "Offline";
   }
 
+  loadConversationList().catch(()=>{});
 }
+
 
 /* =====================================================
    SEARCH
