@@ -1013,6 +1013,78 @@ header{
 }
 
 /* =====================================================
+   EDIT MESSAGE UI
+===================================================== */
+
+.message.editing{
+  padding:10px;
+  background:rgba(17,10,35,.96) !important;
+  border:1px solid rgba(174,125,255,.55) !important;
+  box-shadow:0 10px 30px rgba(0,0,0,.28);
+}
+
+.edit-editor{
+  display:block;
+  width:100%;
+  min-height:58px;
+  max-height:180px;
+  resize:vertical;
+  box-sizing:border-box;
+  padding:11px 12px;
+  border:1px solid rgba(190,151,255,.35);
+  border-radius:12px;
+  background:rgba(7,5,18,.72);
+  color:#fff;
+  font:inherit;
+  font-size:13px;
+  line-height:1.45;
+  outline:none;
+}
+
+.edit-editor:focus{
+  border-color:rgba(184,143,255,.8);
+  box-shadow:0 0 0 3px rgba(142,76,255,.12);
+}
+
+.edit-actions{
+  display:flex;
+  justify-content:flex-end;
+  align-items:center;
+  gap:8px;
+  margin-top:9px;
+}
+
+.edit-action{
+  min-width:72px;
+  padding:8px 14px;
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:10px;
+  font-size:11px;
+  font-weight:800;
+  cursor:pointer;
+  transition:transform .15s ease,opacity .15s ease,background .15s ease;
+}
+
+.edit-action:hover{transform:translateY(-1px);}
+
+.edit-save{
+  border-color:rgba(184,143,255,.5);
+  background:linear-gradient(135deg,#7b3fe0,#a15cff);
+  color:#fff;
+}
+
+.edit-cancel{
+  background:rgba(255,255,255,.07);
+  color:#eee9f8;
+}
+
+.edit-action:disabled{
+  opacity:.55;
+  cursor:default;
+  transform:none;
+}
+
+/* =====================================================
    REPLY
 ===================================================== */
 
@@ -3403,8 +3475,11 @@ function createMessageMenu(
 
       menu.remove();
 
+      const latest =
+        messageCache.get(data.id) || data;
+
       editMessage(
-        data,
+        latest,
         bubble
       );
 
@@ -3464,242 +3539,188 @@ function closeMenus(){
    EDIT MESSAGE
 ===================================================== */
 
+let activeEditCancel = null;
+
 async function editMessage(
   data,
   bubble
 ){
 
   const oldText =
-    bubble.querySelector(
-      ".message-text"
-    );
+    bubble.querySelector(".message-text");
 
-  if(!oldText){
+  if(!oldText || !data?.id){
     return;
   }
 
-  if(
-    bubble.classList.contains(
-      "editing"
-    )
-  ){
+  /* Only one message can be edited at a time. */
+  if(activeEditCancel){
+    activeEditCancel();
+    activeEditCancel = null;
+  }
+
+  if(bubble.classList.contains("editing")){
     return;
   }
 
-  bubble.classList.add(
-    "editing"
-  );
+  /* Always use the newest cached content. */
+  const latest =
+    messageCache.get(data.id) || data;
+
+  const originalContent =
+    latest.content || "";
+
+  bubble.classList.add("editing");
 
   const editor =
-    document.createElement(
-      "textarea"
-    );
+    document.createElement("textarea");
 
-  editor.value =
-    data.content || "";
-
-  editor.maxLength =
-    5000;
-
-  editor.style.width =
-    "100%";
-
-  editor.style.minHeight =
-    "65px";
-
-  editor.style.border =
-    "1px solid rgba(255,255,255,.2)";
-
-  editor.style.borderRadius =
-    "8px";
-
-  editor.style.padding =
-    "8px";
-
-  editor.style.background =
-    "rgba(0,0,0,.2)";
-
-  editor.style.color =
-    "#fff";
-
-  editor.style.outline =
-    "none";
-
-  oldText.replaceWith(
-    editor
-  );
+  editor.className = "edit-editor";
+  editor.maxLength = 5000;
+  editor.value = originalContent;
+  editor.setAttribute("aria-label","Edit message");
 
   const actions =
-    document.createElement(
-      "div"
-    );
+    document.createElement("div");
 
-  actions.style.display =
-    "flex";
-
-  actions.style.gap =
-    "6px";
-
-  actions.style.marginTop =
-    "6px";
+  actions.className = "edit-actions";
 
   const save =
-    document.createElement(
-      "button"
-    );
+    document.createElement("button");
 
-  save.textContent =
-    "Save";
+  save.type = "button";
+  save.className = "edit-action edit-save";
+  save.textContent = "Save";
 
   const cancel =
-    document.createElement(
-      "button"
-    );
+    document.createElement("button");
 
-  cancel.textContent =
-    "Cancel";
+  cancel.type = "button";
+  cancel.className = "edit-action edit-cancel";
+  cancel.textContent = "Cancel";
 
-  [save,cancel].forEach(
-    button=>{
+  actions.append(save,cancel);
+  oldText.replaceWith(editor);
+  bubble.appendChild(actions);
 
-      button.style.border =
-        "0";
+  let closed = false;
 
-      button.style.borderRadius =
-        "7px";
+  function closeEditor(restore=true){
 
-      button.style.padding =
-        "6px 9px";
+    if(closed){
+      return;
+    }
 
-      button.style.cursor =
-        "pointer";
+    closed = true;
+
+    if(restore && editor.isConnected){
+      editor.replaceWith(oldText);
+    }else if(editor.isConnected){
+      editor.remove();
+    }
+
+    if(actions.isConnected){
+      actions.remove();
+    }
+
+    bubble.classList.remove("editing");
+
+    if(activeEditCancel === closeEditor){
+      activeEditCancel = null;
+    }
+  }
+
+  activeEditCancel = closeEditor;
+
+  cancel.onclick = ()=>{
+    closeEditor(true);
+  };
+
+  editor.addEventListener("keydown",event=>{
+    if(event.key === "Escape"){
+      event.preventDefault();
+      closeEditor(true);
+    }
+  });
+
+  save.onclick = async ()=>{
+
+    const content =
+      editor.value.trim();
+
+    if(!content){
+      showStatus("Message cannot be empty.");
+      editor.focus();
+      return;
+    }
+
+    if(content === originalContent){
+      closeEditor(true);
+      return;
+    }
+
+    save.disabled = true;
+    cancel.disabled = true;
+    save.textContent = "Saving…";
+
+    try{
+
+      const {
+        data:updated,
+        error
+      } =
+        await supabaseClient
+          .from("messages")
+          .update({
+            content:content,
+            edited_at:new Date().toISOString()
+          })
+          .eq("id",latest.id)
+          .eq("sender_id",currentUser.id)
+          .select("id,sender_id,content,created_at,edited_at,reply_to_id")
+          .single();
+
+      if(error){
+        throw error;
+      }
+
+      messageCache.set(updated.id,updated);
+      data.content = updated.content;
+      data.edited_at = updated.edited_at;
+
+      oldText.textContent = updated.content;
+
+      const time =
+        bubble.querySelector(".message-time");
+
+      if(time){
+        time.textContent =
+          formatTime(updated.created_at) + " · edited";
+      }
+
+      closeEditor(false);
+
+    }catch(error){
+
+      console.error("Edit error:",error);
+
+      save.disabled = false;
+      cancel.disabled = false;
+      save.textContent = "Save";
+      showStatus("Message could not be edited.");
+      editor.focus();
 
     }
-  );
 
-  actions.append(
-    save,
-    cancel
-  );
+  };
 
-  bubble.appendChild(
-    actions
-  );
-
-  cancel.onclick =
-    ()=>{
-
-      editor.replaceWith(
-        oldText
-      );
-
-      actions.remove();
-
-      bubble.classList.remove(
-        "editing"
-      );
-
-    };
-
-  save.onclick =
-    async ()=>{
-
-      const content =
-        editor.value.trim();
-
-      if(!content){
-
-        showStatus(
-          "Message cannot be empty."
-        );
-
-        return;
-
-      }
-
-      save.disabled =
-        true;
-
-      try{
-
-        const {
-          data:updated,
-          error
-        } =
-          await supabaseClient
-            .from("messages")
-            .update({
-              content:content,
-              edited_at:
-                new Date().toISOString()
-            })
-            .eq(
-              "id",
-              data.id
-            )
-            .eq(
-              "sender_id",
-              currentUser.id
-            )
-            .select(
-              "id,sender_id,content,created_at,edited_at,reply_to_id"
-            )
-            .single();
-
-        if(error){
-          throw error;
-        }
-
-        messageCache.set(
-          updated.id,
-          updated
-        );
-
-        oldText.textContent =
-          updated.content;
-
-        editor.replaceWith(
-          oldText
-        );
-
-        const time =
-          bubble.querySelector(
-            ".message-time"
-          );
-
-        if(time){
-
-          time.textContent =
-            formatTime(
-              updated.created_at
-            ) +
-            " · edited";
-
-        }
-
-        actions.remove();
-
-        bubble.classList.remove(
-          "editing"
-        );
-
-      }catch(error){
-
-        console.error(
-          "Edit error:",
-          error
-        );
-
-        save.disabled =
-          false;
-
-        showStatus(
-          "Message could not be edited."
-        );
-
-      }
-
-    };
+  requestAnimationFrame(()=>{
+    editor.focus();
+    editor.setSelectionRange(
+      editor.value.length,
+      editor.value.length
+    );
+  });
 
 }
 
