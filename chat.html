@@ -4222,56 +4222,64 @@ async function findUserByToTalkId(raw){
 }
 
 async function getOrCreateConversation(otherUserId){
-  const [user1_id,user2_id] = orderedPair(currentUser.id,otherUserId);
-
-  let {data,error} = await supabaseClient
-    .from("conversations")
-    .select("id,user1_id,user2_id,created_at,updated_at")
-    .eq("user1_id",user1_id)
-    .eq("user2_id",user2_id)
-    .maybeSingle();
-
-  if(error) throw error;
-  if(data) return data;
-
-  const result = await supabaseClient
-    .from("conversations")
-    .insert({user1_id,user2_id})
-    .select("id,user1_id,user2_id,created_at,updated_at")
-    .single();
-
-  if(!result.error) return result.data;
-
-  /* Another device can create the same pair at the same moment. */
-  if(result.error.code === "23505") {
-    const retry = await supabaseClient
-      .from("conversations")
-      .select("id,user1_id,user2_id,created_at,updated_at")
-      .eq("user1_id",user1_id)
-      .eq("user2_id",user2_id)
-      .single();
-    if(retry.error) throw retry.error;
-    return retry.data;
+  if(!currentUser?.id || !otherUserId){
+    throw new Error("A valid user is required.");
   }
 
-  throw result.error;
+  /*
+   * Your database uses:
+   *   conversations
+   *   conversation_participants
+   *
+   * It does NOT use user1_id/user2_id.
+   * The RPC creates/fetches the conversation and adds both users.
+   */
+  const {data,error} = await supabaseClient
+    .rpc("get_or_create_conversation",{
+      other_user_id:otherUserId
+    });
+
+  if(error) throw error;
+
+  if(!data){
+    throw new Error("Conversation could not be created.");
+  }
+
+  const {data:conversation,error:conversationError} = await supabaseClient
+    .from("conversations")
+    .select("id,created_at,updated_at")
+    .eq("id",data)
+    .single();
+
+  if(conversationError) throw conversationError;
+
+  return conversation;
 }
 
 async function loadConversationList(){
-  if(!conversationList || !currentUser) return;
+  if(!conversationList || !currentUser?.id) return;
 
-  const {data,error} = await supabaseClient
-    .from("conversations")
-    .select("id,user1_id,user2_id,created_at,updated_at")
-    .or(`user1_id.eq.${currentUser.id},user2_id.eq.${currentUser.id}`)
-    .order("updated_at",{ascending:false});
+  /*
+   * First find every conversation in which the current user
+   * is a participant.
+   */
+  const {data:participantRows,error:participantError} = await supabaseClient
+    .from("conversation_participants")
+    .select("conversation_id,user_id")
+    .eq("user_id",currentUser.id);
 
-  if(error) throw error;
+  if(participantError) throw participantError;
 
-  const rows = data || [];
-  conversations = rows;
+  const conversationIds = [
+    ...new Set(
+      (participantRows || [])
+        .map(row=>row.conversation_id)
+        .filter(Boolean)
+    )
+  ];
 
-  if(!rows.length){
+  if(!conversationIds.length){
+    conversations = [];
     conversationList.innerHTML = `
       <div class="conversation-empty">
         <div class="empty-orbit">✦</div>
@@ -4282,48 +4290,113 @@ async function loadConversationList(){
     return;
   }
 
-  const ids = [...new Set(rows.map(row=>row.user1_id === currentUser.id ? row.user2_id : row.user1_id))];
-  const {data:profiles,error:profileError} = await supabaseClient
-    .from("profiles")
-    .select("user_id,name,totalk_id,profile_completed")
-    .in("user_id",ids);
+  /* Load the actual conversation rows. */
+  const {data:rows,error:conversationError} = await supabaseClient
+    .from("conversations")
+    .select("id,created_at,updated_at")
+    .in("id",conversationIds)
+    .order("updated_at",{ascending:false});
 
-  if(profileError) throw profileError;
+  if(conversationError) throw conversationError;
 
-  const profileMap = new Map((profiles || []).map(p=>[p.user_id,p]));
+  const safeRows = rows || [];
+  conversations = safeRows;
 
-  let latestMap = new Map();
-  const conversationIds = rows.map(row=>row.id);
+  if(!safeRows.length){
+    conversationList.innerHTML = `
+      <div class="conversation-empty">
+        <div class="empty-orbit">✦</div>
+        <strong>No conversations yet</strong>
+        <span>Search a ToTalk ID above to start a private chat.</span>
+      </div>
+    `;
+    return;
+  }
 
-  if(conversationIds.length){
-    const latest = await supabaseClient
-      .from("messages")
-      .select("conversation_id,content,created_at")
-      .in("conversation_id",conversationIds)
-      .order("created_at",{ascending:false})
-      .limit(200);
+  /*
+   * Get all participants for these conversations so we can
+   * determine the other person in each 1-to-1 chat.
+   */
+  const {data:allParticipants,error:allParticipantsError} = await supabaseClient
+    .from("conversation_participants")
+    .select("conversation_id,user_id")
+    .in("conversation_id",conversationIds);
 
-    if(!latest.error){
-      for(const item of (latest.data || [])){
-        if(!latestMap.has(item.conversation_id)) latestMap.set(item.conversation_id,item);
+  if(allParticipantsError) throw allParticipantsError;
+
+  const partnerMap = new Map();
+
+  for(const participant of (allParticipants || [])){
+    if(participant.user_id !== currentUser.id){
+      partnerMap.set(
+        participant.conversation_id,
+        participant.user_id
+      );
+    }
+  }
+
+  const partnerIds = [
+    ...new Set(
+      [...partnerMap.values()].filter(Boolean)
+    )
+  ];
+
+  let profileMap = new Map();
+
+  if(partnerIds.length){
+    const {data:profiles,error:profileError} = await supabaseClient
+      .from("profiles")
+      .select("user_id,name,totalk_id,profile_completed")
+      .in("user_id",partnerIds);
+
+    if(profileError) throw profileError;
+
+    profileMap = new Map(
+      (profiles || []).map(profile=>[
+        profile.user_id,
+        profile
+      ])
+    );
+  }
+
+  /* Latest message for each conversation. */
+  const latestMap = new Map();
+
+  const {data:latestMessages,error:latestError} = await supabaseClient
+    .from("messages")
+    .select("conversation_id,content,created_at")
+    .in("conversation_id",conversationIds)
+    .order("created_at",{ascending:false})
+    .limit(500);
+
+  if(!latestError){
+    for(const item of (latestMessages || [])){
+      if(!latestMap.has(item.conversation_id)){
+        latestMap.set(item.conversation_id,item);
       }
     }
   }
 
   conversationList.innerHTML = "";
 
-  rows.forEach(row=>{
-    const partnerId = row.user1_id === currentUser.id ? row.user2_id : row.user1_id;
-    const partner = profileMap.get(partnerId);
+  safeRows.forEach(row=>{
+    const partnerId = partnerMap.get(row.id);
+    const partner = partnerId
+      ? profileMap.get(partnerId)
+      : null;
+
     if(!partner) return;
 
     const item = document.createElement("button");
     item.type = "button";
-    item.className = "conversation-item" + (row.id === currentConversationId ? " active" : "");
+    item.className =
+      "conversation-item" +
+      (row.id === currentConversationId ? " active" : "");
     item.dataset.conversationId = row.id;
 
     const name = partner.name || "ToTalk User";
-    const first = name.trim().charAt(0).toUpperCase() || "T";
+    const first =
+      name.trim().charAt(0).toUpperCase() || "T";
     const latest = latestMap.get(row.id);
 
     item.innerHTML = `
@@ -4331,15 +4404,37 @@ async function loadConversationList(){
       <span class="conversation-copy">
         <span class="conversation-top">
           <span class="conversation-name">${escapeHtml(name)}</span>
-          <span class="conversation-time">${latest ? escapeHtml(formatTime(latest.created_at)) : ""}</span>
+          <span class="conversation-time">
+            ${latest ? escapeHtml(formatTime(latest.created_at)) : ""}
+          </span>
         </span>
-        <span class="conversation-preview">${escapeHtml(latest?.content || partner.totalk_id || "New conversation")}</span>
+        <span class="conversation-preview">
+          ${escapeHtml(
+            latest?.content ||
+            partner.totalk_id ||
+            "New conversation"
+          )}
+        </span>
       </span>
     `;
 
-    item.addEventListener("click",()=>openConversation(row,partner));
+    item.addEventListener(
+      "click",
+      ()=>openConversation(row,partner)
+    );
+
     conversationList.appendChild(item);
   });
+
+  if(!conversationList.children.length){
+    conversationList.innerHTML = `
+      <div class="conversation-empty">
+        <div class="empty-orbit">✦</div>
+        <strong>No conversations yet</strong>
+        <span>Search a ToTalk ID above to start a private chat.</span>
+      </div>
+    `;
+  }
 }
 
 async function openConversation(row,partner){
