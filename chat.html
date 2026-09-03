@@ -1380,6 +1380,17 @@ header{
   cursor:pointer;
 }
 
+/* HARD SILENT STATUS FIX
+   The status/toast element is intentionally disabled.
+   Realtime continues working in the background.
+*/
+#status, #status.show, #status.realtime-hidden{
+  display:none !important;
+  visibility:hidden !important;
+  opacity:0 !important;
+  pointer-events:none !important;
+}
+
 /* =====================================================
    STATUS
 ===================================================== */
@@ -1817,6 +1828,22 @@ header{
   }
 }
 
+
+/* Smooth message sending states */
+.message-status{
+  min-width:46px;
+  transition:opacity .18s ease, color .18s ease;
+}
+.message-status.send-failed{
+  color:#ff9a9a;
+}
+#sendButton.sending,
+#sendButton.sending:hover{
+  opacity:.82;
+}
+.message-row{
+  will-change:transform,opacity;
+}
 </style>
 </head>
 
@@ -4709,25 +4736,6 @@ supabaseClient.auth.onAuthStateChange(
   }
 );
 
-
-/* Smooth message sending states */
-.message-status{
-  min-width:46px;
-  transition:opacity .18s ease, color .18s ease;
-}
-
-.message-status.send-failed{
-  color:#ff9a9a;
-}
-
-#sendButton.sending,
-#sendButton.sending:hover{
-  opacity:.82;
-}
-
-.message-row{
-  will-change:transform,opacity;
-}
 
 /* =====================================================
    START APPLICATION
