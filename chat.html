@@ -1148,6 +1148,7 @@ header{
 
 .message-menu-btn{
   position:absolute;
+  z-index:101;
 
   right:5px;
   top:5px;
@@ -1171,24 +1172,24 @@ header{
 .message-menu{
   display:none;
 
-  position:fixed;
+  position:absolute;
+  right:8px;
+  top:34px;
 
-  z-index:999999;
+  z-index:100;
 
-  min-width:125px;
+  min-width:132px;
 
   padding:5px;
 
-  border:
-    1px solid
-    var(--border);
+  border:1px solid rgba(184,143,255,.45);
+  border-radius:12px;
 
-  border-radius:10px;
+  background:rgba(14,7,29,.98);
+  backdrop-filter:blur(14px);
+  -webkit-backdrop-filter:blur(14px);
 
-  background:#100820;
-
-  box-shadow:
-    0 12px 28px rgba(0,0,0,.40);
+  box-shadow:0 14px 34px rgba(0,0,0,.48);
 }
 
 .message-menu.open{
@@ -2929,41 +2930,19 @@ function addMessage(
 
         event.stopPropagation();
 
-        /* A menu and an editor must never overlap. */
+        /* One message action menu at a time.
+           Keep it INSIDE the message bubble so it stays attached
+           to the exact message while the chat scrolls. */
         closeMenus();
         closeActiveEdit();
 
-        const menu =
-          createMessageMenu(
-            data,
-            bubble
-          );
-
-        document.body.appendChild(
-          menu
+        const menu = createMessageMenu(
+          data,
+          bubble
         );
 
-        const rect =
-          bubble.getBoundingClientRect();
-
-        menu.style.left =
-          Math.max(
-            8,
-            Math.min(
-              rect.right - 130,
-              window.innerWidth - 138
-            )
-          ) + "px";
-
-        menu.style.top =
-          Math.min(
-            window.innerHeight - 120,
-            rect.bottom + 7
-          ) + "px";
-
-        menu.classList.add(
-          "open"
-        );
+        bubble.appendChild(menu);
+        menu.classList.add("open");
 
       }
     );
@@ -3565,13 +3544,33 @@ function createMessageMenu(
 
 function closeMenus(){
 
-  /* Remove menus completely so an old fixed-position menu
-     can never remain above a new edit/reply UI. */
+  /* Remove menus completely. Menus are inline with their message,
+     so they can never become detached from the message while scrolling. */
   document
     .querySelectorAll(".message-menu,.reaction-picker")
     .forEach(element=>element.remove());
 
 }
+
+/* Close floating message controls when the user touches/clicks
+   anywhere outside the control itself. Also close them on scroll
+   so an old action menu can never appear over another message. */
+document.addEventListener("pointerdown",event=>{
+  const insideAction =
+    event.target.closest?.(".message-menu,.message-menu-btn,.reaction-picker");
+
+  if(!insideAction){
+    closeMenus();
+  }
+});
+
+messages.addEventListener("scroll",()=>{
+  closeMenus();
+},{passive:true});
+
+window.addEventListener("scroll",()=>{
+  closeMenus();
+},{passive:true});
 
 /* =====================================================
    EDIT MESSAGE
@@ -3729,6 +3728,9 @@ async function editMessage(data,bubble){
   save.onclick = async ()=>{
     if(saving) return;
 
+    /* Preserve the user's exact scroll position. Editing must never
+       make the message appear to disappear or jump elsewhere. */
+    const scrollTopBeforeSave = messages.scrollTop;
     const content = editor.value.trim();
     if(!content){
       showStatus("Message cannot be empty.");
@@ -3763,7 +3765,7 @@ async function editMessage(data,bubble){
       if(error) throw error;
 
       /* Make the NEW value authoritative everywhere. */
-      messageCache.set(updated.id,updated);
+      messageCache.set(updated.id,{...updated});
 
       const liveRow = document.querySelector(
         `[data-message-id="${CSS.escape(updated.id)}"]`
@@ -3784,11 +3786,14 @@ async function editMessage(data,bubble){
 
       /* Also update the object captured by the old menu. */
       if(data){
-        data.content = updated.content;
-        data.edited_at = updated.edited_at;
+        Object.assign(data, updated);
       }
 
       closeEditor(false);
+
+      requestAnimationFrame(()=>{
+        messages.scrollTop = scrollTopBeforeSave;
+      });
 
     }catch(error){
       console.error("Edit error:",error);
