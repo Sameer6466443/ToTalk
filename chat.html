@@ -3956,7 +3956,15 @@ async function warmUpSupabase(){
    SEND MESSAGE
 ===================================================== */
 
+let messageSendInFlight = false;
+
 async function sendMessage(){
+
+  /* Prevent duplicate sends from rapid taps, Enter + click, or
+     browser/mobile event combinations. */
+  if(messageSendInFlight){
+    return;
+  }
 
   const text = messageInput.value.trim();
   if(!text) return;
@@ -3983,6 +3991,8 @@ async function sendMessage(){
     reply_to_id: replyId,
     _optimistic: true
   };
+
+  messageSendInFlight = true;
 
   addMessage(optimistic, true);
 
@@ -4089,6 +4099,7 @@ async function sendMessage(){
   }finally{
     sendButton.disabled = false;
     sendButton.classList.remove("sending");
+    messageSendInFlight = false;
   }
 
 }
@@ -4131,6 +4142,39 @@ function startRealtime(){
         console.log("Realtime INSERT:", data);
 
         messageCache.set(data.id, data);
+
+        /*
+         * IMPORTANT: our own INSERT can arrive through Realtime before
+         * the HTTP insert request finishes. Reconcile that event with
+         * the optimistic local row instead of creating a second bubble.
+         */
+        if(currentUser && data.sender_id === currentUser.id){
+          const localRows = document.querySelectorAll(
+            '[data-message-id^="local-"]'
+          );
+
+          for(const row of localRows){
+            const localText =
+              row.querySelector(".message-text")?.textContent || "";
+
+            const localMessage = messageCache.get(row.dataset.messageId);
+
+            if(
+              localText === (data.content || "") &&
+              localMessage?.sender_id === data.sender_id &&
+              (localMessage?.reply_to_id || null) === (data.reply_to_id || null)
+            ){
+              row.dataset.messageId = data.id;
+              messageCache.delete(localMessage.id);
+              messageCache.set(data.id, data);
+
+              const status = row.querySelector(".message-status");
+              if(status) status.textContent = "Sent";
+
+              return;
+            }
+          }
+        }
 
         const exists = document.querySelector(
           `[data-message-id="${data.id}"]`
