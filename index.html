@@ -30,7 +30,6 @@ body{
   overflow-x:hidden;
 }
 
-/* STAR FIELD */
 body::before{
   content:"";
   position:fixed;
@@ -60,7 +59,6 @@ body::before{
     radial-gradient(circle at 88% 93%,#fff 0 1px,transparent 1.5px);
 }
 
-/* PURPLE NEBULA */
 body::after{
   content:"";
   position:fixed;
@@ -79,7 +77,6 @@ body::after{
   pointer-events:none;
 }
 
-/* PAGE */
 .page{
   position:relative;
   z-index:2;
@@ -87,7 +84,6 @@ body::after{
   margin:auto;
 }
 
-/* HEADER */
 header{
   height:92px;
   display:flex;
@@ -111,7 +107,6 @@ header{
   font-size:14px;
 }
 
-/* HERO */
 .hero{
   min-height:650px;
   display:grid;
@@ -146,7 +141,6 @@ h1 span{
   font-style:italic;
 }
 
-/* DESCRIPTION */
 .hero-title{
   font-size:24px;
   line-height:1.25;
@@ -162,7 +156,6 @@ h1 span{
   margin-bottom:32px;
 }
 
-/* GOOGLE BUTTON */
 .google-button{
   width:320px;
   min-height:80px;
@@ -233,7 +226,6 @@ h1 span{
   color:#b879ff;
 }
 
-/* HERO SPACE */
 .hero-space{
   height:560px;
   position:relative;
@@ -242,7 +234,6 @@ h1 span{
   align-items:center;
 }
 
-/* MOON */
 .moon-system{
   width:360px;
   height:360px;
@@ -334,7 +325,6 @@ h1 span{
   50%{transform:translateX(100%)}
 }
 
-/* SECTION */
 .inside{
   border-top:1px solid rgba(180,140,255,.16);
   padding:55px 0 45px;
@@ -348,7 +338,6 @@ h1 span{
   margin-bottom:28px;
 }
 
-/* CARDS */
 .cards{
   display:grid;
   grid-template-columns:repeat(3,1fr);
@@ -379,7 +368,6 @@ h1 span{
   font-size:14px;
 }
 
-/* PLANET AREA ABOVE TEXT */
 .planet-area{
   height:105px;
   position:relative;
@@ -388,7 +376,6 @@ h1 span{
   justify-content:center;
 }
 
-/* PLANET ORBIT */
 .planet-orbit{
   position:absolute;
   width:125px;
@@ -404,7 +391,6 @@ h1 span{
   to{transform:rotate(342deg)}
 }
 
-/* SATURN */
 .saturn{
   width:52px;
   height:52px;
@@ -443,7 +429,6 @@ h1 span{
   transform:rotate(-16deg);
 }
 
-/* NEPTUNE */
 .neptune{
   width:56px;
   height:56px;
@@ -457,7 +442,6 @@ h1 span{
   animation:planetFloat 4.5s ease-in-out infinite;
 }
 
-/* PLUTO */
 .pluto{
   width:51px;
   height:51px;
@@ -477,7 +461,6 @@ h1 span{
   50%{transform:translateY(-7px) rotate(5deg)}
 }
 
-/* FOOTER */
 footer{
   border-top:1px solid rgba(180,140,255,.16);
   padding:35px 0 120px;
@@ -490,7 +473,6 @@ footer span{
   color:#a66cff;
 }
 
-/* LOGIN STATE */
 .loading{
   opacity:.7;
   pointer-events:none;
@@ -509,7 +491,6 @@ footer span{
   to{transform:rotate(360deg)}
 }
 
-/* MOBILE */
 @media(max-width:800px){
 
   .page{
@@ -652,7 +633,6 @@ footer span{
   }
 }
 
-/* SMALL PHONES */
 @media(max-width:390px){
 
   h1{
@@ -682,8 +662,8 @@ footer span{
   }
 }
 
-/* REDUCED MOTION */
 @media(prefers-reduced-motion:reduce){
+
   *,
   *::before,
   *::after{
@@ -691,9 +671,14 @@ footer span{
     animation-iteration-count:1!important;
     scroll-behavior:auto!important;
   }
+
 }
 
-/* FULL-SCREEN GALAXY LOGIN TRANSITION */
+
+/* =========================================================
+   FULL SCREEN GALAXY LOGIN TRANSITION
+   ========================================================= */
+
 #loginGalaxy{
   position:fixed;
   inset:0;
@@ -704,13 +689,28 @@ footer span{
   justify-content:center;
   overflow:hidden;
   background:
-    radial-gradient(circle at 50% 45%,rgba(111,66,255,.20),transparent 25%),
-    radial-gradient(circle at 20% 80%,rgba(72,38,180,.16),transparent 32%),
-    linear-gradient(180deg,#01020a 0%,#050817 52%,#010109 100%);
+    radial-gradient(
+      circle at 50% 45%,
+      rgba(111,66,255,.20),
+      transparent 25%
+    ),
+    radial-gradient(
+      circle at 20% 80%,
+      rgba(72,38,180,.16),
+      transparent 32%
+    ),
+    linear-gradient(
+      180deg,
+      #01020a 0%,
+      #050817 52%,
+      #010109 100%
+    );
   opacity:0;
   visibility:hidden;
   pointer-events:none;
-  transition:opacity .7s ease,visibility .7s ease;
+  transition:
+    opacity .7s ease,
+    visibility .7s ease;
 }
 
 #loginGalaxy.show{
@@ -929,6 +929,7 @@ footer span{
   0%,100%{
     transform:translateY(0);
   }
+
   50%{
     transform:translateY(-10px);
   }
@@ -938,6 +939,7 @@ footer span{
   from{
     transform:rotate(-22deg);
   }
+
   to{
     transform:rotate(338deg);
   }
@@ -947,6 +949,7 @@ footer span{
   from{
     transform:rotate(0);
   }
+
   to{
     transform:rotate(360deg);
   }
@@ -956,6 +959,7 @@ footer span{
   0%,100%{
     transform:translateX(-100%);
   }
+
   50%{
     transform:translateX(100%);
   }
@@ -966,6 +970,7 @@ footer span{
     opacity:0;
     transform:translateY(8px);
   }
+
   to{
     opacity:1;
     transform:translateY(0);
@@ -977,6 +982,7 @@ footer span{
     transform:translateY(0);
     opacity:.4;
   }
+
   50%{
     transform:translateY(-5px);
     opacity:1;
@@ -1027,6 +1033,7 @@ footer span{
     animation-duration:.01ms!important;
     animation-iteration-count:1!important;
   }
+
 }
 </style>
 </head>
@@ -1134,7 +1141,6 @@ footer span{
       <div class="moon-glow"></div>
 
       <div class="moon-orbit"></div>
-
       <div class="moon-orbit two"></div>
 
       <div class="moon"></div>
@@ -1153,9 +1159,6 @@ footer span{
   </div>
 
   <div class="cards">
-
-
-    <!-- SATURN -->
 
     <div class="card">
 
@@ -1179,8 +1182,6 @@ footer span{
     </div>
 
 
-    <!-- NEPTUNE -->
-
     <div class="card">
 
       <div class="planet-area">
@@ -1202,8 +1203,6 @@ footer span{
 
     </div>
 
-
-    <!-- PLUTO -->
 
     <div class="card">
 
@@ -1277,7 +1276,7 @@ const supabaseClient =
 
 
 /* =========================================================
-   ELEMENTS
+   LOGIN ELEMENTS
    ========================================================= */
 
 const googleLogin =
@@ -1311,13 +1310,11 @@ function showLoginGalaxy(
     );
 
   if(titleElement){
-    titleElement.textContent =
-      title;
+    titleElement.textContent = title;
   }
 
   if(subtitleElement){
-    subtitleElement.textContent =
-      subtitle;
+    subtitleElement.textContent = subtitle;
   }
 
   loginGalaxy.classList.add("show");
@@ -1343,112 +1340,6 @@ function hideLoginGalaxy(){
 
 
 /* =========================================================
-   GOOGLE BUTTON RESET
-   ========================================================= */
-
-function resetGoogleButton(){
-
-  if(!googleLogin) return;
-
-  googleLogin.classList.remove(
-    "loading"
-  );
-
-  googleLogin.innerHTML = `
-
-    <div class="google-icon">
-      <div class="google-g">G</div>
-    </div>
-
-    <div class="google-text">
-      Sign in with Google
-    </div>
-
-    <div class="google-arrow">
-      →
-    </div>
-
-  `;
-}
-
-
-/* =========================================================
-   GET CURRENT USER
-   ========================================================= */
-
-async function getCurrentUser(){
-
-  for(let attempt = 0; attempt < 8; attempt++){
-
-    const {
-      data,
-      error
-    } =
-      await supabaseClient.auth.getSession();
-
-    if(
-      !error &&
-      data &&
-      data.session &&
-      data.session.user
-    ){
-
-      return data.session.user;
-    }
-
-    await new Promise(function(resolve){
-
-      setTimeout(
-        resolve,
-        500
-      );
-
-    });
-
-  }
-
-  return null;
-}
-
-
-/* =========================================================
-   GET PROFILE
-   ========================================================= */
-
-async function getUserProfile(userId){
-
-  const {
-    data,
-    error
-  } =
-    await supabaseClient
-      .from("profiles")
-      .select(
-        "profile_completed"
-      )
-      .eq(
-        "user_id",
-        userId
-      )
-      .maybeSingle();
-
-
-  if(error){
-
-    console.error(
-      "Profile check error:",
-      error
-    );
-
-    return null;
-  }
-
-
-  return data;
-}
-
-
-/* =========================================================
    GOOGLE LOGIN
    ========================================================= */
 
@@ -1462,12 +1353,7 @@ if(googleLogin){
 
       loginStarted = true;
 
-
-      /* Button loading */
-
-      googleLogin.classList.add(
-        "loading"
-      );
+      googleLogin.classList.add("loading");
 
       googleLogin.innerHTML = `
 
@@ -1485,13 +1371,8 @@ if(googleLogin){
 
 
       /*
-         FIRST TRANSITION
-
-         Homepage
-             ↓
-         Galaxy screen
-             ↓
-         Google account selection
+         Keep the existing galaxy animation
+         before Google account selection.
       */
 
       showLoginGalaxy(
@@ -1499,10 +1380,6 @@ if(googleLogin){
         "Connecting your account"
       );
 
-
-      /*
-         Give the animation time to appear.
-      */
 
       await new Promise(function(resolve){
 
@@ -1516,19 +1393,15 @@ if(googleLogin){
 
       /*
          IMPORTANT:
+         Google now returns directly to the
+         dedicated loading page.
 
-         Google returns to index.html.
-
-         Then we determine:
-
-         Existing user → Chat
-
-         New user → Profile
+         The homepage will NOT flash.
       */
 
       const redirectURL =
         new URL(
-          "./index.html",
+          "./auth-loading.html",
           window.location.href
         ).href;
 
@@ -1558,7 +1431,25 @@ if(googleLogin){
 
         hideLoginGalaxy();
 
-        resetGoogleButton();
+        googleLogin.classList.remove(
+          "loading"
+        );
+
+        googleLogin.innerHTML = `
+
+          <div class="google-icon">
+            <div class="google-g">G</div>
+          </div>
+
+          <div class="google-text">
+            Sign in with Google
+          </div>
+
+          <div class="google-arrow">
+            →
+          </div>
+
+        `;
 
         alert(
           "Unable to start Google sign-in. Please try again."
@@ -1573,227 +1464,18 @@ if(googleLogin){
 
 
 /* =========================================================
-   GOOGLE CALLBACK
+   NORMAL RETURN / ALREADY LOGGED IN
    ========================================================= */
 
-async function handleGoogleCallback(){
+async function checkAlreadyLoggedIn(){
 
   const url =
     new URL(
       window.location.href
     );
 
-
   /*
-     Google/Supabase callback has ?code=
-  */
-
-  const hasCode =
-    url.searchParams.has(
-      "code"
-    );
-
-
-  /*
-     If there is no OAuth code,
-     this is NOT a Google callback.
-  */
-
-  if(!hasCode){
-
-    return;
-  }
-
-
-  /*
-     Wait for Supabase PKCE
-     session exchange.
-  */
-
-  await new Promise(function(resolve){
-
-    setTimeout(
-      resolve,
-      500
-    );
-
-  });
-
-
-  const user =
-    await getCurrentUser();
-
-
-  if(!user){
-
-    console.error(
-      "No user session after Google callback."
-    );
-
-    hideLoginGalaxy();
-
-    return;
-  }
-
-
-  /*
-     Check profile.
-  */
-
-  const profile =
-    await getUserProfile(
-      user.id
-    );
-
-
-  /* =======================================================
-     EXISTING USER
-     ======================================================= */
-
-  if(
-    profile &&
-    profile.profile_completed === true
-  ){
-
-    /*
-       EXISTING USER FLOW:
-
-       Google account selection
-                  ↓
-             Welcome back
-                  ↓
-                Chat
-    */
-
-    showLoginGalaxy(
-      "Welcome back",
-      "Opening your conversations"
-    );
-
-
-    /*
-       Give the transition time
-       to be visible.
-    */
-
-    await new Promise(function(resolve){
-
-      setTimeout(
-        resolve,
-        1500
-      );
-
-    });
-
-
-    /*
-       Remove OAuth code
-       from browser address.
-    */
-
-    window.history.replaceState(
-      {},
-      document.title,
-      "./index.html"
-    );
-
-
-    /*
-       Existing users NEVER
-       go to Profile.
-    */
-
-    window.location.replace(
-      "./chat.html"
-    );
-
-    return;
-  }
-
-
-  /* =======================================================
-     NEW USER
-     ======================================================= */
-
-  /*
-     NEW USER FLOW:
-
-     Google account selection
-                ↓
-        Welcome to ToTalk
-                ↓
-             Profile
-                ↓
-          Save profile
-                ↓
-              Chat
-  */
-
-  showLoginGalaxy(
-    "Welcome to ToTalk",
-    "Let's create your profile"
-  );
-
-
-  /*
-     Give the animation time
-     to be visible.
-  */
-
-  await new Promise(function(resolve){
-
-    setTimeout(
-      resolve,
-      1500
-    );
-
-  });
-
-
-  /*
-     Remove OAuth code.
-  */
-
-  window.history.replaceState(
-    {},
-    document.title,
-    "./index.html"
-  );
-
-
-  /*
-     New user goes to Profile.
-  */
-
-  window.location.replace(
-    "./profile-maker.html"
-  );
-
-}
-
-
-/* =========================================================
-   START GOOGLE CALLBACK CHECK
-   ========================================================= */
-
-handleGoogleCallback();
-
-
-/* =========================================================
-   ALREADY LOGGED-IN USER
-   ========================================================= */
-
-async function handleExistingSession(){
-
-  const url =
-    new URL(
-      window.location.href
-    );
-
-
-  /*
-     Don't interfere with
-     a Google callback.
+     Do not interfere with OAuth.
   */
 
   if(
@@ -1822,15 +1504,36 @@ async function handleExistingSession(){
   }
 
 
-  const profile =
-    await getUserProfile(
-      data.session.user.id
+  const {
+    data:profile,
+    error:profileError
+  } =
+    await supabaseClient
+      .from("profiles")
+      .select(
+        "profile_completed"
+      )
+      .eq(
+        "user_id",
+        data.session.user.id
+      )
+      .maybeSingle();
+
+
+  if(profileError){
+
+    console.error(
+      "Profile check error:",
+      profileError
     );
+
+    return;
+  }
 
 
   /*
-     Completed profile:
-     index → Chat directly.
+     Existing completed user:
+     go directly to Chat.
   */
 
   if(
@@ -1842,25 +1545,18 @@ async function handleExistingSession(){
       "./chat.html"
     );
 
-    return;
   }
-
-
-  /*
-     Incomplete/new user stays
-     on the login page.
-  */
 
 }
 
 
 /*
-   Check after Supabase has restored
-   its persisted session.
+   Small delay so persisted Supabase
+   session has time to restore.
 */
 
 setTimeout(
-  handleExistingSession,
+  checkAlreadyLoggedIn,
   700
 );
 
