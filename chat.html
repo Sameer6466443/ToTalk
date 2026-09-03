@@ -3964,197 +3964,81 @@ async function sendMessage(){
 
 function startRealtime(){
 
-  if(realtimeChannel){
+  if(!currentUser){
+    console.warn("Realtime: no current user");
     return;
   }
 
-  realtimeChannel =
-    supabaseClient
-      .channel(
-        "totalk-chat-" +
-        currentUser.id
-      )
+  if(realtimeChannel){
+    try{
+      supabaseClient.removeChannel(realtimeChannel);
+    }catch(error){
+      console.warn("Realtime old channel removal:",error);
+    }
+    realtimeChannel=null;
+  }
 
-      .on(
-        "postgres_changes",
-        {
-          event:"INSERT",
-          schema:"public",
-          table:"messages"
-        },
-        payload=>{
+  const channelName="totalk-messages-"+currentUser.id+"-"+Date.now();
 
-          const data =
-            payload.new;
+  console.log("Realtime: creating channel",channelName);
 
-          if(!data?.id){
-            return;
-          }
-
-          messageCache.set(
-            data.id,
-            data
-          );
-
-          const exists =
-            document.querySelector(
-              `[data-message-id="${data.id}"]`
-            );
-
-          if(!exists){
-
-            addMessage(
-              data,
-              true
-            );
-
-            const nearBottom =
-              messages.scrollHeight -
-              messages.scrollTop -
-              messages.clientHeight <
-              160;
-
-            if(nearBottom){
-
-              requestAnimationFrame(
-                ()=>{
-
-                  messages.scrollTop =
-                    messages.scrollHeight;
-
-                }
-              );
-
-            }
-
-          }
-
-        }
-      )
-
-      .on(
-        "postgres_changes",
-        {
-          event:"UPDATE",
-          schema:"public",
-          table:"messages"
-        },
-        payload=>{
-
-          const data =
-            payload.new;
-
-          messageCache.set(
-            data.id,
-            data
-          );
-
-          const row =
-            document.querySelector(
-              `[data-message-id="${data.id}"]`
-            );
-
-          if(!row){
-            return;
-          }
-
-          const bubble =
-            row.querySelector(
-              ".message"
-            );
-
-          const text =
-            bubble?.querySelector(
-              ".message-text"
-            );
-
-          if(text){
-            text.textContent =
-              data.content;
-          }
-
-        }
-      )
-
-      .on(
-        "postgres_changes",
-        {
-          event:"DELETE",
-          schema:"public",
-          table:"messages"
-        },
-        payload=>{
-
-          const id =
-            payload.old?.id;
-
-          if(!id){
-            return;
-          }
-
-          document
-            .querySelector(
-              `[data-message-id="${id}"]`
-            )
-            ?.remove();
-
-          messageCache.delete(
-            id
-          );
-
-        }
-      )
-
-      .on(
-        "postgres_changes",
-        {
-          event:"*",
-          schema:"public",
-          table:"message_reactions"
-        },
-        async payload=>{
-
-          const id =
-            payload.new?.message_id ||
-            payload.old?.message_id;
-
-          if(!id){
-            return;
-          }
-
-          const row =
-            document.querySelector(
-              `[data-message-id="${id}"]`
-            );
-
-          const bubble =
-            row?.querySelector(
-              ".message"
-            );
-
-          if(bubble){
-
-            await refreshReaction(
-              id,
-              bubble
-            );
-
-          }
-
-        }
-      )
-
-      .subscribe(
-        status=>{
-
-          console.log(
-            "Realtime:",
-            status
-          );
-
-        }
-      );
-
+  realtimeChannel=supabaseClient
+    .channel(channelName)
+    .on("postgres_changes",{event:"INSERT",schema:"public",table:"messages"},payload=>{
+      console.log("Realtime INSERT:",payload);
+      const data=payload?.new;
+      if(!data?.id) return;
+      messageCache.set(data.id,data);
+      const exists=document.querySelector(`[data-message-id="${data.id}"]`);
+      if(exists) return;
+      const wasNearBottom=messages.scrollHeight-messages.scrollTop-messages.clientHeight<180;
+      addMessage(data,true);
+      if(wasNearBottom){
+        requestAnimationFrame(()=>{messages.scrollTop=messages.scrollHeight;});
+      }
+    })
+    .on("postgres_changes",{event:"UPDATE",schema:"public",table:"messages"},payload=>{
+      console.log("Realtime UPDATE:",payload);
+      const data=payload?.new;
+      if(!data?.id) return;
+      messageCache.set(data.id,data);
+      const row=document.querySelector(`[data-message-id="${data.id}"]`);
+      if(!row) return;
+      const bubble=row.querySelector(".message");
+      const text=bubble?.querySelector(".message-text");
+      if(text) text.textContent=data.content||"";
+    })
+    .on("postgres_changes",{event:"DELETE",schema:"public",table:"messages"},payload=>{
+      console.log("Realtime DELETE:",payload);
+      const id=payload?.old?.id;
+      if(!id) return;
+      document.querySelector(`[data-message-id="${id}"]`)?.remove();
+      messageCache.delete(id);
+    })
+    .on("postgres_changes",{event:"*",schema:"public",table:"message_reactions"},async payload=>{
+      console.log("Realtime REACTION:",payload);
+      const id=payload?.new?.message_id||payload?.old?.message_id;
+      if(!id) return;
+      const row=document.querySelector(`[data-message-id="${id}"]`);
+      const bubble=row?.querySelector(".message");
+      if(bubble){
+        try{ await refreshReaction(id,bubble); }
+        catch(error){ console.error("Realtime reaction refresh:",error); }
+      }
+    })
+    .subscribe(status=>{
+      console.log("ToTalk Realtime status:",status);
+      if(status==="SUBSCRIBED"){
+        console.log("ToTalk Realtime connected");
+        showStatus("Realtime connected");
+      }else if(status==="CHANNEL_ERROR"){
+        console.error("ToTalk Realtime channel error");
+        showStatus("Realtime connection error");
+      }else if(status==="TIMED_OUT"){
+        console.error("ToTalk Realtime timed out");
+        showStatus("Realtime timed out");
+      }
+    });
 }
 
 /* =====================================================
