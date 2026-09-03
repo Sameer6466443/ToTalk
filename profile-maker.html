@@ -3,1840 +3,441 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Create your ToTalk profile</title>
-
+<meta name="theme-color" content="#07040f">
+<title>ToTalk — Profile</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
-*{
-  box-sizing:border-box;
-}
-
-html,body{
-  margin:0;
-  min-height:100%;
-  font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-  color:#fff;
-}
-
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;color:#fff}
 body{
   min-height:100vh;
+  background:
+    radial-gradient(circle at 82% 12%,rgba(137,79,255,.20),transparent 28%),
+    radial-gradient(circle at 12% 80%,rgba(72,52,184,.16),transparent 32%),
+    linear-gradient(145deg,#05030b,#090516 52%,#100720);
   overflow-x:hidden;
-  background:
-    radial-gradient(circle at 20% 20%,rgba(130,65,255,.25),transparent 35%),
-    radial-gradient(circle at 80% 70%,rgba(64,110,255,.18),transparent 35%),
-    linear-gradient(135deg,#03020b 0%,#09051b 48%,#02030c 100%);
-  position:relative;
 }
-
 body:before{
-  content:"";
-  position:fixed;
-  inset:0;
-  pointer-events:none;
+  content:"";position:fixed;inset:0;pointer-events:none;opacity:.75;
   background-image:
-    radial-gradient(2px 2px at 12% 18%,#fff,transparent),
-    radial-gradient(1.5px 1.5px at 28% 72%,#fff,transparent),
-    radial-gradient(2px 2px at 46% 24%,#fff,transparent),
-    radial-gradient(1.5px 1.5px at 64% 78%,#fff,transparent),
-    radial-gradient(2px 2px at 82% 20%,#fff,transparent),
-    radial-gradient(1px 1px at 91% 62%,#fff,transparent),
-    radial-gradient(1.5px 1.5px at 38% 48%,#fff,transparent);
-  opacity:.8;
+    radial-gradient(circle at 10% 16%,#fff 0 1px,transparent 1.5px),
+    radial-gradient(circle at 23% 72%,#fff 0 1px,transparent 1.5px),
+    radial-gradient(circle at 42% 24%,#fff 0 1px,transparent 1.5px),
+    radial-gradient(circle at 61% 84%,#fff 0 1px,transparent 1.5px),
+    radial-gradient(circle at 78% 38%,#fff 0 1px,transparent 1.5px),
+    radial-gradient(circle at 91% 18%,#fff 0 1px,transparent 1.5px),
+    radial-gradient(circle at 94% 76%,#fff 0 1px,transparent 1.5px);
 }
-
-/* =========================================
-   GALAXY LOADING SCREEN
-========================================= */
-
-#galaxyLoading{
-  position:fixed;
-  inset:0;
-  z-index:99999;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  overflow:hidden;
-
-  background:
-    radial-gradient(circle at 50% 42%,rgba(111,63,255,.25),transparent 31%),
-    radial-gradient(circle at 18% 78%,rgba(65,45,190,.18),transparent 30%),
-    radial-gradient(circle at 88% 18%,rgba(95,50,210,.14),transparent 28%),
-    #02020b;
-
-  opacity:1;
-  visibility:visible;
-
-  transition:
-    opacity .75s cubic-bezier(.2,.7,.2,1),
-    visibility .75s;
+.page{position:relative;z-index:1;min-height:100vh;padding:22px 18px}
+.topbar{
+  max-width:760px;margin:auto;display:flex;align-items:center;
+  justify-content:space-between;gap:12px
 }
-
-#galaxyLoading.hide{
-  opacity:0;
-  visibility:hidden;
-  pointer-events:none;
+.logo{font-size:23px;font-weight:850;letter-spacing:-.8px}
+.logo span{color:#9d70ff}
+.back{
+  color:#bdb1d3;text-decoration:none;font-size:12px;font-weight:700;
+  padding:9px 12px;border:1px solid rgba(180,150,255,.16);
+  border-radius:12px;background:rgba(255,255,255,.035);
+  transition:.2s
 }
+.back:hover{background:rgba(137,83,255,.10);border-color:rgba(180,150,255,.38)}
 
-.loading-stars{
-  position:absolute;
-  inset:0;
-  pointer-events:none;
-
-  background-image:
-    radial-gradient(circle at 8% 14%,#fff 0 1px,transparent 1.6px),
-    radial-gradient(circle at 17% 48%,#b997ff 0 1px,transparent 1.6px),
-    radial-gradient(circle at 25% 82%,#fff 0 1.2px,transparent 1.8px),
-    radial-gradient(circle at 35% 22%,#fff 0 1px,transparent 1.6px),
-    radial-gradient(circle at 44% 70%,#b997ff 0 1px,transparent 1.6px),
-    radial-gradient(circle at 54% 12%,#fff 0 1.2px,transparent 1.8px),
-    radial-gradient(circle at 63% 86%,#fff 0 1px,transparent 1.6px),
-    radial-gradient(circle at 72% 31%,#b997ff 0 1px,transparent 1.6px),
-    radial-gradient(circle at 82% 68%,#fff 0 1.2px,transparent 1.8px),
-    radial-gradient(circle at 94% 20%,#fff 0 1px,transparent 1.6px),
-    radial-gradient(circle at 90% 90%,#b997ff 0 1px,transparent 1.6px);
-
-  opacity:.75;
-
-  animation:
-    loadingStars 5s ease-in-out infinite alternate;
-}
-
-.loading-nebula{
-  position:absolute;
-  width:420px;
-  height:420px;
-  border-radius:50%;
-
-  background:
-    radial-gradient(
-      circle,
-      rgba(126,73,255,.17),
-      rgba(76,42,180,.08) 45%,
-      transparent 70%
-    );
-
-  filter:blur(15px);
-
-  animation:
-    nebulaPulse 4s ease-in-out infinite;
-}
-
-.loading-system{
-  position:relative;
-  width:300px;
-  height:260px;
-
-  display:flex;
-  align-items:center;
-  justify-content:center;
-}
-
-.loading-orbit{
-  position:absolute;
-  width:250px;
-  height:90px;
-
-  border:1px solid rgba(175,128,255,.46);
-  border-radius:50%;
-
-  transform:rotate(-18deg);
-
-  box-shadow:
-    0 0 25px rgba(123,72,255,.14);
-
-  animation:
-    loadingOrbit 5.5s linear infinite;
-}
-
-.loading-orbit.two{
-  width:285px;
-  height:110px;
-
-  transform:rotate(54deg);
-
-  border-color:rgba(102,136,255,.25);
-
-  animation:
-    loadingOrbitReverse 7s linear infinite;
-}
-
-.loading-moon{
-  position:relative;
-  z-index:3;
-
-  width:105px;
-  height:105px;
-
-  border-radius:50%;
-
-  background:
-    radial-gradient(
-      circle at 30% 27%,
-      rgba(255,255,255,.95),
-      transparent 18%
-    ),
-    radial-gradient(
-      circle at 67% 62%,
-      rgba(91,88,106,.22) 0 12px,
-      transparent 13px
-    ),
-    radial-gradient(
-      circle at 37% 67%,
-      rgba(91,88,106,.2) 0 9px,
-      transparent 10px
-    ),
-    linear-gradient(
-      145deg,
-      #fafaff 0%,
-      #d4d1df 42%,
-      #9d99aa 75%,
-      #666273 100%
-    );
-
-  box-shadow:
-    inset -12px -10px 22px rgba(30,27,48,.22),
-    inset 9px 8px 17px rgba(255,255,255,.55),
-    0 0 32px rgba(192,164,255,.48),
-    0 0 85px rgba(100,55,255,.24);
-
-  animation:
-    loadingMoonFloat 3.2s ease-in-out infinite,
-    loadingMoonRotate 18s linear infinite;
-}
-
-.loading-moon:after{
-  content:"";
-
-  position:absolute;
-  inset:-12px;
-
-  border-radius:50%;
-
-  border:1px solid rgba(195,168,255,.16);
-
-  animation:
-    loadingMoonGlow 2.8s ease-in-out infinite;
-}
-
-.loading-title{
-  position:relative;
-  z-index:4;
-
-  margin-top:15px;
-
-  font-size:23px;
-  font-weight:800;
-  letter-spacing:.2px;
-
-  text-shadow:
-    0 0 18px rgba(180,140,255,.35);
-}
-
-.loading-subtitle{
-  position:relative;
-  z-index:4;
-
-  margin-top:8px;
-
-  color:#aaa5bd;
-  font-size:13px;
-}
-
-.loading-dots{
-  position:relative;
-  z-index:4;
-
-  display:flex;
-  gap:6px;
-
-  margin-top:16px;
-}
-
-.loading-dots span{
-  width:6px;
-  height:6px;
-
-  border-radius:50%;
-
-  background:#ad79ff;
-
-  box-shadow:
-    0 0 12px rgba(173,121,255,.85);
-
-  animation:
-    loadingDot 1.15s ease-in-out infinite;
-}
-
-.loading-dots span:nth-child(2){
-  animation-delay:.15s;
-}
-
-.loading-dots span:nth-child(3){
-  animation-delay:.3s;
-}
-
-@keyframes loadingOrbit{
-  from{
-    transform:rotate(-18deg) rotate(0deg);
-  }
-  to{
-    transform:rotate(-18deg) rotate(360deg);
-  }
-}
-
-@keyframes loadingOrbitReverse{
-  from{
-    transform:rotate(54deg) rotate(360deg);
-  }
-  to{
-    transform:rotate(54deg) rotate(0deg);
-  }
-}
-
-@keyframes loadingMoonFloat{
-  0%,100%{
-    transform:translateY(0);
-  }
-
-  50%{
-    transform:translateY(-9px);
-  }
-}
-
-@keyframes loadingMoonRotate{
-  from{
-    filter:brightness(1);
-  }
-
-  50%{
-    filter:brightness(1.07);
-  }
-
-  to{
-    filter:brightness(1);
-  }
-}
-
-@keyframes loadingMoonGlow{
-  0%,100%{
-    transform:scale(.96);
-    opacity:.4;
-  }
-
-  50%{
-    transform:scale(1.05);
-    opacity:1;
-  }
-}
-
-@keyframes loadingStars{
-  from{
-    transform:translateY(0);
-    opacity:.55;
-  }
-
-  to{
-    transform:translateY(-7px);
-    opacity:.9;
-  }
-}
-
-@keyframes nebulaPulse{
-  0%,100%{
-    transform:scale(.94);
-    opacity:.65;
-  }
-
-  50%{
-    transform:scale(1.08);
-    opacity:1;
-  }
-}
-
-@keyframes loadingDot{
-  0%,80%,100%{
-    transform:scale(.6);
-    opacity:.35;
-  }
-
-  40%{
-    transform:scale(1);
-    opacity:1;
-  }
-}
-
-
-/* =========================================
-   PROFILE MAKER — ORIGINAL TWO-PANEL DESIGN
-========================================= */
-
-.wrap{
-  min-height:100vh;
-  width:100%;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  padding:28px 34px;
-  position:relative;
-  z-index:2;
-}
-
-.profile-shell{
-  width:min(1180px,100%);
-  min-height:650px;
-  display:grid;
-  grid-template-columns:minmax(0,1fr) minmax(420px,520px);
-  gap:72px;
-  align-items:center;
-}
-
-.space-copy{
-  position:relative;
-  min-height:650px;
-  display:flex;
-  flex-direction:column;
-  justify-content:flex-end;
-  padding:0 0 82px 22px;
-}
-
-.space-brand{
-  position:absolute;
-  top:22px;
-  left:0;
-  font-size:15px;
-  font-weight:800;
-  letter-spacing:-.5px;
-}
-
-.space-brand span{ color:#8f61ff; }
-
-.setup-label{
-  position:absolute;
-  top:24px;
-  right:0;
-  color:rgba(255,255,255,.20);
-  font-size:9px;
-  letter-spacing:1.5px;
-  text-transform:uppercase;
-}
-
-.hero-moon-scene{
-  position:absolute;
-  left:-28px;
-  top:105px;
-  width:590px;
-  height:430px;
-  pointer-events:none;
-}
-
-.hero-moon-glow{
-  position:absolute;
-  left:72px;
-  top:128px;
-  width:330px;
-  height:330px;
-  border-radius:50%;
-  background:radial-gradient(circle,rgba(129,77,255,.42),rgba(82,45,190,.18) 42%,transparent 72%);
-  filter:blur(22px);
-  animation:heroGlow 4.5s ease-in-out infinite;
-}
-
-.hero-moon{
-  position:absolute;
-  left:105px;
-  top:158px;
-  width:260px;
-  height:260px;
-  border-radius:50%;
-  background:
-    radial-gradient(circle at 31% 27%,rgba(255,255,255,.98),transparent 16%),
-    radial-gradient(circle at 67% 61%,rgba(115,111,132,.20) 0 17px,transparent 18px),
-    radial-gradient(circle at 39% 66%,rgba(115,111,132,.17) 0 13px,transparent 14px),
-    radial-gradient(circle at 55% 35%,rgba(130,126,146,.14) 0 9px,transparent 10px),
-    linear-gradient(145deg,#ffffff 0%,#eeeefa 34%,#d4d1df 62%,#aaa6b8 82%,#807b8d 100%);
-  box-shadow:
-    inset -24px -20px 42px rgba(35,31,54,.22),
-    inset 18px 16px 30px rgba(255,255,255,.72),
-    0 0 38px rgba(205,190,255,.65),
-    0 0 105px rgba(107,60,255,.34);
-  animation:heroMoonFloat 5s ease-in-out infinite;
-}
-
-.hero-ring{
-  position:absolute;
-  left:36px;
-  top:222px;
-  width:400px;
-  height:118px;
-  border:1px solid rgba(155,113,255,.30);
-  border-radius:50%;
-  transform:rotate(-7deg);
-  box-shadow:0 0 28px rgba(112,67,255,.10);
-}
-
-.hero-ring.two{
-  left:80px;
-  top:174px;
-  width:300px;
-  height:355px;
-  border-color:rgba(130,112,255,.18);
-  transform:rotate(17deg);
-}
-
-.hero-ring.three{
-  left:84px;
-  top:215px;
-  width:360px;
-  height:110px;
-  border-color:rgba(185,157,255,.16);
-  transform:rotate(29deg);
-}
-
-.space-copy h2{
-  position:relative;
-  z-index:3;
-  margin:0;
-  max-width:360px;
-  font-size:31px;
-  line-height:.98;
-  letter-spacing:-1.7px;
-}
-
-.space-copy p{
-  position:relative;
-  z-index:3;
-  margin:13px 0 0;
-  color:#77718a;
-  font-size:13px;
-  line-height:1.55;
-}
-
-.card-panel{
-  width:100%;
-}
-
+.wrap{max-width:760px;margin:28px auto 50px}
 .card{
-  width:100%;
-  padding:34px 34px 30px;
-  border:1px solid rgba(255,255,255,.14);
-  border-radius:26px;
-  background:linear-gradient(180deg,rgba(16,11,35,.91),rgba(8,6,21,.94));
-  backdrop-filter:blur(18px);
+  padding:30px;
+  border-radius:27px;
+  background:rgba(13,9,25,.78);
+  border:1px solid rgba(194,170,255,.13);
+  box-shadow:0 28px 80px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.045);
+  backdrop-filter:blur(22px);
+}
+.heading{text-align:center}
+.kicker{
+  color:#9e7af1;font-size:10px;font-weight:800;
+  letter-spacing:2px;text-transform:uppercase
+}
+h1{margin:8px 0 5px;font-size:34px;letter-spacing:-1.5px}
+.sub{margin:0;color:#8f879d;font-size:13px;line-height:1.55}
+
+.avatar-wrap{display:flex;justify-content:center;margin:25px 0 12px}
+.avatar{
+  width:104px;height:104px;border-radius:50%;
+  display:grid;place-items:center;
+  font-size:42px;font-weight:800;
+  background:linear-gradient(145deg,#9b72ff,#5631a8);
+  border:1px solid rgba(221,207,255,.28);
   box-shadow:
-    0 30px 90px rgba(0,0,0,.52),
-    0 0 80px rgba(91,47,255,.14);
-  opacity:0;
-  transform:translateY(14px) scale(.985);
-  transition:opacity .6s ease,transform .6s cubic-bezier(.2,.75,.25,1);
+    0 0 0 8px rgba(134,87,255,.06),
+    0 0 42px rgba(126,77,255,.34),
+    inset 5px 5px 18px rgba(255,255,255,.13),
+    inset -10px -12px 20px rgba(26,10,58,.38);
+  transition:.25s ease
 }
+.avatar:hover{transform:translateY(-2px);box-shadow:0 0 0 9px rgba(134,87,255,.07),0 0 52px rgba(126,77,255,.42),inset 5px 5px 18px rgba(255,255,255,.13),inset -10px -12px 20px rgba(26,10,58,.38)}
+.avatar-name{text-align:center;font-size:16px;font-weight:750}
+.avatar-note{text-align:center;color:#756d83;font-size:11px;margin-top:4px}
 
-.card.ready{
-  opacity:1;
-  transform:translateY(0) scale(1);
+.id-box{
+  margin:24px 0 22px;padding:16px 17px;border-radius:17px;
+  border:1px solid rgba(163,126,245,.20);
+  background:linear-gradient(120deg,rgba(126,78,234,.13),rgba(255,255,255,.025));
+  cursor:pointer;transition:.2s
 }
-
-.card .orbit{ display:none; }
-
-.card h1{
-  text-align:left;
-  margin:0;
-  font-size:39px;
-  line-height:.94;
-  letter-spacing:-2px;
+.id-box:hover{border-color:rgba(169,133,255,.42);background:linear-gradient(120deg,rgba(126,78,234,.17),rgba(255,255,255,.035))}
+.id-label{font-size:9px;letter-spacing:1.8px;text-transform:uppercase;color:#877b99}
+.id-row{display:flex;align-items:center;justify-content:space-between;gap:14px}
+.id{
+  margin-top:6px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+  font-size:19px;letter-spacing:1.1px
 }
-
-.card .sub{
-  text-align:left;
-  color:#8f899f;
-  line-height:1.55;
-  margin:18px 0 28px;
-  font-size:14px;
-  max-width:390px;
+.copy{
+  width:35px;height:35px;border-radius:50%;display:grid;place-items:center;
+  border:1px solid rgba(185,157,255,.23);background:rgba(127,79,235,.10);
+  color:#cdbdff;font-size:16px;flex:none
 }
+.id-help{margin-top:5px;color:#71697e;font-size:10px}
 
-.card label{
-  display:block;
-  font-size:12px;
-  font-weight:700;
-  color:#d0cadc;
-  margin:0 0 8px;
+.form{margin-top:20px}
+.field{margin-top:17px}
+label{display:block;font-size:12px;font-weight:700;color:#d8d1e4;margin-bottom:8px}
+input,select{
+  width:100%;height:50px;border-radius:14px;
+  border:1px solid #302742;background:#0b0714;color:#fff;
+  padding:0 14px;font:inherit;font-size:13px;outline:none;
+  transition:.2s
 }
-
-.card input{
-  width:100%;
-  border:1px solid rgba(255,255,255,.12);
-  outline:none;
-  border-radius:13px;
-  padding:14px 15px;
-  background:rgba(255,255,255,.035);
-  color:#fff;
-  font-size:15px;
+input::placeholder{color:#5f586c}
+input:focus,select:focus{
+  border-color:#805ce0;box-shadow:0 0 0 4px rgba(128,92,224,.10)
 }
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 
-.card input:focus{
-  border-color:rgba(163,125,255,.7);
-  box-shadow:0 0 0 3px rgba(130,80,255,.12);
+.save{
+  width:100%;height:52px;margin-top:23px;border:0;border-radius:14px;
+  background:linear-gradient(135deg,#8054e7,#a16cff);
+  color:#fff;font-size:13px;font-weight:800;cursor:pointer;
+  box-shadow:0 13px 30px rgba(111,67,215,.22);
+  transition:.2s
 }
+.save:hover{transform:translateY(-1px);filter:brightness(1.07)}
+.save:disabled{opacity:.55;cursor:not-allowed;transform:none}
 
-.group{ margin-bottom:20px; }
+.status{min-height:18px;margin-top:10px;font-size:11px;color:#ff8c9b;text-align:center}
+.status.ok{color:#8be0b0}
+.bottom{text-align:center;margin-top:15px;color:#665e70;font-size:10px}
 
-.gender-grid{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:12px;
+@media(max-width:600px){
+  .page{padding:16px 12px}
+  .wrap{margin-top:20px}
+  .card{padding:23px 17px;border-radius:22px}
+  h1{font-size:30px}
+  .avatar{width:92px;height:92px;font-size:37px}
+  .row{grid-template-columns:1fr}
 }
-
-.gender{
-  position:relative;
-  border:1px solid rgba(255,255,255,.12);
-  border-radius:13px;
-  padding:14px 12px;
-  background:rgba(255,255,255,.025);
-  cursor:pointer;
-  display:flex;
-  align-items:center;
-  gap:10px;
-  transition:.2s ease;
-}
-
-.gender:hover{ background:rgba(255,255,255,.055); }
-.gender input{ position:absolute; opacity:0; width:1px; height:1px; pointer-events:none; }
-
-.circle{
-  width:21px;
-  height:21px;
-  border:1.5px solid #777084;
-  border-radius:50%;
-  display:grid;
-  place-items:center;
-  flex:none;
-}
-
-.circle:after{
-  content:"";
-  width:8px;
-  height:8px;
-  border-radius:50%;
-  background:#fff;
-  opacity:0;
-  transform:scale(.4);
-  transition:.18s ease;
-}
-
-.gender.selected{
-  border-color:rgba(167,124,255,.78);
-  background:rgba(120,75,255,.12);
-}
-
-.gender.selected .circle{
-  border-color:#b99aff;
-  background:#8b5cff;
-}
-
-.gender.selected .circle:after{
-  opacity:1;
-  transform:scale(1);
-}
-
-.gender:focus-within{
-  border-color:rgba(167,124,255,.78);
-  box-shadow:0 0 0 3px rgba(130,80,255,.12);
-}
-
-.ttbox.copied{
-  border-color:rgba(167,124,255,.55);
-  box-shadow:0 0 0 2px rgba(139,92,255,.08);
-}
-
-.ttbox.copied .ttid{
-  color:#fff;
-}
-
-.ttbox{
-  border:1px solid rgba(255,255,255,.10);
-  border-radius:14px;
-  padding:16px 15px;
-  background:rgba(255,255,255,.025);
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  gap:12px;
-}
-
-.ttlabel{
-  font-size:11px;
-  color:#797287;
-  letter-spacing:.8px;
-  text-transform:uppercase;
-}
-
-.ttid{
-  font-weight:800;
-  letter-spacing:1.2px;
-  font-size:16px;
-}
-
-.copy-id{
-  width:38px!important;
-  height:38px!important;
-  min-width:38px;
-  margin:0!important;
-  padding:0!important;
-  border:1px solid rgba(167,124,255,.24)!important;
-  border-radius:11px!important;
-  background:rgba(139,92,255,.10)!important;
-  color:#c8baff!important;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  box-shadow:none!important;
-  font-size:17px!important;
-  line-height:1;
-}
-.copy-id:hover{
-  transform:none!important;
-  filter:none!important;
-  background:rgba(139,92,255,.18)!important;
-  border-color:rgba(167,124,255,.55)!important;
-}
-.copy-id.copied{
-  color:#fff!important;
-  background:rgba(139,92,255,.24)!important;
-  border-color:rgba(167,124,255,.7)!important;
-}
-
-.tt-info{
-  margin-top:11px;
-  padding:13px 14px;
-  border:1px solid rgba(151,111,255,.13);
-  border-radius:13px;
-  background:rgba(112,70,255,.045);
-}
-
-.tt-info-title{
-  font-size:11px;
-  font-weight:800;
-  color:#c8baff;
-  letter-spacing:.7px;
-  text-transform:uppercase;
-  margin-bottom:5px;
-}
-
-.tt-info p{
-  margin:0;
-  color:#8c859d;
-  font-size:11px;
-  line-height:1.55;
-}
-
-.tt-points{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:6px 12px;
-  margin-top:8px;
-}
-
-.tt-point{
-  color:#706a80;
-  font-size:10px;
-}
-
-.tt-point:before{
-  content:"•";
-  color:#9b72ff;
-  margin-right:5px;
-}
-
-.card button{
-  width:100%;
-  border:0;
-  border-radius:14px;
-  padding:15px;
-  background:linear-gradient(135deg,#8b5cff,#6040d8);
-  color:#fff;
-  font-weight:700;
-  font-size:15px;
-  cursor:pointer;
-  box-shadow:0 12px 30px rgba(105,65,230,.28);
-  transition:.2s ease;
-  margin-top:2px;
-}
-
-.card button:hover:not(:disabled){ transform:translateY(-1px); }
-.card button:disabled{ opacity:.6; cursor:default; }
-
-.status{
-  text-align:center;
-  min-height:20px;
-  margin-top:11px;
-  color:#aaa5bb;
-  font-size:12px;
-}
-.status.error{ color:#ff9caa; }
-.status.success{ color:#b9a0ff; }
-
-.note{
-  text-align:center;
-  color:#5f596d;
-  font-size:9px;
-  margin-top:13px;
-  line-height:1.5;
-}
-
-@keyframes heroMoonFloat{
-  0%,100%{ transform:translateY(0); }
-  50%{ transform:translateY(-7px); }
-}
-
-@keyframes heroGlow{
-  0%,100%{ transform:scale(.95); opacity:.72; }
-  50%{ transform:scale(1.06); opacity:1; }
-}
-
-/* =========================================
-   MOBILE
-========================================= */
-
-@media(max-width:900px){
-  .wrap{ padding:22px 22px; }
-  .profile-shell{ gap:35px; grid-template-columns:minmax(0,1fr) minmax(370px,480px); }
-  .space-copy{ min-height:600px; padding-left:0; }
-  .hero-moon-scene{ transform:scale(.82); transform-origin:left top; }
-  .card{ padding:30px 27px 27px; }
-  .card h1{ font-size:34px; }
-}
-
-@media(max-width:720px){
-  .wrap{ padding:20px 15px 30px; }
-  .profile-shell{ grid-template-columns:1fr; gap:20px; }
-  .space-copy{ min-height:330px; padding:0 0 20px; justify-content:flex-end; }
-  .space-brand{ top:0; }
-  .setup-label{ top:2px; }
-  .hero-moon-scene{ left:50%; top:18px; transform:translateX(-50%) scale(.55); transform-origin:top center; }
-  .space-copy h2{ font-size:27px; }
-  .card h1{ font-size:31px; }
-}
-
-@media(max-width:500px){
-  .card{ padding:27px 21px 23px; border-radius:23px; }
-  .gender-grid{ gap:9px; }
-  .tt-points{ grid-template-columns:1fr; }
-  .loading-system{ width:260px; height:235px; }
-  .loading-orbit{ width:225px; height:82px; }
-  .loading-orbit.two{ width:255px; height:98px; }
-  .loading-moon{ width:92px; height:92px; }
-  .loading-title{ font-size:21px; }
-  .loading-subtitle{ font-size:12px; }
-}
-
 @media(prefers-reduced-motion:reduce){
-  *,*:before,*:after{ animation:none!important; transition:none!important; }
+  *{animation:none!important;transition:none!important}
 }
-
-
-.ttbox{
-  position:relative;
-  min-height:126px;
-  padding:17px 17px 15px;
-  border:1px solid rgba(157,126,241,.16);
-  border-radius:17px;
-  background:linear-gradient(120deg,rgba(126,88,227,.12),rgba(255,255,255,.025));
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:16px;
-  cursor:pointer;
-  transition:.2s ease;
-}
-.ttbox:hover,.ttbox:focus{
-  border-color:rgba(177,145,255,.42);
-  box-shadow:0 0 18px rgba(133,97,232,.12);
-  outline:none;
-}
-.tt-main{
-  min-width:0;
-  display:flex;
-  flex-direction:column;
-}
-.tt-main .ttlabel{
-  font-size:10px;
-  letter-spacing:1.7px;
-  color:#8f859f;
-  margin-bottom:7px;
-}
-.ttid{
-  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
-  font-weight:800;
-  letter-spacing:1px;
-  font-size:22px;
-  color:#fff;
-}
-.tt-copy-note{
-  margin-top:10px;
-  color:#756d82;
-  font-size:11px;
-}
-.copy-galaxy{
-  position:relative;
-  width:62px;
-  height:62px;
-  flex:none;
-  border:1px solid rgba(177,145,255,.38);
-  border-radius:50%;
-  background:rgba(123,83,225,.08);
-  overflow:hidden;
-  transition:.2s ease;
-}
-.ttbox:hover .copy-galaxy,.ttbox:focus .copy-galaxy{
-  border-color:rgba(177,145,255,.72);
-  box-shadow:0 0 22px rgba(133,97,232,.2);
-  transform:scale(1.03);
-}
-.copy-orbit{
-  position:absolute;
-  width:48px;
-  height:18px;
-  left:6px;
-  top:21px;
-  border:1px solid rgba(193,169,255,.75);
-  border-radius:50%;
-  transform:rotate(-28deg);
-}
-.copy-core{
-  position:absolute;
-  width:9px;
-  height:9px;
-  border-radius:50%;
-  background:#d9caff;
-  left:26px;
-  top:26px;
-  box-shadow:0 0 12px rgba(202,181,255,.95);
-}
-.copy-star{
-  position:absolute;
-  width:3px;
-  height:3px;
-  border-radius:50%;
-  background:#fff;
-  box-shadow:0 0 6px #fff;
-}
-.copy-s1{left:13px;top:14px}
-.copy-s2{right:12px;bottom:14px}
-@media(max-width:500px){
-  .ttbox{min-height:118px;padding:16px 15px;}
-  .ttid{font-size:20px;}
-  .copy-galaxy{width:56px;height:56px;}
-  .copy-orbit{width:43px;height:16px;left:6px;top:19px;}
-  .copy-core{left:23px;top:23px;}
-}
-
 </style>
 </head>
 
 <body>
+<div class="page">
 
-
-<!-- =========================================
-     GALAXY LOADING
-========================================= -->
-
-<div id="galaxyLoading">
-
-  <div class="loading-stars"></div>
-
-  <div class="loading-nebula"></div>
-
-  <div class="loading-system">
-
-    <div class="loading-orbit"></div>
-
-    <div class="loading-orbit two"></div>
-
-    <div class="loading-moon"></div>
-
+  <div class="topbar">
+    <div class="logo">ToTalk <span>Profile</span></div>
+    <a class="back" href="./chat.html">← Back to Chat</a>
   </div>
 
-  <div class="loading-title">
-    Entering ToTalk
-  </div>
+  <main class="wrap">
+    <section class="card">
 
-  <div class="loading-subtitle">
-    Preparing your profile
-  </div>
-
-  <div class="loading-dots">
-    <span></span>
-    <span></span>
-    <span></span>
-  </div>
-
-</div>
-
-
-<!-- =========================================
-     PROFILE
-========================================= -->
-
-<div class="wrap">
-  <main class="profile-shell">
-
-    <section class="space-copy" aria-hidden="true">
-      <div class="space-brand">ToTalk <span>Sameer</span></div>
-      <div class="setup-label">PROFILE SETUP · 01</div>
-
-      <div class="hero-moon-scene">
-        <div class="hero-moon-glow"></div>
-        <div class="hero-ring"></div>
-        <div class="hero-ring two"></div>
-        <div class="hero-ring three"></div>
-        <div class="hero-moon"></div>
-      </div>
-
-      <h2>Your space starts<br>here.</h2>
-      <p>Create your identity before entering ToTalk.</p>
-    </section>
-
-    <section class="card-panel">
-      <div class="card" id="profileCard">
-        <h1>Create your<br>profile.</h1>
-
-        <p class="sub">
-          Choose how you want to appear when you connect with people on<br class="wide-only">
-          Sameer's personal chat space.
+      <div class="heading">
+        <div class="kicker">Your ToTalk Profile</div>
+        <h1 id="title">Your profile</h1>
+        <p class="sub" id="subtitle">
+          Keep your profile simple. You can change these details anytime.
         </p>
+      </div>
 
-        <div class="group">
-          <label for="name">Your name</label>
-          <input id="name" maxlength="40" autocomplete="name" placeholder="Enter your name">
+      <div class="avatar-wrap">
+        <div class="avatar" id="avatar">S</div>
+      </div>
+      <div class="avatar-name" id="avatarName">ToTalk User</div>
+      <div class="avatar-note">Your first letter is your profile avatar.</div>
+
+      <div class="id-box" id="idBox" role="button" tabindex="0" aria-label="Copy ToTalk ID">
+        <div class="id-label">Permanent ToTalk ID</div>
+        <div class="id-row">
+          <div class="id" id="totalkId">Generating…</div>
+          <div class="copy">⧉</div>
+        </div>
+        <div class="id-help" id="idHelp">Tap here to copy your ID.</div>
+      </div>
+
+      <div class="form">
+
+        <div class="field" style="margin-top:0">
+          <label for="name">Name</label>
+          <input id="name" maxlength="40" autocomplete="name" placeholder="Your name">
         </div>
 
-        <div class="group">
-          <label>Your gender</label>
-          <div class="gender-grid">
-            <label class="gender" data-gender="Male">
-              <input type="radio" name="gender" value="Male">
-              <span class="circle"></span>
-              <span>Male</span>
-            </label>
+        <div class="row">
+          <div class="field">
+            <label for="age">Age</label>
+            <input id="age" type="number" min="13" max="120" inputmode="numeric" placeholder="13–120">
+          </div>
 
-            <label class="gender" data-gender="Female">
-              <input type="radio" name="gender" value="Female">
-              <span class="circle"></span>
-              <span>Female</span>
-            </label>
+          <div class="field">
+            <label for="gender">Gender</label>
+            <select id="gender">
+              <option value="">Choose</option>
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+            </select>
           </div>
         </div>
 
-        <div class="group">
-          <label>Your ToTalk ID</label>
-
-          <div class="ttbox" id="copyIdArea" role="button" tabindex="0" aria-label="Copy your ToTalk ID">
-            <div class="tt-main">
-              <span class="ttlabel">Your ToTalk ID</span>
-              <span class="ttid" id="ttid">Generating…</span>
-              <span class="tt-copy-note" id="copyNote">Tap your ID to copy it.</span>
-            </div>
-
-            <span class="copy-galaxy" aria-hidden="true">
-              <span class="copy-orbit"></span>
-              <span class="copy-star copy-s1"></span>
-              <span class="copy-star copy-s2"></span>
-              <span class="copy-core"></span>
-            </span>
-          </div>
-
-          <div class="tt-info">
-            <div class="tt-info-title">What is a ToTalk ID?</div>
-            <p>
-              Your ToTalk ID is your unique shareable code. It is created automatically and lets people identify your ToTalk space without needing a username. Tap your ID to copy it and share it easily.
-            </p>
-            <div class="tt-points">
-              <div class="tt-point">Unique to your profile</div>
-              <div class="tt-point">Created automatically</div>
-              <div class="tt-point">Easy to copy and share</div>
-              <div class="tt-point">Helps identify your ToTalk space</div>
-            </div>
-          </div>
+        <div class="field">
+          <label for="location">Location</label>
+          <input id="location" maxlength="80" placeholder="City, Country">
         </div>
 
-        <button id="createBtn" type="button">Create Profile</button>
+        <div class="field">
+          <label for="visibility">Location visibility</label>
+          <select id="visibility">
+            <option value="city_country">City + country</option>
+            <option value="country_only">Country only</option>
+            <option value="hidden">Hidden</option>
+          </select>
+        </div>
 
+        <button class="save" id="saveBtn" type="button">Save Changes</button>
         <div class="status" id="status"></div>
+        <div class="bottom">Your ToTalk ID stays the same when you edit your profile.</div>
 
-        <div class="note">
-          Your profile is used to identify you inside ToTalk. Your TT-ID is generated automatically.
-        </div>
       </div>
     </section>
-
   </main>
 </div>
 
 <script>
+const SUPABASE_URL="https://qiynczbrhpxwuabwuyiy.supabase.co";
+const SUPABASE_KEY="sb_publishable_eUPz4c_nYckgINEK-AIWqw_JAXIHozd";
 
-/* =========================================
-   SUPABASE
-========================================= */
+const supabaseClient=supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{
+  auth:{
+    persistSession:true,
+    autoRefreshToken:true,
+    detectSessionInUrl:true,
+    flowType:"pkce"
+  }
+});
 
-const SUPABASE_URL =
-  "https://qiynczbrhpxwuabwuyiy.supabase.co";
+let existingProfile=null;
+let generatedId="";
 
-const SUPABASE_KEY =
-  "sb_publishable_eUPz4c_nYckgINEK-AIWqw_JAXIHozd";
+const nameEl=document.getElementById("name");
+const ageEl=document.getElementById("age");
+const genderEl=document.getElementById("gender");
+const locationEl=document.getElementById("location");
+const visibilityEl=document.getElementById("visibility");
+const avatarEl=document.getElementById("avatar");
+const avatarNameEl=document.getElementById("avatarName");
+const idEl=document.getElementById("totalkId");
+const idBox=document.getElementById("idBox");
+const idHelp=document.getElementById("idHelp");
+const statusEl=document.getElementById("status");
+const saveBtn=document.getElementById("saveBtn");
 
-const supabaseClient =
-  supabase.createClient(
-    SUPABASE_URL,
-    SUPABASE_KEY,
-    {
-      auth:{
-        persistSession:true,
-        autoRefreshToken:true,
-        detectSessionInUrl:true,
-        flowType:"pkce"
-      }
-    }
-  );
+function makeId(){
+  const chars="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  let id="TT-";
+  for(let i=0;i<6;i++){
+    id+=chars[Math.floor(Math.random()*chars.length)];
+  }
+  return id;
+}
 
+function status(text,ok=false){
+  statusEl.textContent=text||"";
+  statusEl.className="status"+(ok?" ok":"");
+}
 
-/* =========================================
-   ELEMENTS
-========================================= */
+function updateAvatar(){
+  const name=nameEl.value.trim()||"ToTalk User";
+  const letter=name.charAt(0).toUpperCase()||"T";
+  avatarEl.textContent=letter;
+  avatarNameEl.textContent=name;
+}
 
-const nameEl =
-  document.getElementById("name");
+nameEl.addEventListener("input",updateAvatar);
 
-const ttidEl =
-  document.getElementById("ttid");
+async function copyId(){
+  const id=idEl.textContent.trim();
+  if(!id || id.startsWith("Generating")) return;
 
-const btn =
-  document.getElementById("createBtn");
+  try{
+    await navigator.clipboard.writeText(id);
+  }catch(e){
+    const temp=document.createElement("textarea");
+    temp.value=id;
+    document.body.appendChild(temp);
+    temp.select();
+    document.execCommand("copy");
+    temp.remove();
+  }
 
-const statusEl =
-  document.getElementById("status");
+  idHelp.textContent="Copied!";
+  setTimeout(()=>idHelp.textContent="Tap here to copy your ID.",1600);
+}
 
-const loader =
-  document.getElementById("galaxyLoading");
+idBox.addEventListener("click",copyId);
+idBox.addEventListener("keydown",e=>{
+  if(e.key==="Enter"||e.key===" "){
+    e.preventDefault();
+    copyId();
+  }
+});
 
-const copyIdArea =
-  document.getElementById("copyIdArea");
+async function loadProfile(){
+  status("Loading profile…");
 
-const copyNote =
-  document.getElementById("copyNote");
+  const {data:{user},error:userError}=await supabaseClient.auth.getUser();
 
-
-const profileCard =
-  document.getElementById("profileCard");
-
-
-let currentUser = null;
-let generatedId = "";
-
-function copyToTalkId(){
-
-  const id = String(
-    generatedId ||
-    ttidEl.textContent ||
-    ""
-  ).trim();
-
-  if(!/^TT-[A-Z0-9]{6}$/.test(id)){
+  if(userError||!user){
+    window.location.replace("./index.html");
     return;
   }
 
-  const done = ()=>{
-    copyIdArea.classList.add("copied");
+  const {data:profile,error}=await supabaseClient
+    .from("profiles")
+    .select("id,user_id,name,gender,age,totalk_id,profile_completed,location,location_visibility")
+    .eq("user_id",user.id)
+    .maybeSingle();
 
-    if(copyNote){
-      copyNote.textContent = "Copied ✓";
+  if(error){
+    console.error(error);
+    status("Please run the profile SQL migration first.");
+    saveBtn.disabled=true;
+    return;
+  }
+
+  existingProfile=profile||null;
+  generatedId=profile?.totalk_id||makeId();
+
+  idEl.textContent=generatedId;
+  nameEl.value=profile?.name||"";
+  ageEl.value=profile?.age??"";
+  genderEl.value=profile?.gender||"";
+  locationEl.value=profile?.location||"";
+  visibilityEl.value=profile?.location_visibility||"city_country";
+
+  updateAvatar();
+  status("");
+
+  if(profile?.profile_completed){
+    document.getElementById("title").textContent="Your profile";
+    document.getElementById("subtitle").textContent=
+      "Change your details anytime. Your ToTalk ID stays permanent.";
+    saveBtn.textContent="Save Changes";
+  }else{
+    document.getElementById("title").textContent="Create your profile";
+    document.getElementById("subtitle").textContent=
+      "Set up your profile before entering ToTalk.";
+    saveBtn.textContent="Create Profile";
+  }
+}
+
+async function saveProfile(){
+  const name=nameEl.value.trim();
+  const age=Number.parseInt(ageEl.value,10);
+  const gender=genderEl.value;
+  const location=locationEl.value.trim();
+  const visibility=visibilityEl.value;
+
+  if(name.length<2){
+    status("Please enter your name.");
+    nameEl.focus();
+    return;
+  }
+
+  if(!Number.isInteger(age)||age<13||age>120){
+    status("Please enter a valid age from 13 to 120.");
+    ageEl.focus();
+    return;
+  }
+
+  if(!gender){
+    status("Please choose your gender.");
+    genderEl.focus();
+    return;
+  }
+
+  saveBtn.disabled=true;
+  saveBtn.textContent="Saving…";
+  status("");
+
+  try{
+    const {data:{user},error:userError}=await supabaseClient.auth.getUser();
+
+    if(userError||!user){
+      throw new Error("Your login session has expired.");
     }
+
+    const payload={
+      user_id:user.id,
+      name:name,
+      gender:gender,
+      age:age,
+      totalk_id:existingProfile?.totalk_id||generatedId,
+      location:location,
+      location_visibility:visibility,
+      profile_completed:true
+    };
+
+    let result;
+
+    if(existingProfile){
+      result=await supabaseClient
+        .from("profiles")
+        .update(payload)
+        .eq("user_id",user.id);
+    }else{
+      result=await supabaseClient
+        .from("profiles")
+        .insert(payload);
+    }
+
+    if(result.error) throw result.error;
+
+    existingProfile={...(existingProfile||{}),...payload};
+    generatedId=payload.totalk_id;
+    idEl.textContent=generatedId;
+    updateAvatar();
+
+    status("Saved. Opening ToTalk…",true);
 
     setTimeout(()=>{
-      copyIdArea.classList.remove("copied");
-      if(copyNote){
-        copyNote.textContent = "Tap your ID to copy it.";
-      }
-    },1200);
-  };
+      window.location.replace("./chat.html");
+    },500);
 
-  if(navigator.clipboard && window.isSecureContext){
-    navigator.clipboard.writeText(id)
-      .then(done)
-      .catch(()=>fallbackCopy(id, done));
-    return;
-  }
-
-  fallbackCopy(id, done);
-}
-
-function fallbackCopy(id, done){
-  const temp = document.createElement("textarea");
-  temp.value = id;
-  temp.setAttribute("readonly", "");
-  temp.style.position = "fixed";
-  temp.style.left = "-9999px";
-  temp.style.top = "0";
-  document.body.appendChild(temp);
-  temp.focus();
-  temp.select();
-
-  let copied = false;
-  try{
-    copied = document.execCommand("copy");
-  }catch(err){
-    copied = false;
-  }
-
-  temp.remove();
-
-  if(copied){
-    done();
-  }else if(copyNote){
-    copyNote.textContent = "Long-press the ID to copy it.";
+  }catch(error){
+    console.error(error);
+    status(error.message||"Could not save your profile.");
+    saveBtn.disabled=false;
+    saveBtn.textContent=existingProfile?.profile_completed?"Save Changes":"Create Profile";
   }
 }
 
-
-
-/* =========================================
-   MAKE TT ID
-========================================= */
-
-function makeTTId(){
-
-  const chars =
-    "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-
-  let out =
-    "TT-";
-
-  const bytes =
-    new Uint8Array(6);
-
-  crypto.getRandomValues(bytes);
-
-  for(const b of bytes){
-
-    out +=
-      chars[b % chars.length];
-
-  }
-
-  return out;
-}
-
-
-/* =========================================
-   STATUS
-========================================= */
-
-function setStatus(
-  text,
-  type=""
-){
-
-  statusEl.textContent =
-    text;
-
-  statusEl.className =
-    "status" +
-    (type ? " " + type : "");
-
-}
-
-
-/* =========================================
-   GENDER
-========================================= */
-
-document.querySelectorAll(".gender").forEach(el=>{
-  const radio = el.querySelector('input[type="radio"]');
-
-  el.addEventListener("click", ()=>{
-    radio.checked = true;
-    document.querySelectorAll(".gender").forEach(item=>{
-      item.classList.toggle("selected", item === el);
-    });
-  });
-
-  radio.addEventListener("change", ()=>{
-    document.querySelectorAll(".gender").forEach(item=>{
-      item.classList.toggle("selected", item === el && radio.checked);
-    });
-  });
-});
-
-
-/* =========================================
-   SHOW PROFILE MAKER
-========================================= */
-
-function showProfileMaker(){
-
-  /*
-   * First make the profile card ready.
-   */
-
-  profileCard.classList.add(
-    "ready"
-  );
-
-
-  /*
-   * Then slowly remove the galaxy screen.
-   */
-
-  setTimeout(
-    ()=>{
-      loader.classList.add(
-        "hide"
-      );
-    },
-    350
-  );
-
-}
-
-
-/* =========================================
-   SHOW GALAXY AGAIN
-========================================= */
-
-function showGalaxy(){
-
-  loader.classList.remove(
-    "hide"
-  );
-
-}
-
-
-/* =========================================
-   INITIALIZE
-========================================= */
-
-async function init(){
-
-  generatedId =
-    makeTTId();
-
-  ttidEl.textContent =
-    generatedId;
-
-
-  /*
-   * Wait for Supabase to restore
-   * the Google session.
-   */
-
-  let session =
-    null;
-
-
-  for(
-    let attempt=0;
-    attempt<12;
-    attempt++
-  ){
-
-    const {
-      data,
-      error
-    } =
-      await supabaseClient
-        .auth
-        .getSession();
-
-
-    if(
-      !error &&
-      data &&
-      data.session
-    ){
-
-      session =
-        data.session;
-
-      break;
-
-    }
-
-
-    await new Promise(
-      resolve =>
-        setTimeout(
-          resolve,
-          250
-        )
-    );
-
-  }
-
-
-  /*
-   * No Google session.
-   */
-
-  if(!session){
-
-    window.location.replace(
-      "./index.html"
-    );
-
-    return;
-
-  }
-
-
-  currentUser =
-    session.user;
-
-
-  /*
-   * Check whether this user
-   * already has a completed profile.
-   */
-
-  const {
-    data:profile,
-    error:profileError
-  } =
-    await supabaseClient
-      .from("profiles")
-      .select(
-        "name,gender,totalk_id,profile_completed"
-      )
-      .eq(
-        "user_id",
-        currentUser.id
-      )
-      .maybeSingle();
-
-
-  if(profileError){
-
-    console.error(
-      "Profile read error:",
-      profileError
-    );
-
-  }
-
-
-  /*
-   * Existing completed profile:
-   * enter chat smoothly.
-   */
-
-  if(
-    profile &&
-    profile.profile_completed
-  ){
-
-    setTimeout(
-      ()=>{
-        window.location.replace(
-          "./chat.html"
-        );
-      },
-      850
-    );
-
-    return;
-
-  }
-
-
-  /*
-   * Restore existing information.
-   */
-
-  if(
-    profile &&
-    profile.name &&
-    profile.name !== "ToTalk User"
-  ){
-
-    nameEl.value =
-      profile.name;
-
-  }
-
-
-  if(
-    profile &&
-    profile.gender
-  ){
-
-    const genderEl =
-      document.querySelector(
-        '[data-gender="' +
-        profile.gender +
-        '"]'
-      );
-
-    if(genderEl){
-
-      genderEl.classList.add(
-        "selected"
-      );
-
-      genderEl.querySelector(
-        "input"
-      ).checked = true;
-
-    }
-
-  }
-
-
-  if(
-    profile &&
-    profile.totalk_id
-  ){
-
-    generatedId =
-      profile.totalk_id;
-
-    ttidEl.textContent =
-      generatedId;
-
-  }
-
-
-  /*
-   * Smoothly reveal profile maker.
-   */
-
-  showProfileMaker();
-
-}
-
-
-if(copyIdArea){
-  copyIdArea.addEventListener("click", copyToTalkId);
-  copyIdArea.addEventListener("keydown", (event)=>{
-    if(event.key === "Enter" || event.key === " "){
-      event.preventDefault();
-      copyToTalkId();
-    }
-  });
-}
-
-
-
-async function copyToTalkId(){
-  const id = document.getElementById("ttid").textContent.trim();
-  if(!id || id === "Generating…") return;
-
-  let copied = false;
-
-  try{
-    if(navigator.clipboard && window.isSecureContext){
-      await navigator.clipboard.writeText(id);
-      copied = true;
-    }
-  }catch(e){}
-
-  if(!copied){
-    try{
-      const area = document.createElement("textarea");
-      area.value = id;
-      area.setAttribute("readonly", "");
-      area.style.position = "fixed";
-      area.style.left = "-9999px";
-      area.style.top = "0";
-      document.body.appendChild(area);
-      area.focus();
-      area.select();
-      area.setSelectionRange(0, area.value.length);
-      copied = document.execCommand("copy");
-      area.remove();
-    }catch(e){}
-  }
-
-  copyNote.textContent = copied ? "ToTalk ID copied ✓" : "Tap and hold to copy the ID.";
-  setTimeout(()=>{ copyNote.textContent = "Tap your ID to copy it."; }, 1800);
-}
-
-copyIdArea.addEventListener("click", copyToTalkId);
-copyIdArea.addEventListener("keydown", e=>{
-  if(e.key === "Enter" || e.key === " "){
-    e.preventDefault();
-    copyToTalkId();
+supabaseClient.auth.onAuthStateChange(event=>{
+  if(event==="SIGNED_OUT"){
+    window.location.replace("./index.html");
   }
 });
 
-/* =========================================
-   CREATE PROFILE
-========================================= */
-
-btn.addEventListener(
-  "click",
-  async ()=>{
-
-    const name =
-      nameEl.value.trim();
-
-    const gender =
-      document.querySelector(
-        'input[name="gender"]:checked'
-      )?.value;
-
-
-    if(!name){
-
-      setStatus(
-        "Please enter your name."
-      );
-
-      nameEl.focus();
-
-      return;
-
-    }
-
-
-    if(!gender){
-
-      setStatus(
-        "Please select Male or Female."
-      );
-
-      return;
-
-    }
-
-
-    if(!currentUser){
-
-      setStatus(
-        "Your Google session is not ready. Please try again.",
-        "error"
-      );
-
-      return;
-
-    }
-
-
-    btn.disabled =
-      true;
-
-    btn.textContent =
-      "Creating profile…";
-
-    setStatus(
-      "Saving your profile…"
-    );
-
-
-    try{
-
-      /*
-       * Reuse existing TT-ID.
-       */
-
-      if(
-        !generatedId ||
-        generatedId === "Generating…"
-      ){
-
-        generatedId =
-          makeTTId();
-
-      }
-
-
-      /*
-       * Check existing row.
-       */
-
-      const {
-        data:existing,
-        error:readError
-      } =
-        await supabaseClient
-          .from("profiles")
-          .select(
-            "id,totalk_id"
-          )
-          .eq(
-            "user_id",
-            currentUser.id
-          )
-          .maybeSingle();
-
-
-      if(readError){
-
-        throw readError;
-
-      }
-
-
-      if(existing){
-
-        generatedId =
-          existing.totalk_id ||
-          generatedId;
-
-
-        const {
-          error
-        } =
-          await supabaseClient
-            .from("profiles")
-            .update({
-
-              name:name,
-
-              gender:gender,
-
-              totalk_id:
-                generatedId,
-
-              profile_completed:
-                true
-
-            })
-            .eq(
-              "user_id",
-              currentUser.id
-            );
-
-
-        if(error){
-
-          throw error;
-
-        }
-
-      }else{
-
-        const {
-          error
-        } =
-          await supabaseClient
-            .from("profiles")
-            .insert({
-
-              user_id:
-                currentUser.id,
-
-              name:name,
-
-              gender:gender,
-
-              totalk_id:
-                generatedId,
-
-              profile_completed:
-                true
-
-            });
-
-
-        if(error){
-
-          throw error;
-
-        }
-
-      }
-
-
-      /*
-       * Profile saved.
-       */
-
-      setStatus(
-        "Profile created. Entering ToTalk…",
-        "success"
-      );
-
-
-      /*
-       * Bring the galaxy loading screen
-       * back over the profile page.
-       */
-
-      showGalaxy();
-
-
-      /*
-       * Wait so the user can see
-       * the smooth transition.
-       */
-
-      setTimeout(
-        ()=>{
-
-          window.location.replace(
-            "./chat.html"
-          );
-
-        },
-        1100
-      );
-
-
-    }catch(err){
-
-      console.error(
-        "Profile creation error:",
-        err
-      );
-
-
-      setStatus(
-        err?.message ||
-        "Could not create your profile.",
-        "error"
-      );
-
-
-      btn.disabled =
-        false;
-
-      btn.textContent =
-        "Create Profile";
-
-    }
-
-  });
-
-
-/* =========================================
-   SIGNED OUT
-========================================= */
-
-supabaseClient
-  .auth
-  .onAuthStateChange(
-    (event)=>{
-      if(
-        event === "SIGNED_OUT"
-      ){
-
-        window.location.replace(
-          "./index.html"
-        );
-
-      }
-    }
-  );
-
-
-/* =========================================
-   START
-========================================= */
-
-init();
-
+loadProfile();
 </script>
-
 </body>
 </html>
