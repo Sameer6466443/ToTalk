@@ -587,11 +587,6 @@ footer span{
     overflow:hidden;
   }
 
-  /*
-     IMPORTANT:
-     The moon is now part of the hero and stays
-     at a natural phone size.
-  */
   .moon-system{
     width:240px;
     height:240px;
@@ -699,32 +694,386 @@ footer span{
 }
 
 /* FULL-SCREEN GALAXY LOGIN TRANSITION */
-#loginGalaxy{position:fixed;inset:0;z-index:999999;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;background:radial-gradient(circle at 50% 45%,rgba(111,66,255,.20),transparent 25%),radial-gradient(circle at 20% 80%,rgba(72,38,180,.16),transparent 32%),linear-gradient(180deg,#01020a 0%,#050817 52%,#010109 100%);opacity:0;visibility:hidden;pointer-events:none;transition:opacity .7s ease,visibility .7s ease}
-#loginGalaxy.show{opacity:1;visibility:visible;pointer-events:auto}
-#loginGalaxy::before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.9;background-image:radial-gradient(circle at 7% 14%,#fff 0 1px,transparent 1.5px),radial-gradient(circle at 19% 72%,#cdb4ff 0 1px,transparent 1.5px),radial-gradient(circle at 31% 24%,#fff 0 1px,transparent 1.5px),radial-gradient(circle at 44% 82%,#fff 0 1px,transparent 1.5px),radial-gradient(circle at 58% 13%,#d9c4ff 0 1px,transparent 1.5px),radial-gradient(circle at 70% 67%,#fff 0 1px,transparent 1.5px),radial-gradient(circle at 83% 20%,#cdb4ff 0 1px,transparent 1.5px),radial-gradient(circle at 94% 84%,#fff 0 1px,transparent 1.5px);animation:loginStars 3s ease-in-out infinite alternate}
-#loginGalaxy::after{content:"";position:absolute;width:90vmax;height:55vmax;border-radius:50%;background:radial-gradient(ellipse,rgba(129,77,255,.20),rgba(73,40,190,.07) 45%,transparent 72%);filter:blur(28px);animation:loginNebula 7s ease-in-out infinite alternate}
-.login-nebula{position:absolute;width:55vmax;height:22vmax;border-radius:50%;background:radial-gradient(ellipse,rgba(169,105,255,.11),transparent 70%);filter:blur(24px);transform:rotate(-18deg);animation:loginNebula2 6s ease-in-out infinite alternate}
-.login-system{width:300px;height:300px;position:relative;display:grid;place-items:center;z-index:2;animation:loginFloat 4s ease-in-out infinite}
-.login-orbit{position:absolute;width:330px;height:105px;border:1px solid rgba(178,121,255,.48);border-radius:50%;transform:rotate(-22deg);box-shadow:0 0 28px rgba(118,67,255,.15);animation:loginOrbit 5s linear infinite}
-.login-orbit.orbit-b{width:300px;height:155px;transform:rotate(32deg);opacity:.55;animation-duration:7s;animation-direction:reverse}
-.login-moon{width:145px;height:145px;border-radius:50%;position:relative;overflow:hidden;background:radial-gradient(circle at 28% 30%,rgba(80,80,100,.28) 0 11px,transparent 12px),radial-gradient(circle at 67% 28%,rgba(80,80,100,.22) 0 19px,transparent 20px),radial-gradient(circle at 40% 66%,rgba(80,80,100,.20) 0 16px,transparent 17px),radial-gradient(circle at 70% 70%,rgba(80,80,100,.18) 0 13px,transparent 14px),radial-gradient(circle at 42% 40%,rgba(255,255,255,.68),transparent 38%),linear-gradient(145deg,#fafaff,#aaaab8 72%,#686876);box-shadow:inset -18px -16px 30px rgba(25,25,45,.24),inset 10px 10px 22px rgba(255,255,255,.65),0 0 55px rgba(177,135,255,.52);animation:loginMoonRotate 12s linear infinite}
-.login-moon::after{content:"";position:absolute;inset:-15%;border-radius:50%;background:linear-gradient(110deg,transparent 35%,rgba(255,255,255,.22) 48%,transparent 60%);animation:loginMoonLight 4s ease-in-out infinite}
-.login-moon span{position:absolute;border-radius:50%;background:rgba(90,90,105,.18);z-index:2}.login-moon span:nth-child(1){width:9px;height:9px;left:28px;top:70px}.login-moon span:nth-child(2){width:15px;height:15px;right:28px;top:47px}.login-moon span:nth-child(3){width:11px;height:11px;left:73px;bottom:25px}
-.login-galaxy-title{z-index:3;margin-top:30px;font-size:28px;font-weight:800;letter-spacing:-.8px;text-shadow:0 0 25px rgba(177,126,255,.65);animation:loginTextIn 1s ease both}.login-galaxy-sub{z-index:3;margin-top:10px;color:#aaa8ba;font-size:14px;letter-spacing:1px;animation:loginTextIn 1s .15s ease both}.login-loading-dots{z-index:3;display:flex;gap:7px;margin-top:22px}.login-loading-dots i{width:6px;height:6px;border-radius:50%;background:#b875ff;box-shadow:0 0 12px rgba(184,117,255,.9);animation:loginDot 1s ease-in-out infinite}.login-loading-dots i:nth-child(2){animation-delay:.15s}.login-loading-dots i:nth-child(3){animation-delay:.3s}
-@keyframes loginStars{to{opacity:.5;transform:scale(1.015)}}@keyframes loginNebula{to{transform:translate(5%,4%) scale(1.08)}}@keyframes loginNebula2{to{transform:rotate(-18deg) translate(8%,-5%) scale(1.12)}}@keyframes loginFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}@keyframes loginOrbit{from{transform:rotate(-22deg)}to{transform:rotate(338deg)}}@keyframes loginMoonRotate{from{transform:rotate(0)}to{transform:rotate(360deg)}}@keyframes loginMoonLight{0%,100%{transform:translateX(-100%)}50%{transform:translateX(100%)}}@keyframes loginTextIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}@keyframes loginDot{0%,100%{transform:translateY(0);opacity:.4}50%{transform:translateY(-5px);opacity:1}}
-@media(max-width:800px){.login-system{width:250px;height:250px}.login-orbit{width:285px;height:92px}.login-orbit.orbit-b{width:260px;height:135px}.login-moon{width:125px;height:125px}.login-galaxy-title{font-size:24px}.login-galaxy-sub{font-size:12px}.login-nebula{width:90vw;height:35vw}}
-@media(prefers-reduced-motion:reduce){#loginGalaxy *,#loginGalaxy::before,#loginGalaxy::after{animation-duration:.01ms!important;animation-iteration-count:1!important}}
+#loginGalaxy{
+  position:fixed;
+  inset:0;
+  z-index:999999;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden;
+  background:
+    radial-gradient(circle at 50% 45%,rgba(111,66,255,.20),transparent 25%),
+    radial-gradient(circle at 20% 80%,rgba(72,38,180,.16),transparent 32%),
+    linear-gradient(180deg,#01020a 0%,#050817 52%,#010109 100%);
+  opacity:0;
+  visibility:hidden;
+  pointer-events:none;
+  transition:opacity .7s ease,visibility .7s ease;
+}
+
+#loginGalaxy.show{
+  opacity:1;
+  visibility:visible;
+  pointer-events:auto;
+}
+
+#loginGalaxy::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  opacity:.9;
+  background-image:
+    radial-gradient(circle at 7% 14%,#fff 0 1px,transparent 1.5px),
+    radial-gradient(circle at 19% 72%,#cdb4ff 0 1px,transparent 1.5px),
+    radial-gradient(circle at 31% 24%,#fff 0 1px,transparent 1.5px),
+    radial-gradient(circle at 44% 82%,#fff 0 1px,transparent 1.5px),
+    radial-gradient(circle at 58% 13%,#d9c4ff 0 1px,transparent 1.5px),
+    radial-gradient(circle at 70% 67%,#fff 0 1px,transparent 1.5px),
+    radial-gradient(circle at 83% 20%,#cdb4ff 0 1px,transparent 1.5px),
+    radial-gradient(circle at 94% 84%,#fff 0 1px,transparent 1.5px);
+  animation:loginStars 3s ease-in-out infinite alternate;
+}
+
+#loginGalaxy::after{
+  content:"";
+  position:absolute;
+  width:90vmax;
+  height:55vmax;
+  border-radius:50%;
+  background:
+    radial-gradient(
+      ellipse,
+      rgba(129,77,255,.20),
+      rgba(73,40,190,.07) 45%,
+      transparent 72%
+    );
+  filter:blur(28px);
+  animation:loginNebula 7s ease-in-out infinite alternate;
+}
+
+.login-nebula{
+  position:absolute;
+  width:55vmax;
+  height:22vmax;
+  border-radius:50%;
+  background:
+    radial-gradient(
+      ellipse,
+      rgba(169,105,255,.11),
+      transparent 70%
+    );
+  filter:blur(24px);
+  transform:rotate(-18deg);
+  animation:loginNebula2 6s ease-in-out infinite alternate;
+}
+
+.login-system{
+  width:300px;
+  height:300px;
+  position:relative;
+  display:grid;
+  place-items:center;
+  z-index:2;
+  animation:loginFloat 4s ease-in-out infinite;
+}
+
+.login-orbit{
+  position:absolute;
+  width:330px;
+  height:105px;
+  border:1px solid rgba(178,121,255,.48);
+  border-radius:50%;
+  transform:rotate(-22deg);
+  box-shadow:0 0 28px rgba(118,67,255,.15);
+  animation:loginOrbit 5s linear infinite;
+}
+
+.login-orbit.orbit-b{
+  width:300px;
+  height:155px;
+  transform:rotate(32deg);
+  opacity:.55;
+  animation-duration:7s;
+  animation-direction:reverse;
+}
+
+.login-moon{
+  width:145px;
+  height:145px;
+  border-radius:50%;
+  position:relative;
+  overflow:hidden;
+  background:
+    radial-gradient(circle at 28% 30%,rgba(80,80,100,.28) 0 11px,transparent 12px),
+    radial-gradient(circle at 67% 28%,rgba(80,80,100,.22) 0 19px,transparent 20px),
+    radial-gradient(circle at 40% 66%,rgba(80,80,100,.20) 0 16px,transparent 17px),
+    radial-gradient(circle at 70% 70%,rgba(80,80,100,.18) 0 13px,transparent 14px),
+    radial-gradient(circle at 42% 40%,rgba(255,255,255,.68),transparent 38%),
+    linear-gradient(145deg,#fafaff,#aaaab8 72%,#686876);
+  box-shadow:
+    inset -18px -16px 30px rgba(25,25,45,.24),
+    inset 10px 10px 22px rgba(255,255,255,.65),
+    0 0 55px rgba(177,135,255,.52);
+  animation:loginMoonRotate 12s linear infinite;
+}
+
+.login-moon::after{
+  content:"";
+  position:absolute;
+  inset:-15%;
+  border-radius:50%;
+  background:
+    linear-gradient(
+      110deg,
+      transparent 35%,
+      rgba(255,255,255,.22) 48%,
+      transparent 60%
+    );
+  animation:loginMoonLight 4s ease-in-out infinite;
+}
+
+.login-moon span{
+  position:absolute;
+  border-radius:50%;
+  background:rgba(90,90,105,.18);
+  z-index:2;
+}
+
+.login-moon span:nth-child(1){
+  width:9px;
+  height:9px;
+  left:28px;
+  top:70px;
+}
+
+.login-moon span:nth-child(2){
+  width:15px;
+  height:15px;
+  right:28px;
+  top:47px;
+}
+
+.login-moon span:nth-child(3){
+  width:11px;
+  height:11px;
+  left:73px;
+  bottom:25px;
+}
+
+.login-galaxy-title{
+  z-index:3;
+  margin-top:30px;
+  font-size:28px;
+  font-weight:800;
+  letter-spacing:-.8px;
+  text-shadow:0 0 25px rgba(177,126,255,.65);
+  animation:loginTextIn 1s ease both;
+}
+
+.login-galaxy-sub{
+  z-index:3;
+  margin-top:10px;
+  color:#aaa8ba;
+  font-size:14px;
+  letter-spacing:1px;
+  animation:loginTextIn 1s .15s ease both;
+}
+
+.login-loading-dots{
+  z-index:3;
+  display:flex;
+  gap:7px;
+  margin-top:22px;
+}
+
+.login-loading-dots i{
+  width:6px;
+  height:6px;
+  border-radius:50%;
+  background:#b875ff;
+  box-shadow:0 0 12px rgba(184,117,255,.9);
+  animation:loginDot 1s ease-in-out infinite;
+}
+
+.login-loading-dots i:nth-child(2){
+  animation-delay:.15s;
+}
+
+.login-loading-dots i:nth-child(3){
+  animation-delay:.3s;
+}
+
+@keyframes loginStars{
+  to{
+    opacity:.5;
+    transform:scale(1.015);
+  }
+}
+
+@keyframes loginNebula{
+  to{
+    transform:translate(5%,4%) scale(1.08);
+  }
+}
+
+@keyframes loginNebula2{
+  to{
+    transform:rotate(-18deg) translate(8%,-5%) scale(1.12);
+  }
+}
+
+@keyframes loginFloat{
+  0%,100%{
+    transform:translateY(0);
+  }
+  50%{
+    transform:translateY(-10px);
+  }
+}
+
+@keyframes loginOrbit{
+  from{
+    transform:rotate(-22deg);
+  }
+  to{
+    transform:rotate(338deg);
+  }
+}
+
+@keyframes loginMoonRotate{
+  from{
+    transform:rotate(0);
+  }
+  to{
+    transform:rotate(360deg);
+  }
+}
+
+@keyframes loginMoonLight{
+  0%,100%{
+    transform:translateX(-100%);
+  }
+  50%{
+    transform:translateX(100%);
+  }
+}
+
+@keyframes loginTextIn{
+  from{
+    opacity:0;
+    transform:translateY(8px);
+  }
+  to{
+    opacity:1;
+    transform:translateY(0);
+  }
+}
+
+@keyframes loginDot{
+  0%,100%{
+    transform:translateY(0);
+    opacity:.4;
+  }
+  50%{
+    transform:translateY(-5px);
+    opacity:1;
+  }
+}
+
+@media(max-width:800px){
+
+  .login-system{
+    width:250px;
+    height:250px;
+  }
+
+  .login-orbit{
+    width:285px;
+    height:92px;
+  }
+
+  .login-orbit.orbit-b{
+    width:260px;
+    height:135px;
+  }
+
+  .login-moon{
+    width:125px;
+    height:125px;
+  }
+
+  .login-galaxy-title{
+    font-size:24px;
+  }
+
+  .login-galaxy-sub{
+    font-size:12px;
+  }
+
+  .login-nebula{
+    width:90vw;
+    height:35vw;
+  }
+}
+
+@media(prefers-reduced-motion:reduce){
+
+  #loginGalaxy *,
+  #loginGalaxy::before,
+  #loginGalaxy::after{
+    animation-duration:.01ms!important;
+    animation-iteration-count:1!important;
+  }
+}
 </style>
 </head>
 
 <body>
+
 <!-- GALAXY LOGIN TRANSITION -->
-<div id="loginGalaxy" aria-hidden="true"><div class="login-nebula"></div><div class="login-system"><div class="login-orbit orbit-a"></div><div class="login-orbit orbit-b"></div><div class="login-moon"><span></span><span></span><span></span></div></div><div class="login-galaxy-title">Entering ToTalk</div><div class="login-galaxy-sub">Connecting your account</div><div class="login-loading-dots" aria-hidden="true"><i></i><i></i><i></i></div></div>
+
+<div id="loginGalaxy" aria-hidden="true">
+
+  <div class="login-nebula"></div>
+
+  <div class="login-system">
+
+    <div class="login-orbit orbit-a"></div>
+
+    <div class="login-orbit orbit-b"></div>
+
+    <div class="login-moon">
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
+
+  </div>
+
+  <div class="login-galaxy-title">
+    Entering ToTalk
+  </div>
+
+  <div class="login-galaxy-sub">
+    Connecting your account
+  </div>
+
+  <div class="login-loading-dots" aria-hidden="true">
+    <i></i>
+    <i></i>
+    <i></i>
+  </div>
+
+</div>
 
 
 <div class="page">
 
 <header>
+
   <div class="logo">
     ToTalk <span>Sameer</span>
   </div>
@@ -732,6 +1081,7 @@ footer span{
   <div class="header-right">
     Sameer's personal chat space
   </div>
+
 </header>
 
 
@@ -784,6 +1134,7 @@ footer span{
       <div class="moon-glow"></div>
 
       <div class="moon-orbit"></div>
+
       <div class="moon-orbit two"></div>
 
       <div class="moon"></div>
@@ -805,6 +1156,7 @@ footer span{
 
 
     <!-- SATURN -->
+
     <div class="card">
 
       <div class="planet-area">
@@ -828,6 +1180,7 @@ footer span{
 
 
     <!-- NEPTUNE -->
+
     <div class="card">
 
       <div class="planet-area">
@@ -851,6 +1204,7 @@ footer span{
 
 
     <!-- PLUTO -->
+
     <div class="card">
 
       <div class="planet-area">
@@ -879,11 +1233,17 @@ footer span{
 
 
 <footer>
+
   ToTalk <span>Sameer</span>
+
   &nbsp;·&nbsp;
+
   Made by Sameer
+
   &nbsp;·&nbsp;
+
   © 2026
+
 </footer>
 
 </div>
@@ -891,7 +1251,10 @@ footer span{
 
 <script>
 
-/* SUPABASE */
+/* =========================================================
+   SUPABASE
+   ========================================================= */
+
 const SUPABASE_URL =
   "https://qiynczbrhpxwuabwuyiy.supabase.co";
 
@@ -913,63 +1276,593 @@ const supabaseClient =
   );
 
 
-/* GOOGLE LOGIN + GALAXY TRANSITION */
-const googleLogin = document.getElementById("googleLogin");
-const loginGalaxy = document.getElementById("loginGalaxy");
+/* =========================================================
+   ELEMENTS
+   ========================================================= */
+
+const googleLogin =
+  document.getElementById("googleLogin");
+
+const loginGalaxy =
+  document.getElementById("loginGalaxy");
+
 let loginStarted = false;
 
-function showLoginGalaxy(){
+
+/* =========================================================
+   GALAXY SCREEN
+   ========================================================= */
+
+function showLoginGalaxy(
+  title,
+  subtitle
+){
+
   if(!loginGalaxy) return;
-  loginGalaxy.classList.add("show");
-  loginGalaxy.setAttribute("aria-hidden","false");
-}
 
-function hideLoginGalaxy(){
-  if(!loginGalaxy) return;
-  loginGalaxy.classList.remove("show");
-  loginGalaxy.setAttribute("aria-hidden","true");
-}
+  const titleElement =
+    loginGalaxy.querySelector(
+      ".login-galaxy-title"
+    );
 
-function resetGoogleButton(){
-  if(!googleLogin) return;
-  googleLogin.classList.remove("loading");
-  googleLogin.innerHTML = `
-    <div class="google-icon"><div class="google-g">G</div></div>
-    <div class="google-text">Sign in with Google</div>
-    <div class="google-arrow">→</div>
-  `;
-}
+  const subtitleElement =
+    loginGalaxy.querySelector(
+      ".login-galaxy-sub"
+    );
 
-googleLogin.addEventListener("click", async function(){
-  if(loginStarted) return;
-  loginStarted = true;
-
-  googleLogin.classList.add("loading");
-  googleLogin.innerHTML = `
-    <div class="google-icon"><div class="google-g">G</div></div>
-    <div class="google-text">Preparing your journey...</div>
-    <div class="spinner"></div>
-  `;
-
-  showLoginGalaxy();
-
-  const redirectURL = new URL("./profile-maker.html",window.location.href).href;
-
-  await new Promise(function(resolve){setTimeout(resolve,850);});
-
-  const { error } = await supabaseClient.auth.signInWithOAuth({
-    provider:"google",
-    options:{redirectTo:redirectURL}
-  });
-
-  if(error){
-    loginStarted = false;
-    hideLoginGalaxy();
-    resetGoogleButton();
-    alert("Unable to start Google sign-in. Please try again.");
+  if(titleElement){
+    titleElement.textContent =
+      title;
   }
 
-});
+  if(subtitleElement){
+    subtitleElement.textContent =
+      subtitle;
+  }
+
+  loginGalaxy.classList.add("show");
+
+  loginGalaxy.setAttribute(
+    "aria-hidden",
+    "false"
+  );
+}
+
+
+function hideLoginGalaxy(){
+
+  if(!loginGalaxy) return;
+
+  loginGalaxy.classList.remove("show");
+
+  loginGalaxy.setAttribute(
+    "aria-hidden",
+    "true"
+  );
+}
+
+
+/* =========================================================
+   GOOGLE BUTTON RESET
+   ========================================================= */
+
+function resetGoogleButton(){
+
+  if(!googleLogin) return;
+
+  googleLogin.classList.remove(
+    "loading"
+  );
+
+  googleLogin.innerHTML = `
+
+    <div class="google-icon">
+      <div class="google-g">G</div>
+    </div>
+
+    <div class="google-text">
+      Sign in with Google
+    </div>
+
+    <div class="google-arrow">
+      →
+    </div>
+
+  `;
+}
+
+
+/* =========================================================
+   GET CURRENT USER
+   ========================================================= */
+
+async function getCurrentUser(){
+
+  for(let attempt = 0; attempt < 8; attempt++){
+
+    const {
+      data,
+      error
+    } =
+      await supabaseClient.auth.getSession();
+
+    if(
+      !error &&
+      data &&
+      data.session &&
+      data.session.user
+    ){
+
+      return data.session.user;
+    }
+
+    await new Promise(function(resolve){
+
+      setTimeout(
+        resolve,
+        500
+      );
+
+    });
+
+  }
+
+  return null;
+}
+
+
+/* =========================================================
+   GET PROFILE
+   ========================================================= */
+
+async function getUserProfile(userId){
+
+  const {
+    data,
+    error
+  } =
+    await supabaseClient
+      .from("profiles")
+      .select(
+        "profile_completed"
+      )
+      .eq(
+        "user_id",
+        userId
+      )
+      .maybeSingle();
+
+
+  if(error){
+
+    console.error(
+      "Profile check error:",
+      error
+    );
+
+    return null;
+  }
+
+
+  return data;
+}
+
+
+/* =========================================================
+   GOOGLE LOGIN
+   ========================================================= */
+
+if(googleLogin){
+
+  googleLogin.addEventListener(
+    "click",
+    async function(){
+
+      if(loginStarted) return;
+
+      loginStarted = true;
+
+
+      /* Button loading */
+
+      googleLogin.classList.add(
+        "loading"
+      );
+
+      googleLogin.innerHTML = `
+
+        <div class="google-icon">
+          <div class="google-g">G</div>
+        </div>
+
+        <div class="google-text">
+          Preparing your journey...
+        </div>
+
+        <div class="spinner"></div>
+
+      `;
+
+
+      /*
+         FIRST TRANSITION
+
+         Homepage
+             ↓
+         Galaxy screen
+             ↓
+         Google account selection
+      */
+
+      showLoginGalaxy(
+        "Entering ToTalk",
+        "Connecting your account"
+      );
+
+
+      /*
+         Give the animation time to appear.
+      */
+
+      await new Promise(function(resolve){
+
+        setTimeout(
+          resolve,
+          850
+        );
+
+      });
+
+
+      /*
+         IMPORTANT:
+
+         Google returns to index.html.
+
+         Then we determine:
+
+         Existing user → Chat
+
+         New user → Profile
+      */
+
+      const redirectURL =
+        new URL(
+          "./index.html",
+          window.location.href
+        ).href;
+
+
+      const {
+        error
+      } =
+        await supabaseClient.auth.signInWithOAuth({
+
+          provider:"google",
+
+          options:{
+            redirectTo:redirectURL
+          }
+
+        });
+
+
+      if(error){
+
+        console.error(
+          "Google login error:",
+          error
+        );
+
+        loginStarted = false;
+
+        hideLoginGalaxy();
+
+        resetGoogleButton();
+
+        alert(
+          "Unable to start Google sign-in. Please try again."
+        );
+
+      }
+
+    }
+  );
+
+}
+
+
+/* =========================================================
+   GOOGLE CALLBACK
+   ========================================================= */
+
+async function handleGoogleCallback(){
+
+  const url =
+    new URL(
+      window.location.href
+    );
+
+
+  /*
+     Google/Supabase callback has ?code=
+  */
+
+  const hasCode =
+    url.searchParams.has(
+      "code"
+    );
+
+
+  /*
+     If there is no OAuth code,
+     this is NOT a Google callback.
+  */
+
+  if(!hasCode){
+
+    return;
+  }
+
+
+  /*
+     Wait for Supabase PKCE
+     session exchange.
+  */
+
+  await new Promise(function(resolve){
+
+    setTimeout(
+      resolve,
+      500
+    );
+
+  });
+
+
+  const user =
+    await getCurrentUser();
+
+
+  if(!user){
+
+    console.error(
+      "No user session after Google callback."
+    );
+
+    hideLoginGalaxy();
+
+    return;
+  }
+
+
+  /*
+     Check profile.
+  */
+
+  const profile =
+    await getUserProfile(
+      user.id
+    );
+
+
+  /* =======================================================
+     EXISTING USER
+     ======================================================= */
+
+  if(
+    profile &&
+    profile.profile_completed === true
+  ){
+
+    /*
+       EXISTING USER FLOW:
+
+       Google account selection
+                  ↓
+             Welcome back
+                  ↓
+                Chat
+    */
+
+    showLoginGalaxy(
+      "Welcome back",
+      "Opening your conversations"
+    );
+
+
+    /*
+       Give the transition time
+       to be visible.
+    */
+
+    await new Promise(function(resolve){
+
+      setTimeout(
+        resolve,
+        1500
+      );
+
+    });
+
+
+    /*
+       Remove OAuth code
+       from browser address.
+    */
+
+    window.history.replaceState(
+      {},
+      document.title,
+      "./index.html"
+    );
+
+
+    /*
+       Existing users NEVER
+       go to Profile.
+    */
+
+    window.location.replace(
+      "./chat.html"
+    );
+
+    return;
+  }
+
+
+  /* =======================================================
+     NEW USER
+     ======================================================= */
+
+  /*
+     NEW USER FLOW:
+
+     Google account selection
+                ↓
+        Welcome to ToTalk
+                ↓
+             Profile
+                ↓
+          Save profile
+                ↓
+              Chat
+  */
+
+  showLoginGalaxy(
+    "Welcome to ToTalk",
+    "Let's create your profile"
+  );
+
+
+  /*
+     Give the animation time
+     to be visible.
+  */
+
+  await new Promise(function(resolve){
+
+    setTimeout(
+      resolve,
+      1500
+    );
+
+  });
+
+
+  /*
+     Remove OAuth code.
+  */
+
+  window.history.replaceState(
+    {},
+    document.title,
+    "./index.html"
+  );
+
+
+  /*
+     New user goes to Profile.
+  */
+
+  window.location.replace(
+    "./profile-maker.html"
+  );
+
+}
+
+
+/* =========================================================
+   START GOOGLE CALLBACK CHECK
+   ========================================================= */
+
+handleGoogleCallback();
+
+
+/* =========================================================
+   ALREADY LOGGED-IN USER
+   ========================================================= */
+
+async function handleExistingSession(){
+
+  const url =
+    new URL(
+      window.location.href
+    );
+
+
+  /*
+     Don't interfere with
+     a Google callback.
+  */
+
+  if(
+    url.searchParams.has("code")
+  ){
+
+    return;
+  }
+
+
+  const {
+    data,
+    error
+  } =
+    await supabaseClient.auth.getSession();
+
+
+  if(
+    error ||
+    !data ||
+    !data.session ||
+    !data.session.user
+  ){
+
+    return;
+  }
+
+
+  const profile =
+    await getUserProfile(
+      data.session.user.id
+    );
+
+
+  /*
+     Completed profile:
+     index → Chat directly.
+  */
+
+  if(
+    profile &&
+    profile.profile_completed === true
+  ){
+
+    window.location.replace(
+      "./chat.html"
+    );
+
+    return;
+  }
+
+
+  /*
+     Incomplete/new user stays
+     on the login page.
+  */
+
+}
+
+
+/*
+   Check after Supabase has restored
+   its persisted session.
+*/
+
+setTimeout(
+  handleExistingSession,
+  700
+);
 
 </script>
 
