@@ -3843,6 +3843,46 @@ async function loadMessages(){
 }
 
 /* =====================================================
+   CONNECTION WARM-UP
+   Prevents the first message from waiting for a cold
+   Supabase HTTP connection.
+===================================================== */
+
+let supabaseWarmedUp = false;
+
+async function warmUpSupabase(){
+  if(supabaseWarmedUp || !currentUser){
+    return;
+  }
+
+  try{
+    const started = performance.now();
+
+    await supabaseClient
+      .from("messages")
+      .select("id")
+      .limit(1);
+
+    supabaseWarmedUp = true;
+
+    console.log(
+      "Supabase connection warmed in",
+      Math.round(performance.now() - started),
+      "ms"
+    );
+  }catch(error){
+    /*
+     * Warm-up is only an optimization.
+     * A failed warm-up must never block the chat.
+     */
+    console.warn(
+      "Supabase warm-up failed:",
+      error?.message || error
+    );
+  }
+}
+
+/* =====================================================
    SEND MESSAGE
 ===================================================== */
 
@@ -4589,6 +4629,14 @@ async function startApp(){
 
     currentUser =
       user;
+
+    /*
+     * Start the database connection warm-up immediately.
+     * It runs in the background while the rest of the
+     * chat is loading, so the first real message does not
+     * pay the cold-connection delay.
+     */
+    void warmUpSupabase();
 
     setLoadingText(
       "ToTalk",
