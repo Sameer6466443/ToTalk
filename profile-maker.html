@@ -648,6 +648,7 @@ body:before{
   display:flex;
   justify-content:space-between;
   align-items:center;
+  gap:12px;
 }
 
 .ttlabel{
@@ -661,6 +662,35 @@ body:before{
   font-weight:800;
   letter-spacing:1.2px;
   font-size:16px;
+}
+
+.copy-id{
+  width:38px!important;
+  height:38px!important;
+  min-width:38px;
+  margin:0!important;
+  padding:0!important;
+  border:1px solid rgba(167,124,255,.24)!important;
+  border-radius:11px!important;
+  background:rgba(139,92,255,.10)!important;
+  color:#c8baff!important;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  box-shadow:none!important;
+  font-size:17px!important;
+  line-height:1;
+}
+.copy-id:hover{
+  transform:none!important;
+  filter:none!important;
+  background:rgba(139,92,255,.18)!important;
+  border-color:rgba(167,124,255,.55)!important;
+}
+.copy-id.copied{
+  color:#fff!important;
+  background:rgba(139,92,255,.24)!important;
+  border-color:rgba(167,124,255,.7)!important;
 }
 
 .tt-info{
@@ -893,18 +923,19 @@ body:before{
           <div class="ttbox">
             <span class="ttlabel">Shareable ID</span>
             <span class="ttid" id="ttid">Generating…</span>
+            <button class="copy-id" id="copyIdBtn" type="button" aria-label="Copy ToTalk ID" title="Copy ToTalk ID">⧉</button>
           </div>
 
           <div class="tt-info">
             <div class="tt-info-title">What is a ToTalk ID?</div>
             <p>
-              Your ToTalk ID is your unique shareable code. It is created automatically for you and helps people identify your ToTalk space without needing a username.
+              Your ToTalk ID is your unique shareable code. It is created automatically and lets people find or identify your ToTalk space without needing a username. Tap the copy button to share the ID easily.
             </p>
             <div class="tt-points">
               <div class="tt-point">Unique to your profile</div>
               <div class="tt-point">Created automatically</div>
-              <div class="tt-point">Easy to share</div>
-              <div class="tt-point">Identifies your ToTalk space</div>
+              <div class="tt-point">Easy to copy and share</div>
+              <div class="tt-point">Helps identify your ToTalk space</div>
             </div>
           </div>
         </div>
@@ -968,12 +999,50 @@ const statusEl =
 const loader =
   document.getElementById("galaxyLoading");
 
+const copyIdBtn =
+  document.getElementById("copyIdBtn");
+
+
 const profileCard =
   document.getElementById("profileCard");
 
 
 let currentUser = null;
 let generatedId = "";
+
+function copyToTalkId(){
+  const id = String(generatedId || ttidEl.textContent || "").trim();
+  if(!/^TT-[A-Z0-9]{6}$/.test(id)) return;
+
+  const done = ()=>{
+    copyIdBtn.classList.add("copied");
+    copyIdBtn.textContent = "✓";
+    copyIdBtn.title = "Copied";
+    setTimeout(()=>{
+      copyIdBtn.classList.remove("copied");
+      copyIdBtn.textContent = "⧉";
+      copyIdBtn.title = "Copy ToTalk ID";
+    },1200);
+  };
+
+  if(navigator.clipboard && window.isSecureContext){
+    navigator.clipboard.writeText(id).then(done).catch(()=>{});
+    return;
+  }
+
+  const temp = document.createElement("textarea");
+  temp.value = id;
+  temp.style.position = "fixed";
+  temp.style.opacity = "0";
+  document.body.appendChild(temp);
+  temp.focus();
+  temp.select();
+  try{
+    if(document.execCommand("copy")) done();
+  }finally{
+    temp.remove();
+  }
+}
 
 
 /* =========================================
@@ -1305,6 +1374,9 @@ async function init(){
   showProfileMaker();
 
 }
+
+
+copyIdBtn.addEventListener("click", copyToTalkId);
 
 
 /* =========================================
