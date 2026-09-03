@@ -75,7 +75,6 @@ body::before{
 
 /* =====================================================
    GALAXY LOADING SCREEN
-   FIXED SIZE — NO MOON GROWING
 ===================================================== */
 
 #galaxyLoading{
@@ -282,9 +281,6 @@ body::before{
 
 /* =====================================================
    MOON
-   IMPORTANT:
-   FIXED SIZE
-   NO SCALE ANIMATION
 ===================================================== */
 
 .loading-moon{
@@ -328,20 +324,9 @@ body::before{
     0 0 30px rgba(192,164,255,.45),
     0 0 70px rgba(100,55,255,.22);
 
-  /*
-    ONLY a tiny vertical movement.
-    NO scale.
-    NO brightness animation.
-  */
   animation:
     loadingMoonFloat 4s ease-in-out infinite;
 }
-
-
-/*
-  Outer glow is also fixed.
-  It never scales.
-*/
 
 .loading-moon::after{
   content:"";
@@ -456,12 +441,6 @@ body::before{
   }
 }
 
-
-/*
-  IMPORTANT:
-  Moon NEVER changes scale.
-*/
-
 @keyframes loadingMoonFloat{
   0%,
   100%{
@@ -472,7 +451,6 @@ body::before{
     transform:translateY(-5px);
   }
 }
-
 
 @keyframes loadingStars{
   from{
@@ -1044,12 +1022,6 @@ button:disabled{
     margin-top:15px;
   }
 
-
-  /*
-    FIXED MOBILE LOADING SIZE.
-    Same moon size every time.
-  */
-
   .loading-system{
     width:260px;
     height:220px;
@@ -1126,10 +1098,6 @@ button:disabled{
     font-size:13px;
   }
 
-  /*
-    NEVER change moon size on very small phones.
-  */
-
   .loading-system{
     width:250px;
     height:210px;
@@ -1149,6 +1117,22 @@ button:disabled{
     width:84px;
     height:84px;
   }
+}
+
+
+/* =====================================================
+   AUTH CHECKING GUARD
+   Prevents profile page from flashing before
+   authentication/profile detection finishes.
+===================================================== */
+
+html.auth-checking .wrap{
+  visibility:hidden;
+}
+
+html.auth-checking #galaxyLoading{
+  opacity:1;
+  visibility:visible;
 }
 
 
@@ -1360,6 +1344,16 @@ button:disabled{
 <script>
 
 /* =====================================================
+   AUTH CHECKING GUARD
+   Run BEFORE the browser paints the profile UI.
+===================================================== */
+
+document.documentElement.classList.add(
+  "auth-checking"
+);
+
+
+/* =====================================================
    SUPABASE
 ===================================================== */
 
@@ -1529,6 +1523,29 @@ function hideLoader(){
 
 
 /* =====================================================
+   SHOW PROFILE MAKER
+===================================================== */
+
+function showProfileMaker(){
+
+  /*
+    First reveal the profile page,
+    then remove the auth guard.
+
+    The loader stays above everything
+    until this exact point.
+  */
+
+  document.documentElement.classList.remove(
+    "auth-checking"
+  );
+
+  hideLoader();
+
+}
+
+
+/* =====================================================
    EXISTING PROFILE
    DIRECT REDIRECT
 ===================================================== */
@@ -1536,30 +1553,19 @@ function hideLoader(){
 function openExistingProfile(){
 
   /*
-    IMPORTANT:
+    Do NOT hide the loader first.
 
-    Do not play another animation here.
-    Do not enlarge the moon.
-    Do not wait.
+    Do NOT show the profile card.
 
-    The profile already exists,
-    so go directly to chat.
+    Do NOT start another animation.
+
+    The current loader remains visible
+    until chat.html replaces this page.
   */
 
   window.location.replace(
     "./chat.html"
   );
-
-}
-
-
-/* =====================================================
-   SHOW PROFILE MAKER
-===================================================== */
-
-function showProfileMaker(){
-
-  hideLoader();
 
 }
 
@@ -1576,10 +1582,6 @@ async function init(){
   ttidEl.textContent =
     generatedId;
 
-
-  /*
-    Make loading state explicit.
-  */
 
   loadingTitle.textContent =
     "Entering ToTalk";
@@ -1684,22 +1686,23 @@ async function init(){
   }
 
 
-  /* =================================================
-     CRITICAL FIX
-
-     If profile already exists:
-
-     NO PROFILE PAGE
-     NO SECOND LOADING ANIMATION
-     NO MOON SIZE CHANGE
-
-     DIRECTLY ENTER CHAT.
-  ================================================= */
+  /* -----------------------------------------------
+     EXISTING COMPLETED PROFILE
+  ------------------------------------------------ */
 
   if(
     profile &&
     profile.profile_completed === true
   ){
+
+    /*
+      IMPORTANT:
+
+      Keep galaxyLoading visible.
+      Redirect immediately.
+
+      There is no intermediate profile screen.
+    */
 
     openExistingProfile();
 
@@ -1787,9 +1790,8 @@ async function init(){
 
 
   /*
-    Small delay makes the transition
-    feel intentional without allowing
-    a second screen to appear.
+    Reveal only after all profile checks
+    and restoration are complete.
   */
 
   requestAnimationFrame(
@@ -2004,10 +2006,12 @@ btn.addEventListener(
 
 
       /*
-        Use the SAME fixed loader.
+        Keep the SAME loader.
 
-        The moon cannot grow because
-        there is no scale animation.
+        No new loader.
+        No new moon.
+        No size change.
+        No animation reset.
       */
 
       loadingTitle.textContent =
@@ -2026,10 +2030,6 @@ btn.addEventListener(
         "false"
       );
 
-
-      /*
-        Short transition.
-      */
 
       setTimeout(
         ()=>{
