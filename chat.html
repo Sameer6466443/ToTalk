@@ -620,16 +620,9 @@ header{
   font-weight:700;
 }
 
-.presence-dot{
-  width:7px;
-  height:7px;
-
-  border-radius:50%;
-
-  background:var(--green);
-
-  box-shadow:
-    0 0 7px rgba(82,230,154,.55);
+.chat-presence-icon{
+  font-size:15px;
+  line-height:1;
 }
 
 /* =====================================================
@@ -2501,7 +2494,7 @@ header{
 
         <div class="chat-status">
 
-          <span class="presence-dot"></span>
+          <span class="chat-presence-icon" id="chatPresenceIcon" aria-hidden="true">🌙</span>
 
           <span id="chatPresence">
             Online
@@ -2522,13 +2515,6 @@ header{
           ⌕
         </button>
 
-        <button
-          class="star-btn"
-          type="button"
-          aria-label="Favorite"
-        >
-          ☆
-        </button>
 
       </div>
 
@@ -2747,6 +2733,10 @@ function closeMobileConversation(){
   if(!chatLayout || !isMobileLayout()) return;
   chatLayout.classList.remove("mobile-chat-open");
   searchPanel?.classList.remove("open");
+  currentConversationId = null;
+  currentConversationPartner = null;
+  document.querySelectorAll(".conversation-item.active").forEach(el=>el.classList.remove("active"));
+  setEmptyChatState();
 }
 
 if(mobileChatBack){
@@ -3064,7 +3054,7 @@ function renderActivePartner(){
   const first = name.trim().charAt(0).toUpperCase() || "T";
   if(chatTitle) chatTitle.textContent = name;
   if(chatAvatar) chatAvatar.textContent = first;
-  if(chatPresence) chatPresence.textContent = p.totalk_id || "ToTalk";
+  if(chatPresence) chatPresence.textContent = "Offline";
   if(messageInput){
     messageInput.disabled = false;
     messageInput.placeholder = "Write a message...";
@@ -5109,6 +5099,11 @@ function updatePresence(){
 
   if(chatPresence){
     chatPresence.textContent = partnerOnline ? "Online" : "Offline";
+  }
+
+  const chatPresenceIcon = document.getElementById("chatPresenceIcon");
+  if(chatPresenceIcon){
+    chatPresenceIcon.textContent = partnerOnline ? "🌙" : "☀️";
   }
 
   loadConversationList().catch(()=>{});
