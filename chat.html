@@ -2984,8 +2984,6 @@ let realtimeChannel = null;
 
 let presenceChannel = null;
 let onlineUserIds = new Set();
-let presenceTrackTimer = null;
-let conversationListLoadSerial = 0;
 
 let replyTarget = null;
 
@@ -3289,7 +3287,7 @@ function renderActivePartner(){
   const first = name.trim().charAt(0).toUpperCase() || "T";
   if(chatTitle) chatTitle.textContent = name;
   if(chatAvatar) chatAvatar.textContent = first;
-  if(chatPresence) chatPresence.textContent = onlineUserIds.has(String(p.user_id)) ? "Online" : "Offline";
+  if(chatPresence) chatPresence.textContent = "Offline";
   if(messageInput){
     messageInput.disabled = false;
     messageInput.placeholder = "Write a message...";
@@ -4570,9 +4568,6 @@ async function getOrCreateConversation(otherUserId){
 async function loadConversationList(){
   if(!conversationList || !currentUser?.id) return;
 
-  const loadSerial = ++conversationListLoadSerial;
-  const isLatestListLoad = ()=>loadSerial === conversationListLoadSerial;
-
   /*
    * First find every conversation in which the current user
    * is a participant.
@@ -4695,7 +4690,9 @@ async function loadConversationList(){
     .order("created_at",{ascending:false})
     .limit(500);
 
-  if(!latestError){
+  if(latestError){
+    console.error("Recent Chats message query error:", latestError);
+  }else{
     for(const item of (latestMessages || [])){
       if(!latestMap.has(item.conversation_id)){
         latestMap.set(item.conversation_id,item);
@@ -4709,8 +4706,6 @@ async function loadConversationList(){
       unreadMap.set(item.conversation_id,(unreadMap.get(item.conversation_id) || 0) + 1);
     }
   }
-
-  if(!isLatestListLoad()) return;
 
   conversationList.innerHTML = "";
 
@@ -5081,6 +5076,24 @@ async function sendMessage(){
    REALTIME
 ===================================================== */
 
+let conversationListRefreshTimer = null;
+let conversationListRefreshRunning = false;
+
+function refreshConversationListSafely(){
+  clearTimeout(conversationListRefreshTimer);
+  conversationListRefreshTimer = setTimeout(async ()=>{
+    if(conversationListRefreshRunning || !currentUser?.id) return;
+    conversationListRefreshRunning = true;
+    try{
+      await loadConversationList();
+    }catch(error){
+      console.error("Recent Chats refresh error:", error);
+    }finally{
+      conversationListRefreshRunning = false;
+    }
+  }, 120);
+}
+
 function startRealtime(){
 
   if(!currentUser){
@@ -5111,6 +5124,11 @@ function startRealtime(){
       payload=>{
         const data = payload?.new;
         if(!data?.id) return;
+
+        /* Every new message must update Recent Chats, even when the
+           conversation is not currently open. */
+        refreshConversationListSafely();
+
         if(!currentConversationId || data.conversation_id !== currentConversationId) return;
 
         console.log("Realtime INSERT:", data);
@@ -5274,57 +5292,71 @@ function startRealtime(){
 
 function startPresence(){
 
-  if(!currentUser?.id || presenceChannel){
+  if(!currentUser){
     return;
   }
 
-  presenceChannel = supabaseClient.channel(
-    "totalk-presence",
-    {
-      config:{
-        presence:{key:currentUser.id}
-      }
-    }
-  );
+  if(presenceChannel){
+    return;
+  }
 
-  const refresh = ()=>{
-    updatePresence();
-  };
+  presenceChannel =
+    supabaseClient
+      .channel(
+        "totalk-presence"
+      );
 
   presenceChannel
-    .on("presence",{event:"sync"},refresh)
-    .on("presence",{event:"join"},refresh)
-    .on("presence",{event:"leave"},refresh)
-    .subscribe(async status=>{
-      if(status !== "SUBSCRIBED" || !presenceChannel || !currentUser?.id){
-        return;
-      }
-
-      try{
-        await presenceChannel.track({
-          user_id:currentUser.id,
-          online_at:new Date().toISOString()
-        });
+    .on(
+      "presence",
+      {
+        event:"sync"
+      },
+      ()=>{
         updatePresence();
-      }catch(error){
-        console.warn("Presence track failed:",error);
       }
-    });
+    )
+    .on(
+      "presence",
+      {
+        event:"join"
+      },
+      ()=>{
+        updatePresence();
+      }
+    )
+    .on(
+      "presence",
+      {
+        event:"leave"
+      },
+      ()=>{
+        updatePresence();
+      }
+    )
+    .subscribe(
+      async status=>{
 
-}
+        if(
+          status ===
+          "SUBSCRIBED"
+        ){
 
-async function refreshOwnPresence(){
-  if(!presenceChannel || !currentUser?.id) return;
+          await presenceChannel.track({
 
-  try{
-    await presenceChannel.track({
-      user_id:currentUser.id,
-      online_at:new Date().toISOString()
-    });
-    updatePresence();
-  }catch(error){
-    console.warn("Presence refresh failed:",error);
-  }
+            user_id:
+              currentUser.id,
+
+            online_at:
+              new Date().toISOString()
+
+          });
+
+        }
+
+      }
+    );
+
 }
 
 function updatePresence(){
@@ -5335,56 +5367,34 @@ function updatePresence(){
     const state = presenceChannel.presenceState();
     Object.values(state || {}).forEach(entries=>{
       (entries || []).forEach(entry=>{
-        if(entry?.user_id) onlineUserIds.add(String(entry.user_id));
+        if(entry?.user_id) onlineUserIds.add(entry.user_id);
       });
     });
   }
 
-  const partnerId = currentConversationPartner?.user_id
-    ? String(currentConversationPartner.user_id)
-    : null;
-  const partnerOnline = !!partnerId && onlineUserIds.has(partnerId);
-
   const sidePresence = document.getElementById("sidePresence");
   const chatPresence = document.getElementById("chatPresence");
-  if(sidePresence) sidePresence.textContent = partnerOnline ? "Online" : "Offline";
-  if(chatPresence) chatPresence.textContent = partnerOnline ? "Online" : "Offline";
+
+  const partnerOnline = currentConversationPartner
+    ? onlineUserIds.has(currentConversationPartner.user_id)
+    : false;
+
+  if(sidePresence){
+    sidePresence.textContent = partnerOnline ? "Online" : "Offline";
+  }
+
+  if(chatPresence){
+    chatPresence.textContent = partnerOnline ? "Online" : "Offline";
+  }
 
   const chatPresenceIcon = document.getElementById("chatPresenceIcon");
-  if(chatPresenceIcon) chatPresenceIcon.textContent = partnerOnline ? "🌙" : "☀️";
+  if(chatPresenceIcon){
+    chatPresenceIcon.textContent = partnerOnline ? "🌙" : "☀️";
+  }
 
-  void loadConversationList();
+  refreshConversationListSafely();
 }
 
-function stopPresence(){
-  if(presenceTrackTimer){
-    clearTimeout(presenceTrackTimer);
-    presenceTrackTimer = null;
-  }
-  if(presenceChannel){
-    void supabaseClient.removeChannel(presenceChannel);
-    presenceChannel = null;
-  }
-  onlineUserIds = new Set();
-  updatePresence();
-}
-
-window.addEventListener("online",()=>{
-  startPresence();
-  clearTimeout(presenceTrackTimer);
-  presenceTrackTimer = setTimeout(()=>void refreshOwnPresence(),150);
-});
-
-window.addEventListener("offline",()=>{
-  stopPresence();
-});
-
-window.addEventListener("visibilitychange",()=>{
-  if(document.visibilityState === "visible"){
-    clearTimeout(presenceTrackTimer);
-    presenceTrackTimer = setTimeout(()=>void refreshOwnPresence(),150);
-  }
-});
 
 /* =====================================================
    SEARCH
