@@ -2486,7 +2486,7 @@ header{
 }
 .star-one{top:25px !important;right:18px !important;}
 .star-two{bottom:25px !important;left:18px !important;}
-.star-three{48px !important;left:18px !important;}
+.star-three{top:48px !important;left:18px !important;}
 </style>
 </head>
 
@@ -2932,22 +2932,10 @@ function openMobileConversation(){
   },40);
 }
 
-function closeSearchPanel(){
-  searchPanel?.classList.remove("open");
-  if(typeof searchInput !== "undefined" && searchInput){
-    searchInput.value = "";
-  }
-  document.querySelectorAll(".message-row").forEach(row=>{
-    row.style.opacity = "1";
-  });
-  if(typeof searchMatches !== "undefined") searchMatches = [];
-  if(typeof searchIndex !== "undefined") searchIndex = -1;
-}
-
 function closeMobileConversation(){
   if(!chatLayout || !isMobileLayout()) return;
   chatLayout.classList.remove("mobile-chat-open");
-  closeSearchPanel();
+  searchPanel?.classList.remove("open");
   currentConversationId = null;
   currentConversationPartner = null;
   document.querySelectorAll(".conversation-item.active").forEach(el=>el.classList.remove("active"));
@@ -4547,61 +4535,1586 @@ async function getOrCreateConversation(otherUserId){
     throw new Error("A valid user is required.");
   }
 
-  // 1) Try RPC first (preferred)
-  try{
-    const {data,error} = await supabaseClient
-      .rpc("get_or_create_conversation",{ other_user_id: otherUserId });
+  /*
+   * Your database uses:
+   *   conversations
+   *   conversation_participants
+   *
+   * It does NOT use user1_id/user2_id.
+   * The RPC creates/fetches the conversation and adds both users.
+   */
+  const {data,error} = await supabaseClient
+    .rpc("get_or_create_conversation",{
+      other_user_id:otherUserId
+    });
 
-    if(!error && data){
-      // Ensure CURRENT user is a participant (fixes empty chat list)
-      await supabaseClient
-        .from("conversation_participants")
-        .upsert(
-          { conversation_id: data, user_id: currentUser.id },
-          { onConflict: "conversation_id,user_id" }
-        );
+  if(error) throw error;
 
-      // Also ensure the other user is a participant
-      await supabaseClient
-        .from("conversation_participants")
-        .upsert(
-          { conversation_id: data, user_id: otherUserId },
-          { onConflict: "conversation_id,user_id" }
-        );
-
-      const {data:conversation,error:conversationError} = await supabaseClient
-        .from("conversations")
-        .select("id,created_at,updated_at")
-        .eq("id",data)
-        .single();
-
-      if(!conversationError && conversation) return conversation;
-    }else if(error){
-      console.warn("RPC get_or_create_conversation failed, using fallback:", error.message || error);
-    }
-  }catch(rpcError){
-    console.warn("RPC get_or_create_conversation exception, using fallback:", rpcError);
+  if(!data){
+    throw new Error("Conversation could not be created.");
   }
 
-  // 2) Fallback: find existing shared conversation
-  const {data:myParts,error:myPartsError} = await supabaseClient
+  const {data:conversation,error:conversationError} = await supabaseClient
+    .from("conversations")
+    .select("id,created_at,updated_at")
+    .eq("id",data)
+    .single();
+
+  if(conversationError) throw conversationError;
+
+  return conversation;
+}
+
+async function loadConversationList(){
+  if(!conversationList || !currentUser?.id) return;
+
+  /*
+   * First find every conversation in which the current user
+   * is a participant.
+   */
+  const {data:participantRows,error:participantError} = await supabaseClient
     .from("conversation_participants")
-    .select("conversation_id")
-    .eq("user_id", currentUser.id);
+    .select("conversation_id,user_id")
+    .eq("user_id",currentUser.id);
 
-  if(myPartsError) throw myPartsError;
+  if(participantError) throw participantError;
 
-  const myIds = (myParts || []).map(r => r.conversation_id).filter(Boolean);
+  const conversationIds = [
+    ...new Set(
+      (participantRows || [])
+        .map(row=>row.conversation_id)
+        .filter(Boolean)
+    )
+  ];
 
-  if(myIds.length){
-    const {data:shared,error:sharedError} = await supabaseClient
-      .from("conversation_participants")
-      .select("conversation_id")
-      .eq("user_id", otherUserId)
-      .in("conversation_id", myIds)
+  if(!conversationIds.length){
+    conversations = [];
+    conversationList.innerHTML = `
+      <div class="conversation-empty">
+        <div class="empty-galaxy" aria-hidden="true">
+          <span class="galaxy-star star-one">✦</span>
+          <span class="galaxy-star star-two">·</span>
+          <span class="galaxy-star star-three">✦</span>
+          <span class="galaxy-orbit"></span>
+          <span class="galaxy-moon" aria-hidden="true"></span>
+        </div>
+        <strong>No conversations yet</strong>
+        <span>Search a ToTalk ID above to start a private chat.</span>
+      </div>
+    `;
+    return;
+  }
+
+  /* Load the actual conversation rows. */
+  const {data:rows,error:conversationError} = await supabaseClient
+    .from("conversations")
+    .select("id,created_at,updated_at")
+    .in("id",conversationIds)
+    .order("updated_at",{ascending:false});
+
+  if(conversationError) throw conversationError;
+
+  let safeRows = rows || [];
+  conversations = safeRows;
+
+  if(!safeRows.length){
+    conversationList.innerHTML = `
+      <div class="conversation-empty">
+        <div class="empty-galaxy" aria-hidden="true">
+          <span class="galaxy-star star-one">✦</span>
+          <span class="galaxy-star star-two">·</span>
+          <span class="galaxy-star star-three">✦</span>
+          <span class="galaxy-orbit"></span>
+          <span class="galaxy-moon" aria-hidden="true"></span>
+        </div>
+        <strong>No conversations yet</strong>
+        <span>Search a ToTalk ID above to start a private chat.</span>
+      </div>
+    `;
+    return;
+  }
+
+  /*
+   * Get all participants for these conversations so we can
+   * determine the other person in each 1-to-1 chat.
+   */
+  const {data:allParticipants,error:allParticipantsError} = await supabaseClient
+    .from("conversation_participants")
+    .select("conversation_id,user_id")
+    .in("conversation_id",conversationIds);
+
+  if(allParticipantsError) throw allParticipantsError;
+
+  const partnerMap = new Map();
+
+  for(const participant of (allParticipants || [])){
+    if(participant.user_id !== currentUser.id){
+      partnerMap.set(
+        participant.conversation_id,
+        participant.user_id
+      );
+    }
+  }
+
+  const partnerIds = [
+    ...new Set(
+      [...partnerMap.values()].filter(Boolean)
+    )
+  ];
+
+  let profileMap = new Map();
+
+  if(partnerIds.length){
+    const {data:profiles,error:profileError} = await supabaseClient
+      .from("profiles")
+      .select("user_id,name,totalk_id,profile_completed")
+      .in("user_id",partnerIds);
+
+    if(profileError) throw profileError;
+
+    profileMap = new Map(
+      (profiles || []).map(profile=>[
+        profile.user_id,
+        profile
+      ])
+    );
+  }
+
+  /* Latest message for each conversation. */
+  const latestMap = new Map();
+
+  const {data:latestMessages,error:latestError} = await supabaseClient
+    .from("messages")
+    .select("conversation_id,sender_id,content,created_at")
+    .in("conversation_id",conversationIds)
+    .order("created_at",{ascending:false})
+    .limit(500);
+
+  if(!latestError){
+    for(const item of (latestMessages || [])){
+      if(!latestMap.has(item.conversation_id)){
+        latestMap.set(item.conversation_id,item);
+      }
+    }
+  }
+
+  /* If participant rows are restricted by RLS, recover the other user
+     from the latest incoming message so the conversation still appears. */
+  for(const item of (latestMessages || [])){
+    if(item.conversation_id && item.sender_id && item.sender_id !== currentUser.id && !partnerMap.has(item.conversation_id)){
+      partnerMap.set(item.conversation_id,item.sender_id);
+    }
+  }
+
+  const unreadMap = new Map();
+  for(const item of (latestMessages || [])){
+    if(item.sender_id && item.sender_id !== currentUser.id){
+      unreadMap.set(item.conversation_id,(unreadMap.get(item.conversation_id) || 0) + 1);
+    }
+  }
+
+  conversationList.innerHTML = "";
+
+  const prefs = readConversationPrefs();
+  safeRows = safeRows.filter(row=>!prefs[row.id]?.deleted);
+  safeRows.sort((a,b)=>Number(!!prefs[b.id]?.pinned)-Number(!!prefs[a.id]?.pinned));
+
+  safeRows.forEach(row=>{
+    const partnerId = partnerMap.get(row.id);
+    const partner = partnerId
+      ? profileMap.get(partnerId)
+      : null;
+
+    if(!partner && partnerId){
+      const fallbackName = partnerId === currentUser.id ? "You" : "ToTalk User";
+      const fallbackPartner = {user_id:partnerId,name:fallbackName,avatar_url:""};
+      profileMap.set(partnerId,fallbackPartner);
+    }
+    const visiblePartner = partner || (partnerId ? profileMap.get(partnerId) : null);
+    if(!visiblePartner) return;
+
+    const item = document.createElement("button");
+    item.type = "button";
+    const pref = prefs[row.id] || {};
+    item.className =
+      "conversation-item" +
+      (row.id === currentConversationId ? " active" : "") +
+      (pref.muted ? " is-muted" : "") +
+      (pref.unread ? " is-unread" : "");
+    item.dataset.conversationId = row.id;
+
+    const name = visiblePartner.name || "ToTalk User";
+    const first =
+      name.trim().charAt(0).toUpperCase() || "T";
+    const latest = latestMap.get(row.id);
+
+    const isOnline = onlineUserIds.has(visiblePartner.user_id);
+    const unreadCount = unreadMap.get(row.id) || 0;
+
+    item.innerHTML = `
+      <span class="conversation-avatar-wrap">
+        <span class="mini-avatar">${escapeHtml(first)}</span>
+        <span class="presence-avatar-icon ${isOnline ? "online" : "offline"}" aria-label="${isOnline ? "Online" : "Offline"}">${isOnline ? "🌙" : "☀️"}</span>
+      </span>
+      <span class="conversation-copy">
+        <span class="conversation-top">
+          <span class="conversation-name">${escapeHtml(name)}${pref.pinned ? `<span class="conversation-pin">📌</span>` : ""}</span>
+          <span class="conversation-time">${latest ? escapeHtml(formatTime(latest.created_at)) : ""}</span>
+        </span>
+        <span class="conversation-preview">${escapeHtml(latest?.content || "No messages yet")}</span>
+      </span>
+      ${unreadCount ? `<span class="unread-badge">${unreadCount > 99 ? "99+" : unreadCount}</span>` : ""}
+    `;
+
+    item.addEventListener("click",()=>openConversation(row,visiblePartner));
+    item.addEventListener("contextmenu",event=>{event.preventDefault();openConversationOptions(row,visiblePartner);});
+    let pressTimer=null;
+    item.addEventListener("pointerdown",()=>{pressTimer=setTimeout(()=>openConversationOptions(row,visiblePartner),550);});
+    ["pointerup","pointerleave","pointercancel"].forEach(type=>item.addEventListener(type,()=>clearTimeout(pressTimer)));
+
+    conversationList.appendChild(item);
+  });
+
+  if(!conversationList.children.length){
+    conversationList.innerHTML = `
+      <div class="conversation-empty">
+        <div class="empty-galaxy" aria-hidden="true">
+          <span class="galaxy-star star-one">✦</span>
+          <span class="galaxy-star star-two">·</span>
+          <span class="galaxy-star star-three">✦</span>
+          <span class="galaxy-orbit"></span>
+          <span class="galaxy-moon" aria-hidden="true"></span>
+        </div>
+        <strong>No conversations yet</strong>
+        <span>Search a ToTalk ID above to start a private chat.</span>
+      </div>
+    `;
+  }
+}
+
+async function openConversation(row,partner){
+  if(!row?.id || !partner) return;
+
+  currentConversationId = row.id;
+  currentConversationPartner = partner;
+  const openPrefs=readConversationPrefs();
+  if(openPrefs[row.id]){openPrefs[row.id].unread=false;writeConversationPrefs(openPrefs);}
+
+  document.querySelectorAll(".conversation-item").forEach(item=>{
+    item.classList.toggle("active",item.dataset.conversationId === row.id);
+  });
+
+  renderActivePartner();
+  showLoading("ToTalk",`Opening ${partner.name || "conversation"}…`);
+
+  try{
+    closeMenus();
+    closeActiveEdit();
+    clearReplyTarget();
+    await loadMessages();
+    if(isMobileLayout()) openMobileConversation();
+  }catch(error){
+    console.error("Conversation open error:",error);
+    showStatus("This conversation could not be opened.");
+  }finally{
+    finishLoading();
+  }
+}
+
+async function startConversationWithUser(partner){
+  if(!partner || partner.user_id === currentUser.id) return;
+
+  showLoading("ToTalk",`Opening ${partner.name || "conversation"}…`);
+
+  try{
+    const row = await getOrCreateConversation(partner.user_id);
+    await loadConversationList();
+    await openConversation(row,partner);
+  }catch(error){
+    console.error("Start conversation error:",error);
+    showStatus(error.message || "Could not start the conversation.");
+    finishLoading();
+  }
+}
+
+async function searchToTalkUser(){
+  if(!currentUser || !userSearchInput) return;
+  const value = normalizedId(userSearchInput.value);
+  userSearchInput.value = value;
+  if(userSearchResult) userSearchResult.innerHTML = "";
+
+  if(!value){
+    return;
+  }
+
+  if(userSearchResult){
+    userSearchResult.innerHTML = `<div class="user-search-error">Searching…</div>`;
+  }
+
+  try{
+    const user = await findUserByToTalkId(value);
+    if(!user){
+      userSearchResult.innerHTML = `<div class="user-search-error">No user found for ${escapeHtml(value)}.</div>`;
+      return;
+    }
+
+    const first = (user.name || "T").trim().charAt(0).toUpperCase() || "T";
+    userSearchResult.innerHTML = `
+      <div class="user-search-card">
+        <div class="mini-avatar">${escapeHtml(first)}</div>
+        <div class="user-search-info">
+          <div class="user-search-name">${escapeHtml(user.name || "ToTalk User")}</div>
+          <div class="user-search-id">${escapeHtml(user.totalk_id)}</div>
+        </div>
+        <button class="user-search-open" type="button">Chat</button>
+      </div>
+    `;
+
+    userSearchResult.querySelector(".user-search-open")?.addEventListener("click",async()=>{
+      userSearchResult.innerHTML = "";
+      userSearchInput.value = "";
+      await startConversationWithUser(user);
+    });
+  }catch(error){
+    console.error("User search error:",error);
+    userSearchResult.innerHTML = `<div class="user-search-error">${escapeHtml(error.message || "Search failed.")}</div>`;
+  }
+}
+
+userSearchButton?.addEventListener("click",searchToTalkUser);
+userSearchInput?.addEventListener("keydown",event=>{
+  if(event.key === "Enter"){
+    event.preventDefault();
+    searchToTalkUser();
+  }
+});
+
+/* =====================================================
+   CONNECTION WARM-UP
+   Prevents the first message from waiting for a cold
+   Supabase HTTP connection.
+===================================================== */
+
+let supabaseWarmedUp = false;
+
+async function warmUpSupabase(){
+  if(supabaseWarmedUp || !currentUser){
+    return;
+  }
+
+  try{
+    const started = performance.now();
+
+    await supabaseClient
+      .from("messages")
+      .select("id")
       .limit(1);
 
-    if(!sharedError && shared && shared.length){
-      const {data:conversation} = await supabaseClient
-        .from("conversations")
-        .select("id,created_at,updated_at")
+    supabaseWarmedUp = true;
+
+    console.log(
+      "Supabase connection warmed in",
+      Math.round(performance.now() - started),
+      "ms"
+    );
+  }catch(error){
+    /*
+     * Warm-up is only an optimization.
+     * A failed warm-up must never block the chat.
+     */
+    console.warn(
+      "Supabase warm-up failed:",
+      error?.message || error
+    );
+  }
+}
+
+/* =====================================================
+   SEND MESSAGE
+===================================================== */
+
+let messageSendInFlight = false;
+
+async function sendMessage(){
+
+  /* Prevent duplicate sends from rapid taps, Enter + click, or
+     browser/mobile event combinations. */
+  if(messageSendInFlight){
+    return;
+  }
+
+  const text = messageInput.value.trim();
+  if(!text) return;
+
+  if(!currentUser){
+    showStatus("Your login session is not ready.");
+    return;
+  }
+
+  const replyId = replyTarget?.id || null;
+  const tempId = "local-" + Date.now() + "-" + Math.random().toString(36).slice(2);
+
+  /*
+   * Put the message on screen immediately.
+   * The small "Sending…" state makes it feel natural instead of
+   * looking like the message magically appeared before saving.
+   */
+  const optimistic = {
+    id: tempId,
+    sender_id: currentUser.id,
+    content: text,
+    created_at: new Date().toISOString(),
+    edited_at: null,
+    reply_to_id: replyId,
+    conversation_id: currentConversationId,
+    _optimistic: true
+  };
+
+  messageSendInFlight = true;
+
+  addMessage(optimistic, true);
+
+  const optimisticRow = document.querySelector(
+    `[data-message-id="${tempId}"]`
+  );
+
+  const optimisticStatus = optimisticRow?.querySelector(
+    ".message-status"
+  );
+
+  if(optimisticStatus){
+    optimisticStatus.textContent = "Sending…";
+    optimisticStatus.classList.remove("seen");
+  }
+
+  messageInput.value = "";
+  clearReplyTarget();
+
+  requestAnimationFrame(()=>{
+    messages.scrollTop = messages.scrollHeight;
+  });
+
+  sendButton.disabled = true;
+  sendButton.classList.add("sending");
+
+  try{
+
+    if(!currentConversationId){
+      throw new Error("Select a conversation first.");
+    }
+
+    const payload = {
+      sender_id: currentUser.id,
+      content: text,
+      reply_to_id: replyId,
+      conversation_id: currentConversationId
+    };
+
+    const {data,error} = await supabaseClient
+      .from("messages")
+      .insert(payload)
+      .select("id,sender_id,content,created_at,edited_at,reply_to_id,conversation_id")
+      .single();
+
+    if(error){
+      console.error("Supabase send error:", error);
+      throw error;
+    }
+
+    /* Convert the optimistic row into the real database message. */
+    messageCache.delete(tempId);
+    messageCache.set(data.id, data);
+
+    if(optimisticRow){
+      optimisticRow.dataset.messageId = data.id;
+
+      const status = optimisticRow.querySelector(".message-status");
+      if(status){
+        status.textContent = "Sent";
+      }
+
+      /* Keep the same smooth visual row; do not remove/re-add it. */
+      const menuButton = optimisticRow.querySelector(".message-menu-btn");
+      if(menuButton){
+        menuButton.replaceWith(menuButton.cloneNode(true));
+        const newMenuButton = optimisticRow.querySelector(".message-menu-btn");
+        newMenuButton.addEventListener("click", event=>{
+          event.stopPropagation();
+          const bubble = optimisticRow.querySelector(".message");
+          openMessageMenu(data,bubble);
+        });
+      }
+
+      /* Reaction picker keeps the real message id. */
+      const bubble = optimisticRow.querySelector(".message");
+      if(bubble){
+        const oldPicker = bubble._reactionPicker;
+        if(oldPicker) oldPicker.remove();
+        const picker = createReactionPicker(data, bubble);
+        bubble._reactionPicker = picker;
+      }
+    }
+
+    /* Keep the sidebar preview/order current after a successful send. */
+    void loadConversationList();
+
+  }catch(error){
+
+    console.error("Send message error:", error);
+
+    /* Failed messages stay visible briefly with a useful state. */
+    if(optimisticStatus){
+      optimisticStatus.textContent = "Not sent";
+      optimisticStatus.classList.add("send-failed");
+    }
+
+    showStatus(
+      "Message was not saved: " +
+      (error.message || "Unknown error")
+    );
+
+    /* Restore text so the user does not lose what they typed. */
+    messageInput.value = text;
+
+  }finally{
+    sendButton.disabled = false;
+    sendButton.classList.remove("sending");
+    messageSendInFlight = false;
+  }
+
+}
+
+/* =====================================================
+   REALTIME
+===================================================== */
+
+function startRealtime(){
+
+  if(!currentUser){
+    console.warn("Realtime: no current user");
+    return;
+  }
+
+  if(realtimeChannel){
+    try{ supabaseClient.removeChannel(realtimeChannel); }catch(e){}
+    realtimeChannel = null;
+  }
+
+  const channelName = "totalk-messages-" + currentUser.id;
+
+  console.log("Realtime: creating channel", channelName);
+
+  const channel = supabaseClient.channel(channelName, {
+    config:{
+      broadcast:{self:false},
+      presence:{key:currentUser.id}
+    }
+  });
+
+  channel
+    .on(
+      "postgres_changes",
+      {event:"INSERT",schema:"public",table:"messages"},
+      payload=>{
+        const data = payload?.new;
+        if(!data?.id) return;
+
+        /* Always refresh the Chats list for every incoming message.
+           Do this before checking which conversation is open, so messages
+           received while the user is on Chats, another chat, or returning
+           after being away can appear without a manual refresh. */
+        void loadConversationList().catch(error=>{
+          console.error("Incoming message chat-list refresh error:", error);
+        });
+
+        /* Only render the message bubble when this conversation is open. */
+        if(!currentConversationId || data.conversation_id !== currentConversationId) return;
+
+        console.log("Realtime INSERT:", data);
+
+        messageCache.set(data.id, data);
+
+        /*
+         * IMPORTANT: our own INSERT can arrive through Realtime before
+         * the HTTP insert request finishes. Reconcile that event with
+         * the optimistic local row instead of creating a second bubble.
+         */
+        if(currentUser && data.sender_id === currentUser.id){
+          const localRows = document.querySelectorAll(
+            '[data-message-id^="local-"]'
+          );
+
+          for(const row of localRows){
+            const localText =
+              row.querySelector(".message-text")?.textContent || "";
+
+            const localMessage = messageCache.get(row.dataset.messageId);
+
+            if(
+              localText === (data.content || "") &&
+              localMessage?.sender_id === data.sender_id &&
+              (localMessage?.reply_to_id || null) === (data.reply_to_id || null)
+            ){
+              row.dataset.messageId = data.id;
+  row.dataset.messageContent = data.content || "";
+              messageCache.delete(localMessage.id);
+              messageCache.set(data.id, data);
+
+              const status = row.querySelector(".message-status");
+              if(status) status.textContent = "Sent";
+
+              return;
+            }
+          }
+        }
+
+        const exists = document.querySelector(
+          `[data-message-id="${data.id}"]`
+        );
+
+        if(exists) return;
+
+        const nearBottom =
+          messages.scrollHeight - messages.scrollTop - messages.clientHeight < 180;
+
+        addMessage(data, true);
+
+        if(nearBottom){
+          requestAnimationFrame(()=>{
+            messages.scrollTo({
+              top:messages.scrollHeight,
+              behavior:"smooth"
+            });
+          });
+        }
+      }
+    )
+    .on(
+      "postgres_changes",
+      {event:"UPDATE",schema:"public",table:"messages"},
+      payload=>{
+        const data = payload?.new;
+        if(!data?.id) return;
+        if(!currentConversationId || data.conversation_id !== currentConversationId) return;
+
+        console.log("Realtime UPDATE:", data);
+        messageCache.set(data.id, data);
+
+        const row = document.querySelector(
+          `[data-message-id="${data.id}"]`
+        );
+        if(!row) return;
+
+        /* If this message is currently being edited, leave the textarea
+           alone. The cache is already updated and Save will reconcile
+           the latest value when the editor closes. */
+        if(!row.querySelector(".message.editing")){
+          const text = row.querySelector(".message-text");
+          if(text) text.textContent = data.content || "";
+        }
+
+        const time = row.querySelector(".message-time");
+        if(time){
+          time.textContent = formatTime(data.created_at) +
+            (data.edited_at ? " · edited" : "");
+        }
+      }
+    )
+    .on(
+      "postgres_changes",
+      {event:"DELETE",schema:"public",table:"messages"},
+      payload=>{
+        const id = payload?.old?.id;
+        if(!id) return;
+        const oldConversationId = payload?.old?.conversation_id;
+        if(!currentConversationId || oldConversationId !== currentConversationId) return;
+
+        console.log("Realtime DELETE:", id);
+        document.querySelector(`[data-message-id="${id}"]`)?.remove();
+        messageCache.delete(id);
+      }
+    )
+    .on(
+      "postgres_changes",
+      {event:"*",schema:"public",table:"message_reactions"},
+      async payload=>{
+        const id = payload?.new?.message_id || payload?.old?.message_id;
+        if(!id || !messageCache.has(id)) return;
+
+        console.log("Realtime REACTION:", payload);
+
+        const row = document.querySelector(
+          `[data-message-id="${id}"]`
+        );
+        const bubble = row?.querySelector(".message");
+
+        if(bubble){
+          try{
+            await refreshReaction(id, bubble);
+          }catch(error){
+            console.error("Realtime reaction refresh:", error);
+          }
+        }
+      }
+    );
+
+  realtimeChannel = channel;
+
+  channel.subscribe(status=>{
+    console.log("ToTalk Realtime status:", status);
+
+    if(status === "SUBSCRIBED"){
+      console.log("ToTalk Realtime connected");
+      // Keep realtime status silent in the UI.
+      // Do not show a popup/toast when the realtime channel connects.
+      return;
+    }
+
+    if(status === "CHANNEL_ERROR" || status === "TIMED_OUT"){
+      console.error("ToTalk Realtime connection problem:", status);
+      /* Realtime reconnects silently. Never show a toast. */
+
+      /* Retry without requiring a page refresh. */
+      setTimeout(()=>{
+        if(realtimeChannel === channel){
+          realtimeChannel = null;
+          startRealtime();
+        }
+      }, 1500);
+    }
+  });
+}
+
+/* =====================================================
+   PRESENCE
+===================================================== */
+
+function startPresence(){
+
+  if(!currentUser){
+    return;
+  }
+
+  if(presenceChannel){
+    return;
+  }
+
+  presenceChannel =
+    supabaseClient
+      .channel(
+        "totalk-presence"
+      );
+
+  presenceChannel
+    .on(
+      "presence",
+      {
+        event:"sync"
+      },
+      ()=>{
+        updatePresence();
+      }
+    )
+    .on(
+      "presence",
+      {
+        event:"join"
+      },
+      ()=>{
+        updatePresence();
+      }
+    )
+    .on(
+      "presence",
+      {
+        event:"leave"
+      },
+      ()=>{
+        updatePresence();
+      }
+    )
+    .subscribe(
+      async status=>{
+
+        if(
+          status ===
+          "SUBSCRIBED"
+        ){
+
+          await presenceChannel.track({
+
+            user_id:
+              currentUser.id,
+
+            online_at:
+              new Date().toISOString()
+
+          });
+
+        }
+
+      }
+    );
+
+}
+
+function updatePresence(){
+
+  onlineUserIds = new Set();
+
+  if(presenceChannel){
+    const state = presenceChannel.presenceState();
+    Object.values(state || {}).forEach(entries=>{
+      (entries || []).forEach(entry=>{
+        if(entry?.user_id) onlineUserIds.add(entry.user_id);
+      });
+    });
+  }
+
+  const sidePresence = document.getElementById("sidePresence");
+  const chatPresence = document.getElementById("chatPresence");
+
+  const partnerOnline = currentConversationPartner
+    ? onlineUserIds.has(currentConversationPartner.user_id)
+    : false;
+
+  if(sidePresence){
+    sidePresence.textContent = partnerOnline ? "Online" : "Offline";
+  }
+
+  if(chatPresence){
+    chatPresence.textContent = partnerOnline ? "Online" : "Offline";
+  }
+
+  const chatPresenceIcon = document.getElementById("chatPresenceIcon");
+  if(chatPresenceIcon){
+    chatPresenceIcon.textContent = partnerOnline ? "🌙" : "☀️";
+  }
+
+  loadConversationList().catch(()=>{});
+}
+
+
+/* =====================================================
+   SEARCH
+===================================================== */
+
+let searchMatches = [];
+
+let searchIndex = -1;
+
+function runSearch(){
+
+  const query =
+    searchInput.value
+      .trim()
+      .toLowerCase();
+
+  const rows =
+    document.querySelectorAll(
+      ".message-row"
+    );
+
+  rows.forEach(
+    row=>{
+      row.style.opacity =
+        "1";
+    }
+  );
+
+  searchMatches = [];
+
+  if(!query){
+    return;
+  }
+
+  rows.forEach(
+    row=>{
+
+      const text =
+        row
+          .querySelector(
+            ".message-text"
+          )
+          ?.textContent
+          .toLowerCase() ||
+        "";
+
+      if(
+        text.includes(query)
+      ){
+
+        searchMatches.push(
+          row
+        );
+
+        row.style.opacity =
+          ".55";
+
+      }else{
+
+        row.style.opacity =
+          ".15";
+
+      }
+
+    }
+  );
+
+  if(searchMatches.length){
+
+    searchIndex =
+      0;
+
+    focusSearch();
+
+  }
+
+}
+
+function focusSearch(){
+
+  if(
+    !searchMatches.length
+  ){
+    return;
+  }
+
+  searchMatches.forEach(
+    row=>{
+      row.style.opacity =
+        ".55";
+    }
+  );
+
+  const row =
+    searchMatches[
+      searchIndex
+    ];
+
+  row.style.opacity =
+    "1";
+
+  row.scrollIntoView({
+    behavior:"auto",
+    block:"center"
+  });
+
+}
+
+/* Search button */
+
+document
+  .getElementById(
+    "searchBtn"
+  )
+  .addEventListener(
+    "click",
+    ()=>{
+
+      searchPanel.classList.toggle(
+        "open"
+      );
+
+      if(
+        searchPanel.classList.contains(
+          "open"
+        )
+      ){
+
+        searchInput.focus();
+
+      }
+
+    }
+  );
+
+/* Search input */
+
+searchInput.addEventListener(
+  "input",
+  runSearch
+);
+
+/* Search close */
+
+document
+  .getElementById(
+    "searchClose"
+  )
+  .addEventListener(
+    "click",
+    ()=>{
+
+      searchPanel.classList.remove(
+        "open"
+      );
+
+      searchInput.value =
+        "";
+
+      document
+        .querySelectorAll(
+          ".message-row"
+        )
+        .forEach(
+          row=>{
+            row.style.opacity =
+              "1";
+          }
+        );
+
+    }
+  );
+
+/* Search next */
+
+document
+  .getElementById(
+    "searchNext"
+  )
+  .addEventListener(
+    "click",
+    ()=>{
+
+      if(
+        !searchMatches.length
+      ){
+        return;
+      }
+
+      searchIndex =
+        (
+          searchIndex + 1
+        ) %
+        searchMatches.length;
+
+      focusSearch();
+
+    }
+  );
+
+/* Search previous */
+
+document
+  .getElementById(
+    "searchPrev"
+  )
+  .addEventListener(
+    "click",
+    ()=>{
+
+      if(
+        !searchMatches.length
+      ){
+        return;
+      }
+
+      searchIndex =
+        (
+          searchIndex -
+          1 +
+          searchMatches.length
+        ) %
+        searchMatches.length;
+
+      focusSearch();
+
+    }
+  );
+
+/* =====================================================
+   GLOBAL CLICK
+===================================================== */
+
+document.addEventListener(
+  "click",
+  event=>{
+
+    if(
+      !event.target.closest(".message-menu") &&
+      !event.target.closest(".message-menu-btn") &&
+      !event.target.closest(".reaction-picker")
+    ){
+      closeMenus();
+    }
+
+  }
+);
+
+/* =====================================================
+   INPUT
+===================================================== */
+
+sendButton.addEventListener(
+  "click",
+  sendMessage
+);
+
+messageInput.addEventListener(
+  "keydown",
+  event=>{
+
+    if(
+      event.key === "Enter" &&
+      !event.shiftKey
+    ){
+
+      event.preventDefault();
+
+      sendMessage();
+
+    }
+
+  }
+);
+
+/*
+ * IMPORTANT:
+ * There is intentionally NO input
+ * event doing DOM work on every
+ * keystroke.
+ *
+ * This keeps typing lightweight.
+ */
+
+/* =====================================================
+   PROFILE
+===================================================== */
+
+profileBtn?.addEventListener(
+  "click",
+  ()=>{
+    window.location.href =
+      "./profile-maker.html";
+  }
+);
+
+/* =====================================================
+   LOGOUT
+===================================================== */
+
+logoutBtn.addEventListener(
+  "click",
+  async ()=>{
+
+    logoutBtn.disabled =
+      true;
+
+    logoutBtn.textContent =
+      "Logging out";
+
+    try{
+
+      if(realtimeChannel){
+
+        await supabaseClient
+          .removeChannel(
+            realtimeChannel
+          );
+
+        realtimeChannel =
+          null;
+
+      }
+
+      if(presenceChannel){
+
+        await supabaseClient
+          .removeChannel(
+            presenceChannel
+          );
+
+        presenceChannel =
+          null;
+
+      }
+
+      await supabaseClient
+        .auth
+        .signOut();
+
+      window.location.replace(
+        "./index.html"
+      );
+
+    }catch(error){
+
+      console.error(
+        "Logout error:",
+        error
+      );
+
+      logoutBtn.disabled =
+        false;
+
+      logoutBtn.textContent =
+        "Logout";
+
+    }
+
+  }
+);
+
+/* =====================================================
+   AUTH STATE
+===================================================== */
+
+supabaseClient.auth.onAuthStateChange(
+  (event,session)=>{
+
+    console.log(
+      "Auth event:",
+      event
+    );
+
+    if(
+      event ===
+      "SIGNED_OUT"
+    ){
+
+      window.location.replace(
+        "./index.html"
+      );
+
+    }
+
+  }
+);
+
+
+/* =====================================================
+   START APPLICATION
+===================================================== */
+
+async function startApp(){
+
+  try{
+
+    showLoading(
+      "ToTalk",
+      "Checking your account"
+    );
+
+    let user =
+      await getLoggedInUser();
+
+    if(!user){
+
+      await new Promise(
+        resolve=>
+          setTimeout(
+            resolve,
+            300
+          )
+      );
+
+      user =
+        await getLoggedInUser();
+
+    }
+
+    if(!user){
+
+      showLoading(
+        "Login required",
+        "Returning to ToTalk"
+      );
+
+      setTimeout(
+        ()=>{
+          window.location.replace(
+            "./index.html"
+          );
+        },
+        800
+      );
+
+      return;
+
+    }
+
+    currentUser =
+      user;
+
+    /*
+     * Start the database connection warm-up immediately.
+     * It runs in the background while the rest of the
+     * chat is loading, so the first real message does not
+     * pay the cold-connection delay.
+     */
+    void warmUpSupabase();
+
+    setLoadingText(
+      "ToTalk",
+      "Connecting…"
+    );
+
+    currentProfile =
+      await checkProfile();
+
+    /*
+     * Keep your current behavior:
+     * existing profile opens chat directly.
+     *
+     * If no profile exists, create a
+     * lightweight profile.
+     */
+
+    if(!currentProfile){
+
+      const fallbackName =
+        currentUser?.user_metadata?.full_name ||
+        currentUser?.user_metadata?.name ||
+        currentUser?.email?.split("@")[0] ||
+        "ToTalk User";
+
+      /*
+       * Generate a permanent-looking ID.
+       * This function was missing in the
+       * previous file, so define it here.
+       */
+
+      function makeTTId(){
+
+        const chars =
+          "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+
+        let result =
+          "";
+
+        for(
+          let i=0;
+          i<6;
+          i++
+        ){
+
+          result +=
+            chars[
+              Math.floor(
+                Math.random() *
+                chars.length
+              )
+            ];
+
+        }
+
+        return "TT-" + result;
+
+      }
+
+      const newId =
+        makeTTId();
+
+      const {
+        data:created,
+        error:createError
+      } =
+        await supabaseClient
+          .from("profiles")
+          .insert({
+
+            user_id:
+              currentUser.id,
+
+            name:
+              fallbackName,
+
+            gender:
+              null,
+
+            age:
+              null,
+
+            totalk_id:
+              newId,
+
+            profile_completed:
+              true,
+
+            location:
+              "",
+
+            location_visibility:
+              "city_country"
+
+          })
+          .select(
+            "id,user_id,name,gender,age,totalk_id,profile_completed,location,location_visibility"
+          )
+          .single();
+
+      if(createError){
+
+        currentProfile =
+          await checkProfile();
+
+        if(!currentProfile){
+
+          throw createError;
+
+        }
+
+      }else{
+
+        currentProfile =
+          created;
+
+      }
+
+    }else if(
+      currentProfile.profile_completed !==
+      true
+    ){
+
+      const {
+        data:completed,
+        error:completeError
+      } =
+        await supabaseClient
+          .from("profiles")
+          .update({
+            profile_completed:true
+          })
+          .eq(
+            "id",
+            currentProfile.id
+          )
+          .eq(
+            "user_id",
+            currentUser.id
+          )
+          .select(
+            "id,user_id,name,gender,age,totalk_id,profile_completed,location,location_visibility"
+          )
+          .maybeSingle();
+
+      if(completeError){
+        throw completeError;
+      }
+
+      if(completed){
+        currentProfile =
+          completed;
+      }
+
+    }
+
+    setLoadingText(
+      "ToTalk",
+      "Opening your space…"
+    );
+
+    updateUserUI();
+
+    /* Load the real private conversation list. */
+    await loadConversationList();
+
+    /* Realtime stays connected, but only the active conversation is rendered. */
+    startRealtime();
+
+    /* Re-read saved conversations whenever the app becomes visible again. */
+    if(!window.__totalkVisibilityRefresh){
+      window.__totalkVisibilityRefresh = true;
+      document.addEventListener("visibilitychange", ()=>{
+        if(document.visibilityState === "visible" && currentUser){
+          void loadConversationList().catch(error=>{
+            console.error("Visibility chat-list refresh error:", error);
+          });
+          if(!realtimeChannel) startRealtime();
+        }
+      });
+      window.addEventListener("focus", ()=>{
+        if(currentUser){
+          void loadConversationList().catch(error=>{
+            console.error("Focus chat-list refresh error:", error);
+          });
+        }
+      });
+    }
+
+    startPresence();
+
+    /*
+     * Hide loading only after
+     * everything is ready.
+     */
+
+    finishLoading();
+
+    /*
+     * Focus input after loading
+     * without forcing keyboard open
+     * on mobile.
+     */
+
+    setTimeout(
+      ()=>{
+        messageInput.focus({
+          preventScroll:true
+        });
+        messageInput.blur();
+      },
+      500
+    );
+
+  }catch(error){
+
+    console.error(
+      "ToTalk startup error:",
+      error
+    );
+
+    loading.innerHTML = `
+      <div class="login-error">
+
+        <h2>
+          Unable to open ToTalk
+        </h2>
+
+        <p>
+          Something went wrong while
+          preparing your conversation space.
+        </p>
+
+        <a
+          class="back-button"
+          href="./index.html"
+        >
+          Back to ToTalk
+        </a>
+
+      </div>
+    `;
+
+  }
+
+}
+
+/* =====================================================
+   START
+===================================================== */
+
+startApp();
+
+</script>
+
+
+<script>
+(function(){
+  let lastRefresh=0;
+  async function refreshChats(){
+    if(typeof currentUser !== "undefined" && currentUser?.id && typeof loadConversationList === "function"){
+      const now=Date.now();
+      if(now-lastRefresh<1500)return;
+      lastRefresh=now;
+      try{await loadConversationList();}catch(e){console.warn("ToTalk chat refresh failed",e);}
+    }
+  }
+  setInterval(refreshChats,4000);
+  document.addEventListener("visibilitychange",()=>{if(!document.hidden)refreshChats();});
+  window.addEventListener("focus",refreshChats);
+})();
+</script>
+</body>
+</html>
