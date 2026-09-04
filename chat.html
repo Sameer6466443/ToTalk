@@ -2312,10 +2312,37 @@ header{
     flex-basis:20px !important;
   }
 }
+
+/* Conversation options sheet */
+.conversation-options-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.62);backdrop-filter:blur(8px);display:none;align-items:flex-end;justify-content:center;z-index:9999;padding:16px;}
+.conversation-options-backdrop.open{display:flex;}
+.conversation-options-sheet{width:min(100%,430px);border:1px solid rgba(166,103,255,.42);border-radius:24px;background:linear-gradient(145deg,rgba(31,20,58,.98),rgba(8,7,22,.99));box-shadow:0 20px 70px rgba(0,0,0,.55);padding:18px;}
+.conversation-options-title{font-size:16px;font-weight:900;color:#fff;margin-bottom:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.conversation-option{width:100%;display:flex;align-items:center;gap:12px;border:1px solid rgba(255,255,255,.08);border-radius:14px;background:rgba(255,255,255,.045);color:#fff;padding:13px 14px;margin:7px 0;text-align:left;font:800 13px system-ui,sans-serif;cursor:pointer;}
+.conversation-option:hover{background:rgba(145,76,255,.18);border-color:rgba(166,103,255,.45);}
+.conversation-option.danger{color:#ffb4c5;}
+.conversation-option.cancel{justify-content:center;color:#bdaed0;background:transparent;}
+.conversation-item.is-muted .conversation-name:after{content:'  🔕';font-size:11px;}
+.conversation-item.is-unread .conversation-name{color:#fff!important;}
+.conversation-item.is-unread .conversation-preview{color:#e1d6f2;font-weight:800;}
+.conversation-item.is-archived{display:none;}
+.conversation-pin{font-size:13px;margin-left:5px;}
 </style>
 </head>
 
 <body>
+
+<div class="conversation-options-backdrop" id="conversationOptionsBackdrop" aria-hidden="true">
+  <div class="conversation-options-sheet" role="dialog" aria-modal="true" aria-labelledby="conversationOptionsTitle">
+    <div class="conversation-options-title" id="conversationOptionsTitle">Conversation options</div>
+    <button class="conversation-option" type="button" data-conversation-action="pin">📌 <span>Pin conversation</span></button>
+    <button class="conversation-option" type="button" data-conversation-action="mute">🔕 <span>Mute notifications</span></button>
+    <button class="conversation-option" type="button" data-conversation-action="unread">📖 <span>Mark as unread</span></button>
+    <button class="conversation-option" type="button" data-conversation-action="archive">🗂️ <span>Archive conversation</span></button>
+    <button class="conversation-option danger" type="button" data-conversation-action="delete">🗑️ <span>Delete conversation</span></button>
+    <button class="conversation-option cancel" type="button" data-conversation-action="cancel">Cancel</button>
+  </div>
+</div>
 
 <!-- =====================================================
      GALAXY LOADING
@@ -2783,6 +2810,36 @@ let presenceChannel = null;
 let onlineUserIds = new Set();
 
 let replyTarget = null;
+
+const conversationPrefsKey = ()=>`totalk_conversation_prefs_${currentUser?.id || "guest"}`;
+function readConversationPrefs(){try{return JSON.parse(localStorage.getItem(conversationPrefsKey())||"{}")}catch{return {}}}
+function writeConversationPrefs(value){localStorage.setItem(conversationPrefsKey(),JSON.stringify(value));}
+let conversationOptionsTarget = null;
+const optionsBackdrop = document.getElementById("conversationOptionsBackdrop");
+const optionsTitle = document.getElementById("conversationOptionsTitle");
+function closeConversationOptions(){optionsBackdrop?.classList.remove("open");optionsBackdrop?.setAttribute("aria-hidden","true");conversationOptionsTarget=null;}
+function openConversationOptions(row,partner){
+  conversationOptionsTarget={row,partner};
+  if(optionsTitle) optionsTitle.textContent=partner?.name || "Conversation options";
+  const prefs=readConversationPrefs(); const id=row.id; const itemPrefs=prefs[id]||{};
+  const labels={pin:itemPrefs.pinned?"Unpin conversation":"Pin conversation",mute:itemPrefs.muted?"Unmute notifications":"Mute notifications",unread:"Mark as unread",archive:itemPrefs.archived?"Unarchive conversation":"Archive conversation",delete:"Delete conversation"};
+  optionsBackdrop?.querySelectorAll("[data-conversation-action]").forEach(btn=>{const a=btn.dataset.conversationAction;if(labels[a]) btn.querySelector("span").textContent=labels[a];});
+  optionsBackdrop?.classList.add("open");optionsBackdrop?.setAttribute("aria-hidden","false");
+}
+function applyConversationAction(action){
+  if(!conversationOptionsTarget) return;
+  const id=conversationOptionsTarget.row.id; const prefs=readConversationPrefs(); const item=prefs[id]||{};
+  if(action==="cancel"){closeConversationOptions();return;}
+  if(action==="pin") item.pinned=!item.pinned;
+  if(action==="mute") item.muted=!item.muted;
+  if(action==="unread") item.unread=true;
+  if(action==="archive") item.archived=!item.archived;
+  if(action==="delete"){if(!confirm("Delete this conversation from your chat list?")) return;item.deleted=true;}
+  prefs[id]=item;writeConversationPrefs(prefs);closeConversationOptions();loadConversationList();
+}
+optionsBackdrop?.addEventListener("click",e=>{if(e.target===optionsBackdrop) closeConversationOptions();});
+optionsBackdrop?.querySelectorAll("[data-conversation-action]").forEach(btn=>btn.addEventListener("click",()=>applyConversationAction(btn.dataset.conversationAction)));
+
 
 const messageCache =
   new Map();
@@ -4462,6 +4519,10 @@ async function loadConversationList(){
 
   conversationList.innerHTML = "";
 
+  const prefs = readConversationPrefs();
+  safeRows = safeRows.filter(row=>!prefs[row.id]?.deleted);
+  safeRows.sort((a,b)=>Number(!!prefs[b.id]?.pinned)-Number(!!prefs[a.id]?.pinned));
+
   safeRows.forEach(row=>{
     const partnerId = partnerMap.get(row.id);
     const partner = partnerId
@@ -4472,9 +4533,12 @@ async function loadConversationList(){
 
     const item = document.createElement("button");
     item.type = "button";
+    const pref = prefs[row.id] || {};
     item.className =
       "conversation-item" +
-      (row.id === currentConversationId ? " active" : "");
+      (row.id === currentConversationId ? " active" : "") +
+      (pref.muted ? " is-muted" : "") +
+      (pref.unread ? " is-unread" : "");
     item.dataset.conversationId = row.id;
 
     const name = partner.name || "ToTalk User";
@@ -4492,7 +4556,7 @@ async function loadConversationList(){
       </span>
       <span class="conversation-copy">
         <span class="conversation-top">
-          <span class="conversation-name">${escapeHtml(name)}</span>
+          <span class="conversation-name">${escapeHtml(name)}${pref.pinned ? `<span class="conversation-pin">📌</span>` : ""}</span>
           <span class="conversation-time">${latest ? escapeHtml(formatTime(latest.created_at)) : ""}</span>
         </span>
         <span class="conversation-preview">${escapeHtml(latest?.content || "No messages yet")}</span>
@@ -4500,10 +4564,11 @@ async function loadConversationList(){
       ${unreadCount ? `<span class="unread-badge">${unreadCount > 99 ? "99+" : unreadCount}</span>` : ""}
     `;
 
-    item.addEventListener(
-      "click",
-      ()=>openConversation(row,partner)
-    );
+    item.addEventListener("click",()=>openConversation(row,partner));
+    item.addEventListener("contextmenu",event=>{event.preventDefault();openConversationOptions(row,partner);});
+    let pressTimer=null;
+    item.addEventListener("pointerdown",()=>{pressTimer=setTimeout(()=>openConversationOptions(row,partner),550);});
+    ["pointerup","pointerleave","pointercancel"].forEach(type=>item.addEventListener(type,()=>clearTimeout(pressTimer)));
 
     conversationList.appendChild(item);
   });
@@ -4524,6 +4589,8 @@ async function openConversation(row,partner){
 
   currentConversationId = row.id;
   currentConversationPartner = partner;
+  const openPrefs=readConversationPrefs();
+  if(openPrefs[row.id]){openPrefs[row.id].unread=false;writeConversationPrefs(openPrefs);}
 
   document.querySelectorAll(".conversation-item").forEach(item=>{
     item.classList.toggle("active",item.dataset.conversationId === row.id);
