@@ -1431,6 +1431,23 @@ header{
   opacity:.6;
 }
 
+/* Refresh saved conversations automatically when the browser returns
+   from the background. This also catches messages received while the
+   user was not using the website, without requiring a manual refresh. */
+window.addEventListener("focus", ()=>{
+  if(currentUser) void loadConversationList().catch(error=>{
+    console.error("Focus chat-list refresh error:", error);
+  });
+});
+
+document.addEventListener("visibilitychange", ()=>{
+  if(document.visibilityState === "visible" && currentUser){
+    void loadConversationList().catch(error=>{
+      console.error("Visibility chat-list refresh error:", error);
+    });
+  }
+});
+
 /* =====================================================
    SEARCH
 ===================================================== */
@@ -2932,14 +2949,23 @@ function openMobileConversation(){
   },40);
 }
 
-function closeMobileConversation(){
+async function closeMobileConversation(){
   if(!chatLayout || !isMobileLayout()) return;
+
+  /* Return to the chat list first. */
   chatLayout.classList.remove("mobile-chat-open");
   searchPanel?.classList.remove("open");
   currentConversationId = null;
   currentConversationPartner = null;
   document.querySelectorAll(".conversation-item.active").forEach(el=>el.classList.remove("active"));
   setEmptyChatState();
+
+  /* Reload the list so a newly opened conversation is visible immediately. */
+  try{
+    await loadConversationList();
+  }catch(error){
+    console.error("Chat list reload after back error:",error);
+  }
 }
 
 if(mobileChatBack){
@@ -2994,7 +3020,7 @@ let conversationOptionsTarget = null;
 const optionsBackdrop = document.getElementById("conversationOptionsBackdrop");
 const optionsTitle = document.getElementById("conversationOptionsTitle");
 function closeConversationOptions(){optionsBackdrop?.classList.remove("open");optionsBackdrop?.setAttribute("aria-hidden","true");conversationOptionsTarget=null;}
-function openConversationOptions(row,visiblePartner){
+function openConversationOptions(row,partner){
   conversationOptionsTarget={row,partner};
   if(optionsTitle) optionsTitle.textContent=partner?.name || "Conversation options";
   const prefs=readConversationPrefs(); const id=row.id; const itemPrefs=prefs[id]||{};
@@ -4698,14 +4724,6 @@ async function loadConversationList(){
     }
   }
 
-  /* If participant rows are restricted by RLS, recover the other user
-     from the latest incoming message so the conversation still appears. */
-  for(const item of (latestMessages || [])){
-    if(item.conversation_id && item.sender_id && item.sender_id !== currentUser.id && !partnerMap.has(item.conversation_id)){
-      partnerMap.set(item.conversation_id,item.sender_id);
-    }
-  }
-
   const unreadMap = new Map();
   for(const item of (latestMessages || [])){
     if(item.sender_id && item.sender_id !== currentUser.id){
@@ -4725,13 +4743,7 @@ async function loadConversationList(){
       ? profileMap.get(partnerId)
       : null;
 
-    if(!partner && partnerId){
-      const fallbackName = partnerId === currentUser.id ? "You" : "ToTalk User";
-      const fallbackPartner = {user_id:partnerId,name:fallbackName,avatar_url:""};
-      profileMap.set(partnerId,fallbackPartner);
-    }
-    const visiblePartner = partner || (partnerId ? profileMap.get(partnerId) : null);
-    if(!visiblePartner) return;
+    if(!partner) return;
 
     const item = document.createElement("button");
     item.type = "button";
@@ -4743,12 +4755,12 @@ async function loadConversationList(){
       (pref.unread ? " is-unread" : "");
     item.dataset.conversationId = row.id;
 
-    const name = visiblePartner.name || "ToTalk User";
+    const name = partner.name || "ToTalk User";
     const first =
       name.trim().charAt(0).toUpperCase() || "T";
     const latest = latestMap.get(row.id);
 
-    const isOnline = onlineUserIds.has(visiblePartner.user_id);
+    const isOnline = onlineUserIds.has(partner.user_id);
     const unreadCount = unreadMap.get(row.id) || 0;
 
     item.innerHTML = `
@@ -4766,10 +4778,10 @@ async function loadConversationList(){
       ${unreadCount ? `<span class="unread-badge">${unreadCount > 99 ? "99+" : unreadCount}</span>` : ""}
     `;
 
-    item.addEventListener("click",()=>openConversation(row,visiblePartner));
-    item.addEventListener("contextmenu",event=>{event.preventDefault();openConversationOptions(row,visiblePartner);});
+    item.addEventListener("click",()=>openConversation(row,partner));
+    item.addEventListener("contextmenu",event=>{event.preventDefault();openConversationOptions(row,partner);});
     let pressTimer=null;
-    item.addEventListener("pointerdown",()=>{pressTimer=setTimeout(()=>openConversationOptions(row,visiblePartner),550);});
+    item.addEventListener("pointerdown",()=>{pressTimer=setTimeout(()=>openConversationOptions(row,partner),550);});
     ["pointerup","pointerleave","pointercancel"].forEach(type=>item.addEventListener(type,()=>clearTimeout(pressTimer)));
 
     conversationList.appendChild(item);
@@ -5118,17 +5130,23 @@ function startRealtime(){
       payload=>{
         const data = payload?.new;
         if(!data?.id) return;
-
-        /* Always refresh the Chats list for every incoming message.
-           Do this before checking which conversation is open, so messages
-           received while the user is on Chats, another chat, or returning
-           after being away can appear without a manual refresh. */
+        /*
+         * If the user is on the Chats page or inside another conversation,
+         * still refresh the conversation list so incoming messages appear
+         * there immediately with the latest preview and unread count.
+         */
+        /* Always refresh Chats for every incoming message, even when the
+           user is on the Chats page, another conversation, or returning
+           after being away from the website. */
         void loadConversationList().catch(error=>{
           console.error("Incoming message chat-list refresh error:", error);
         });
 
-        /* Only render the message bubble when this conversation is open. */
-        if(!currentConversationId || data.conversation_id !== currentConversationId) return;
+        /* If this conversation is currently open, also show the message
+           immediately inside the open chat without requiring a refresh. */
+        if(!currentConversationId || data.conversation_id !== currentConversationId){
+          return;
+        }
 
         console.log("Realtime INSERT:", data);
 
@@ -6013,26 +6031,6 @@ async function startApp(){
     /* Realtime stays connected, but only the active conversation is rendered. */
     startRealtime();
 
-    /* Re-read saved conversations whenever the app becomes visible again. */
-    if(!window.__totalkVisibilityRefresh){
-      window.__totalkVisibilityRefresh = true;
-      document.addEventListener("visibilitychange", ()=>{
-        if(document.visibilityState === "visible" && currentUser){
-          void loadConversationList().catch(error=>{
-            console.error("Visibility chat-list refresh error:", error);
-          });
-          if(!realtimeChannel) startRealtime();
-        }
-      });
-      window.addEventListener("focus", ()=>{
-        if(currentUser){
-          void loadConversationList().catch(error=>{
-            console.error("Focus chat-list refresh error:", error);
-          });
-        }
-      });
-    }
-
     startPresence();
 
     /*
@@ -6099,22 +6097,5 @@ startApp();
 
 </script>
 
-
-<script>
-(function(){
-  let lastRefresh=0;
-  async function refreshChats(){
-    if(typeof currentUser !== "undefined" && currentUser?.id && typeof loadConversationList === "function"){
-      const now=Date.now();
-      if(now-lastRefresh<1500)return;
-      lastRefresh=now;
-      try{await loadConversationList();}catch(e){console.warn("ToTalk chat refresh failed",e);}
-    }
-  }
-  setInterval(refreshChats,4000);
-  document.addEventListener("visibilitychange",()=>{if(!document.hidden)refreshChats();});
-  window.addEventListener("focus",refreshChats);
-})();
-</script>
 </body>
 </html>
