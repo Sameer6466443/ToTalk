@@ -5271,6 +5271,29 @@ function startRealtime(){
   });
 }
 
+
+/* =====================================================
+   BACKGROUND CHAT SYNC
+   Keeps saved conversations visible even when Realtime
+   is unavailable or the app was opened after messages arrived.
+===================================================== */
+function startBackgroundChatSync(){
+  if(window.__totalkChatSyncStarted || !currentUser) return;
+  window.__totalkChatSyncStarted = true;
+
+  const sync = ()=>{
+    if(!currentUser || document.visibilityState !== "visible") return;
+    void loadConversationList().catch(error=>{
+      console.error("Background chat sync error:", error);
+    });
+  };
+
+  /* Realtime is used when available; this is a quiet fallback. */
+  window.__totalkChatSyncTimer = setInterval(sync, 3000);
+  document.addEventListener("visibilitychange", sync);
+  window.addEventListener("focus", sync);
+}
+
 /* =====================================================
    PRESENCE
 ===================================================== */
@@ -5998,6 +6021,7 @@ async function startApp(){
 
     /* Realtime stays connected, but only the active conversation is rendered. */
     startRealtime();
+    startBackgroundChatSync();
 
     /* Re-read saved conversations whenever the app becomes visible again. */
     if(!window.__totalkVisibilityRefresh){
