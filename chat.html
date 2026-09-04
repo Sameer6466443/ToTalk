@@ -4717,7 +4717,13 @@ async function loadConversationList(){
       ? profileMap.get(partnerId)
       : null;
 
-    if(!partner) return;
+    if(!partner && partnerId){
+      const fallbackName = partnerId === currentUser.id ? "You" : "ToTalk User";
+      const fallbackPartner = {user_id:partnerId,name:fallbackName,avatar_url:""};
+      profileMap.set(partnerId,fallbackPartner);
+    }
+    const visiblePartner = partner || (partnerId ? profileMap.get(partnerId) : null);
+    if(!visiblePartner) return;
 
     const item = document.createElement("button");
     item.type = "button";
@@ -4729,12 +4735,12 @@ async function loadConversationList(){
       (pref.unread ? " is-unread" : "");
     item.dataset.conversationId = row.id;
 
-    const name = partner.name || "ToTalk User";
+    const name = visiblePartner.name || "ToTalk User";
     const first =
       name.trim().charAt(0).toUpperCase() || "T";
     const latest = latestMap.get(row.id);
 
-    const isOnline = onlineUserIds.has(partner.user_id);
+    const isOnline = onlineUserIds.has(visiblePartner.user_id);
     const unreadCount = unreadMap.get(row.id) || 0;
 
     item.innerHTML = `
@@ -5269,29 +5275,6 @@ function startRealtime(){
       }, 1500);
     }
   });
-}
-
-
-/* =====================================================
-   BACKGROUND CHAT SYNC
-   Keeps saved conversations visible even when Realtime
-   is unavailable or the app was opened after messages arrived.
-===================================================== */
-function startBackgroundChatSync(){
-  if(window.__totalkChatSyncStarted || !currentUser) return;
-  window.__totalkChatSyncStarted = true;
-
-  const sync = ()=>{
-    if(!currentUser || document.visibilityState !== "visible") return;
-    void loadConversationList().catch(error=>{
-      console.error("Background chat sync error:", error);
-    });
-  };
-
-  /* Realtime is used when available; this is a quiet fallback. */
-  window.__totalkChatSyncTimer = setInterval(sync, 3000);
-  document.addEventListener("visibilitychange", sync);
-  window.addEventListener("focus", sync);
 }
 
 /* =====================================================
@@ -6021,7 +6004,6 @@ async function startApp(){
 
     /* Realtime stays connected, but only the active conversation is rendered. */
     startRealtime();
-    startBackgroundChatSync();
 
     /* Re-read saved conversations whenever the app becomes visible again. */
     if(!window.__totalkVisibilityRefresh){
@@ -6109,5 +6091,22 @@ startApp();
 
 </script>
 
+
+<script>
+(function(){
+  let lastRefresh=0;
+  async function refreshChats(){
+    if(typeof currentUser !== "undefined" && currentUser?.id && typeof loadConversationList === "function"){
+      const now=Date.now();
+      if(now-lastRefresh<1500)return;
+      lastRefresh=now;
+      try{await loadConversationList();}catch(e){console.warn("ToTalk chat refresh failed",e);}
+    }
+  }
+  setInterval(refreshChats,4000);
+  document.addEventListener("visibilitychange",()=>{if(!document.hidden)refreshChats();});
+  window.addEventListener("focus",refreshChats);
+})();
+</script>
 </body>
 </html>
