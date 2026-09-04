@@ -2932,14 +2932,23 @@ function openMobileConversation(){
   },40);
 }
 
-function closeMobileConversation(){
+async function closeMobileConversation(){
   if(!chatLayout || !isMobileLayout()) return;
+
+  /* Return to the chat list first. */
   chatLayout.classList.remove("mobile-chat-open");
   searchPanel?.classList.remove("open");
   currentConversationId = null;
   currentConversationPartner = null;
   document.querySelectorAll(".conversation-item.active").forEach(el=>el.classList.remove("active"));
   setEmptyChatState();
+
+  /* Reload the list so a newly opened conversation is visible immediately. */
+  try{
+    await loadConversationList();
+  }catch(error){
+    console.error("Chat list reload after back error:",error);
+  }
 }
 
 if(mobileChatBack){
@@ -4690,9 +4699,7 @@ async function loadConversationList(){
     .order("created_at",{ascending:false})
     .limit(500);
 
-  if(latestError){
-    console.error("Recent Chats message query error:", latestError);
-  }else{
+  if(!latestError){
     for(const item of (latestMessages || [])){
       if(!latestMap.has(item.conversation_id)){
         latestMap.set(item.conversation_id,item);
@@ -5076,24 +5083,6 @@ async function sendMessage(){
    REALTIME
 ===================================================== */
 
-let conversationListRefreshTimer = null;
-let conversationListRefreshRunning = false;
-
-function refreshConversationListSafely(){
-  clearTimeout(conversationListRefreshTimer);
-  conversationListRefreshTimer = setTimeout(async ()=>{
-    if(conversationListRefreshRunning || !currentUser?.id) return;
-    conversationListRefreshRunning = true;
-    try{
-      await loadConversationList();
-    }catch(error){
-      console.error("Recent Chats refresh error:", error);
-    }finally{
-      conversationListRefreshRunning = false;
-    }
-  }, 120);
-}
-
 function startRealtime(){
 
   if(!currentUser){
@@ -5124,11 +5113,6 @@ function startRealtime(){
       payload=>{
         const data = payload?.new;
         if(!data?.id) return;
-
-        /* Every new message must update Recent Chats, even when the
-           conversation is not currently open. */
-        refreshConversationListSafely();
-
         if(!currentConversationId || data.conversation_id !== currentConversationId) return;
 
         console.log("Realtime INSERT:", data);
@@ -5392,7 +5376,7 @@ function updatePresence(){
     chatPresenceIcon.textContent = partnerOnline ? "🌙" : "☀️";
   }
 
-  refreshConversationListSafely();
+  loadConversationList().catch(()=>{});
 }
 
 
