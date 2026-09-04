@@ -1870,39 +1870,91 @@ header{
 
 .conversation-empty strong{color:#cfc3df;font-size:12px;}
 .conversation-empty span{line-height:1.5;max-width:180px;}
-.empty-galaxy{
-  position:relative;width:78px;height:78px;margin-bottom:7px;
-  display:grid;place-items:center;
-  filter:drop-shadow(0 0 14px rgba(145,76,255,.24));
-}
-.galaxy-moon{
+ .empty-galaxy{
   position:relative;
-  z-index:3;
-  width:43px;
-  height:43px;
-  border-radius:50%;
-  background:radial-gradient(circle at 35% 28%,#e8d9ff 0%,#b56aff 24%,#7835d6 55%,#32106f 100%);
-  box-shadow:0 0 18px rgba(156,84,255,.75),0 0 35px rgba(156,84,255,.28),inset -9px -8px 13px rgba(25,8,62,.65),inset 5px 4px 8px rgba(255,255,255,.18);
-  animation:planetRevolve 7s linear infinite,moonFloat 3.2s ease-in-out infinite;
+  width:112px;
+  height:104px;
+  margin-bottom:7px;
+  display:grid;
+  place-items:center;
+  isolation:isolate;
+  filter:drop-shadow(0 0 16px rgba(145,76,255,.22));
 }
 .galaxy-orbit{
   position:absolute;
-  width:72px;
-  height:29px;
-  border:1px solid rgba(170,111,255,.7);
+  left:50%;
+  top:50%;
+  z-index:1;
+  width:104px;
+  height:42px;
+  margin-left:-52px;
+  margin-top:-21px;
+  border:1.5px solid rgba(190,148,255,.88);
   border-radius:50%;
   transform:rotate(-28deg);
-  box-shadow:0 0 10px rgba(145,76,255,.22),0 0 20px rgba(145,76,255,.12);
-  animation:orbitPulse 3.2s ease-in-out infinite;
+  box-shadow:0 0 7px rgba(181,133,255,.55),0 0 18px rgba(145,76,255,.24);
+  pointer-events:none;
 }
-.galaxy-star{position:absolute;color:#d8b5ff;font-weight:900;z-index:4;text-shadow:0 0 5px #c89aff,0 0 12px rgba(200,154,255,.9),0 0 22px rgba(145,76,255,.65);animation:starTwinkle 2.4s ease-in-out infinite;}
+.galaxy-orbit:after{
+  content:"";
+  position:absolute;
+  inset:-1px;
+  border:1px solid rgba(255,255,255,.16);
+  border-radius:50%;
+  transform:translateY(1px);
+}
+.galaxy-moon{
+  position:absolute;
+  left:50%;
+  top:50%;
+  z-index:3;
+  width:50px;
+  height:50px;
+  margin-left:-25px;
+  margin-top:-25px;
+  border-radius:50%;
+  background:
+    radial-gradient(circle at 29% 23%,#ffffff 0%,#f0d9ff 12%,#c28aff 34%,#8b42e8 62%,#4b159d 100%);
+  border:1px solid rgba(255,239,255,.92);
+  box-shadow:
+    0 0 7px rgba(235,205,255,.95),
+    0 0 18px rgba(171,101,255,.78),
+    0 0 34px rgba(110,45,220,.34),
+    inset -11px -10px 14px rgba(25,5,63,.58),
+    inset 7px 6px 10px rgba(255,255,255,.28);
+  transform:translateZ(0);
+  backface-visibility:hidden;
+  will-change:transform;
+  animation:planetBreath 5.5s ease-in-out infinite;
+}
+.galaxy-moon:before,.galaxy-moon:after{
+  content:"";
+  position:absolute;
+  border-radius:50%;
+  background:rgba(55,13,112,.28);
+  pointer-events:none;
+}
+.galaxy-moon:before{width:9px;height:9px;left:11px;top:14px;box-shadow:13px 12px 0 3px rgba(55,13,112,.18);}
+.galaxy-moon:after{width:6px;height:6px;right:10px;top:10px;background:rgba(255,255,255,.16);}
+.galaxy-star{
+  position:absolute;
+  color:#d8b5ff;
+  font-weight:900;
+  z-index:4;
+  text-shadow:0 0 5px #c89aff,0 0 12px rgba(200,154,255,.9),0 0 22px rgba(145,76,255,.65);
+  animation:starTwinkle 2.4s ease-in-out infinite;
+}
 .star-one{top:5px;right:8px;font-size:13px;}
 .star-two{bottom:10px;left:6px;font-size:22px;animation-delay:.7s;}
 .star-three{top:17px;left:4px;font-size:8px;animation-delay:1.2s;}
-@keyframes planetRevolve{0%{transform:rotateY(0deg)}100%{transform:rotateY(360deg)}}
-@keyframes moonFloat{0%,100%{margin-top:0}50%{margin-top:-4px}}
-@keyframes orbitPulse{0%,100%{opacity:.55;transform:rotate(-28deg) scale(1)}50%{opacity:1;transform:rotate(-28deg) scale(1.06)}}
-@keyframes starTwinkle{0%,100%{opacity:.35;transform:scale(.8)}50%{opacity:1;transform:scale(1.15)}}
+@keyframes planetBreath{
+  0%,100%{transform:translateZ(0) scale(1);}
+  50%{transform:translateZ(0) scale(1.025);}
+}
+@keyframes starTwinkle{
+  0%,100%{opacity:.62;transform:scale(.94)}
+  50%{opacity:1;transform:scale(1.08)}
+}
 
 .chat-box.empty-chat .input-area{opacity:.45;pointer-events:none;}
 .chat-box.empty-chat .chat-actions{opacity:.45;pointer-events:none;}
@@ -2354,6 +2406,87 @@ header{
 .conversation-item.is-unread .conversation-preview{color:#e1d6f2;font-weight:800;}
 .conversation-item.is-archived{display:none;}
 .conversation-pin{font-size:13px;margin-left:5px;}
+</style>
+
+<style id="totalk-final-galaxy-fix">
+/* Final ToTalk galaxy: stable, smooth, planet inside the orbit */
+.empty-galaxy{
+  width:210px !important;
+  height:190px !important;
+  margin-bottom:10px !important;
+  overflow:visible !important;
+  filter:none !important;
+  isolation:isolate !important;
+}
+.empty-galaxy::before{
+  content:"" !important;
+  position:absolute !important;
+  inset:-25px !important;
+  z-index:0 !important;
+  pointer-events:none !important;
+  background:
+    radial-gradient(circle at 12% 22%,rgba(214,164,255,.95) 0 1px,transparent 2px),
+    radial-gradient(circle at 22% 70%,rgba(190,125,255,.9) 0 1px,transparent 2px),
+    radial-gradient(circle at 35% 16%,rgba(220,180,255,.85) 0 1px,transparent 2px),
+    radial-gradient(circle at 48% 84%,rgba(190,125,255,.8) 0 1px,transparent 2px),
+    radial-gradient(circle at 67% 18%,rgba(220,180,255,.9) 0 1px,transparent 2px),
+    radial-gradient(circle at 84% 72%,rgba(190,125,255,.9) 0 1px,transparent 2px),
+    radial-gradient(circle at 92% 28%,rgba(220,180,255,.85) 0 1px,transparent 2px),
+    radial-gradient(circle at 76% 48%,rgba(190,125,255,.75) 0 1px,transparent 2px);
+  opacity:.9 !important;
+}
+.galaxy-orbit{
+  left:50% !important;
+  top:50% !important;
+  width:178px !important;
+  height:72px !important;
+  margin-left:-89px !important;
+  margin-top:-36px !important;
+  z-index:1 !important;
+  border-width:2px !important;
+  border-color:rgba(178,112,255,.9) !important;
+  transform:rotate(-24deg) !important;
+  box-shadow:0 0 8px rgba(163,91,255,.55),0 0 18px rgba(132,62,230,.22) !important;
+  animation:none !important;
+}
+.galaxy-orbit::after{opacity:.45 !important;}
+.galaxy-moon{
+  left:50% !important;
+  top:50% !important;
+  width:72px !important;
+  height:72px !important;
+  margin-left:-36px !important;
+  margin-top:-36px !important;
+  z-index:2 !important;
+  border:0 !important;
+  background:
+    radial-gradient(circle at 32% 25%,#c9a5ff 0%,#8d50df 30%,#5b2a9d 66%,#241044 100%) !important;
+  box-shadow:
+    0 0 0 1px rgba(190,145,255,.35),
+    0 0 18px rgba(137,75,230,.42),
+    inset -13px -12px 18px rgba(13,4,35,.58),
+    inset 8px 7px 13px rgba(255,255,255,.12) !important;
+  transform:none !important;
+  animation:none !important;
+  will-change:auto !important;
+}
+.galaxy-moon::before{
+  width:13px !important;height:13px !important;left:17px !important;top:22px !important;
+  background:rgba(36,12,82,.34) !important;
+  box-shadow:20px 18px 0 4px rgba(36,12,82,.2) !important;
+}
+.galaxy-moon::after{
+  width:8px !important;height:8px !important;right:15px !important;top:15px !important;
+  background:rgba(255,255,255,.1) !important;
+}
+.galaxy-star{
+  z-index:3 !important;
+  animation:none !important;
+  text-shadow:0 0 5px #c89aff,0 0 12px rgba(200,154,255,.9) !important;
+}
+.star-one{top:25px !important;right:18px !important;}
+.star-two{bottom:25px !important;left:18px !important;}
+.star-three{top:48px !important;left:18px !important;}
 </style>
 </head>
 
@@ -5129,139 +5262,113 @@ function startRealtime(){
 }
 
 /* =====================================================
-   PRESENCE — ONE SHARED STATUS FOR SIDEBAR + CHAT HEADER
+   PRESENCE
 ===================================================== */
 
-/* presenceChannel is declared above with the other app state. */
-let presenceStarting = false;
-let presenceRetryTimer = null;
+function startPresence(){
 
-function getOnlineUserIds(){
-  const ids = new Set();
-  if(!presenceChannel) return ids;
+  if(!currentUser){
+    return;
+  }
 
-  const state = presenceChannel.presenceState() || {};
-  Object.values(state).forEach(entries=>{
-    (entries || []).forEach(entry=>{
-      if(entry?.user_id) ids.add(String(entry.user_id));
-    });
-  });
-  return ids;
+  if(presenceChannel){
+    return;
+  }
+
+  presenceChannel =
+    supabaseClient
+      .channel(
+        "totalk-presence"
+      );
+
+  presenceChannel
+    .on(
+      "presence",
+      {
+        event:"sync"
+      },
+      ()=>{
+        updatePresence();
+      }
+    )
+    .on(
+      "presence",
+      {
+        event:"join"
+      },
+      ()=>{
+        updatePresence();
+      }
+    )
+    .on(
+      "presence",
+      {
+        event:"leave"
+      },
+      ()=>{
+        updatePresence();
+      }
+    )
+    .subscribe(
+      async status=>{
+
+        if(
+          status ===
+          "SUBSCRIBED"
+        ){
+
+          await presenceChannel.track({
+
+            user_id:
+              currentUser.id,
+
+            online_at:
+              new Date().toISOString()
+
+          });
+
+        }
+
+      }
+    );
+
 }
 
-function renderPartnerPresence(isOnline){
-  const label = isOnline ? "Online" : "Offline";
-  const icon = isOnline ? "🌙" : "☀️";
+function updatePresence(){
+
+  onlineUserIds = new Set();
+
+  if(presenceChannel){
+    const state = presenceChannel.presenceState();
+    Object.values(state || {}).forEach(entries=>{
+      (entries || []).forEach(entry=>{
+        if(entry?.user_id) onlineUserIds.add(entry.user_id);
+      });
+    });
+  }
 
   const sidePresence = document.getElementById("sidePresence");
   const chatPresence = document.getElementById("chatPresence");
-  const chatPresenceIcon = document.getElementById("chatPresenceIcon");
+
+  const partnerOnline = currentConversationPartner
+    ? onlineUserIds.has(currentConversationPartner.user_id)
+    : false;
 
   if(sidePresence){
-    sidePresence.textContent = label;
-    sidePresence.classList.toggle("online", isOnline);
-    sidePresence.classList.toggle("offline", !isOnline);
+    sidePresence.textContent = partnerOnline ? "Online" : "Offline";
   }
 
   if(chatPresence){
-    chatPresence.textContent = label;
-    chatPresence.classList.toggle("online", isOnline);
-    chatPresence.classList.toggle("offline", !isOnline);
+    chatPresence.textContent = partnerOnline ? "Online" : "Offline";
   }
 
+  const chatPresenceIcon = document.getElementById("chatPresenceIcon");
   if(chatPresenceIcon){
-    chatPresenceIcon.textContent = icon;
-    chatPresenceIcon.setAttribute("aria-label", label);
+    chatPresenceIcon.textContent = partnerOnline ? "🌙" : "☀️";
   }
+
+  loadConversationList().catch(()=>{});
 }
-
-function updatePresence(shouldReload=true){
-  onlineUserIds = getOnlineUserIds();
-
-  const partnerId = currentConversationPartner?.user_id
-    ? String(currentConversationPartner.user_id)
-    : "";
-
-  /* Both locations use this exact same value. */
-  renderPartnerPresence(Boolean(partnerId && onlineUserIds.has(partnerId)));
-
-  if(shouldReload){
-    loadConversationList().catch(()=>{});
-  }
-}
-
-function schedulePresenceRetry(){
-  if(presenceRetryTimer) return;
-  presenceRetryTimer = setTimeout(()=>{
-    presenceRetryTimer = null;
-    presenceChannel = null;
-    startPresence();
-  }, 2000);
-}
-
-function startPresence(){
-  if(!currentUser || presenceStarting || presenceChannel) return;
-  presenceStarting = true;
-
-  const channel = supabaseClient.channel("totalk-presence", {
-    config: {
-      presence: {
-        key: String(currentUser.id)
-      }
-    }
-  });
-
-  presenceChannel = channel;
-
-  channel
-    .on("presence", {event:"sync"}, ()=>updatePresence())
-    .on("presence", {event:"join"}, ()=>updatePresence())
-    .on("presence", {event:"leave"}, ()=>updatePresence());
-
-  channel.subscribe(async status=>{
-    if(status === "SUBSCRIBED"){
-      try{
-        await channel.track({
-          user_id: String(currentUser.id),
-          online_at: new Date().toISOString()
-        });
-        presenceStarting = false;
-        updatePresence();
-      }catch(error){
-        console.error("Presence track error:", error);
-        presenceStarting = false;
-        updatePresence(false);
-        schedulePresenceRetry();
-      }
-      return;
-    }
-
-    if(status === "CHANNEL_ERROR" || status === "TIMED_OUT" || status === "CLOSED"){
-      console.warn("ToTalk presence connection:", status);
-      presenceStarting = false;
-      if(presenceChannel === channel) presenceChannel = null;
-      onlineUserIds = new Set();
-      updatePresence(false);
-      try{ await supabaseClient.removeChannel(channel); }catch(error){}
-      schedulePresenceRetry();
-    }
-  });
-}
-
-window.addEventListener("online", ()=>{
-  if(!presenceChannel) startPresence();
-});
-
-window.addEventListener("offline", ()=>{
-  onlineUserIds = new Set();
-  updatePresence(false);
-});
-
-window.addEventListener("pagehide", ()=>{
-  if(presenceChannel){
-    presenceChannel.untrack().catch(()=>{});
-  }
-});
 
 
 /* =====================================================
