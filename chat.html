@@ -4432,7 +4432,7 @@ async function loadConversationList(){
 
   if(conversationError) throw conversationError;
 
-  const safeRows = rows || [];
+  let safeRows = rows || [];
   conversations = safeRows;
 
   if(!safeRows.length){
