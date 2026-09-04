@@ -1431,23 +1431,6 @@ header{
   opacity:.6;
 }
 
-/* Refresh saved conversations automatically when the browser returns
-   from the background. This also catches messages received while the
-   user was not using the website, without requiring a manual refresh. */
-window.addEventListener("focus", ()=>{
-  if(currentUser) void loadConversationList().catch(error=>{
-    console.error("Focus chat-list refresh error:", error);
-  });
-});
-
-document.addEventListener("visibilitychange", ()=>{
-  if(document.visibilityState === "visible" && currentUser){
-    void loadConversationList().catch(error=>{
-      console.error("Visibility chat-list refresh error:", error);
-    });
-  }
-});
-
 /* =====================================================
    SEARCH
 ===================================================== */
@@ -2949,23 +2932,14 @@ function openMobileConversation(){
   },40);
 }
 
-async function closeMobileConversation(){
+function closeMobileConversation(){
   if(!chatLayout || !isMobileLayout()) return;
-
-  /* Return to the chat list first. */
   chatLayout.classList.remove("mobile-chat-open");
   searchPanel?.classList.remove("open");
   currentConversationId = null;
   currentConversationPartner = null;
   document.querySelectorAll(".conversation-item.active").forEach(el=>el.classList.remove("active"));
   setEmptyChatState();
-
-  /* Reload the list so a newly opened conversation is visible immediately. */
-  try{
-    await loadConversationList();
-  }catch(error){
-    console.error("Chat list reload after back error:",error);
-  }
 }
 
 if(mobileChatBack){
@@ -5130,23 +5104,17 @@ function startRealtime(){
       payload=>{
         const data = payload?.new;
         if(!data?.id) return;
-        /*
-         * If the user is on the Chats page or inside another conversation,
-         * still refresh the conversation list so incoming messages appear
-         * there immediately with the latest preview and unread count.
-         */
-        /* Always refresh Chats for every incoming message, even when the
-           user is on the Chats page, another conversation, or returning
-           after being away from the website. */
+
+        /* Always refresh the Chats list for every incoming message.
+           Do this before checking which conversation is open, so messages
+           received while the user is on Chats, another chat, or returning
+           after being away can appear without a manual refresh. */
         void loadConversationList().catch(error=>{
           console.error("Incoming message chat-list refresh error:", error);
         });
 
-        /* If this conversation is currently open, also show the message
-           immediately inside the open chat without requiring a refresh. */
-        if(!currentConversationId || data.conversation_id !== currentConversationId){
-          return;
-        }
+        /* Only render the message bubble when this conversation is open. */
+        if(!currentConversationId || data.conversation_id !== currentConversationId) return;
 
         console.log("Realtime INSERT:", data);
 
@@ -6030,6 +5998,26 @@ async function startApp(){
 
     /* Realtime stays connected, but only the active conversation is rendered. */
     startRealtime();
+
+    /* Re-read saved conversations whenever the app becomes visible again. */
+    if(!window.__totalkVisibilityRefresh){
+      window.__totalkVisibilityRefresh = true;
+      document.addEventListener("visibilitychange", ()=>{
+        if(document.visibilityState === "visible" && currentUser){
+          void loadConversationList().catch(error=>{
+            console.error("Visibility chat-list refresh error:", error);
+          });
+          if(!realtimeChannel) startRealtime();
+        }
+      });
+      window.addEventListener("focus", ()=>{
+        if(currentUser){
+          void loadConversationList().catch(error=>{
+            console.error("Focus chat-list refresh error:", error);
+          });
+        }
+      });
+    }
 
     startPresence();
 
