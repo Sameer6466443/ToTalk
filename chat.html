@@ -1870,77 +1870,92 @@ header{
 
 .conversation-empty strong{color:#cfc3df;font-size:12px;}
 .conversation-empty span{line-height:1.5;max-width:180px;}
-.empty-galaxy{
-  position:relative;width:78px;height:78px;margin-bottom:7px;
-  display:grid;place-items:center;
-  filter:drop-shadow(0 0 14px rgba(145,76,255,.24));
-}
-.galaxy-moon{
+ .empty-galaxy{
   position:relative;
-  z-index:3;
-  width:40px;
-  height:40px;
-  border-radius:50%;
-  background:
-    radial-gradient(circle at 32% 25%,#f0ddff 0%,#c58aff 18%,#8b43e8 46%,#4b1599 78%,#210744 100%);
-  border:1px solid rgba(221,190,255,.65);
-  box-shadow:
-    0 0 8px rgba(190,123,255,.95),
-    0 0 22px rgba(145,76,255,.65),
-    0 0 42px rgba(110,45,220,.28),
-    inset -8px -7px 12px rgba(22,4,54,.65),
-    inset 5px 4px 8px rgba(255,255,255,.25);
-  animation:planetGlow 3.4s ease-in-out infinite;
-}
-
-.galaxy-moon:before,
-.galaxy-moon:after{
-  content:"";
-  position:absolute;
-  border-radius:50%;
-  background:rgba(47,12,93,.28);
-}
-
-.galaxy-moon:before{
-  width:7px;
-  height:7px;
-  left:10px;
-  top:12px;
-}
-
-.galaxy-moon:after{
-  width:10px;
-  height:10px;
-  right:8px;
-  bottom:9px;
+  width:92px;
+  height:92px;
+  margin-bottom:7px;
+  display:grid;
+  place-items:center;
+  isolation:isolate;
+  filter:drop-shadow(0 0 14px rgba(145,76,255,.24));
 }
 .galaxy-orbit{
   position:absolute;
-  width:72px;
-  height:29px;
-  border:1px solid rgba(170,111,255,.7);
+  left:50%;
+  top:50%;
+  z-index:1;
+  width:86px;
+  height:34px;
+  margin-left:-43px;
+  margin-top:-17px;
+  border:1.5px solid rgba(181,133,255,.85);
   border-radius:50%;
   transform:rotate(-28deg);
-  box-shadow:0 0 10px rgba(145,76,255,.22),0 0 20px rgba(145,76,255,.12);
-  animation:orbitPulse 3.2s ease-in-out infinite;
+  box-shadow:0 0 8px rgba(145,76,255,.38),0 0 18px rgba(145,76,255,.2);
+  animation:orbitPulse 4.8s ease-in-out infinite;
+  pointer-events:none;
 }
-.galaxy-star{position:absolute;color:#d8b5ff;font-weight:900;z-index:4;text-shadow:0 0 5px #c89aff,0 0 12px rgba(200,154,255,.9),0 0 22px rgba(145,76,255,.65);animation:starTwinkle 2.4s ease-in-out infinite;}
+.galaxy-moon{
+  position:absolute;
+  left:50%;
+  top:50%;
+  z-index:3;
+  width:42px;
+  height:42px;
+  margin-left:-21px;
+  margin-top:-21px;
+  border-radius:50%;
+  background:
+    radial-gradient(circle at 32% 24%,#fff4ff 0%,#e1baff 18%,#b66cff 42%,#7831d5 70%,#321064 100%);
+  border:1px solid rgba(244,225,255,.9);
+  box-shadow:
+    0 0 8px rgba(214,170,255,.95),
+    0 0 20px rgba(145,76,255,.72),
+    0 0 38px rgba(110,45,220,.30),
+    inset -9px -8px 12px rgba(22,4,54,.58),
+    inset 6px 5px 8px rgba(255,255,255,.24);
+  animation:planetGlow 4.8s ease-in-out infinite;
+  transform:translateZ(0);
+  backface-visibility:hidden;
+  will-change:box-shadow;
+}
+.galaxy-moon:before,.galaxy-moon:after{
+  content:"";
+  position:absolute;
+  border-radius:50%;
+  background:rgba(54,14,105,.28);
+  pointer-events:none;
+}
+.galaxy-moon:before{width:8px;height:8px;left:10px;top:12px;}
+.galaxy-moon:after{width:11px;height:11px;right:7px;bottom:8px;}
+.galaxy-star{
+  position:absolute;
+  color:#d8b5ff;
+  font-weight:900;
+  z-index:4;
+  text-shadow:0 0 5px #c89aff,0 0 12px rgba(200,154,255,.9),0 0 22px rgba(145,76,255,.65);
+  animation:starTwinkle 2.4s ease-in-out infinite;
+}
 .star-one{top:5px;right:8px;font-size:13px;}
 .star-two{bottom:10px;left:6px;font-size:22px;animation-delay:.7s;}
 .star-three{top:17px;left:4px;font-size:8px;animation-delay:1.2s;}
 @keyframes planetGlow{
   0%,100%{
-    transform:scale(1);
-    box-shadow:0 0 8px rgba(190,123,255,.95),0 0 22px rgba(145,76,255,.65),0 0 42px rgba(110,45,220,.28),inset -8px -7px 12px rgba(22,4,54,.65),inset 5px 4px 8px rgba(255,255,255,.25);
+    box-shadow:0 0 8px rgba(214,170,255,.95),0 0 20px rgba(145,76,255,.72),0 0 38px rgba(110,45,220,.30),inset -9px -8px 12px rgba(22,4,54,.58),inset 6px 5px 8px rgba(255,255,255,.24);
   }
   50%{
-    transform:scale(1.04);
-    box-shadow:0 0 12px rgba(210,160,255,1),0 0 30px rgba(145,76,255,.82),0 0 52px rgba(110,45,220,.36),inset -8px -7px 12px rgba(22,4,54,.65),inset 5px 4px 8px rgba(255,255,255,.25);
+    box-shadow:0 0 10px rgba(225,190,255,.98),0 0 24px rgba(145,76,255,.80),0 0 44px rgba(110,45,220,.36),inset -9px -8px 12px rgba(22,4,54,.58),inset 6px 5px 8px rgba(255,255,255,.24);
   }
 }
-@keyframes moonFloat{0%,100%{margin-top:0}50%{margin-top:-4px}}
-@keyframes orbitPulse{0%,100%{opacity:.55;transform:rotate(-28deg) scale(1)}50%{opacity:1;transform:rotate(-28deg) scale(1.06)}}
-@keyframes starTwinkle{0%,100%{opacity:.35;transform:scale(.8)}50%{opacity:1;transform:scale(1.15)}}
+@keyframes orbitPulse{
+  0%,100%{opacity:.72;}
+  50%{opacity:1;}
+}
+@keyframes starTwinkle{
+  0%,100%{opacity:.35;transform:scale(.8)}
+  50%{opacity:1;transform:scale(1.15)}
+}
 
 .chat-box.empty-chat .input-area{opacity:.45;pointer-events:none;}
 .chat-box.empty-chat .chat-actions{opacity:.45;pointer-events:none;}
