@@ -1790,6 +1790,14 @@ header{
 }
 
 .user-search-info{min-width:0;flex:1;}
+
+/* Avatar-only presence indicator: moon = online, sun = offline. */
+.conversation-avatar-wrap{position:relative;width:58px;height:58px;flex:0 0 58px;display:grid;place-items:center;}
+.conversation-avatar-wrap .mini-avatar{width:58px;height:58px;flex-basis:58px;font-size:25px;}
+.presence-avatar-icon{position:absolute;right:-5px;bottom:-4px;width:29px;height:29px;display:grid;place-items:center;border-radius:50%;background:#080714;font-size:25px;line-height:1;filter:drop-shadow(0 0 5px rgba(0,0,0,.75));}
+.presence-avatar-icon.online{color:#10bdf5;}
+.presence-avatar-icon.offline{color:#ffc21c;}
+
 .user-search-name{font-size:12px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .user-search-id{margin-top:3px;color:#a99bbd;font-size:10px;}
 
@@ -1851,8 +1859,8 @@ header{
 .conversation-name{color:#fff !important;font-size:15px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .conversation-time{color:#9285a7;font-size:11px;white-space:nowrap;}
 .conversation-preview{margin-top:5px;color:#a69ab8;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.conversation-status{display:flex;align-items:center;gap:5px;margin-top:5px;color:#b8a8ca;font-size:11px;font-weight:800;}
-.conversation-status-icon{font-size:14px;line-height:1;}
+.conversation-status{display:none!important;}
+.conversation-status-icon{display:none!important;}
 .unread-badge{min-width:22px;height:22px;padding:0 6px;border-radius:999px;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#a45cff,#6321d8);color:#fff;font-size:11px;font-weight:900;box-shadow:0 0 14px rgba(145,76,255,.4);}
 .conversation-empty{
   min-height:190px;
@@ -4488,17 +4496,16 @@ async function loadConversationList(){
     const unreadCount = unreadMap.get(row.id) || 0;
 
     item.innerHTML = `
-      <span class="mini-avatar">${escapeHtml(first)}</span>
+      <span class="conversation-avatar-wrap">
+        <span class="mini-avatar">${escapeHtml(first)}</span>
+        <span class="presence-avatar-icon ${isOnline ? "online" : "offline"}" aria-label="${isOnline ? "Online" : "Offline"}">${isOnline ? "🌙" : "☀️"}</span>
+      </span>
       <span class="conversation-copy">
         <span class="conversation-top">
           <span class="conversation-name">${escapeHtml(name)}</span>
           <span class="conversation-time">${latest ? escapeHtml(formatTime(latest.created_at)) : ""}</span>
         </span>
         <span class="conversation-preview">${escapeHtml(latest?.content || "No messages yet")}</span>
-        <span class="conversation-status">
-          <span class="conversation-status-icon">${isOnline ? "🌙" : "☀️"}</span>
-          <span>${isOnline ? "Online" : "Offline"}</span>
-        </span>
       </span>
       ${unreadCount ? `<span class="unread-badge">${unreadCount > 99 ? "99+" : unreadCount}</span>` : ""}
     `;
