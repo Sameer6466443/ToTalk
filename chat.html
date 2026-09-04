@@ -2994,7 +2994,7 @@ let conversationOptionsTarget = null;
 const optionsBackdrop = document.getElementById("conversationOptionsBackdrop");
 const optionsTitle = document.getElementById("conversationOptionsTitle");
 function closeConversationOptions(){optionsBackdrop?.classList.remove("open");optionsBackdrop?.setAttribute("aria-hidden","true");conversationOptionsTarget=null;}
-function openConversationOptions(row,partner){
+function openConversationOptions(row,visiblePartner){
   conversationOptionsTarget={row,partner};
   if(optionsTitle) optionsTitle.textContent=partner?.name || "Conversation options";
   const prefs=readConversationPrefs(); const id=row.id; const itemPrefs=prefs[id]||{};
@@ -4698,6 +4698,14 @@ async function loadConversationList(){
     }
   }
 
+  /* If participant rows are restricted by RLS, recover the other user
+     from the latest incoming message so the conversation still appears. */
+  for(const item of (latestMessages || [])){
+    if(item.conversation_id && item.sender_id && item.sender_id !== currentUser.id && !partnerMap.has(item.conversation_id)){
+      partnerMap.set(item.conversation_id,item.sender_id);
+    }
+  }
+
   const unreadMap = new Map();
   for(const item of (latestMessages || [])){
     if(item.sender_id && item.sender_id !== currentUser.id){
@@ -4758,10 +4766,10 @@ async function loadConversationList(){
       ${unreadCount ? `<span class="unread-badge">${unreadCount > 99 ? "99+" : unreadCount}</span>` : ""}
     `;
 
-    item.addEventListener("click",()=>openConversation(row,partner));
-    item.addEventListener("contextmenu",event=>{event.preventDefault();openConversationOptions(row,partner);});
+    item.addEventListener("click",()=>openConversation(row,visiblePartner));
+    item.addEventListener("contextmenu",event=>{event.preventDefault();openConversationOptions(row,visiblePartner);});
     let pressTimer=null;
-    item.addEventListener("pointerdown",()=>{pressTimer=setTimeout(()=>openConversationOptions(row,partner),550);});
+    item.addEventListener("pointerdown",()=>{pressTimer=setTimeout(()=>openConversationOptions(row,visiblePartner),550);});
     ["pointerup","pointerleave","pointercancel"].forEach(type=>item.addEventListener(type,()=>clearTimeout(pressTimer)));
 
     conversationList.appendChild(item);
