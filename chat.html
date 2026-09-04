@@ -1431,6 +1431,23 @@ header{
   opacity:.6;
 }
 
+/* Refresh saved conversations automatically when the browser returns
+   from the background. This also catches messages received while the
+   user was not using the website, without requiring a manual refresh. */
+window.addEventListener("focus", ()=>{
+  if(currentUser) void loadConversationList().catch(error=>{
+    console.error("Focus chat-list refresh error:", error);
+  });
+});
+
+document.addEventListener("visibilitychange", ()=>{
+  if(document.visibilityState === "visible" && currentUser){
+    void loadConversationList().catch(error=>{
+      console.error("Visibility chat-list refresh error:", error);
+    });
+  }
+});
+
 /* =====================================================
    SEARCH
 ===================================================== */
@@ -5113,7 +5130,23 @@ function startRealtime(){
       payload=>{
         const data = payload?.new;
         if(!data?.id) return;
-        if(!currentConversationId || data.conversation_id !== currentConversationId) return;
+        /*
+         * If the user is on the Chats page or inside another conversation,
+         * still refresh the conversation list so incoming messages appear
+         * there immediately with the latest preview and unread count.
+         */
+        /* Always refresh Chats for every incoming message, even when the
+           user is on the Chats page, another conversation, or returning
+           after being away from the website. */
+        void loadConversationList().catch(error=>{
+          console.error("Incoming message chat-list refresh error:", error);
+        });
+
+        /* If this conversation is currently open, also show the message
+           immediately inside the open chat without requiring a refresh. */
+        if(!currentConversationId || data.conversation_id !== currentConversationId){
+          return;
+        }
 
         console.log("Realtime INSERT:", data);
 
