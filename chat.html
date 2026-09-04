@@ -2272,6 +2272,45 @@ header{
   background:rgba(255,255,255,.07);
 }
 .edit-action:disabled{opacity:.55;cursor:not-allowed;transform:none;}
+
+/* FINAL REFERENCE MATCH — HEADER CONTROLS */
+#logoutBtn{
+  display:inline-flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  flex-direction:row !important;
+  gap:9px !important;
+  white-space:nowrap !important;
+  line-height:1 !important;
+}
+#logoutBtn .logout-icon{
+  display:grid !important;
+  place-items:center !important;
+  width:25px !important;
+  height:25px !important;
+  flex:0 0 25px !important;
+}
+#logoutBtn > span:last-child{
+  display:inline-block !important;
+  line-height:1 !important;
+}
+.profile-header-btn{
+  flex-direction:row !important;
+  white-space:nowrap !important;
+  line-height:1 !important;
+}
+@media(max-width:800px){
+  #logoutBtn{
+    display:inline-flex !important;
+    flex-direction:row !important;
+    gap:5px !important;
+  }
+  #logoutBtn .logout-icon{
+    width:20px !important;
+    height:20px !important;
+    flex-basis:20px !important;
+  }
+}
 </style>
 </head>
 
