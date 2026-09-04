@@ -2407,6 +2407,87 @@ header{
 .conversation-item.is-archived{display:none;}
 .conversation-pin{font-size:13px;margin-left:5px;}
 </style>
+
+<style id="totalk-final-galaxy-fix">
+/* Final ToTalk galaxy: stable, smooth, planet inside the orbit */
+.empty-galaxy{
+  width:210px !important;
+  height:190px !important;
+  margin-bottom:10px !important;
+  overflow:visible !important;
+  filter:none !important;
+  isolation:isolate !important;
+}
+.empty-galaxy::before{
+  content:"" !important;
+  position:absolute !important;
+  inset:-25px !important;
+  z-index:0 !important;
+  pointer-events:none !important;
+  background:
+    radial-gradient(circle at 12% 22%,rgba(214,164,255,.95) 0 1px,transparent 2px),
+    radial-gradient(circle at 22% 70%,rgba(190,125,255,.9) 0 1px,transparent 2px),
+    radial-gradient(circle at 35% 16%,rgba(220,180,255,.85) 0 1px,transparent 2px),
+    radial-gradient(circle at 48% 84%,rgba(190,125,255,.8) 0 1px,transparent 2px),
+    radial-gradient(circle at 67% 18%,rgba(220,180,255,.9) 0 1px,transparent 2px),
+    radial-gradient(circle at 84% 72%,rgba(190,125,255,.9) 0 1px,transparent 2px),
+    radial-gradient(circle at 92% 28%,rgba(220,180,255,.85) 0 1px,transparent 2px),
+    radial-gradient(circle at 76% 48%,rgba(190,125,255,.75) 0 1px,transparent 2px);
+  opacity:.9 !important;
+}
+.galaxy-orbit{
+  left:50% !important;
+  top:50% !important;
+  width:178px !important;
+  height:72px !important;
+  margin-left:-89px !important;
+  margin-top:-36px !important;
+  z-index:1 !important;
+  border-width:2px !important;
+  border-color:rgba(178,112,255,.9) !important;
+  transform:rotate(-24deg) !important;
+  box-shadow:0 0 8px rgba(163,91,255,.55),0 0 18px rgba(132,62,230,.22) !important;
+  animation:none !important;
+}
+.galaxy-orbit::after{opacity:.45 !important;}
+.galaxy-moon{
+  left:50% !important;
+  top:50% !important;
+  width:72px !important;
+  height:72px !important;
+  margin-left:-36px !important;
+  margin-top:-36px !important;
+  z-index:2 !important;
+  border:0 !important;
+  background:
+    radial-gradient(circle at 32% 25%,#c9a5ff 0%,#8d50df 30%,#5b2a9d 66%,#241044 100%) !important;
+  box-shadow:
+    0 0 0 1px rgba(190,145,255,.35),
+    0 0 18px rgba(137,75,230,.42),
+    inset -13px -12px 18px rgba(13,4,35,.58),
+    inset 8px 7px 13px rgba(255,255,255,.12) !important;
+  transform:none !important;
+  animation:none !important;
+  will-change:auto !important;
+}
+.galaxy-moon::before{
+  width:13px !important;height:13px !important;left:17px !important;top:22px !important;
+  background:rgba(36,12,82,.34) !important;
+  box-shadow:20px 18px 0 4px rgba(36,12,82,.2) !important;
+}
+.galaxy-moon::after{
+  width:8px !important;height:8px !important;right:15px !important;top:15px !important;
+  background:rgba(255,255,255,.1) !important;
+}
+.galaxy-star{
+  z-index:3 !important;
+  animation:none !important;
+  text-shadow:0 0 5px #c89aff,0 0 12px rgba(200,154,255,.9) !important;
+}
+.star-one{top:25px !important;right:18px !important;}
+.star-two{bottom:25px !important;left:18px !important;}
+.star-three{top:48px !important;left:18px !important;}
+</style>
 </head>
 
 <body>
