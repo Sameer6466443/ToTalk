@@ -4848,6 +4848,25 @@ async function startConversationWithUser(partner){
 
   try{
     const row = await getOrCreateConversation(partner.user_id);
+
+    /*
+     * DELETE CONVERSATION IS A LOCAL HISTORY ACTION.
+     * The conversation and its messages remain in Supabase.
+     * If the user searches the same ToTalk ID again, restore that
+     * conversation in their history and open the existing messages.
+     */
+    const prefs = readConversationPrefs();
+    if(prefs[row.id]?.deleted){
+      delete prefs[row.id].deleted;
+
+      /* Keep pin/mute/unread/archive preferences if they exist. */
+      if(Object.keys(prefs[row.id]).length === 0){
+        delete prefs[row.id];
+      }
+
+      writeConversationPrefs(prefs);
+    }
+
     await loadConversationList();
     await openConversation(row,partner);
   }catch(error){
