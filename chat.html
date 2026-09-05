@@ -3235,27 +3235,76 @@ function updateConversationItemInstant(id,mutator){
   const item=conversationList?.querySelector(`[data-conversation-id="${CSS.escape(id)}"]`);
   if(item) mutator(item);
 }
-function applyConversationAction(action){
+async function applyConversationAction(action){
   if(!conversationOptionsTarget) return;
-  const id=conversationOptionsTarget.row.id; const prefs=readConversationPrefs(); const item=prefs[id]||{};
-  if(action==="cancel"){closeConversationOptions();return;}
-  if(action==="report"){openReportDialog();return;}
-  if(action==="pin") item.pinned=!item.pinned;
-  if(action==="mute") item.muted=!item.muted;
-  if(action==="unread") item.unread=true;
-  if(action==="delete"){if(!confirm("Delete this conversation from your chat list?")) return;item.deleted=true;}
-  prefs[id]=item;writeConversationPrefs(prefs);closeConversationOptions();
+
+  const target = conversationOptionsTarget;
+  const id = target.row.id;
+  const prefs = readConversationPrefs();
+  const item = prefs[id] || {};
+
+  if(action === "cancel"){
+    closeConversationOptions();
+    return;
+  }
+
+  if(action === "report"){
+    openReportDialog();
+    return;
+  }
+
+  if(action === "pin") item.pinned = !item.pinned;
+  if(action === "mute") item.muted = !item.muted;
+  if(action === "unread") item.unread = true;
+
+  if(action === "delete"){
+    if(!confirm("Delete this conversation from your chat history?")) return;
+
+    /*
+     * IMPORTANT: deletion is account-wide.
+     * The hidden state lives on this user's conversation participant row
+     * in Supabase, not in browser localStorage.
+     */
+    const {error} = await supabaseClient
+      .from("conversation_participants")
+      .update({deleted_at:new Date().toISOString()})
+      .eq("conversation_id",id)
+      .eq("user_id",currentUser.id);
+
+    if(error){
+      console.error("Delete conversation error:",error);
+      showStatus("Conversation could not be deleted. Please try again.");
+      return;
+    }
+
+    /* Remove the old browser-only delete flag if it exists. */
+    delete item.deleted;
+    prefs[id] = item;
+    writeConversationPrefs(prefs);
+    closeConversationOptions();
+
+    /* Remove from the current UI immediately. */
+    updateConversationItemInstant(id,el=>el.remove());
+    void loadConversationList().catch(error=>console.error("Background conversation refresh error:",error));
+    return;
+  }
+
+  prefs[id] = item;
+  writeConversationPrefs(prefs);
+  closeConversationOptions();
+
   /* Apply the visual state immediately; refresh silently afterwards. */
-  if(action==="pin" || action==="mute" || action==="unread" || action==="delete"){
+  if(action === "pin" || action === "mute" || action === "unread"){
     updateConversationItemInstant(id,el=>{
-      if(action==="pin") el.classList.toggle("is-pinned",!!item.pinned);
-      if(action==="mute") el.classList.toggle("is-muted",!!item.muted);
-      if(action==="unread") el.classList.add("is-unread");
-      if(action==="delete") el.remove();
+      if(action === "pin") el.classList.toggle("is-pinned",!!item.pinned);
+      if(action === "mute") el.classList.toggle("is-muted",!!item.muted);
+      if(action === "unread") el.classList.add("is-unread");
     });
   }
+
   void loadConversationList().catch(error=>console.error("Background conversation refresh error:",error));
 }
+
 optionsBackdrop?.addEventListener("click",e=>{if(e.target===optionsBackdrop) closeConversationOptions();});
 optionsBackdrop?.querySelectorAll("[data-conversation-action]").forEach(btn=>btn.addEventListener("click",()=>applyConversationAction(btn.dataset.conversationAction)));
 
@@ -4828,7 +4877,7 @@ async function loadConversationList(){
    */
   const {data:participantRows,error:participantError} = await supabaseClient
     .from("conversation_participants")
-    .select("conversation_id,user_id,last_read_at")
+    .select("conversation_id,user_id,last_read_at,deleted_at")
     .eq("user_id",currentUser.id);
 
   if(participantError) throw participantError;
@@ -4953,13 +5002,16 @@ async function loadConversationList(){
   }
 
   /*
-   * Unread messages are based on the current user's persistent
-   * last_read_at value stored in Supabase on conversation_participants.
-   * localStorage is still used for UI preferences such as pin/mute/archive,
-   * but it is NOT the source of truth for read state.
+   * UNREAD COUNT — SERVER SOURCE OF TRUTH
+   *
+   * Do not depend on localStorage for whether an incoming message is unread.
+   * Incognito/private windows have a fresh localStorage, so the authoritative
+   * value must come from conversation_participants.last_read_at in Supabase.
+   *
+   * We query unread messages per conversation after that server timestamp.
+   * This is intentionally separate from the latest-message query below.
    */
   const prefs = readConversationPrefs();
-  const readOverrides = readConversationReadOverrides();
   const unreadMap = new Map();
   const readAtMap = new Map(
     (participantRows || []).map(row=>[
@@ -4968,22 +5020,91 @@ async function loadConversationList(){
     ])
   );
 
-  for(const item of (latestMessages || [])){
-    if(!item.sender_id || item.sender_id === currentUser.id) continue;
-    if(item.conversation_id === currentConversationId) continue;
+  await Promise.all(
+    conversationIds.map(async conversationId=>{
+      if(conversationId === currentConversationId) return;
 
-    const serverReadAt = readAtMap.get(item.conversation_id) || 0;
-    const localReadAt = getLocalReadAt(item.conversation_id);
-    const readAt = Math.max(serverReadAt, localReadAt);
-    const messageTime = Date.parse(item.created_at || "") || 0;
+      const serverReadAt = readAtMap.get(conversationId) || 0;
+      let query = supabaseClient
+        .from("messages")
+        .select("conversation_id",{count:"exact",head:true})
+        .eq("conversation_id",conversationId)
+        .neq("sender_id",currentUser.id);
 
-    if(messageTime > readAt && prefs[item.conversation_id]?.unread !== true){
-      unreadMap.set(
-        item.conversation_id,
-        (unreadMap.get(item.conversation_id) || 0) + 1
+      if(serverReadAt > 0){
+        query = query.gt("created_at",new Date(serverReadAt).toISOString());
+      }
+
+      const {count,error:unreadError} = await query;
+
+      if(unreadError){
+        console.warn("Unread count query failed:",conversationId,unreadError);
+        return;
+      }
+
+      let unreadCount = Number(count || 0);
+
+      /* Preserve the explicit local "Mark as unread" action. */
+      if(prefs[conversationId]?.unread === true){
+        unreadCount = Math.max(unreadCount,1);
+      }
+
+      if(unreadCount > 0){
+        unreadMap.set(conversationId,unreadCount);
+      }
+    })
+  );
+
+  /*
+   * DELETE HISTORY — SERVER SOURCE OF TRUTH
+   *
+   * A conversation can be hidden from this account by setting
+   * conversation_participants.deleted_at.  This is intentionally stored
+   * in Supabase instead of localStorage, so Chrome, Incognito, phone, etc.
+   * all see the same chat history.
+   *
+   * If a new incoming message arrived after the conversation was deleted,
+   * restore it automatically.
+   */
+  const deletedUpdates = [];
+  for(const participantRow of (participantRows || [])){
+    if(!participantRow.deleted_at) continue;
+
+    const latest = latestMap.get(participantRow.conversation_id);
+    const deletedAt = Date.parse(participantRow.deleted_at);
+    const latestAt = latest?.created_at ? Date.parse(latest.created_at) : 0;
+
+    if(
+      latest &&
+      latest.sender_id !== currentUser.id &&
+      deletedAt > 0 &&
+      latestAt > deletedAt
+    ){
+      deletedUpdates.push(
+        supabaseClient
+          .from("conversation_participants")
+          .update({deleted_at:null})
+          .eq("conversation_id",participantRow.conversation_id)
+          .eq("user_id",currentUser.id)
       );
+      participantRow.deleted_at = null;
     }
   }
+
+  if(deletedUpdates.length){
+    const restoreResults = await Promise.all(deletedUpdates);
+    restoreResults.forEach(result=>{
+      if(result.error){
+        console.warn("Could not restore conversation after new message:",result.error);
+      }
+    });
+  }
+
+  const deletedConversationIds = new Set(
+    (participantRows || [])
+      .filter(row=>!!row.deleted_at)
+      .map(row=>row.conversation_id)
+  );
 
   conversationList.innerHTML = "";
 
@@ -4992,7 +5113,7 @@ async function loadConversationList(){
   historyHeading.innerHTML = `<span>Recent conversations</span>`;
   conversationList.appendChild(historyHeading);
 
-  safeRows = safeRows.filter(row=>!prefs[row.id]?.deleted);
+  safeRows = safeRows.filter(row=>!deletedConversationIds.has(row.id));
   safeRows.sort((a,b)=>Number(!!prefs[b.id]?.pinned)-Number(!!prefs[a.id]?.pinned));
 
   safeRows.forEach(row=>{
@@ -5068,18 +5189,31 @@ async function markConversationAsRead(conversationId){
   const readTime = new Date().toISOString();
   const readAt = Date.parse(readTime);
 
-  /* Persist locally before touching the network. */
+  /* Keep the UI responsive, but the server is the persistent source of truth. */
   saveLocalReadAt(conversationId,readAt);
 
-  const {error} = await supabaseClient
+  const {data,error} = await supabaseClient
     .from("conversation_participants")
     .update({last_read_at:readTime})
     .eq("conversation_id",conversationId)
-    .eq("user_id",currentUser.id);
+    .eq("user_id",currentUser.id)
+    .select("conversation_id,user_id,last_read_at")
+    .maybeSingle();
 
   if(error){
     console.error("Mark conversation as read error:",error);
     return false;
+  }
+
+  if(!data || !data.last_read_at){
+    console.error("Mark conversation as read: no participant row was updated.",conversationId);
+    return false;
+  }
+
+  /* Store the server-confirmed timestamp too. */
+  const serverReadAt = Date.parse(data.last_read_at);
+  if(serverReadAt){
+    saveLocalReadAt(conversationId,serverReadAt);
   }
 
   return true;
@@ -5097,17 +5231,17 @@ async function openConversation(row,partner){
   openPrefs[row.id].unread = false;
   writeConversationPrefs(openPrefs);
 
-  /* Mark read locally BEFORE any async work. This survives logout/login
-     for the same account and prevents stale Supabase data from restoring
-     the old unread count. */
+  /* Mark read immediately in the UI and persist it to Supabase. */
   saveLocalReadAt(row.id,Date.now());
   const visibleItem = conversationList?.querySelector(`[data-conversation-id="${CSS.escape(row.id)}"]`);
   if(visibleItem){
     visibleItem.classList.remove("is-unread");
     visibleItem.querySelector(".unread-badge")?.remove();
   }
-  /* Fire-and-forget immediately; do not wait for message loading. */
-  void markConversationAsRead(row.id).catch(error=>console.error("Immediate read update error:",error));
+
+  /* IMPORTANT: wait for the server update. This prevents a fast logout from
+     leaving Supabase with the previous last_read_at value. */
+  await markConversationAsRead(row.id);
 
   document.querySelectorAll(".conversation-item").forEach(item=>{
     item.classList.toggle("active",item.dataset.conversationId === row.id);
@@ -5122,8 +5256,9 @@ async function openConversation(row,partner){
     clearReplyTarget();
     await loadMessages();
 
-    /* The read state was already persisted optimistically above. A second call is
-       intentionally avoided so returning to the list cannot race two timestamps. */
+    /* Confirm the read state again after the messages have finished loading.
+       This also covers a message that arrived while the conversation was opening. */
+    await markConversationAsRead(row.id);
     if(isMobileLayout()) openMobileConversation();
   }catch(error){
     console.error("Conversation open error:",error);
@@ -5142,20 +5277,22 @@ async function startConversationWithUser(partner){
     const row = await getOrCreateConversation(partner.user_id);
 
     /*
-     * DELETE CONVERSATION IS A LOCAL HISTORY ACTION.
-     * The conversation and its messages remain in Supabase.
-     * If the user searches the same ToTalk ID again, restore that
-     * conversation in their history and open the existing messages.
+     * Restore the account-wide deleted state when the user intentionally
+     * starts/searches this conversation again.
      */
+    const {error:restoreError} = await supabaseClient
+      .from("conversation_participants")
+      .update({deleted_at:null})
+      .eq("conversation_id",row.id)
+      .eq("user_id",currentUser.id);
+
+    if(restoreError) throw restoreError;
+
+    /* Remove any legacy browser-only delete flag from older builds. */
     const prefs = readConversationPrefs();
     if(prefs[row.id]?.deleted){
       delete prefs[row.id].deleted;
-
-      /* Keep pin/mute/unread/archive preferences if they exist. */
-      if(Object.keys(prefs[row.id]).length === 0){
-        delete prefs[row.id];
-      }
-
+      if(Object.keys(prefs[row.id]).length === 0) delete prefs[row.id];
       writeConversationPrefs(prefs);
     }
 
@@ -5457,6 +5594,19 @@ function startRealtime(){
         /* Always refresh Chats for every incoming message, even when the
            user is on the Chats page, another conversation, or returning
            after being away from the website. */
+        /* A new incoming message restores a previously deleted chat for
+           this account on every browser/device. */
+        if(data.sender_id !== currentUser.id && data.conversation_id){
+          void supabaseClient
+            .from("conversation_participants")
+            .update({deleted_at:null})
+            .eq("conversation_id",data.conversation_id)
+            .eq("user_id",currentUser.id)
+            .then(result=>{
+              if(result.error) console.warn("Could not restore deleted chat after incoming message:",result.error);
+            });
+        }
+
         void loadConversationList().catch(error=>{
           console.error("Incoming message chat-list refresh error:", error);
         });
@@ -6203,17 +6353,33 @@ async function syncLocalReadStateToServer(){
     const localReadAt = getLocalReadAt(conversationId);
     if(!localReadAt) continue;
 
+    /* Only sync local state when it is newer than the server value.
+       This prevents an old localStorage value from moving last_read_at backward. */
+    const {data:serverRow,error:readError} = await supabaseClient
+      .from("conversation_participants")
+      .select("last_read_at")
+      .eq("conversation_id",conversationId)
+      .eq("user_id",currentUser.id)
+      .maybeSingle();
+
+    if(readError){
+      console.warn("Could not read server read state for conversation",conversationId,readError);
+      continue;
+    }
+
+    const serverReadAt = serverRow?.last_read_at ? Date.parse(serverRow.last_read_at) : 0;
+    if(serverReadAt >= localReadAt) continue;
+
     const readTime = new Date(localReadAt).toISOString();
 
-    const {error} = await supabaseClient
+    const {error:updateError} = await supabaseClient
       .from("conversation_participants")
       .update({last_read_at:readTime})
       .eq("conversation_id",conversationId)
       .eq("user_id",currentUser.id);
 
-    if(error){
-      /* Local state remains authoritative until the server accepts it. */
-      console.warn("Could not sync read state for conversation",conversationId,error);
+    if(updateError){
+      console.warn("Could not sync read state for conversation",conversationId,updateError);
     }
   }
 }
