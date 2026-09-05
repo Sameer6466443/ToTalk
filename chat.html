@@ -3110,8 +3110,61 @@ let replyTarget = null;
 const conversationPrefsKey = ()=>`totalk_conversation_prefs_${currentUser?.id || "guest"}`;
 function readConversationPrefs(){try{return JSON.parse(localStorage.getItem(conversationPrefsKey())||"{}")}catch{return {}}}
 function writeConversationPrefs(value){localStorage.setItem(conversationPrefsKey(),JSON.stringify(value));}
-function readConversationReadOverrides(){try{return JSON.parse(localStorage.getItem(`totalk_read_overrides_${currentUser?.id || "guest"}`)||"{}")}catch{return {}}}
-function writeConversationReadOverrides(value){localStorage.setItem(`totalk_read_overrides_${currentUser?.id || "guest"}`,JSON.stringify(value));}
+function readConversationReadOverrides(){
+  try{
+    return JSON.parse(
+      localStorage.getItem(`totalk_read_overrides_${currentUser?.id || "guest"}`) || "{}"
+    );
+  }catch{
+    return {};
+  }
+}
+function writeConversationReadOverrides(value){
+  try{
+    localStorage.setItem(
+      `totalk_read_overrides_${currentUser?.id || "guest"}`,
+      JSON.stringify(value)
+    );
+  }catch(error){
+    console.error("Unable to save local read state:",error);
+  }
+}
+
+/*
+ * Read state is deliberately stored in BOTH the dedicated read-state
+ * storage and the conversation preferences.  This gives the chat list
+ * a persistent local fallback if Supabase is temporarily slow or the
+ * read-update request is rejected by RLS.
+ */
+function getLocalReadAt(conversationId){
+  if(!conversationId) return 0;
+  const overrides = readConversationReadOverrides();
+  const overrideTime = Number(overrides[conversationId] || 0);
+  const prefs = readConversationPrefs();
+  const prefTime = Number(prefs[conversationId]?.readAt || 0);
+  return Math.max(overrideTime,prefTime);
+}
+
+function saveLocalReadAt(conversationId,readAt){
+  if(!conversationId) return;
+  const timestamp = Number(readAt) || Date.now();
+
+  const overrides = readConversationReadOverrides();
+  overrides[conversationId] = Math.max(
+    Number(overrides[conversationId] || 0),
+    timestamp
+  );
+  writeConversationReadOverrides(overrides);
+
+  const prefs = readConversationPrefs();
+  prefs[conversationId] = prefs[conversationId] || {};
+  prefs[conversationId].readAt = Math.max(
+    Number(prefs[conversationId].readAt || 0),
+    timestamp
+  );
+  prefs[conversationId].unread = false;
+  writeConversationPrefs(prefs);
+}
 let conversationOptionsTarget = null;
 const optionsBackdrop = document.getElementById("conversationOptionsBackdrop");
 const optionsTitle = document.getElementById("conversationOptionsTitle");
@@ -4920,7 +4973,7 @@ async function loadConversationList(){
     if(item.conversation_id === currentConversationId) continue;
 
     const serverReadAt = readAtMap.get(item.conversation_id) || 0;
-    const localReadAt = Number(readOverrides[item.conversation_id] || 0);
+    const localReadAt = getLocalReadAt(item.conversation_id);
     const readAt = Math.max(serverReadAt, localReadAt);
     const messageTime = Date.parse(item.created_at || "") || 0;
 
@@ -5013,9 +5066,10 @@ async function markConversationAsRead(conversationId){
   if(!currentUser?.id || !conversationId) return false;
 
   const readTime = new Date().toISOString();
-  const readOverrides = readConversationReadOverrides();
-  readOverrides[conversationId] = Date.parse(readTime);
-  writeConversationReadOverrides(readOverrides);
+  const readAt = Date.parse(readTime);
+
+  /* Persist locally before touching the network. */
+  saveLocalReadAt(conversationId,readAt);
 
   const {error} = await supabaseClient
     .from("conversation_participants")
@@ -5043,11 +5097,10 @@ async function openConversation(row,partner){
   openPrefs[row.id].unread = false;
   writeConversationPrefs(openPrefs);
 
-  /* Mark read locally BEFORE any async work. This is the local source of truth
-     while Supabase finishes updating last_read_at in the background. */
-  const readOverrides = readConversationReadOverrides();
-  readOverrides[row.id] = Date.now();
-  writeConversationReadOverrides(readOverrides);
+  /* Mark read locally BEFORE any async work. This survives logout/login
+     for the same account and prevents stale Supabase data from restoring
+     the old unread count. */
+  saveLocalReadAt(row.id,Date.now());
   const visibleItem = conversationList?.querySelector(`[data-conversation-id="${CSS.escape(row.id)}"]`);
   if(visibleItem){
     visibleItem.classList.remove("is-unread");
@@ -6131,6 +6184,41 @@ function showDatabaseError(error){
 }
 
 /* =====================================================
+   RESTORE / SYNC PERSISTENT READ STATE
+===================================================== */
+
+async function syncLocalReadStateToServer(){
+  if(!currentUser?.id) return;
+
+  const prefs = readConversationPrefs();
+  const overrides = readConversationReadOverrides();
+  const conversationIds = [
+    ...new Set([
+      ...Object.keys(overrides),
+      ...Object.keys(prefs).filter(id=>Number(prefs[id]?.readAt || 0) > 0)
+    ])
+  ];
+
+  for(const conversationId of conversationIds){
+    const localReadAt = getLocalReadAt(conversationId);
+    if(!localReadAt) continue;
+
+    const readTime = new Date(localReadAt).toISOString();
+
+    const {error} = await supabaseClient
+      .from("conversation_participants")
+      .update({last_read_at:readTime})
+      .eq("conversation_id",conversationId)
+      .eq("user_id",currentUser.id);
+
+    if(error){
+      /* Local state remains authoritative until the server accepts it. */
+      console.warn("Could not sync read state for conversation",conversationId,error);
+    }
+  }
+}
+
+/* =====================================================
    START APPLICATION
 ===================================================== */
 
@@ -6183,6 +6271,12 @@ async function startApp(){
 
     currentUser =
       user;
+
+    /* Restore any read state saved during an earlier session before the
+       first conversation-list query runs. */
+    void syncLocalReadStateToServer().catch(error=>{
+      console.warn("Read-state sync failed:",error);
+    });
 
     /*
      * Start the database connection warm-up immediately.
