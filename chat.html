@@ -1817,6 +1817,25 @@ header{
   padding:10px 10px 20px;
 }
 
+.history-heading{
+  display:flex;
+  align-items:center;
+  padding:5px 5px 8px;
+  color:#8f82a4;
+  font-size:10px;
+  font-weight:800;
+  letter-spacing:.4px;
+  text-transform:uppercase;
+}
+
+.history-heading:after{
+  content:"";
+  flex:1;
+  height:1px;
+  margin-left:9px;
+  background:rgba(145,76,255,.14);
+}
+
 .conversation-item{
   color:#fff !important;
   text-align:left;
@@ -1856,11 +1875,11 @@ header{
 .conversation-status-icon{display:none!important;}
 .unread-badge{min-width:22px;height:22px;padding:0 6px;border-radius:999px;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#a45cff,#6321d8);color:#fff;font-size:11px;font-weight:900;box-shadow:0 0 14px rgba(145,76,255,.4);}
 .conversation-empty{
-  min-height:190px;
-  padding:28px 18px;
+  min-height:0;
+  padding:24px 18px 34px;
   display:flex;
   align-items:center;
-  justify-content:center;
+  justify-content:flex-start;
   flex-direction:column;
   gap:7px;
   text-align:center;
@@ -1960,7 +1979,7 @@ header{
 .chat-box.empty-chat .chat-actions{opacity:.45;pointer-events:none;}
 
 @media(max-width:800px){
-  .conversation-list{height:calc(100% - 157px);padding:4px 8px 20px;}
+  .conversation-list{height:calc(100% - 157px);padding:10px 8px 20px;}
   .sidebar-title{padding:16px 13px 12px;}
   .conversation-item{min-height:68px;margin:5px 0;padding:12px 10px;}
 }
@@ -2411,8 +2430,8 @@ header{
 <style id="totalk-final-galaxy-fix">
 /* Final ToTalk galaxy: stable, smooth, planet inside the orbit */
 .empty-galaxy{
-  width:210px !important;
-  height:190px !important;
+  width:150px !important;
+  height:135px !important;
   margin-bottom:10px !important;
   overflow:visible !important;
   filter:none !important;
@@ -2421,7 +2440,7 @@ header{
 .empty-galaxy::before{
   content:"" !important;
   position:absolute !important;
-  inset:-25px !important;
+  inset:-18px !important;
   z-index:0 !important;
   pointer-events:none !important;
   background:
@@ -2438,10 +2457,10 @@ header{
 .galaxy-orbit{
   left:50% !important;
   top:50% !important;
-  width:178px !important;
-  height:72px !important;
-  margin-left:-89px !important;
-  margin-top:-36px !important;
+  width:132px !important;
+  height:54px !important;
+  margin-left:-66px !important;
+  margin-top:-27px !important;
   z-index:1 !important;
   border-width:2px !important;
   border-color:rgba(178,112,255,.9) !important;
@@ -2453,10 +2472,10 @@ header{
 .galaxy-moon{
   left:50% !important;
   top:50% !important;
-  width:72px !important;
-  height:72px !important;
-  margin-left:-36px !important;
-  margin-top:-36px !important;
+  width:54px !important;
+  height:54px !important;
+  margin-left:-27px !important;
+  margin-top:-27px !important;
   z-index:2 !important;
   border:0 !important;
   background:
@@ -2471,12 +2490,12 @@ header{
   will-change:auto !important;
 }
 .galaxy-moon::before{
-  width:13px !important;height:13px !important;left:17px !important;top:22px !important;
+  width:10px !important;height:10px !important;left:13px !important;top:16px !important;
   background:rgba(36,12,82,.34) !important;
-  box-shadow:20px 18px 0 4px rgba(36,12,82,.2) !important;
+  box-shadow:15px 14px 0 3px rgba(36,12,82,.2) !important;
 }
 .galaxy-moon::after{
-  width:8px !important;height:8px !important;right:15px !important;top:15px !important;
+  width:6px !important;height:6px !important;right:11px !important;top:11px !important;
   background:rgba(255,255,255,.1) !important;
 }
 .galaxy-star{
@@ -2484,9 +2503,9 @@ header{
   animation:none !important;
   text-shadow:0 0 5px #c89aff,0 0 12px rgba(200,154,255,.9) !important;
 }
-.star-one{top:25px !important;right:18px !important;}
-.star-two{bottom:25px !important;left:18px !important;}
-.star-three{top:48px !important;left:18px !important;}
+.star-one{top:17px !important;right:12px !important;}
+.star-two{bottom:17px !important;left:12px !important;}
+.star-three{top:34px !important;left:12px !important;}
 </style>
 </head>
 
@@ -4717,6 +4736,11 @@ async function loadConversationList(){
 
   conversationList.innerHTML = "";
 
+  const historyHeading = document.createElement("div");
+  historyHeading.className = "history-heading";
+  historyHeading.innerHTML = `<span>Recent conversations</span>`;
+  conversationList.appendChild(historyHeading);
+
   const prefs = readConversationPrefs();
   safeRows = safeRows.filter(row=>!prefs[row.id]?.deleted);
   safeRows.sort((a,b)=>Number(!!prefs[b.id]?.pinned)-Number(!!prefs[a.id]?.pinned));
@@ -4771,7 +4795,7 @@ async function loadConversationList(){
     conversationList.appendChild(item);
   });
 
-  if(!conversationList.children.length){
+  if(conversationList.querySelectorAll(".conversation-item").length === 0){
     conversationList.innerHTML = `
       <div class="conversation-empty">
         <div class="empty-galaxy" aria-hidden="true">
