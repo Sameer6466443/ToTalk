@@ -3270,39 +3270,32 @@ async function applyConversationAction(action){
     let lastError = null;
 
     try{
+      /*
+       * IMPORTANT: do NOT chain .select() here. Supabase applies SELECT RLS
+       * when returning updated rows, so an otherwise-successful UPDATE can
+       * look like a failure if the user's SELECT policy is different.
+       * The UPDATE itself is all we need.
+       */
       const deletedAt = new Date().toISOString();
       const result = await Promise.race([
         supabaseClient
           .from("conversation_participants")
           .update({deleted_at: deletedAt})
           .eq("conversation_id", id)
-          .eq("user_id", currentUser.id)
-          .select("conversation_id,user_id,deleted_at")
-          .maybeSingle(),
+          .eq("user_id", currentUser.id),
         new Promise((_, reject)=>setTimeout(()=>reject(new Error("Server request timed out.")),8000))
       ]);
       if(result.error) throw result.error;
-      if(!result.data) throw new Error("No participant row was updated.");
       removed = true;
     }catch(error){
       lastError = error;
       console.error("Direct remove failed:",error);
     }
 
-    if(!removed){
-      try{
-        const rpcResult = await Promise.race([
-          supabaseClient.rpc("delete_my_conversation",{p_conversation_id:id}),
-          new Promise((_, reject)=>setTimeout(()=>reject(new Error("Remove request timed out.")),8000))
-        ]);
-        if(rpcResult.error) throw rpcResult.error;
-        if(rpcResult.data === true || rpcResult.data === "true") removed = true;
-        else throw new Error("Remove function did not return success.");
-      }catch(error){
-        lastError = error;
-        console.error("RPC remove failed:",error);
-      }
-    }
+    /*
+     * No RPC is required for removal. The direct participant UPDATE is the
+     * canonical account-wide delete state and works in normal + Incognito.
+     */
 
     if(removed){
       closeConversationOptions();
