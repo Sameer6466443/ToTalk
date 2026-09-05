@@ -4930,14 +4930,19 @@ async function loadConversationList(){
    */
   const {data:participantRows,error:participantError} = await supabaseClient
     .from("conversation_participants")
-    .select("conversation_id,user_id,last_read_at")
+    .select("conversation_id,user_id,last_read_at,deleted_at")
     .eq("user_id",currentUser.id);
 
   if(participantError) throw participantError;
 
+  /* A removed conversation stays in Supabase, but it must disappear
+     from THIS user's chat history. deleted_at is per participant, so
+     removing it does not delete the other person's history. */
+  const activeParticipantRows = (participantRows || []).filter(row=>!row.deleted_at);
+
   const conversationIds = [
     ...new Set(
-      (participantRows || [])
+      activeParticipantRows
         .map(row=>row.conversation_id)
         .filter(Boolean)
     )
@@ -5069,7 +5074,7 @@ async function loadConversationList(){
   const prefs = readConversationPrefs();
   const unreadMap = new Map();
   const readAtMap = new Map(
-    (participantRows || []).map(row=>[
+    activeParticipantRows.map(row=>[
       row.conversation_id,
       row.last_read_at ? Date.parse(row.last_read_at) : 0
     ])
@@ -5292,7 +5297,16 @@ async function startConversationWithUser(partner){
   try{
     const row = await getOrCreateConversation(partner.user_id);
 
-    /* Remove any legacy browser-only delete flag from older builds. */
+    /* Restore this conversation for THIS user if they previously removed it. */
+    const {error:restoreError} = await supabaseClient
+      .from("conversation_participants")
+      .update({deleted_at:null})
+      .eq("conversation_id",row.id)
+      .eq("user_id",currentUser.id);
+
+    if(restoreError) throw restoreError;
+
+    /* Also clear any legacy browser-only delete flag from older builds. */
     const prefs = readConversationPrefs();
     if(prefs[row.id]?.deleted){
       delete prefs[row.id].deleted;
