@@ -3260,57 +3260,25 @@ async function applyConversationAction(action){
   }
 
   if(action === "delete"){
-    const deleteButton = optionsBackdrop?.querySelector('[data-conversation-action="delete"]');
-    if(deleteButton){
-      deleteButton.disabled = true;
-      deleteButton.style.opacity = "1";
-    }
-
-    let removed = false;
-    let lastError = null;
-
-    try{
-      /*
-       * IMPORTANT: do NOT chain .select() here. Supabase applies SELECT RLS
-       * when returning updated rows, so an otherwise-successful UPDATE can
-       * look like a failure if the user's SELECT policy is different.
-       * The UPDATE itself is all we need.
-       */
-      const deletedAt = new Date().toISOString();
-      const result = await Promise.race([
-        supabaseClient
-          .from("conversation_participants")
-          .update({deleted_at: deletedAt})
-          .eq("conversation_id", id)
-          .eq("user_id", currentUser.id),
-        new Promise((_, reject)=>setTimeout(()=>reject(new Error("Server request timed out.")),8000))
-      ]);
-      if(result.error) throw result.error;
-      removed = true;
-    }catch(error){
-      lastError = error;
-      console.error("Direct remove failed:",error);
-    }
-
     /*
-     * No RPC is required for removal. The direct participant UPDATE is the
-     * canonical account-wide delete state and works in normal + Incognito.
+     * LOCAL HIDE:
+     * Keep the conversation/messages in Supabase, but hide this conversation
+     * from this browser's Chat page.  This avoids all RLS/RPC/database issues
+     * and makes Remove Conversation instant and reliable.
      */
+    item.deleted = true;
+    prefs[id] = item;
+    writeConversationPrefs(prefs);
 
-    if(removed){
-      closeConversationOptions();
-      if(activeConversationId === id){
-        activeConversationId = null;
-        closeMobileConversation?.();
-      }
-      updateConversationItemInstant(id,el=>el.remove());
-      void loadConversationList().catch(error=>console.error("Background conversation refresh error:",error));
-      showStatus("Conversation removed.");
-    }else{
-      if(deleteButton) deleteButton.disabled = false;
-      closeConversationOptions();
-      showStatus("Remove failed: " + (lastError?.message || "server/database error"));
+    closeConversationOptions();
+
+    if(activeConversationId === id){
+      activeConversationId = null;
+      closeMobileConversation?.();
     }
+
+    updateConversationItemInstant(id,el=>el.remove());
+    showStatus("Conversation removed from your Chat page.");
     return;
   }
 
@@ -4933,9 +4901,13 @@ async function loadConversationList(){
      removing it does not delete the other person's history. */
   const activeParticipantRows = (participantRows || []).filter(row=>!row.deleted_at);
 
+  /* Hide locally removed conversations on this browser. */
+  const listPrefs = readConversationPrefs();
+  const visibleParticipantRows = activeParticipantRows.filter(row=>!listPrefs[row.conversation_id]?.deleted);
+
   const conversationIds = [
     ...new Set(
-      activeParticipantRows
+      visibleParticipantRows
         .map(row=>row.conversation_id)
         .filter(Boolean)
     )
@@ -5290,16 +5262,7 @@ async function startConversationWithUser(partner){
   try{
     const row = await getOrCreateConversation(partner.user_id);
 
-    /* Restore this conversation for THIS user if they previously removed it. */
-    const {error:restoreError} = await supabaseClient
-      .from("conversation_participants")
-      .update({deleted_at:null})
-      .eq("conversation_id",row.id)
-      .eq("user_id",currentUser.id);
-
-    if(restoreError) throw restoreError;
-
-    /* Also clear any legacy browser-only delete flag from older builds. */
+    /* Explicitly starting a chat with this person restores it on this browser. */
     const prefs = readConversationPrefs();
     if(prefs[row.id]?.deleted){
       delete prefs[row.id].deleted;
