@@ -5802,6 +5802,61 @@ supabaseClient.auth.onAuthStateChange(
 
 
 /* =====================================================
+   DATABASE ERROR DIAGNOSTICS
+   Shows the real Supabase error instead of hiding it behind
+   the generic "Unable to open ToTalk" screen.
+===================================================== */
+
+function showDatabaseError(error){
+  const code = error?.code || "No code";
+  const message = error?.message || String(error || "Unknown error");
+  const details = error?.details || "";
+  const hint = error?.hint || "";
+
+  const safe = value => escapeHtml(String(value || ""));
+
+  const text = [
+    "ToTalk database error",
+    "Code: " + code,
+    "Message: " + message,
+    details ? "Details: " + details : "",
+    hint ? "Hint: " + hint : ""
+  ].filter(Boolean).join("\n");
+
+  console.error(text);
+
+  const box = document.createElement("div");
+  box.className = "login-error";
+  box.innerHTML = `
+    <h2>ToTalk database error</h2>
+    <p>Please send this exact error to me. It tells us what needs to be fixed in Supabase.</p>
+    <pre style="white-space:pre-wrap;text-align:left;background:rgba(0,0,0,.35);border:1px solid rgba(145,76,255,.35);border-radius:14px;padding:14px;margin:16px 0;font-size:13px;line-height:1.5;overflow:auto;max-height:240px;">${safe(text)}</pre>
+    <button type="button" class="back-button" id="copyDatabaseError">Copy error</button>
+    <button type="button" class="back-button" id="closeDatabaseError" style="margin-top:10px;opacity:.8;">Close</button>
+  `;
+
+  const old = document.getElementById("databaseErrorOverlay");
+  old?.remove();
+
+  const overlay = document.createElement("div");
+  overlay.id = "databaseErrorOverlay";
+  overlay.style.cssText = "position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(2,1,8,.92);overflow:auto;";
+  overlay.appendChild(box);
+  document.body.appendChild(overlay);
+
+  document.getElementById("copyDatabaseError")?.addEventListener("click",async()=>{
+    try{
+      await navigator.clipboard.writeText(text);
+      showStatus("Error copied");
+    }catch(_error){
+      showStatus("Copy failed — select the error text manually");
+    }
+  });
+
+  document.getElementById("closeDatabaseError")?.addEventListener("click",()=>overlay.remove());
+}
+
+/* =====================================================
    START APPLICATION
 ===================================================== */
 
@@ -6025,8 +6080,26 @@ async function startApp(){
 
     updateUserUI();
 
-    /* Load the real private conversation list. */
-    await loadConversationList();
+    /* Load the real private conversation list.
+       A chat-list/database problem must NOT blank the whole app. */
+    try{
+      await loadConversationList();
+    }catch(listError){
+      console.error("ToTalk conversation-list error:", listError);
+      conversations = [];
+      if(conversationList){
+        conversationList.innerHTML = `
+          <div class="conversation-empty">
+            <strong>Chats could not be loaded</strong>
+            <span>Your account is open, but the chat database returned an error.</span>
+            <button type="button" class="back-button" id="showDatabaseError">Show error</button>
+          </div>
+        `;
+        document.getElementById("showDatabaseError")?.addEventListener("click",()=>{
+          showDatabaseError(listError);
+        });
+      }
+    }
 
     /* Realtime stays connected, but only the active conversation is rendered. */
     startRealtime();
@@ -6063,27 +6136,8 @@ async function startApp(){
       error
     );
 
-    loading.innerHTML = `
-      <div class="login-error">
-
-        <h2>
-          Unable to open ToTalk
-        </h2>
-
-        <p>
-          Something went wrong while
-          preparing your conversation space.
-        </p>
-
-        <a
-          class="back-button"
-          href="./index.html"
-        >
-          Back to ToTalk
-        </a>
-
-      </div>
-    `;
+    finishLoading();
+    showDatabaseError(error);
 
   }
 
