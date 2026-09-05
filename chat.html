@@ -4727,10 +4727,27 @@ async function loadConversationList(){
     }
   }
 
+  /*
+   * Unread messages are NOT simply "all messages received".
+   * Keep a per-conversation read timestamp in localStorage. A message is
+   * unread only when it was received after the last time this conversation
+   * was opened. If the conversation is currently open, it can never show an
+   * unread badge in the history list.
+   */
+  const prefs = readConversationPrefs();
   const unreadMap = new Map();
   for(const item of (latestMessages || [])){
-    if(item.sender_id && item.sender_id !== currentUser.id){
-      unreadMap.set(item.conversation_id,(unreadMap.get(item.conversation_id) || 0) + 1);
+    if(!item.sender_id || item.sender_id === currentUser.id) continue;
+    if(item.conversation_id === currentConversationId) continue;
+
+    const readAt = Number(prefs[item.conversation_id]?.readAt || 0);
+    const messageTime = Date.parse(item.created_at || "") || 0;
+
+    if(!readAt || messageTime > readAt){
+      unreadMap.set(
+        item.conversation_id,
+        (unreadMap.get(item.conversation_id) || 0) + 1
+      );
     }
   }
 
@@ -4741,7 +4758,6 @@ async function loadConversationList(){
   historyHeading.innerHTML = `<span>Recent conversations</span>`;
   conversationList.appendChild(historyHeading);
 
-  const prefs = readConversationPrefs();
   safeRows = safeRows.filter(row=>!prefs[row.id]?.deleted);
   safeRows.sort((a,b)=>Number(!!prefs[b.id]?.pinned)-Number(!!prefs[a.id]?.pinned));
 
@@ -4817,8 +4833,13 @@ async function openConversation(row,partner){
 
   currentConversationId = row.id;
   currentConversationPartner = partner;
-  const openPrefs=readConversationPrefs();
-  if(openPrefs[row.id]){openPrefs[row.id].unread=false;writeConversationPrefs(openPrefs);}
+
+  /* Opening a conversation marks everything currently in it as read. */
+  const openPrefs = readConversationPrefs();
+  openPrefs[row.id] = openPrefs[row.id] || {};
+  openPrefs[row.id].unread = false;
+  openPrefs[row.id].readAt = Date.now();
+  writeConversationPrefs(openPrefs);
 
   document.querySelectorAll(".conversation-item").forEach(item=>{
     item.classList.toggle("active",item.dataset.conversationId === row.id);
@@ -4832,6 +4853,14 @@ async function openConversation(row,partner){
     closeActiveEdit();
     clearReplyTarget();
     await loadMessages();
+
+    /* Store the moment this chat was actually opened/read. */
+    const readPrefs = readConversationPrefs();
+    readPrefs[row.id] = readPrefs[row.id] || {};
+    readPrefs[row.id].readAt = Date.now();
+    readPrefs[row.id].unread = false;
+    writeConversationPrefs(readPrefs);
+
     if(isMobileLayout()) openMobileConversation();
   }catch(error){
     console.error("Conversation open error:",error);
@@ -5176,6 +5205,17 @@ function startRealtime(){
         }
 
         console.log("Realtime INSERT:", data);
+
+        /* A message arriving in the conversation currently on screen is
+           immediately considered read. This prevents the history badge from
+           appearing after the user goes back to the Chats page. */
+        if(data.conversation_id === currentConversationId){
+          const prefs = readConversationPrefs();
+          prefs[data.conversation_id] = prefs[data.conversation_id] || {};
+          prefs[data.conversation_id].readAt = Date.now();
+          prefs[data.conversation_id].unread = false;
+          writeConversationPrefs(prefs);
+        }
 
         messageCache.set(data.id, data);
 
