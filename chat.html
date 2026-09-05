@@ -1873,7 +1873,22 @@ header{
 .conversation-preview{margin-top:5px;color:#a69ab8;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .conversation-status{display:none!important;}
 .conversation-status-icon{display:none!important;}
-.unread-badge{min-width:22px;height:22px;padding:0 6px;border-radius:999px;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#a45cff,#6321d8);color:#fff;font-size:11px;font-weight:900;box-shadow:0 0 14px rgba(145,76,255,.4);}
+.unread-badge{
+  min-width:22px;
+  height:22px;
+  padding:0 6px;
+  border-radius:999px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:linear-gradient(135deg,#a45cff,#6321d8);
+  color:#fff;
+  font-size:11px;
+  font-weight:900;
+  box-shadow:0 0 14px rgba(145,76,255,.4);
+  transition:opacity .16s ease,transform .16s ease;
+  will-change:opacity,transform;
+}
 .conversation-empty{
   min-height:0;
   padding:24px 18px 34px;
@@ -2952,23 +2967,52 @@ function openMobileConversation(){
   },40);
 }
 
-async function closeMobileConversation(){
+function closeMobileConversation(){
   if(!chatLayout || !isMobileLayout()) return;
 
-  /* Return to the chat list first. */
+  /*
+   * INSTANT BACK / READ UI
+   * --------------------------------
+   * Do not wait for Supabase before showing the Chats page.
+   * The readAt value was already written when the conversation opened,
+   * so the current unread badge can be removed locally immediately.
+   * The database refresh happens in the background afterwards.
+   */
+  const leavingConversationId = currentConversationId;
+
+  if(leavingConversationId){
+    const listItem = conversationList?.querySelector(
+      `[data-conversation-id="${CSS.escape(leavingConversationId)}"]`
+    );
+
+    if(listItem){
+      listItem.classList.remove("is-unread");
+
+      const badge = listItem.querySelector(".unread-badge");
+      if(badge) badge.remove();
+    }
+  }
+
+  /* Return to the chat list immediately — no await here. */
   chatLayout.classList.remove("mobile-chat-open");
   searchPanel?.classList.remove("open");
   currentConversationId = null;
   currentConversationPartner = null;
-  document.querySelectorAll(".conversation-item.active").forEach(el=>el.classList.remove("active"));
+
+  document
+    .querySelectorAll(".conversation-item.active")
+    .forEach(el=>el.classList.remove("active"));
+
   setEmptyChatState();
 
-  /* Reload the list so a newly opened conversation is visible immediately. */
-  try{
-    await loadConversationList();
-  }catch(error){
-    console.error("Chat list reload after back error:",error);
-  }
+  /*
+   * Refresh silently in the background.
+   * This keeps the latest preview/order/online state accurate without
+   * making the user wait ~1–2 seconds just to see the Chats screen.
+   */
+  void loadConversationList().catch(error=>{
+    console.error("Background chat-list refresh after back error:",error);
+  });
 }
 
 if(mobileChatBack){
