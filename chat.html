@@ -3340,16 +3340,86 @@ async function applyConversationAction(action){
   writeConversationPrefs(prefs);
   closeConversationOptions();
 
-  /* Apply the visual state immediately; refresh silently afterwards. */
+  /*
+   * INSTANT MENU ACTIONS
+   * --------------------
+   * Pin / mute / unread are local UI actions, so NEVER rebuild the entire
+   * conversation list here. loadConversationList() performs several Supabase
+   * queries and was the reason the indicator appeared late and the UI felt
+   * laggy after tapping a menu option.
+   */
   if(action === "pin" || action === "mute" || action === "unread"){
     updateConversationItemInstant(id,el=>{
-      if(action === "pin") el.classList.toggle("is-pinned",!!item.pinned);
-      if(action === "mute") el.classList.toggle("is-muted",!!item.muted);
-      if(action === "unread") el.classList.add("is-unread");
+      if(action === "pin"){
+        el.classList.toggle("is-pinned",!!item.pinned);
+        const nameEl = el.querySelector(".conversation-name");
+        if(nameEl){
+          const existing = nameEl.querySelector(".conversation-indicators");
+          if(existing) existing.remove();
+          const indicatorHtml = conversationIndicatorMarkup(item);
+          if(indicatorHtml){
+            const wrapper = document.createElement("span");
+            wrapper.innerHTML = indicatorHtml;
+            nameEl.appendChild(wrapper.firstElementChild);
+          }
+        }
+
+        /* Move pinned chats to the top immediately, without a server reload. */
+        if(item.pinned && conversationList){
+          const historyHeading = conversationList.querySelector(".history-heading");
+          if(historyHeading) historyHeading.after(el);
+          else conversationList.prepend(el);
+        }else if(!item.pinned && conversationList){
+          /* Reinsert unpinned item in the current conversation order locally. */
+          const items = [...conversationList.querySelectorAll(".conversation-item")]
+            .filter(node=>node !== el);
+          const targetIndex = conversations.findIndex(row=>String(row?.id) === String(id));
+          let inserted = false;
+          for(const other of items){
+            const otherId = other.dataset.conversationId;
+            const otherIndex = conversations.findIndex(row=>String(row?.id) === String(otherId));
+            if(targetIndex >= 0 && otherIndex >= 0 && otherIndex > targetIndex){
+              other.before(el);
+              inserted = true;
+              break;
+            }
+          }
+          if(!inserted){
+            const last = items[items.length - 1];
+            if(last) last.after(el);
+          }
+        }
+      }
+
+      if(action === "mute"){
+        el.classList.toggle("is-muted",!!item.muted);
+        const nameEl = el.querySelector(".conversation-name");
+        if(nameEl){
+          const existing = nameEl.querySelector(".conversation-indicators");
+          if(existing) existing.remove();
+          const indicatorHtml = conversationIndicatorMarkup(item);
+          if(indicatorHtml){
+            const wrapper = document.createElement("span");
+            wrapper.innerHTML = indicatorHtml;
+            nameEl.appendChild(wrapper.firstElementChild);
+          }
+        }
+      }
+
+      if(action === "unread"){
+        el.classList.add("is-unread");
+        if(!el.querySelector(".unread-badge")){
+          const badge = document.createElement("span");
+          badge.className = "unread-badge";
+          badge.textContent = "1";
+          el.appendChild(badge);
+        }
+      }
     });
   }
 
-  void loadConversationList().catch(error=>console.error("Background conversation refresh error:",error));
+  /* No expensive background list rebuild here. The next normal refresh will
+     reconcile with Supabase, while the user sees the result instantly. */
 }
 
 optionsBackdrop?.addEventListener("click",e=>{
