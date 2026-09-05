@@ -3242,6 +3242,49 @@ function updateConversationItemInstant(id,mutator){
   const item=conversationList?.querySelector(`[data-conversation-id="${CSS.escape(id)}"]`);
   if(item) mutator(item);
 }
+
+/*
+ * FINAL LOCAL REMOVE LAYER
+ * ------------------------
+ * Removal is a UI-only hide.  We keep a dedicated hidden-id list and also
+ * guard the rendered DOM.  This means a slow/background chat-list refresh
+ * cannot put a removed conversation back on screen.
+ */
+const hiddenConversationKey = ()=>`totalk_hidden_conversations_${currentUser?.id || "guest"}`;
+function readHiddenConversationIds(){
+  try{
+    const value = JSON.parse(localStorage.getItem(hiddenConversationKey()) || "[]");
+    return new Set(Array.isArray(value) ? value.map(String) : []);
+  }catch{
+    return new Set();
+  }
+}
+function writeHiddenConversationIds(ids){
+  try{
+    localStorage.setItem(hiddenConversationKey(),JSON.stringify([...ids]));
+  }catch(error){
+    console.error("Unable to save hidden conversations:",error);
+  }
+}
+function hideConversationLocally(id){
+  if(!id) return;
+  const hidden = readHiddenConversationIds();
+  hidden.add(String(id));
+  writeHiddenConversationIds(hidden);
+  /* Also keep the legacy preference in sync for older list code. */
+  const prefs = readConversationPrefs();
+  prefs[id] = prefs[id] || {};
+  prefs[id].deleted = true;
+  writeConversationPrefs(prefs);
+  conversations = conversations.filter(row=>String(row?.id) !== String(id));
+  conversationListLoadSeq++;
+  updateConversationItemInstant(id,el=>el.remove());
+}
+function isConversationHidden(id){
+  if(!id) return false;
+  return readHiddenConversationIds().has(String(id));
+}
+
 async function applyConversationAction(action){
   const target = conversationOptionsTarget;
   if(!target || !target.row || !target.row.id) return;
@@ -3260,24 +3303,19 @@ async function applyConversationAction(action){
   }
 
   if(action === "delete"){
-    /*
-     * LOCAL HIDE:
-     * Keep the conversation/messages in Supabase, but hide this conversation
-     * from this browser's Chat page.  This avoids all RLS/RPC/database issues
-     * and makes Remove Conversation instant and reliable.
-     */
-    item.deleted = true;
-    prefs[id] = item;
-    writeConversationPrefs(prefs);
+    /* Remove ONLY from this user's Chat page. Never touch messages or Supabase. */
+    hideConversationLocally(id);
 
     closeConversationOptions();
 
-    if(activeConversationId === id){
+    if(currentConversationId === id || activeConversationId === id){
+      currentConversationId = null;
+      currentConversationPartner = null;
       activeConversationId = null;
-      closeMobileConversation?.();
+      chatLayout?.classList.remove("mobile-chat-open");
+      setEmptyChatState();
     }
 
-    updateConversationItemInstant(id,el=>el.remove());
     showStatus("Conversation removed from your Chat page.");
     return;
   }
@@ -4903,7 +4941,11 @@ async function loadConversationList(){
 
   /* Hide locally removed conversations on this browser. */
   const listPrefs = readConversationPrefs();
-  const visibleParticipantRows = activeParticipantRows.filter(row=>!listPrefs[row.conversation_id]?.deleted);
+  const hiddenIds = readHiddenConversationIds();
+  const visibleParticipantRows = activeParticipantRows.filter(row=>
+    !listPrefs[row.conversation_id]?.deleted &&
+    !hiddenIds.has(String(row.conversation_id))
+  );
 
   const conversationIds = [
     ...new Set(
@@ -5149,6 +5191,9 @@ async function loadConversationList(){
     item.addEventListener("pointerdown",()=>{pressTimer=setTimeout(()=>openConversationOptions(row,partner),550);});
     ["pointerup","pointerleave","pointercancel"].forEach(type=>item.addEventListener(type,()=>clearTimeout(pressTimer)));
 
+    if(isConversationHidden(row.id) || prefs[row.id]?.deleted){
+      return;
+    }
     conversationList.appendChild(item);
   });
 
@@ -5269,6 +5314,9 @@ async function startConversationWithUser(partner){
       if(Object.keys(prefs[row.id]).length === 0) delete prefs[row.id];
       writeConversationPrefs(prefs);
     }
+    const hidden = readHiddenConversationIds();
+    hidden.delete(String(row.id));
+    writeHiddenConversationIds(hidden);
 
     await loadConversationList();
     await openConversation(row,partner);
