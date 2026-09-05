@@ -3099,6 +3099,8 @@ let currentProfile = null;
 let currentConversationId = null;
 let currentConversationPartner = null;
 let conversations = [];
+/* Prevent slower background chat-list refreshes from overwriting newer state. */
+let conversationListLoadSeq = 0;
 
 let realtimeChannel = null;
 
@@ -3265,14 +3267,22 @@ async function applyConversationAction(action){
      * The hidden state lives on this user's conversation participant row
      * in Supabase, not in browser localStorage.
      */
-    const {error} = await supabaseClient
+    const {data:deletedParticipant,error} = await supabaseClient
       .from("conversation_participants")
       .update({deleted_at:new Date().toISOString()})
       .eq("conversation_id",id)
-      .eq("user_id",currentUser.id);
+      .eq("user_id",currentUser.id)
+      .select("conversation_id,user_id,deleted_at")
+      .maybeSingle();
 
     if(error){
       console.error("Delete conversation error:",error);
+      showStatus("Conversation could not be deleted. Please try again.");
+      return;
+    }
+
+    if(!deletedParticipant?.deleted_at){
+      console.error("Delete conversation: no participant row was updated.",id);
       showStatus("Conversation could not be deleted. Please try again.");
       return;
     }
@@ -4871,6 +4881,11 @@ function conversationIndicatorMarkup(pref){
 async function loadConversationList(){
   if(!conversationList || !currentUser?.id) return;
 
+  /* Every refresh gets its own sequence number. If another refresh starts
+     later, this one is stale and must never repaint the chat list. */
+  const loadSeq = ++conversationListLoadSeq;
+  const isCurrentLoad = ()=>loadSeq === conversationListLoadSeq;
+
   /*
    * First find every conversation in which the current user
    * is a participant.
@@ -4891,6 +4906,7 @@ async function loadConversationList(){
   ];
 
   if(!conversationIds.length){
+    if(!isCurrentLoad()) return;
     conversations = [];
     conversationList.innerHTML = `
       <div class="conversation-empty">
@@ -4921,6 +4937,7 @@ async function loadConversationList(){
   conversations = safeRows;
 
   if(!safeRows.length){
+    if(!isCurrentLoad()) return;
     conversationList.innerHTML = `
       <div class="conversation-empty">
         <div class="empty-galaxy" aria-hidden="true">
@@ -5105,6 +5122,9 @@ async function loadConversationList(){
       .filter(row=>!!row.deleted_at)
       .map(row=>row.conversation_id)
   );
+
+  /* A newer refresh may have completed while the queries above were running. */
+  if(!isCurrentLoad()) return;
 
   conversationList.innerHTML = "";
 
