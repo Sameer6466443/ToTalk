@@ -3266,35 +3266,32 @@ async function applyConversationAction(action){
      * in Supabase, not in browser localStorage.
      */
     const deletedAt = new Date().toISOString();
-    const {error} = await supabaseClient
+    let deleteError = null;
+
+    /* First try the normal row update. */
+    const {error:updateError} = await supabaseClient
       .from("conversation_participants")
       .update({deleted_at:deletedAt})
       .eq("conversation_id",id)
       .eq("user_id",currentUser.id);
+    deleteError = updateError || null;
 
-    if(error){
-      console.error("Delete conversation error:",error);
-      showStatus("Conversation could not be deleted: " + (error.message || "database update failed"));
-      return;
+    /* If RLS blocks the direct update, use the server-side RPC created in Supabase. */
+    if(deleteError){
+      console.warn("Direct conversation delete failed; trying RPC:",deleteError);
+      const {data:rpcResult,error:rpcError} = await supabaseClient.rpc("delete_my_conversation",{
+        p_conversation_id:id
+      });
+      if(!rpcError && (rpcResult === true || rpcResult === "true")){
+        deleteError = null;
+      }else{
+        deleteError = rpcError || deleteError;
+      }
     }
 
-    /*
-     * Do not depend on UPDATE ... SELECT / maybeSingle() here. Supabase RLS
-     * can allow the UPDATE while a SELECT-returning UPDATE is denied. The
-     * UPDATE error itself is the reliable failure signal.
-     */
-    const {data:verifyRow,error:verifyError} = await supabaseClient
-      .from("conversation_participants")
-      .select("conversation_id,user_id,deleted_at")
-      .eq("conversation_id",id)
-      .eq("user_id",currentUser.id)
-      .maybeSingle();
-
-    if(verifyError){
-      console.warn("Delete verification query failed; keeping the local UI deleted state because the UPDATE succeeded:",verifyError);
-    }else if(!verifyRow?.deleted_at){
-      console.error("Delete conversation: server row was not marked deleted.",id);
-      showStatus("Conversation could not be deleted on the server. Check your Supabase update policy.");
+    if(deleteError){
+      console.error("Delete conversation error:",deleteError);
+      showStatus("Conversation could not be deleted: " + (deleteError.message || "database update failed"));
       return;
     }
 
