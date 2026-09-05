@@ -2435,15 +2435,21 @@ header{
 .conversation-option:hover{background:rgba(145,76,255,.18);border-color:rgba(166,103,255,.45);}
 .conversation-option.danger{color:#ffb4c5;}
 .conversation-option.cancel{justify-content:center;color:#bdaed0;background:transparent;}
-.conversation-item.is-muted .conversation-name:after{content:'  🔕';font-size:11px;}
 .conversation-item.is-unread .conversation-name{color:#fff!important;}
 .conversation-item.is-unread .conversation-preview{color:#e1d6f2;font-weight:800;}
-.conversation-pin{font-size:13px;margin-left:5px;}
+.conversation-indicators{display:inline-flex;align-items:center;gap:5px;margin-left:7px;vertical-align:middle;}
+.conversation-indicator{width:22px;height:22px;display:inline-grid;place-items:center;border-radius:8px;border:1px solid rgba(173,112,255,.38);background:linear-gradient(145deg,rgba(145,76,255,.22),rgba(42,20,75,.7));box-shadow:0 0 10px rgba(145,76,255,.12),inset 0 0 10px rgba(177,123,255,.08);vertical-align:middle;}
+.conversation-indicator svg{width:13px;height:13px;display:block;stroke:#d7b7ff;filter:drop-shadow(0 0 4px rgba(174,110,255,.7));}
+.conversation-indicator.pin{border-color:rgba(174,110,255,.58);}
+.conversation-indicator.pin svg{stroke:#caa0ff;}
+.conversation-indicator.mute svg{stroke:#d9a7ff;}
 
 /* Smooth conversation option icons */
-.conversation-option{gap:12px;}
-.option-icon{width:24px;height:24px;flex:0 0 24px;display:grid;place-items:center;border:1px solid rgba(184,136,255,.28);border-radius:8px;background:rgba(145,76,255,.10);color:#d7baff;font:500 17px/1 system-ui,sans-serif;box-shadow:inset 0 0 12px rgba(145,76,255,.08);}
-.report-icon{font-size:15px;}
+.conversation-option{gap:13px;min-height:58px;padding:10px 13px;}
+.option-icon{width:38px;height:38px;flex:0 0 38px;display:grid;place-items:center;border:1px solid rgba(184,136,255,.30);border-radius:12px;background:linear-gradient(145deg,rgba(145,76,255,.16),rgba(40,20,74,.56));color:#d7baff;box-shadow:0 0 14px rgba(145,76,255,.08),inset 0 0 14px rgba(145,76,255,.08);}
+.option-icon svg{width:21px;height:21px;display:block;stroke:currentColor;filter:drop-shadow(0 0 5px rgba(181,125,255,.7));}
+.conversation-option.danger .option-icon{border-color:rgba(255,105,139,.35);background:linear-gradient(145deg,rgba(255,76,118,.12),rgba(70,18,38,.45));color:#ff7698;}
+.conversation-option.cancel{min-height:52px;}
 /* Report dialog */
 .report-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.66);backdrop-filter:blur(9px);display:none;align-items:flex-end;justify-content:center;z-index:10000;padding:16px;}
 .report-backdrop.open{display:flex;}
@@ -2550,11 +2556,11 @@ header{
 <div class="conversation-options-backdrop" id="conversationOptionsBackdrop" aria-hidden="true">
   <div class="conversation-options-sheet" role="dialog" aria-modal="true" aria-labelledby="conversationOptionsTitle">
     <div class="conversation-options-title" id="conversationOptionsTitle">Conversation options</div>
-    <button class="conversation-option" type="button" data-conversation-action="pin"><span class="option-icon" aria-hidden="true">⌖</span><span>Pin conversation</span></button>
-    <button class="conversation-option" type="button" data-conversation-action="mute"><span class="option-icon" aria-hidden="true">◖</span><span>Mute notifications</span></button>
-    <button class="conversation-option" type="button" data-conversation-action="unread"><span class="option-icon" aria-hidden="true">✉</span><span>Mark as unread</span></button>
-    <button class="conversation-option" type="button" data-conversation-action="report"><span class="option-icon report-icon" aria-hidden="true">⚑</span><span>Report</span></button>
-    <button class="conversation-option danger" type="button" data-conversation-action="delete"><span class="option-icon" aria-hidden="true">⌫</span><span>Delete conversation</span></button>
+    <button class="conversation-option" type="button" data-conversation-action="pin"><span class="option-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 4 5 5-3 3-2-2-4 4v3l-2 2-2-2 2-2h3l4-4-2-2 3-3Z"/><path d="m4 20 3-3"/></svg></span><span class="conversation-option-label">Pin conversation</span></button>
+    <button class="conversation-option" type="button" data-conversation-action="mute"><span class="option-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/><path d="m4 4 16 16"/></svg></span><span class="conversation-option-label">Mute notifications</span></button>
+    <button class="conversation-option" type="button" data-conversation-action="unread"><span class="option-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 7 9-7"/></svg></span><span class="conversation-option-label">Mark as unread</span></button>
+    <button class="conversation-option" type="button" data-conversation-action="report"><span class="option-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V4"/><path d="M5 5c4-3 7 3 14 0v9c-7 3-10-3-14 0"/></svg></span><span class="conversation-option-label">Report</span></button>
+    <button class="conversation-option danger" type="button" data-conversation-action="delete"><span class="option-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M10 11v6M14 11v6"/><path d="M6 7l1 13h10l1-13"/><path d="M9 7V4h6v3"/></svg></span><span class="conversation-option-label">Delete conversation</span></button>
     <button class="conversation-option cancel" type="button" data-conversation-action="cancel">Cancel</button>
   </div>
 </div>
@@ -3104,6 +3110,8 @@ let replyTarget = null;
 const conversationPrefsKey = ()=>`totalk_conversation_prefs_${currentUser?.id || "guest"}`;
 function readConversationPrefs(){try{return JSON.parse(localStorage.getItem(conversationPrefsKey())||"{}")}catch{return {}}}
 function writeConversationPrefs(value){localStorage.setItem(conversationPrefsKey(),JSON.stringify(value));}
+function readConversationReadOverrides(){try{return JSON.parse(localStorage.getItem(`totalk_read_overrides_${currentUser?.id || "guest"}`)||"{}")}catch{return {}}}
+function writeConversationReadOverrides(value){localStorage.setItem(`totalk_read_overrides_${currentUser?.id || "guest"}`,JSON.stringify(value));}
 let conversationOptionsTarget = null;
 const optionsBackdrop = document.getElementById("conversationOptionsBackdrop");
 const optionsTitle = document.getElementById("conversationOptionsTitle");
@@ -3113,7 +3121,7 @@ function openConversationOptions(row,partner){
   if(optionsTitle) optionsTitle.textContent=partner?.name || "Conversation options";
   const prefs=readConversationPrefs(); const id=row.id; const itemPrefs=prefs[id]||{};
   const labels={pin:itemPrefs.pinned?"Unpin conversation":"Pin conversation",mute:itemPrefs.muted?"Unmute notifications":"Mute notifications",unread:"Mark as unread",report:"Report",delete:"Delete conversation"};
-  optionsBackdrop?.querySelectorAll("[data-conversation-action]").forEach(btn=>{const a=btn.dataset.conversationAction;if(labels[a]) btn.querySelector("span:last-child").textContent=labels[a];});
+  optionsBackdrop?.querySelectorAll("[data-conversation-action]").forEach(btn=>{const a=btn.dataset.conversationAction;if(labels[a]){const label=btn.querySelector(".conversation-option-label") || btn.querySelector("span:last-child");if(label) label.textContent=labels[a];}});
   optionsBackdrop?.classList.add("open");optionsBackdrop?.setAttribute("aria-hidden","false");
 }
 
@@ -3122,14 +3130,27 @@ const reportDetails=document.getElementById("reportDetails");
 const reportSubmit=document.getElementById("reportSubmit");
 const reportCancel=document.getElementById("reportCancel");
 let selectedReportReason="";
-function closeReportDialog(){reportBackdrop?.classList.remove("open");reportBackdrop?.setAttribute("aria-hidden","true");selectedReportReason="";reportBackdrop?.querySelectorAll(".report-reason").forEach(b=>b.classList.remove("selected"));if(reportDetails) reportDetails.value="";if(reportSubmit) reportSubmit.disabled=true;}
+function closeReportDialog(){
+  reportBackdrop?.classList.remove("open");
+  reportBackdrop?.setAttribute("aria-hidden","true");
+  selectedReportReason="";
+  reportBackdrop?.querySelectorAll(".report-reason").forEach(b=>b.classList.remove("selected"));
+  if(reportDetails) reportDetails.value="";
+  if(reportSubmit){reportSubmit.disabled=true;reportSubmit.textContent="Submit report";}
+  conversationOptionsTarget=null;
+}
 function openReportDialog(){
   if(!conversationOptionsTarget) return;
-  closeConversationOptions();
-  const name=conversationOptionsTarget.partner?.name || "this account";
+  const target=conversationOptionsTarget;
+  const name=target.partner?.name || "this account";
   const title=document.getElementById("reportTitle");
   if(title) title.textContent=`Report ${name}`;
-  reportBackdrop?.classList.add("open");reportBackdrop?.setAttribute("aria-hidden","false");
+  reportBackdrop?.classList.add("open");
+  reportBackdrop?.setAttribute("aria-hidden","false");
+  /* Keep the selected conversation available while the report modal is open. */
+  conversationOptionsTarget=target;
+  optionsBackdrop?.classList.remove("open");
+  optionsBackdrop?.setAttribute("aria-hidden","true");
 }
 async function submitReport(){
   if(!currentUser?.id || !conversationOptionsTarget || !selectedReportReason) return;
@@ -4734,6 +4755,17 @@ async function getOrCreateConversation(otherUserId){
   return conversation;
 }
 
+function conversationIndicatorMarkup(pref){
+  let html = "";
+  if(pref?.pinned){
+    html += `<span class="conversation-indicator pin" title="Pinned" aria-label="Pinned"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 4 5 5-3 3-2-2-4 4v3l-2 2-2-2 2-2h3l4-4-2-2 3-3Z"/><path d="m4 20 3-3"/></svg></span>`;
+  }
+  if(pref?.muted){
+    html += `<span class="conversation-indicator mute" title="Muted" aria-label="Muted"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/><path d="m4 4 16 16"/></svg></span>`;
+  }
+  return html ? `<span class="conversation-indicators">${html}</span>` : "";
+}
+
 async function loadConversationList(){
   if(!conversationList || !currentUser?.id) return;
 
@@ -4874,6 +4906,7 @@ async function loadConversationList(){
    * but it is NOT the source of truth for read state.
    */
   const prefs = readConversationPrefs();
+  const readOverrides = readConversationReadOverrides();
   const unreadMap = new Map();
   const readAtMap = new Map(
     (participantRows || []).map(row=>[
@@ -4886,10 +4919,12 @@ async function loadConversationList(){
     if(!item.sender_id || item.sender_id === currentUser.id) continue;
     if(item.conversation_id === currentConversationId) continue;
 
-    const readAt = readAtMap.get(item.conversation_id) || 0;
+    const serverReadAt = readAtMap.get(item.conversation_id) || 0;
+    const localReadAt = Number(readOverrides[item.conversation_id] || 0);
+    const readAt = Math.max(serverReadAt, localReadAt);
     const messageTime = Date.parse(item.created_at || "") || 0;
 
-    if(!readAt || messageTime > readAt || prefs[item.conversation_id]?.unread === true){
+    if(messageTime > readAt && prefs[item.conversation_id]?.unread !== true){
       unreadMap.set(
         item.conversation_id,
         (unreadMap.get(item.conversation_id) || 0) + 1
@@ -4940,7 +4975,7 @@ async function loadConversationList(){
       </span>
       <span class="conversation-copy">
         <span class="conversation-top">
-          <span class="conversation-name">${escapeHtml(name)}${pref.pinned ? `<span class="conversation-pin">📌</span>` : ""}</span>
+          <span class="conversation-name">${escapeHtml(name)}${conversationIndicatorMarkup(pref)}</span>
           <span class="conversation-time">${latest ? escapeHtml(formatTime(latest.created_at)) : ""}</span>
         </span>
         <span class="conversation-preview">${escapeHtml(latest?.content || "No messages yet")}</span>
@@ -4978,6 +5013,9 @@ async function markConversationAsRead(conversationId){
   if(!currentUser?.id || !conversationId) return false;
 
   const readTime = new Date().toISOString();
+  const readOverrides = readConversationReadOverrides();
+  readOverrides[conversationId] = Date.parse(readTime);
+  writeConversationReadOverrides(readOverrides);
 
   const {error} = await supabaseClient
     .from("conversation_participants")
@@ -5005,6 +5043,19 @@ async function openConversation(row,partner){
   openPrefs[row.id].unread = false;
   writeConversationPrefs(openPrefs);
 
+  /* Mark read locally BEFORE any async work. This is the local source of truth
+     while Supabase finishes updating last_read_at in the background. */
+  const readOverrides = readConversationReadOverrides();
+  readOverrides[row.id] = Date.now();
+  writeConversationReadOverrides(readOverrides);
+  const visibleItem = conversationList?.querySelector(`[data-conversation-id="${CSS.escape(row.id)}"]`);
+  if(visibleItem){
+    visibleItem.classList.remove("is-unread");
+    visibleItem.querySelector(".unread-badge")?.remove();
+  }
+  /* Fire-and-forget immediately; do not wait for message loading. */
+  void markConversationAsRead(row.id).catch(error=>console.error("Immediate read update error:",error));
+
   document.querySelectorAll(".conversation-item").forEach(item=>{
     item.classList.toggle("active",item.dataset.conversationId === row.id);
   });
@@ -5018,9 +5069,8 @@ async function openConversation(row,partner){
     clearReplyTarget();
     await loadMessages();
 
-    /* Persist the read state in Supabase for this user. */
-    await markConversationAsRead(row.id);
-
+    /* The read state was already persisted optimistically above. A second call is
+       intentionally avoided so returning to the list cannot race two timestamps. */
     if(isMobileLayout()) openMobileConversation();
   }catch(error){
     console.error("Conversation open error:",error);
