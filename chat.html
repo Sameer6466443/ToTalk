@@ -3303,7 +3303,19 @@ async function applyConversationAction(action){
   }
 
   if(action === "delete"){
-    /* Remove ONLY from this user's Chat page. Never touch messages or Supabase. */
+    /*
+     * Treat removal as "hide until a new message arrives".
+     * Mark the current state as read first, so an old unread message does
+     * not immediately bring the removed conversation back.
+     */
+    saveLocalReadAt(id,Date.now());
+    if(prefs[id]?.unread){
+      delete prefs[id].unread;
+      writeConversationPrefs(prefs);
+    }
+    void markConversationAsRead(id).catch(error=>console.warn("Remove/read sync error:",error));
+
+    /* Remove ONLY from this user's Chat page. Never delete messages. */
     hideConversationLocally(id);
 
     closeConversationOptions();
@@ -4942,14 +4954,15 @@ async function loadConversationList(){
   /* Hide locally removed conversations on this browser. */
   const listPrefs = readConversationPrefs();
   const hiddenIds = readHiddenConversationIds();
-  const visibleParticipantRows = activeParticipantRows.filter(row=>
-    !listPrefs[row.conversation_id]?.deleted &&
-    !hiddenIds.has(String(row.conversation_id))
-  );
-
+  /*
+   * Keep ALL active conversations available for unread detection.
+   * A locally removed conversation is normally hidden from the Chat page,
+   * but it must still be checked for NEW incoming messages.
+   * That lets a removed chat stay hidden until the other person messages.
+   */
   const conversationIds = [
     ...new Set(
-      visibleParticipantRows
+      activeParticipantRows
         .map(row=>row.conversation_id)
         .filter(Boolean)
     )
@@ -5170,6 +5183,26 @@ async function loadConversationList(){
     const isOnline = onlineUserIds.has(partner.user_id);
     const unreadCount = unreadMap.get(row.id) || 0;
 
+    /*
+     * A removed chat remains hidden ONLY while there is nothing new.
+     * As soon as a new incoming message is detected, it automatically
+     * returns to the Chat page with its unread badge.
+     */
+    if((isConversationHidden(row.id) || pref.deleted) && unreadCount === 0){
+      return;
+    }
+
+    /* New incoming message: clear the old local hide flag so future
+       refreshes keep this conversation visible until the user removes it. */
+    if((isConversationHidden(row.id) || pref.deleted) && unreadCount > 0){
+      const hidden = readHiddenConversationIds();
+      hidden.delete(String(row.id));
+      writeHiddenConversationIds(hidden);
+      if(prefs[row.id]?.deleted){
+        delete prefs[row.id].deleted;
+      }
+    }
+
     item.innerHTML = `
       <span class="conversation-avatar-wrap">
         <span class="mini-avatar">${escapeHtml(first)}</span>
@@ -5191,9 +5224,6 @@ async function loadConversationList(){
     item.addEventListener("pointerdown",()=>{pressTimer=setTimeout(()=>openConversationOptions(row,partner),550);});
     ["pointerup","pointerleave","pointercancel"].forEach(type=>item.addEventListener(type,()=>clearTimeout(pressTimer)));
 
-    if(isConversationHidden(row.id) || prefs[row.id]?.deleted){
-      return;
-    }
     conversationList.appendChild(item);
   });
 
@@ -5613,6 +5643,27 @@ function startRealtime(){
          * still refresh the conversation list so incoming messages appear
          * there immediately with the latest preview and unread count.
          */
+        /*
+         * If this conversation was previously removed from the Chat page,
+         * a NEW incoming message should bring it back with an unread badge.
+         * This makes removal behave like "hide until they message me".
+         */
+        if(data.sender_id !== currentUser.id){
+          const hidden = readHiddenConversationIds();
+          const wasHidden = hidden.delete(String(data.conversation_id));
+          if(wasHidden){
+            writeHiddenConversationIds(hidden);
+            const incomingPrefs = readConversationPrefs();
+            if(incomingPrefs[data.conversation_id]?.deleted){
+              delete incomingPrefs[data.conversation_id].deleted;
+              if(Object.keys(incomingPrefs[data.conversation_id]).length === 0){
+                delete incomingPrefs[data.conversation_id];
+              }
+              writeConversationPrefs(incomingPrefs);
+            }
+          }
+        }
+
         /* Always refresh Chats for every incoming message, even when the
            user is on the Chats page, another conversation, or returning
            after being away from the website. */
