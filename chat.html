@@ -2981,16 +2981,9 @@ function closeMobileConversation(){
   const leavingConversationId = currentConversationId;
 
   if(leavingConversationId){
-    const listItem = conversationList?.querySelector(
-      `[data-conversation-id="${CSS.escape(leavingConversationId)}"]`
-    );
-
-    if(listItem){
-      listItem.classList.remove("is-unread");
-
-      const badge = listItem.querySelector(".unread-badge");
-      if(badge) badge.remove();
-    }
+    /* Also persist read state when leaving, in case a message arrived while open. */
+    void markConversationAsRead(leavingConversationId);
+    clearConversationUnreadUI(leavingConversationId);
   }
 
   /* Return to the chat list immediately — no await here. */
@@ -4779,11 +4772,24 @@ async function loadConversationList(){
    */
   const prefs = readConversationPrefs();
   const unreadMap = new Map();
+
+  /*
+   * Read state has two layers:
+   * 1) Supabase last_read_at (source of truth across devices).
+   * 2) A small local override written immediately when a chat is opened.
+   *
+   * The local override prevents a stale/background Supabase read from
+   * briefly putting the badge back after the user has already read the chat.
+   */
+  const readOverrides = readConversationReadOverrides();
   const readAtMap = new Map(
-    (participantRows || []).map(row=>[
-      row.conversation_id,
-      row.last_read_at ? Date.parse(row.last_read_at) : 0
-    ])
+    (participantRows || []).map(row=>{
+      const serverReadAt = row.last_read_at ? Date.parse(row.last_read_at) : 0;
+      const localReadAt = readOverrides[row.conversation_id]
+        ? Date.parse(readOverrides[row.conversation_id])
+        : 0;
+      return [row.conversation_id, Math.max(serverReadAt || 0, localReadAt || 0)];
+    })
   );
 
   for(const item of (latestMessages || [])){
@@ -4793,7 +4799,8 @@ async function loadConversationList(){
     const readAt = readAtMap.get(item.conversation_id) || 0;
     const messageTime = Date.parse(item.created_at || "") || 0;
 
-    if(!readAt || messageTime > readAt || prefs[item.conversation_id]?.unread === true){
+    /* A manually marked-unread chat is intentionally allowed to show unread. */
+    if(messageTime > readAt || prefs[item.conversation_id]?.unread === true){
       unreadMap.set(
         item.conversation_id,
         (unreadMap.get(item.conversation_id) || 0) + 1
@@ -4878,10 +4885,64 @@ async function loadConversationList(){
   }
 }
 
+const conversationReadOverridesKey = ()=>
+  `totalk_conversation_read_overrides_${currentUser?.id || "guest"}`;
+
+function readConversationReadOverrides(){
+  try{
+    return JSON.parse(
+      localStorage.getItem(conversationReadOverridesKey()) || "{}"
+    );
+  }catch{
+    return {};
+  }
+}
+
+function writeConversationReadOverrides(value){
+  try{
+    localStorage.setItem(
+      conversationReadOverridesKey(),
+      JSON.stringify(value)
+    );
+  }catch(_error){}
+}
+
+function clearConversationUnreadUI(conversationId){
+  if(!conversationId || !conversationList) return;
+
+  const item = conversationList.querySelector(
+    `[data-conversation-id="${CSS.escape(conversationId)}"]`
+  );
+
+  if(!item) return;
+
+  item.classList.remove("is-unread");
+  item.querySelector(".unread-badge")?.remove();
+}
+
 async function markConversationAsRead(conversationId){
   if(!currentUser?.id || !conversationId) return false;
 
   const readTime = new Date().toISOString();
+
+  /*
+   * Update the local read state FIRST. This makes the badge disappear
+   * immediately and protects the UI from a stale/background DB response.
+   */
+  const overrides = readConversationReadOverrides();
+  overrides[conversationId] = readTime;
+  writeConversationReadOverrides(overrides);
+
+  const prefs = readConversationPrefs();
+  if(prefs[conversationId]){
+    delete prefs[conversationId].unread;
+    if(Object.keys(prefs[conversationId]).length === 0){
+      delete prefs[conversationId];
+    }
+    writeConversationPrefs(prefs);
+  }
+
+  clearConversationUnreadUI(conversationId);
 
   const {error} = await supabaseClient
     .from("conversation_participants")
@@ -4890,6 +4951,7 @@ async function markConversationAsRead(conversationId){
     .eq("user_id",currentUser.id);
 
   if(error){
+    /* Keep the local state so the current UI does not resurrect the badge. */
     console.error("Mark conversation as read error:",error);
     return false;
   }
@@ -4920,10 +4982,15 @@ async function openConversation(row,partner){
     closeMenus();
     closeActiveEdit();
     clearReplyTarget();
-    await loadMessages();
 
-    /* Persist the read state in Supabase for this user. */
+    /*
+     * Mark read BEFORE loading/rendering the chat. This removes the unread
+     * state immediately and prevents a realtime/background refresh from
+     * re-adding the badge while the conversation is being opened.
+     */
     await markConversationAsRead(row.id);
+
+    await loadMessages();
 
     if(isMobileLayout()) openMobileConversation();
   }catch(error){
