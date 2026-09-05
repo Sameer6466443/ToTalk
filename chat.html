@@ -2472,6 +2472,18 @@ header{
 .report-cancel{border:1px solid rgba(255,255,255,.10);background:rgba(255,255,255,.05);color:#c7b8d5;}
 .report-submit{border:1px solid rgba(166,103,255,.55);background:linear-gradient(135deg,#7130e9,#a65cff);color:#fff;}
 .report-submit:disabled{opacity:.45;cursor:not-allowed;}
+
+/* Report success popup */
+.report-success-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.68);backdrop-filter:blur(10px);display:none;align-items:center;justify-content:center;z-index:11000;padding:20px;}
+.report-success-backdrop.open{display:flex;}
+.report-success-card{width:min(100%,360px);padding:26px 22px;border:1px solid rgba(166,103,255,.42);border-radius:24px;background:linear-gradient(145deg,rgba(31,20,58,.99),rgba(8,7,22,.995));box-shadow:0 24px 80px rgba(0,0,0,.62);text-align:center;}
+.report-success-icon{width:58px;height:58px;margin:0 auto 14px;border-radius:50%;display:grid;place-items:center;border:1px solid rgba(170,111,255,.65);background:radial-gradient(circle,rgba(166,103,255,.28),rgba(105,40,190,.08));box-shadow:0 0 28px rgba(145,76,255,.3);color:#d7b8ff;}
+.report-success-icon svg{width:29px;height:29px;stroke:currentColor;fill:none;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;}
+.report-success-title{font-size:19px;font-weight:900;color:#fff;}
+.report-success-text{margin-top:7px;color:#a99ab9;font-size:12px;line-height:1.5;}
+.report-success-close{margin-top:17px;width:100%;border:1px solid rgba(166,103,255,.55);border-radius:12px;padding:11px 12px;background:linear-gradient(135deg,#7130e9,#a65cff);color:#fff;font:800 13px system-ui,sans-serif;cursor:pointer;}
+.report-error{display:none;margin-top:9px;padding:9px 10px;border:1px solid rgba(255,91,120,.25);border-radius:10px;background:rgba(255,59,92,.07);color:#ff9ab0;font:600 11px/1.4 system-ui,sans-serif;}
+.report-error.show{display:block;}
 </style>
 
 <style id="totalk-final-galaxy-fix">
@@ -2570,6 +2582,18 @@ header{
   </div>
 </div>
 
+
+<div class="report-success-backdrop" id="reportSuccessBackdrop" aria-hidden="true">
+  <div class="report-success-card" role="dialog" aria-modal="true" aria-labelledby="reportSuccessTitle">
+    <div class="report-success-icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>
+    </div>
+    <div class="report-success-title" id="reportSuccessTitle">Successfully reported</div>
+    <div class="report-success-text">Thanks for helping keep ToTalk safe. Your report has been sent.</div>
+    <button type="button" class="report-success-close" id="reportSuccessClose">Done</button>
+  </div>
+</div>
+
 <div class="report-backdrop" id="reportBackdrop" aria-hidden="true">
   <div class="report-sheet" role="dialog" aria-modal="true" aria-labelledby="reportTitle">
     <div class="report-kicker">REPORT</div>
@@ -2583,6 +2607,7 @@ header{
       <button type="button" class="report-reason" data-report-reason="Other">Other</button>
     </div>
     <textarea id="reportDetails" class="report-details" maxlength="500" placeholder="Optional details"></textarea>
+    <div class="report-error" id="reportError" role="alert"></div>
     <div class="report-actions">
       <button type="button" class="report-cancel" id="reportCancel">Cancel</button>
       <button type="button" class="report-submit" id="reportSubmit" disabled>Submit report</button>
@@ -3189,6 +3214,9 @@ const reportBackdrop=document.getElementById("reportBackdrop");
 const reportDetails=document.getElementById("reportDetails");
 const reportSubmit=document.getElementById("reportSubmit");
 const reportCancel=document.getElementById("reportCancel");
+const reportError=document.getElementById("reportError");
+const reportSuccessBackdrop=document.getElementById("reportSuccessBackdrop");
+const reportSuccessClose=document.getElementById("reportSuccessClose");
 let selectedReportReason="";
 function closeReportDialog(){
   reportBackdrop?.classList.remove("open");
@@ -3196,6 +3224,7 @@ function closeReportDialog(){
   selectedReportReason="";
   reportBackdrop?.querySelectorAll(".report-reason").forEach(b=>b.classList.remove("selected"));
   if(reportDetails) reportDetails.value="";
+  if(reportError){reportError.textContent="";reportError.classList.remove("show");}
   if(reportSubmit){reportSubmit.disabled=true;reportSubmit.textContent="Submit report";}
   conversationOptionsTarget=null;
 }
@@ -3212,31 +3241,51 @@ function openReportDialog(){
   optionsBackdrop?.classList.remove("open");
   optionsBackdrop?.setAttribute("aria-hidden","true");
 }
+function openReportSuccess(){
+  reportSuccessBackdrop?.classList.add("open");
+  reportSuccessBackdrop?.setAttribute("aria-hidden","false");
+}
+function closeReportSuccess(){
+  reportSuccessBackdrop?.classList.remove("open");
+  reportSuccessBackdrop?.setAttribute("aria-hidden","true");
+}
 async function submitReport(){
   if(!currentUser?.id || !conversationOptionsTarget || !selectedReportReason) return;
-  const row=conversationOptionsTarget.row; const partner=conversationOptionsTarget.partner;
-  if(reportSubmit) {reportSubmit.disabled=true;reportSubmit.textContent="Sending…";}
+  const row=conversationOptionsTarget.row;
+  const partner=conversationOptionsTarget.partner;
+  if(reportSubmit){reportSubmit.disabled=true;reportSubmit.textContent="Sending…";}
+  if(reportError){reportError.textContent="";reportError.classList.remove("show");}
   try{
-    const {error}=await supabaseClient.from("reports").insert({
+    const payload={
       reporter_id:currentUser.id,
       reported_user_id:partner.user_id,
       conversation_id:row.id,
       reason:selectedReportReason,
       details:String(reportDetails?.value || "").trim() || null
-    });
-    if(error) throw error;
+    };
+    const result=await Promise.race([
+      supabaseClient.from("reports").insert(payload),
+      new Promise((_,reject)=>setTimeout(()=>reject(new Error("Report request timed out.")),10000))
+    ]);
+    if(result.error) throw result.error;
     closeReportDialog();
-    showStatus("Report submitted. Thank you for helping keep ToTalk safe.");
+    openReportSuccess();
   }catch(error){
     console.error("Report submission error:",error);
     if(reportSubmit){reportSubmit.disabled=false;reportSubmit.textContent="Submit report";}
-    showStatus("Report could not be submitted. Please try again.");
+    if(reportError){
+      const msg=String(error?.message || "Could not submit report.");
+      reportError.textContent="Report could not be submitted: " + msg;
+      reportError.classList.add("show");
+    }
   }
 }
 reportBackdrop?.querySelectorAll(".report-reason").forEach(btn=>btn.addEventListener("click",()=>{selectedReportReason=btn.dataset.reportReason||"";reportBackdrop.querySelectorAll(".report-reason").forEach(b=>b.classList.toggle("selected",b===btn));if(reportSubmit){reportSubmit.disabled=!selectedReportReason;}}));
 reportCancel?.addEventListener("click",closeReportDialog);
 reportSubmit?.addEventListener("click",submitReport);
 reportBackdrop?.addEventListener("click",e=>{if(e.target===reportBackdrop) closeReportDialog();});
+reportSuccessClose?.addEventListener("click",closeReportSuccess);
+reportSuccessBackdrop?.addEventListener("click",e=>{if(e.target===reportSuccessBackdrop) closeReportSuccess();});
 
 function updateConversationItemInstant(id,mutator){
   const item=conversationList?.querySelector(`[data-conversation-id="${CSS.escape(id)}"]`);
