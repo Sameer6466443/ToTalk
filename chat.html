@@ -1431,23 +1431,6 @@ header{
   opacity:.6;
 }
 
-/* Refresh saved conversations automatically when the browser returns
-   from the background. This also catches messages received while the
-   user was not using the website, without requiring a manual refresh. */
-window.addEventListener("focus", ()=>{
-  if(currentUser) void loadConversationList().catch(error=>{
-    console.error("Focus chat-list refresh error:", error);
-  });
-});
-
-document.addEventListener("visibilitychange", ()=>{
-  if(document.visibilityState === "visible" && currentUser){
-    void loadConversationList().catch(error=>{
-      console.error("Visibility chat-list refresh error:", error);
-    });
-  }
-});
-
 /* =====================================================
    SEARCH
 ===================================================== */
@@ -2735,6 +2718,7 @@ document.addEventListener("visibilitychange", ()=>{
     <div
       class="search-panel"
       id="searchPanel"
+      aria-hidden="true"
     >
 
       <input
@@ -5414,232 +5398,234 @@ function updatePresence(){
 
 
 /* =====================================================
-   SEARCH
+   MESSAGE SEARCH
+   Reliable mobile/desktop search with:
+   - open/close toggle
+   - live filtering
+   - previous/next navigation
+   - Enter / Shift+Enter navigation
+   - Escape to close
+   - automatic highlight/focus
 ===================================================== */
 
 let searchMatches = [];
-
 let searchIndex = -1;
 
+function clearSearchState(){
+  searchMatches = [];
+  searchIndex = -1;
+
+  document.querySelectorAll(".message-row").forEach(row=>{
+    row.style.opacity = "1";
+    row.classList.remove("search-match", "search-active");
+  });
+}
+
 function runSearch(){
-
-  const query =
-    searchInput.value
-      .trim()
-      .toLowerCase();
-
-  const rows =
-    document.querySelectorAll(
-      ".message-row"
-    );
-
-  rows.forEach(
-    row=>{
-      row.style.opacity =
-        "1";
-    }
-  );
+  const query = String(searchInput?.value || "").trim().toLowerCase();
+  const rows = Array.from(document.querySelectorAll(".message-row"));
 
   searchMatches = [];
+  searchIndex = -1;
+
+  rows.forEach(row=>{
+    row.style.opacity = "1";
+    row.classList.remove("search-match", "search-active");
+  });
 
   if(!query){
     return;
   }
 
-  rows.forEach(
-    row=>{
+  rows.forEach(row=>{
+    const text = (
+      row.querySelector(".message-text")?.textContent || ""
+    ).toLowerCase();
 
-      const text =
-        row
-          .querySelector(
-            ".message-text"
-          )
-          ?.textContent
-          .toLowerCase() ||
-        "";
-
-      if(
-        text.includes(query)
-      ){
-
-        searchMatches.push(
-          row
-        );
-
-        row.style.opacity =
-          ".55";
-
-      }else{
-
-        row.style.opacity =
-          ".15";
-
-      }
-
+    if(text.includes(query)){
+      searchMatches.push(row);
+      row.classList.add("search-match");
+      row.style.opacity = ".58";
+    }else{
+      row.style.opacity = ".16";
     }
-  );
+  });
 
   if(searchMatches.length){
-
-    searchIndex =
-      0;
-
+    searchIndex = 0;
     focusSearch();
-
   }
-
 }
 
 function focusSearch(){
+  if(!searchMatches.length) return;
 
-  if(
-    !searchMatches.length
-  ){
-    return;
-  }
-
-  searchMatches.forEach(
-    row=>{
-      row.style.opacity =
-        ".55";
-    }
-  );
-
-  const row =
-    searchMatches[
-      searchIndex
-    ];
-
-  row.style.opacity =
-    "1";
-
-  row.scrollIntoView({
-    behavior:"auto",
-    block:"center"
+  searchMatches.forEach(row=>{
+    row.style.opacity = ".58";
+    row.classList.remove("search-active");
   });
 
+  const target = searchMatches[searchIndex];
+  if(!target) return;
+
+  target.style.opacity = "1";
+  target.classList.add("search-active");
+
+  target.scrollIntoView({
+    behavior: "smooth",
+    block: "center"
+  });
 }
 
-/* Search button */
+function openMessageSearch(){
+  if(!searchPanel || !searchInput) return;
 
-document
-  .getElementById(
-    "searchBtn"
-  )
-  .addEventListener(
-    "click",
-    ()=>{
+  closeMenus?.();
 
-      searchPanel.classList.toggle(
-        "open"
-      );
+  searchPanel.classList.add("open");
+  searchPanel.setAttribute("aria-hidden","false");
 
-      if(
-        searchPanel.classList.contains(
-          "open"
-        )
-      ){
+  if(searchBtn){
+    searchBtn.setAttribute("aria-expanded","true");
+  }
 
-        searchInput.focus();
+  requestAnimationFrame(()=>{
+    searchInput.focus();
+    searchInput.select();
+  });
 
+  /* If text was already entered, immediately restore its results. */
+  runSearch();
+}
+
+function closeMessageSearch(){
+  if(!searchPanel) return;
+
+  searchPanel.classList.remove("open");
+  searchPanel.setAttribute("aria-hidden","true");
+
+  if(searchBtn){
+    searchBtn.setAttribute("aria-expanded","false");
+  }
+
+  if(searchInput){
+    searchInput.value = "";
+  }
+
+  clearSearchState();
+}
+
+function toggleMessageSearch(event){
+  event?.stopPropagation();
+
+  if(searchPanel?.classList.contains("open")){
+    closeMessageSearch();
+  }else{
+    openMessageSearch();
+  }
+}
+
+/* Search button — fixed and explicitly bound after all elements exist. */
+if(searchBtn){
+  searchBtn.addEventListener("click", toggleMessageSearch);
+  searchBtn.setAttribute("aria-expanded","false");
+}
+
+/* Live search. */
+if(searchInput){
+  searchInput.addEventListener("input", runSearch);
+
+  searchInput.addEventListener("keydown", event=>{
+    if(event.key === "Enter"){
+      event.preventDefault();
+
+      if(searchMatches.length){
+        if(event.shiftKey){
+          searchPrev?.click();
+        }else{
+          searchNext?.click();
+        }
       }
-
     }
-  );
 
-/* Search input */
-
-searchInput.addEventListener(
-  "input",
-  runSearch
-);
-
-/* Search close */
-
-document
-  .getElementById(
-    "searchClose"
-  )
-  .addEventListener(
-    "click",
-    ()=>{
-
-      searchPanel.classList.remove(
-        "open"
-      );
-
-      searchInput.value =
-        "";
-
-      document
-        .querySelectorAll(
-          ".message-row"
-        )
-        .forEach(
-          row=>{
-            row.style.opacity =
-              "1";
-          }
-        );
-
+    if(event.key === "Escape"){
+      event.preventDefault();
+      closeMessageSearch();
     }
-  );
+  });
+}
 
-/* Search next */
+/* Close button. */
+const searchCloseButton = document.getElementById("searchClose");
 
-document
-  .getElementById(
-    "searchNext"
-  )
-  .addEventListener(
-    "click",
-    ()=>{
+searchCloseButton?.addEventListener("click", event=>{
+  event.stopPropagation();
+  closeMessageSearch();
+});
 
-      if(
-        !searchMatches.length
-      ){
-        return;
-      }
+/* Next result. */
+const searchNextButton = document.getElementById("searchNext");
 
-      searchIndex =
-        (
-          searchIndex + 1
-        ) %
-        searchMatches.length;
+searchNextButton?.addEventListener("click", event=>{
+  event.stopPropagation();
 
-      focusSearch();
+  if(!searchMatches.length) return;
 
-    }
-  );
+  searchIndex =
+    (searchIndex + 1) % searchMatches.length;
 
-/* Search previous */
+  focusSearch();
+});
 
-document
-  .getElementById(
-    "searchPrev"
-  )
-  .addEventListener(
-    "click",
-    ()=>{
+/* Previous result. */
+const searchPrevButton = document.getElementById("searchPrev");
 
-      if(
-        !searchMatches.length
-      ){
-        return;
-      }
+searchPrevButton?.addEventListener("click", event=>{
+  event.stopPropagation();
 
-      searchIndex =
-        (
-          searchIndex -
-          1 +
-          searchMatches.length
-        ) %
-        searchMatches.length;
+  if(!searchMatches.length) return;
 
-      focusSearch();
+  searchIndex =
+    (searchIndex - 1 + searchMatches.length) %
+    searchMatches.length;
 
-    }
-  );
+  focusSearch();
+});
+
+/* Close the search popup when tapping outside it. */
+document.addEventListener("click", event=>{
+  if(!searchPanel?.classList.contains("open")) return;
+
+  const clickedInsidePanel =
+    event.target.closest("#searchPanel");
+
+  const clickedSearchButton =
+    event.target.closest("#searchBtn");
+
+  if(!clickedInsidePanel && !clickedSearchButton){
+    closeMessageSearch();
+  }
+});
+
+/* =====================================================
+   BACKGROUND REFRESH
+===================================================== */
+
+window.addEventListener("focus", ()=>{
+  if(currentUser){
+    void loadConversationList().catch(error=>{
+      console.error("Focus chat-list refresh error:", error);
+    });
+  }
+});
+
+document.addEventListener("visibilitychange", ()=>{
+  if(document.visibilityState === "visible" && currentUser){
+    void loadConversationList().catch(error=>{
+      console.error("Visibility chat-list refresh error:", error);
+    });
+  }
+});
 
 /* =====================================================
    GLOBAL CLICK
