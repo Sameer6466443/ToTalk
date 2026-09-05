@@ -2448,7 +2448,11 @@ header{
 .conversation-option{gap:13px;min-height:58px;padding:10px 13px;}
 .option-icon{width:38px;height:38px;flex:0 0 38px;display:grid;place-items:center;border:1px solid rgba(184,136,255,.30);border-radius:12px;background:linear-gradient(145deg,rgba(145,76,255,.16),rgba(40,20,74,.56));color:#d7baff;box-shadow:0 0 14px rgba(145,76,255,.08),inset 0 0 14px rgba(145,76,255,.08);}
 .option-icon svg{width:21px;height:21px;display:block;stroke:currentColor;filter:drop-shadow(0 0 5px rgba(181,125,255,.7));}
-.remove-conversation-icon{border-color:rgba(255,59,92,.48) !important;background:linear-gradient(145deg,rgba(255,59,92,.16),rgba(70,12,28,.52)) !important;color:#ff3b5c !important;box-shadow:0 0 16px rgba(255,59,92,.18),inset 0 0 14px rgba(255,59,92,.10) !important;}
+.remove-conversation-icon{border-color:rgba(255,59,92,.72) !important;background:linear-gradient(145deg,rgba(255,59,92,.22),rgba(70,12,28,.62)) !important;color:#ff294f !important;box-shadow:0 0 20px rgba(255,59,92,.30),inset 0 0 16px rgba(255,59,92,.14) !important;}
+.conversation-option[data-conversation-action="delete"]{color:#ff5b78 !important;border-color:rgba(255,59,92,.22) !important;background:rgba(255,59,92,.055) !important;}
+.conversation-option[data-conversation-action="delete"] .conversation-option-label{color:#ff5b78 !important;font-weight:900;}
+.conversation-option[data-conversation-action="delete"]:hover{background:rgba(255,59,92,.12) !important;border-color:rgba(255,59,92,.48) !important;}
+.conversation-option[data-conversation-action="delete"]:disabled{opacity:1 !important;}
 .conversation-option.danger .option-icon{border-color:rgba(255,105,139,.35);background:linear-gradient(145deg,rgba(255,76,118,.12),rgba(70,18,38,.45));color:#ff7698;}
 .conversation-option.cancel{min-height:52px;}
 /* Report dialog */
@@ -3259,7 +3263,7 @@ async function applyConversationAction(action){
     const deleteButton = optionsBackdrop?.querySelector('[data-conversation-action="delete"]');
     if(deleteButton){
       deleteButton.disabled = true;
-      deleteButton.style.opacity = ".65";
+      deleteButton.style.opacity = "1";
     }
 
     let removed = false;
@@ -3267,13 +3271,16 @@ async function applyConversationAction(action){
 
     try{
       const deletedAt = new Date().toISOString();
-      const result = await supabaseClient
-        .from("conversation_participants")
-        .update({deleted_at: deletedAt})
-        .eq("conversation_id", id)
-        .eq("user_id", currentUser.id)
-        .select("conversation_id,user_id,deleted_at")
-        .maybeSingle();
+      const result = await Promise.race([
+        supabaseClient
+          .from("conversation_participants")
+          .update({deleted_at: deletedAt})
+          .eq("conversation_id", id)
+          .eq("user_id", currentUser.id)
+          .select("conversation_id,user_id,deleted_at")
+          .maybeSingle(),
+        new Promise((_, reject)=>setTimeout(()=>reject(new Error("Server request timed out.")),8000))
+      ]);
       if(result.error) throw result.error;
       if(!result.data) throw new Error("No participant row was updated.");
       removed = true;
@@ -3284,7 +3291,10 @@ async function applyConversationAction(action){
 
     if(!removed){
       try{
-        const rpcResult = await supabaseClient.rpc("delete_my_conversation",{p_conversation_id:id});
+        const rpcResult = await Promise.race([
+          supabaseClient.rpc("delete_my_conversation",{p_conversation_id:id}),
+          new Promise((_, reject)=>setTimeout(()=>reject(new Error("Remove request timed out.")),8000))
+        ]);
         if(rpcResult.error) throw rpcResult.error;
         if(rpcResult.data === true || rpcResult.data === "true") removed = true;
         else throw new Error("Remove function did not return success.");
