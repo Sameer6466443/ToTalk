@@ -3076,8 +3076,19 @@ function applyConversationAction(action){
   if(action==="mute") item.muted=!item.muted;
   if(action==="unread") item.unread=true;
   if(action==="archive") item.archived=!item.archived;
-  if(action==="delete"){if(!confirm("Delete this conversation from your chat list?")) return;item.deleted=true;}
-  prefs[id]=item;writeConversationPrefs(prefs);closeConversationOptions();loadConversationList();
+  if(action==="delete"){
+    if(!confirm("Delete this conversation from your chat list?")) return;
+
+    /* Keep the deletion time so a later incoming message can restore it. */
+    item.deleted=true;
+    item.deletedAt=Date.now();
+  }
+  prefs[id]=item;
+  writeConversationPrefs(prefs);
+  closeConversationOptions();
+  void loadConversationList().catch(error=>{
+    console.error("Conversation list refresh error:",error);
+  });
 }
 optionsBackdrop?.addEventListener("click",e=>{if(e.target===optionsBackdrop) closeConversationOptions();});
 optionsBackdrop?.querySelectorAll("[data-conversation-action]").forEach(btn=>btn.addEventListener("click",()=>applyConversationAction(btn.dataset.conversationAction)));
@@ -4771,6 +4782,35 @@ async function loadConversationList(){
    * but it is NOT the source of truth for read state.
    */
   const prefs = readConversationPrefs();
+
+  /*
+   * A deleted chat should come back automatically when the other person
+   * sends a NEW message. This also handles returning to the website after
+   * being offline and missing the realtime INSERT event.
+   */
+  let prefsChanged = false;
+  for(const row of safeRows){
+    const pref = prefs[row.id];
+    if(!pref?.deleted) continue;
+
+    const latest = latestMap.get(row.id);
+    const latestTime = Date.parse(latest?.created_at || "") || 0;
+    const deletedAt = Number(pref.deletedAt || 0);
+
+    if(
+      latest &&
+      latest.sender_id &&
+      latest.sender_id !== currentUser.id &&
+      latestTime > deletedAt
+    ){
+      delete pref.deleted;
+      delete pref.deletedAt;
+      prefsChanged = true;
+    }
+  }
+
+  if(prefsChanged) writeConversationPrefs(prefs);
+
   const unreadMap = new Map();
 
   /*
@@ -5018,6 +5058,7 @@ async function startConversationWithUser(partner){
     const prefs = readConversationPrefs();
     if(prefs[row.id]?.deleted){
       delete prefs[row.id].deleted;
+      delete prefs[row.id].deletedAt;
 
       /* Keep pin/mute/unread/archive preferences if they exist. */
       if(Object.keys(prefs[row.id]).length === 0){
@@ -5317,6 +5358,29 @@ function startRealtime(){
       payload=>{
         const data = payload?.new;
         if(!data?.id) return;
+
+        /*
+         * A deleted conversation is hidden only until a NEW incoming
+         * message arrives. Restore it immediately when another user sends
+         * a message, so the chat and unread badge can appear again.
+         */
+        if(
+          currentUser &&
+          data.sender_id &&
+          data.sender_id !== currentUser.id &&
+          data.conversation_id
+        ){
+          const incomingPrefs = readConversationPrefs();
+          const incomingItem = incomingPrefs[data.conversation_id];
+
+          if(incomingItem?.deleted){
+            delete incomingItem.deleted;
+            delete incomingItem.deletedAt;
+            incomingPrefs[data.conversation_id] = incomingItem;
+            writeConversationPrefs(incomingPrefs);
+          }
+        }
+
         /*
          * If the user is on the Chats page or inside another conversation,
          * still refresh the conversation list so incoming messages appear
