@@ -2431,15 +2431,21 @@ header{
 .conversation-options-backdrop.open{display:flex;}
 .conversation-options-sheet{width:min(100%,430px);border:1px solid rgba(166,103,255,.42);border-radius:24px;background:linear-gradient(145deg,rgba(31,20,58,.98),rgba(8,7,22,.99));box-shadow:0 20px 70px rgba(0,0,0,.55);padding:18px;}
 .conversation-options-title{font-size:16px;font-weight:900;color:#fff;margin-bottom:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.conversation-option{width:100%;display:flex;align-items:center;gap:12px;border:1px solid rgba(255,255,255,.08);border-radius:14px;background:rgba(255,255,255,.045);color:#fff;padding:13px 14px;margin:7px 0;text-align:left;font:800 13px system-ui,sans-serif;cursor:pointer;}
+.conversation-option{width:100%;display:flex;align-items:center;gap:12px;border:1px solid rgba(255,255,255,.08);border-radius:14px;background:rgba(255,255,255,.045);color:#fff;padding:13px 14px;margin:7px 0;text-align:left;font:800 13px system-ui,sans-serif;cursor:pointer;transition:background .16s ease,border-color .16s ease,transform .12s ease;}
 .conversation-option:hover{background:rgba(145,76,255,.18);border-color:rgba(166,103,255,.45);}
+.conversation-option:active{transform:scale(.992);}
+.conversation-option-icon{width:34px;height:34px;flex:0 0 34px;display:grid;place-items:center;border-radius:50%;background:rgba(145,76,255,.08);color:#b875ff;box-shadow:inset 0 0 0 1px rgba(174,116,255,.06);}
+.conversation-option-icon svg{width:20px;height:20px;display:block;}
+.conversation-option-label{min-width:0;}
 .conversation-option.danger{color:#ffb4c5;}
+.conversation-option.danger .conversation-option-icon{color:#ff6b83;background:rgba(255,82,112,.07);}
 .conversation-option.cancel{justify-content:center;color:#bdaed0;background:transparent;}
-.conversation-item.is-muted .conversation-name:after{content:'  🔕';font-size:11px;}
+.conversation-item.is-muted .conversation-name:after{content:'  ';display:inline-block;width:13px;height:13px;margin-left:6px;vertical-align:-1px;background:currentColor;opacity:.9;clip-path:polygon(50% 0,68% 8%,80% 22%,85% 42%,85% 68%,95% 82%,95% 88%,5% 88%,5% 82%,15% 68%,15% 42%,20% 22%,32% 8%);border-radius:4px 4px 2px 2px;}
+.conversation-item.is-muted .conversation-name:before{content:'';display:inline-block;width:2px;height:15px;margin-left:2px;margin-right:-2px;vertical-align:-3px;background:currentColor;transform:rotate(-45deg);border-radius:2px;opacity:.85;}
 .conversation-item.is-unread .conversation-name{color:#fff!important;}
 .conversation-item.is-unread .conversation-preview{color:#e1d6f2;font-weight:800;}
-.conversation-item.is-archived{display:none;}
-.conversation-pin{font-size:13px;margin-left:5px;}
+.conversation-pin{display:inline-grid;place-items:center;width:21px;height:21px;margin-left:7px;vertical-align:-4px;border-radius:50%;background:rgba(145,76,255,.09);color:#b875ff;box-shadow:inset 0 0 0 1px rgba(174,116,255,.07);}
+.conversation-pin svg{width:12px;height:12px;display:block;}
 </style>
 
 <style id="totalk-final-galaxy-fix">
@@ -2529,11 +2535,30 @@ header{
 <div class="conversation-options-backdrop" id="conversationOptionsBackdrop" aria-hidden="true">
   <div class="conversation-options-sheet" role="dialog" aria-modal="true" aria-labelledby="conversationOptionsTitle">
     <div class="conversation-options-title" id="conversationOptionsTitle">Conversation options</div>
-    <button class="conversation-option" type="button" data-conversation-action="pin">📌 <span>Pin conversation</span></button>
-    <button class="conversation-option" type="button" data-conversation-action="mute">🔕 <span>Mute notifications</span></button>
-    <button class="conversation-option" type="button" data-conversation-action="unread">📖 <span>Mark as unread</span></button>
-    <button class="conversation-option" type="button" data-conversation-action="archive">🗂️ <span>Archive conversation</span></button>
-    <button class="conversation-option danger" type="button" data-conversation-action="delete">🗑️ <span>Delete conversation</span></button>
+    <button class="conversation-option" type="button" data-conversation-action="pin">
+      <span class="conversation-option-icon pin-option-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M14.8 3.6l5.6 5.6-2.1 2.1-1.2-.3-3.5 3.5.4 2.3-1.4 1.4-6.2-6.2 1.4-1.4 2.3.4 3.5-3.5-.3-1.2 2.1-2.1Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M9.2 14.8 4.7 19.3M7.3 20.7l1.4-1.4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+      </span>
+      <span class="conversation-option-label">Pin conversation</span>
+    </button>
+    <button class="conversation-option" type="button" data-conversation-action="mute">
+      <span class="conversation-option-icon mute-option-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6.8 10.1a5.2 5.2 0 0 1 10.4 0v2.7c0 .9.3 1.7.9 2.4l.7.8H5.2l.7-.8c.6-.7.9-1.5.9-2.4v-2.7Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M9.6 18.2a2.7 2.7 0 0 0 4.8 0M4 4l16 16" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+      </span>
+      <span class="conversation-option-label">Mute notifications</span>
+    </button>
+    <button class="conversation-option" type="button" data-conversation-action="unread">
+      <span class="conversation-option-icon unread-option-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="3.5" y="5.5" width="17" height="13" rx="3" stroke="currentColor" stroke-width="1.7"/><path d="m5.5 7.5 6.5 5 6.5-5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </span>
+      <span class="conversation-option-label">Mark as unread</span>
+    </button>
+    <button class="conversation-option danger" type="button" data-conversation-action="delete">
+      <span class="conversation-option-icon delete-option-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4.5 7h15M9 7V4.8h6V7M7 7l.8 12.1h8.4L17 7M10 10.5v5.2M14 10.5v5.2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </span>
+      <span class="conversation-option-label">Delete conversation</span>
+    </button>
     <button class="conversation-option cancel" type="button" data-conversation-action="cancel">Cancel</button>
   </div>
 </div>
@@ -3064,18 +3089,102 @@ function openConversationOptions(row,partner){
   conversationOptionsTarget={row,partner};
   if(optionsTitle) optionsTitle.textContent=partner?.name || "Conversation options";
   const prefs=readConversationPrefs(); const id=row.id; const itemPrefs=prefs[id]||{};
-  const labels={pin:itemPrefs.pinned?"Unpin conversation":"Pin conversation",mute:itemPrefs.muted?"Unmute notifications":"Mute notifications",unread:"Mark as unread",archive:itemPrefs.archived?"Unarchive conversation":"Archive conversation",delete:"Delete conversation"};
-  optionsBackdrop?.querySelectorAll("[data-conversation-action]").forEach(btn=>{const a=btn.dataset.conversationAction;if(labels[a]) btn.querySelector("span").textContent=labels[a];});
+  const labels={pin:itemPrefs.pinned?"Unpin conversation":"Pin conversation",mute:itemPrefs.muted?"Unmute notifications":"Mute notifications",unread:"Mark as unread",delete:"Delete conversation"};
+  optionsBackdrop?.querySelectorAll("[data-conversation-action]").forEach(btn=>{const a=btn.dataset.conversationAction;if(labels[a]){const label=btn.querySelector(".conversation-option-label");if(label) label.textContent=labels[a];}});
   optionsBackdrop?.classList.add("open");optionsBackdrop?.setAttribute("aria-hidden","false");
 }
+function updateMutedConversationUI(conversationId,muted){
+  const item=document.querySelector(`.conversation-item[data-conversation-id="${CSS.escape(conversationId)}"]`);
+  if(!item) return;
+  item.classList.toggle("is-muted",!!muted);
+}
+
+function updateUnreadConversationUI(conversationId,unread){
+  const item=document.querySelector(`.conversation-item[data-conversation-id="${CSS.escape(conversationId)}"]`);
+  if(!item) return;
+
+  item.classList.toggle("is-unread",!!unread);
+
+  const existing=item.querySelector(".unread-badge");
+  if(!unread){
+    if(existing) existing.remove();
+    return;
+  }
+
+  /* Show the manual unread state immediately. The real message count will
+     be reconciled silently by the background conversation-list refresh. */
+  if(existing){
+    if(!existing.textContent.trim()) existing.textContent="1";
+    return;
+  }
+
+  const badge=document.createElement("span");
+  badge.className="unread-badge";
+  badge.textContent="1";
+  item.appendChild(badge);
+}
+
+function updatePinnedConversationUI(conversationId,pinned){
+  const item=document.querySelector(`.conversation-item[data-conversation-id="${CSS.escape(conversationId)}"]`);
+  if(!item) return;
+
+  const nameEl=item.querySelector(".conversation-name");
+  if(!nameEl) return;
+
+  const existing=nameEl.querySelector(".conversation-pin");
+  if(existing) existing.remove();
+
+  if(pinned){
+    const pin=document.createElement("span");
+    pin.className="conversation-pin";
+    pin.setAttribute("aria-label","Pinned");
+    pin.innerHTML=`<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M14.8 3.6l5.6 5.6-2.1 2.1-1.2-.3-3.5 3.5.4 2.3-1.4 1.4-6.2-6.2 1.4-1.4 2.3.4 3.5-3.5-.3-1.2 2.1-2.1Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M9.2 14.8 4.7 19.3M7.3 20.7l1.4-1.4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>`;
+    nameEl.appendChild(pin);
+
+    const list=conversationList;
+    const heading=list?.querySelector(".history-heading");
+    if(list && heading && item.parentElement===list){
+      const firstItem=list.querySelector(".conversation-item");
+      if(firstItem && firstItem!==item) list.insertBefore(item,firstItem);
+    }
+  }
+}
+
 function applyConversationAction(action){
   if(!conversationOptionsTarget) return;
   const id=conversationOptionsTarget.row.id; const prefs=readConversationPrefs(); const item=prefs[id]||{};
   if(action==="cancel"){closeConversationOptions();return;}
-  if(action==="pin") item.pinned=!item.pinned;
-  if(action==="mute") item.muted=!item.muted;
-  if(action==="unread") item.unread=true;
-  if(action==="archive") item.archived=!item.archived;
+  if(action==="pin"){
+    item.pinned=!item.pinned;
+    prefs[id]=item;
+    writeConversationPrefs(prefs);
+    updatePinnedConversationUI(id,item.pinned);
+    closeConversationOptions();
+    void loadConversationList().catch(error=>console.error("Pinned conversation refresh error:",error));
+    return;
+  }
+  if(action==="mute"){
+    item.muted=!item.muted;
+    prefs[id]=item;
+    writeConversationPrefs(prefs);
+    updateMutedConversationUI(id,item.muted);
+    closeConversationOptions();
+    /* Refresh silently so server-backed/list data catches up without
+       making the user wait for the visual mute state. */
+    void loadConversationList().catch(error=>console.error("Muted conversation refresh error:",error));
+    return;
+  }
+  if(action==="unread"){
+    item.unread=true;
+    prefs[id]=item;
+    writeConversationPrefs(prefs);
+    updateUnreadConversationUI(id,true);
+    closeConversationOptions();
+    /* Mark-unread is a local UI action first. Reconcile with the latest
+       server message/read state silently in the background. */
+    void loadConversationList().catch(error=>console.error("Mark-unread conversation refresh error:",error));
+    return;
+  }
   if(action==="delete"){
     if(!confirm("Delete this conversation from your chat list?")) return;
 
@@ -4778,10 +4887,21 @@ async function loadConversationList(){
   /*
    * Unread messages are based on the current user's persistent
    * last_read_at value stored in Supabase on conversation_participants.
-   * localStorage is still used for UI preferences such as pin/mute/archive,
+   * localStorage is still used for UI preferences such as pin/mute,
    * but it is NOT the source of truth for read state.
    */
   const prefs = readConversationPrefs();
+
+  /* Archive is no longer a ToTalk feature. Clean old saved archive flags
+     so conversations previously archived remain visible. */
+  let legacyArchiveCleaned = false;
+  Object.values(prefs).forEach(pref=>{
+    if(pref && Object.prototype.hasOwnProperty.call(pref,"archived")){
+      delete pref.archived;
+      legacyArchiveCleaned = true;
+    }
+  });
+  if(legacyArchiveCleaned) writeConversationPrefs(prefs);
 
   /*
    * A deleted chat should come back automatically when the other person
@@ -4891,7 +5011,7 @@ async function loadConversationList(){
       </span>
       <span class="conversation-copy">
         <span class="conversation-top">
-          <span class="conversation-name">${escapeHtml(name)}${pref.pinned ? `<span class="conversation-pin">📌</span>` : ""}</span>
+          <span class="conversation-name">${escapeHtml(name)}${pref.pinned ? `<span class="conversation-pin" aria-label="Pinned"><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M14.8 3.6l5.6 5.6-2.1 2.1-1.2-.3-3.5 3.5.4 2.3-1.4 1.4-6.2-6.2 1.4-1.4 2.3.4 3.5-3.5-.3-1.2 2.1-2.1Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M9.2 14.8 4.7 19.3M7.3 20.7l1.4-1.4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></span>` : ""}</span>
           <span class="conversation-time">${latest ? escapeHtml(formatTime(latest.created_at)) : ""}</span>
         </span>
         <span class="conversation-preview">${escapeHtml(latest?.content || "No messages yet")}</span>
@@ -5060,7 +5180,7 @@ async function startConversationWithUser(partner){
       delete prefs[row.id].deleted;
       delete prefs[row.id].deletedAt;
 
-      /* Keep pin/mute/unread/archive preferences if they exist. */
+      /* Keep pin/mute/unread preferences if they exist. */
       if(Object.keys(prefs[row.id]).length === 0){
         delete prefs[row.id];
       }
