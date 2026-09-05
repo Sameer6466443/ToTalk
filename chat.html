@@ -3239,9 +3239,8 @@ function updateConversationItemInstant(id,mutator){
   if(item) mutator(item);
 }
 async function applyConversationAction(action){
-  if(!conversationOptionsTarget) return;
-
   const target = conversationOptionsTarget;
+  if(!target || !target.row || !target.row.id) return;
   const id = target.row.id;
   const prefs = readConversationPrefs();
   const item = prefs[id] || {};
@@ -3257,35 +3256,41 @@ async function applyConversationAction(action){
   }
 
   if(action === "delete"){
+    const deleteButton = optionsBackdrop?.querySelector('[data-conversation-action="delete"]');
+    if(deleteButton){
+      deleteButton.disabled = true;
+      deleteButton.style.opacity = ".65";
+    }
+
     let removed = false;
     let lastError = null;
+
     try{
-      /* First use the account-scoped RPC when available. This avoids client-side RLS ambiguity. */
-      const rpcResult = await supabaseClient.rpc("delete_my_conversation", { p_conversation_id: id });
-      if(!rpcResult.error && (rpcResult.data === true || rpcResult.data === "true")){
-        removed = true;
-      }else if(rpcResult.error){
-        lastError = rpcResult.error;
-      }
+      const deletedAt = new Date().toISOString();
+      const result = await supabaseClient
+        .from("conversation_participants")
+        .update({deleted_at: deletedAt})
+        .eq("conversation_id", id)
+        .eq("user_id", currentUser.id)
+        .select("conversation_id,user_id,deleted_at")
+        .maybeSingle();
+      if(result.error) throw result.error;
+      if(!result.data) throw new Error("No participant row was updated.");
+      removed = true;
     }catch(error){
       lastError = error;
+      console.error("Direct remove failed:",error);
     }
 
     if(!removed){
       try{
-        const deletedAt = new Date().toISOString();
-        const {data,error} = await supabaseClient
-          .from("conversation_participants")
-          .update({deleted_at: deletedAt})
-          .eq("conversation_id", id)
-          .eq("user_id", currentUser.id)
-          .select("conversation_id,deleted_at")
-          .maybeSingle();
-        if(error) throw error;
-        if(!data) throw new Error("No conversation participant row was updated.");
-        removed = true;
+        const rpcResult = await supabaseClient.rpc("delete_my_conversation",{p_conversation_id:id});
+        if(rpcResult.error) throw rpcResult.error;
+        if(rpcResult.data === true || rpcResult.data === "true") removed = true;
+        else throw new Error("Remove function did not return success.");
       }catch(error){
         lastError = error;
+        console.error("RPC remove failed:",error);
       }
     }
 
@@ -3299,9 +3304,9 @@ async function applyConversationAction(action){
       void loadConversationList().catch(error=>console.error("Background conversation refresh error:",error));
       showStatus("Conversation removed.");
     }else{
-      console.error("Remove conversation error:",lastError);
+      if(deleteButton) deleteButton.disabled = false;
       closeConversationOptions();
-      showStatus("Conversation could not be removed. Please try again.");
+      showStatus("Remove failed: " + (lastError?.message || "server/database error"));
     }
     return;
   }
@@ -3326,8 +3331,20 @@ async function applyConversationAction(action){
   void loadConversationList().catch(error=>console.error("Background conversation refresh error:",error));
 }
 
-optionsBackdrop?.addEventListener("click",e=>{if(e.target===optionsBackdrop) closeConversationOptions();});
-optionsBackdrop?.querySelectorAll("[data-conversation-action]").forEach(btn=>btn.addEventListener("click",()=>applyConversationAction(btn.dataset.conversationAction)));
+optionsBackdrop?.addEventListener("click",e=>{
+  if(e.target===optionsBackdrop){
+    closeConversationOptions();
+    return;
+  }
+  const btn=e.target.closest?.("[data-conversation-action]");
+  if(!btn || !optionsBackdrop.contains(btn)) return;
+  e.preventDefault();
+  e.stopPropagation();
+  applyConversationAction(btn.dataset.conversationAction).catch(error=>{
+    console.error("Conversation action error:",error);
+    showStatus("Action failed: " + (error?.message || "unknown error"));
+  });
+});
 
 
 const messageCache =
