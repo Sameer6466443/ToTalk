@@ -3267,23 +3267,36 @@ async function applyConversationAction(action){
      * The hidden state lives on this user's conversation participant row
      * in Supabase, not in browser localStorage.
      */
-    const {data:deletedParticipant,error} = await supabaseClient
+    const deletedAt = new Date().toISOString();
+    const {error} = await supabaseClient
       .from("conversation_participants")
-      .update({deleted_at:new Date().toISOString()})
+      .update({deleted_at:deletedAt})
       .eq("conversation_id",id)
-      .eq("user_id",currentUser.id)
-      .select("conversation_id,user_id,deleted_at")
-      .maybeSingle();
+      .eq("user_id",currentUser.id);
 
     if(error){
       console.error("Delete conversation error:",error);
-      showStatus("Conversation could not be deleted. Please try again.");
+      showStatus("Conversation could not be deleted: " + (error.message || "database update failed"));
       return;
     }
 
-    if(!deletedParticipant?.deleted_at){
-      console.error("Delete conversation: no participant row was updated.",id);
-      showStatus("Conversation could not be deleted. Please try again.");
+    /*
+     * Do not depend on UPDATE ... SELECT / maybeSingle() here. Supabase RLS
+     * can allow the UPDATE while a SELECT-returning UPDATE is denied. The
+     * UPDATE error itself is the reliable failure signal.
+     */
+    const {data:verifyRow,error:verifyError} = await supabaseClient
+      .from("conversation_participants")
+      .select("conversation_id,user_id,deleted_at")
+      .eq("conversation_id",id)
+      .eq("user_id",currentUser.id)
+      .maybeSingle();
+
+    if(verifyError){
+      console.warn("Delete verification query failed; keeping the local UI deleted state because the UPDATE succeeded:",verifyError);
+    }else if(!verifyRow?.deleted_at){
+      console.error("Delete conversation: server row was not marked deleted.",id);
+      showStatus("Conversation could not be deleted on the server. Check your Supabase update policy.");
       return;
     }
 
@@ -5042,14 +5055,24 @@ async function loadConversationList(){
       if(conversationId === currentConversationId) return;
 
       const serverReadAt = readAtMap.get(conversationId) || 0;
+      /*
+       * Use the newer of the server timestamp and this browser's confirmed
+       * local read timestamp. If the server update is delayed/rejected, the
+       * chat must still stay read in the UI instead of suddenly showing the
+       * old unread badge again a few seconds later. The server value remains
+       * authoritative across devices once it is synced.
+       */
+      const localReadAt = getLocalReadAt(conversationId);
+      const effectiveReadAt = Math.max(serverReadAt, localReadAt);
+
       let query = supabaseClient
         .from("messages")
         .select("conversation_id",{count:"exact",head:true})
         .eq("conversation_id",conversationId)
         .neq("sender_id",currentUser.id);
 
-      if(serverReadAt > 0){
-        query = query.gt("created_at",new Date(serverReadAt).toISOString());
+      if(effectiveReadAt > 0){
+        query = query.gt("created_at",new Date(effectiveReadAt).toISOString());
       }
 
       const {count,error:unreadError} = await query;
