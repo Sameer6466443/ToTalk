@@ -3260,8 +3260,6 @@ async function applyConversationAction(action){
   if(action === "unread") item.unread = true;
 
   if(action === "delete"){
-    if(!confirm("Delete this conversation from your chat history?")) return;
-
     /*
      * IMPORTANT: deletion is account-wide.
      * The hidden state lives on this user's conversation participant row
