@@ -2974,7 +2974,7 @@ function closeMobileConversation(){
    * INSTANT BACK / READ UI
    * --------------------------------
    * Do not wait for Supabase before showing the Chats page.
-   * The readAt value was already written when the conversation opened,
+   * The conversation was already marked read in Supabase when it opened,
    * so the current unread badge can be removed locally immediately.
    * The database refresh happens in the background afterwards.
    */
@@ -4647,7 +4647,7 @@ async function loadConversationList(){
    */
   const {data:participantRows,error:participantError} = await supabaseClient
     .from("conversation_participants")
-    .select("conversation_id,user_id")
+    .select("conversation_id,user_id,last_read_at")
     .eq("user_id",currentUser.id);
 
   if(participantError) throw participantError;
@@ -4772,22 +4772,28 @@ async function loadConversationList(){
   }
 
   /*
-   * Unread messages are NOT simply "all messages received".
-   * Keep a per-conversation read timestamp in localStorage. A message is
-   * unread only when it was received after the last time this conversation
-   * was opened. If the conversation is currently open, it can never show an
-   * unread badge in the history list.
+   * Unread messages are based on the current user's persistent
+   * last_read_at value stored in Supabase on conversation_participants.
+   * localStorage is still used for UI preferences such as pin/mute/archive,
+   * but it is NOT the source of truth for read state.
    */
   const prefs = readConversationPrefs();
   const unreadMap = new Map();
+  const readAtMap = new Map(
+    (participantRows || []).map(row=>[
+      row.conversation_id,
+      row.last_read_at ? Date.parse(row.last_read_at) : 0
+    ])
+  );
+
   for(const item of (latestMessages || [])){
     if(!item.sender_id || item.sender_id === currentUser.id) continue;
     if(item.conversation_id === currentConversationId) continue;
 
-    const readAt = Number(prefs[item.conversation_id]?.readAt || 0);
+    const readAt = readAtMap.get(item.conversation_id) || 0;
     const messageTime = Date.parse(item.created_at || "") || 0;
 
-    if(!readAt || messageTime > readAt){
+    if(!readAt || messageTime > readAt || prefs[item.conversation_id]?.unread === true){
       unreadMap.set(
         item.conversation_id,
         (unreadMap.get(item.conversation_id) || 0) + 1
@@ -4872,6 +4878,25 @@ async function loadConversationList(){
   }
 }
 
+async function markConversationAsRead(conversationId){
+  if(!currentUser?.id || !conversationId) return false;
+
+  const readTime = new Date().toISOString();
+
+  const {error} = await supabaseClient
+    .from("conversation_participants")
+    .update({last_read_at:readTime})
+    .eq("conversation_id",conversationId)
+    .eq("user_id",currentUser.id);
+
+  if(error){
+    console.error("Mark conversation as read error:",error);
+    return false;
+  }
+
+  return true;
+}
+
 async function openConversation(row,partner){
   if(!row?.id || !partner) return;
 
@@ -4882,7 +4907,6 @@ async function openConversation(row,partner){
   const openPrefs = readConversationPrefs();
   openPrefs[row.id] = openPrefs[row.id] || {};
   openPrefs[row.id].unread = false;
-  openPrefs[row.id].readAt = Date.now();
   writeConversationPrefs(openPrefs);
 
   document.querySelectorAll(".conversation-item").forEach(item=>{
@@ -4898,12 +4922,8 @@ async function openConversation(row,partner){
     clearReplyTarget();
     await loadMessages();
 
-    /* Store the moment this chat was actually opened/read. */
-    const readPrefs = readConversationPrefs();
-    readPrefs[row.id] = readPrefs[row.id] || {};
-    readPrefs[row.id].readAt = Date.now();
-    readPrefs[row.id].unread = false;
-    writeConversationPrefs(readPrefs);
+    /* Persist the read state in Supabase for this user. */
+    await markConversationAsRead(row.id);
 
     if(isMobileLayout()) openMobileConversation();
   }catch(error){
@@ -5251,14 +5271,9 @@ function startRealtime(){
         console.log("Realtime INSERT:", data);
 
         /* A message arriving in the conversation currently on screen is
-           immediately considered read. This prevents the history badge from
-           appearing after the user goes back to the Chats page. */
+           immediately marked read in Supabase for the current user. */
         if(data.conversation_id === currentConversationId){
-          const prefs = readConversationPrefs();
-          prefs[data.conversation_id] = prefs[data.conversation_id] || {};
-          prefs[data.conversation_id].readAt = Date.now();
-          prefs[data.conversation_id].unread = false;
-          writeConversationPrefs(prefs);
+          void markConversationAsRead(data.conversation_id);
         }
 
         messageCache.set(data.id, data);
