@@ -19,7 +19,6 @@
   --black:#020108;
   --dark:#070313;
   --panel:#0a0616;
-  --panel2:#10091d;
   --purple:#914cff;
   --purple2:#b878ff;
   --green:#52e69a;
@@ -31,8 +30,7 @@
   --border:rgba(145,76,255,.35);
 }
 
-html,
-body{
+html,body{
   min-height:100%;
   background:
     radial-gradient(
@@ -56,10 +54,7 @@ body{
   padding:24px;
 }
 
-button,
-input,
-textarea,
-select{
+button,input,textarea,select{
   font:inherit;
 }
 
@@ -72,9 +67,7 @@ button{
   margin:auto;
 }
 
-/* =====================================================
-   TOP BAR
-===================================================== */
+/* ================= TOP ================= */
 
 .topbar{
   display:flex;
@@ -98,8 +91,6 @@ button{
   display:grid;
   place-items:center;
   background:rgba(145,76,255,.12);
-  box-shadow:
-    0 0 28px rgba(145,76,255,.2);
 }
 
 .logo svg{
@@ -114,7 +105,6 @@ button{
 
 .brand h1{
   font-size:22px;
-  letter-spacing:.2px;
 }
 
 .brand p{
@@ -137,12 +127,6 @@ button{
   background:rgba(145,76,255,.08);
   color:var(--white);
   border-radius:12px;
-  transition:.18s;
-}
-
-.icon-btn:hover{
-  background:rgba(145,76,255,.18);
-  transform:translateY(-1px);
 }
 
 .icon-btn svg{
@@ -160,13 +144,7 @@ button{
   border-color:rgba(255,85,125,.35);
 }
 
-.icon-btn.danger:hover{
-  background:rgba(255,85,125,.1);
-}
-
-/* =====================================================
-   BANNER
-===================================================== */
+/* ================= BANNER ================= */
 
 .banner{
   display:none;
@@ -182,9 +160,7 @@ button{
   display:block;
 }
 
-/* =====================================================
-   STATS
-===================================================== */
+/* ================= STATS ================= */
 
 .stats{
   display:grid;
@@ -194,17 +170,14 @@ button{
 }
 
 .stat{
-  background:
-    linear-gradient(
-      180deg,
-      rgba(16,9,29,.96),
-      rgba(9,5,18,.96)
-    );
+  background:linear-gradient(
+    180deg,
+    rgba(16,9,29,.96),
+    rgba(9,5,18,.96)
+  );
   border:1px solid var(--border);
   border-radius:15px;
   padding:16px;
-  box-shadow:
-    0 12px 40px rgba(0,0,0,.22);
 }
 
 .stat span{
@@ -235,9 +208,7 @@ button{
   color:#aaa2b7;
 }
 
-/* =====================================================
-   TOOLBAR
-===================================================== */
+/* ================= TOOLBAR ================= */
 
 .toolbar{
   display:flex;
@@ -265,13 +236,9 @@ button{
   color:var(--white);
   background:rgba(145,76,255,.2);
   border-color:rgba(145,76,255,.65);
-  box-shadow:
-    0 0 18px rgba(145,76,255,.12);
 }
 
-/* =====================================================
-   REPORTS
-===================================================== */
+/* ================= REPORTS ================= */
 
 .reports{
   display:grid;
@@ -279,17 +246,14 @@ button{
 }
 
 .card{
-  background:
-    linear-gradient(
-      180deg,
-      rgba(15,8,27,.98),
-      rgba(8,4,15,.98)
-    );
+  background:linear-gradient(
+    180deg,
+    rgba(15,8,27,.98),
+    rgba(8,4,15,.98)
+  );
   border:1px solid rgba(145,76,255,.3);
   border-radius:17px;
   padding:17px;
-  box-shadow:
-    0 12px 50px rgba(0,0,0,.25);
 }
 
 .card-head{
@@ -308,7 +272,6 @@ button{
 .status{
   display:inline-flex;
   align-items:center;
-  gap:6px;
   border-radius:999px;
   padding:6px 9px;
   font-size:11px;
@@ -339,9 +302,7 @@ button{
   background:rgba(170,162,183,.05);
 }
 
-/* =====================================================
-   PEOPLE
-===================================================== */
+/* ================= PEOPLE ================= */
 
 .people{
   display:grid;
@@ -378,9 +339,7 @@ button{
   margin-top:3px;
 }
 
-/* =====================================================
-   REPORT TEXT
-===================================================== */
+/* ================= TEXT ================= */
 
 .reason{
   font-size:13px;
@@ -405,15 +364,12 @@ button{
   margin-top:10px;
 }
 
-/* =====================================================
-   CONTROLS
-===================================================== */
+/* ================= CONTROLS ================= */
 
 .controls{
   margin-top:15px;
   padding-top:15px;
   border-top:1px solid rgba(145,76,255,.16);
-
   display:grid;
   grid-template-columns:180px 180px 1fr auto;
   gap:9px;
@@ -440,13 +396,6 @@ button{
   outline:none;
 }
 
-.field select:focus,
-.field textarea:focus{
-  border-color:rgba(145,76,255,.75);
-  box-shadow:
-    0 0 0 3px rgba(145,76,255,.08);
-}
-
 .field textarea{
   min-height:40px;
   resize:vertical;
@@ -462,25 +411,19 @@ button{
   color:var(--white);
   border-radius:11px;
   padding:10px 14px;
-  transition:.18s;
-}
-
-.btn:hover{
-  background:rgba(145,76,255,.18);
 }
 
 .btn.primary{
-  background:
-    linear-gradient(
-      135deg,
-      #7130d8,
-      #9b4dff
-    );
+  background:linear-gradient(
+    135deg,
+    #7130d8,
+    #9b4dff
+  );
   border-color:#a86bff;
 }
 
 .btn.view{
-  display:inline-flex;
+  display:flex;
   align-items:center;
   justify-content:center;
   gap:7px;
@@ -498,9 +441,7 @@ button{
   stroke-linejoin:round;
 }
 
-/* =====================================================
-   EMPTY / LOADING
-===================================================== */
+/* ================= EMPTY ================= */
 
 .empty,
 .loading{
@@ -517,9 +458,7 @@ button{
   margin-bottom:5px;
 }
 
-/* =====================================================
-   TOAST
-===================================================== */
+/* ================= TOAST ================= */
 
 .toast{
   position:fixed;
@@ -531,8 +470,6 @@ button{
   background:#0b1712;
   color:#d8ffea;
   border-radius:12px;
-  box-shadow:
-    0 15px 40px rgba(0,0,0,.35);
   opacity:0;
   transform:translateY(8px);
   pointer-events:none;
@@ -545,25 +482,20 @@ button{
   transform:none;
 }
 
-/* =====================================================
-   LOGIN
-===================================================== */
+/* ================= LOGIN ================= */
 
 .login{
   max-width:480px;
   margin:12vh auto;
-  background:
-    linear-gradient(
-      180deg,
-      rgba(15,8,27,.98),
-      rgba(8,4,15,.98)
-    );
+  background:linear-gradient(
+    180deg,
+    rgba(15,8,27,.98),
+    rgba(8,4,15,.98)
+  );
   border:1px solid var(--border);
   border-radius:20px;
   padding:28px;
   text-align:center;
-  box-shadow:
-    0 25px 80px rgba(0,0,0,.4);
 }
 
 .login h2{
@@ -602,27 +534,24 @@ button{
 
 .modal-box{
   width:min(900px,100%);
-  max-height:90vh;
+  height:min(90vh,850px);
   display:flex;
   flex-direction:column;
-
-  background:
-    linear-gradient(
-      180deg,
-      #10091d,
-      #07030e
-    );
-
+  background:linear-gradient(
+    180deg,
+    #10091d,
+    #07030e
+  );
   border:1px solid rgba(145,76,255,.4);
   border-radius:20px;
-
-  box-shadow:
-    0 30px 100px rgba(0,0,0,.6);
-
+  box-shadow:0 30px 100px rgba(0,0,0,.6);
   overflow:hidden;
 }
 
+/* HEADER */
+
 .modal-head{
+  flex:none;
   display:flex;
   align-items:center;
   justify-content:space-between;
@@ -671,24 +600,47 @@ button{
   stroke-linecap:round;
 }
 
+/* =====================================================
+   CHAT AREA
+===================================================== */
+
 .conversation{
-  overflow:auto;
-  padding:20px;
-  min-height:280px;
+  flex:1;
+  overflow-y:auto;
+  overflow-x:hidden;
+  padding:18px;
+  min-height:0;
+
+  /* IMPORTANT */
+  display:flex;
+  flex-direction:column;
 }
 
-.conversation-loading,
-.conversation-empty{
-  min-height:260px;
-  display:grid;
-  place-items:center;
-  text-align:center;
-  color:var(--muted);
+/* scrollbar */
+
+.conversation::-webkit-scrollbar{
+  width:6px;
 }
+
+.conversation::-webkit-scrollbar-track{
+  background:transparent;
+}
+
+.conversation::-webkit-scrollbar-thumb{
+  background:rgba(145,76,255,.25);
+  border-radius:20px;
+}
+
+/* ================= MESSAGE ================= */
 
 .message{
   display:flex;
+  width:100%;
   margin-bottom:14px;
+
+  /* prevents weird stretching */
+  height:auto !important;
+  min-height:0 !important;
 }
 
 .message.left{
@@ -700,13 +652,19 @@ button{
 }
 
 .message-inner{
-  max-width:min(680px,90%);
+  width:auto !important;
+  max-width:min(620px,82%);
+  min-width:0;
+  height:auto !important;
 }
+
+/* ================= MESSAGE INFO ================= */
 
 .message-info{
   display:flex;
   align-items:center;
-  gap:7px;
+  flex-wrap:wrap;
+  gap:6px;
   margin-bottom:5px;
 }
 
@@ -724,32 +682,65 @@ button{
   font-size:10px;
   color:var(--purple2);
   background:rgba(145,76,255,.08);
-  border:1px solid rgba(145,76,255,.16);
-  padding:2px 6px;
+  border:1px solid rgba(145,76,255,.2);
+  padding:3px 7px;
   border-radius:999px;
 }
 
-.message-time{
-  font-size:10px;
-  color:#716a7c;
-}
+/* ================= BUBBLE ================= */
+
+/*
+   THIS FIXES THE BIG SQUARE PROBLEM.
+*/
 
 .bubble{
+  display:inline-block !important;
+
+  width:auto !important;
+  height:auto !important;
+
+  min-width:0 !important;
+  min-height:0 !important;
+
+  max-width:100%;
+
   border:1px solid rgba(145,76,255,.2);
   background:rgba(145,76,255,.07);
+
   border-radius:14px;
-  padding:10px 12px;
+
+  padding:9px 12px !important;
+
   color:#e8e3ee;
   font-size:13px;
-  line-height:1.5;
+
+  line-height:1.45 !important;
+
   white-space:pre-wrap;
+  overflow-wrap:anywhere;
   word-break:break-word;
+
+  vertical-align:top;
 }
 
 .message.right .bubble{
   background:rgba(145,76,255,.15);
   border-color:rgba(145,76,255,.3);
 }
+
+/* ================= TIME ================= */
+
+.message-time{
+  font-size:10px;
+  color:#716a7c;
+  margin-top:5px;
+}
+
+.message.right .message-time{
+  text-align:right;
+}
+
+/* ================= DELETED ================= */
 
 .message.deleted .bubble{
   color:#aaa2b7;
@@ -762,7 +753,7 @@ button{
   display:inline-flex;
   align-items:center;
   gap:5px;
-  margin-top:6px;
+  margin-top:5px;
   font-size:9px;
   color:#ff9bb3;
 }
@@ -777,9 +768,19 @@ button{
   stroke-linejoin:round;
 }
 
-/* =====================================================
-   MOBILE
-===================================================== */
+/* ================= LOADING ================= */
+
+.conversation-loading,
+.conversation-empty{
+  flex:1;
+  min-height:260px;
+  display:grid;
+  place-items:center;
+  text-align:center;
+  color:var(--muted);
+}
+
+/* ================= MOBILE ================= */
 
 @media(max-width:800px){
 
@@ -818,21 +819,27 @@ button{
   }
 
   .modal{
-    padding:10px;
+    padding:8px;
   }
 
   .modal-box{
-    max-height:94vh;
+    width:100%;
+    height:96vh;
+    max-height:96vh;
     border-radius:17px;
+  }
+
+  .conversation{
+    padding:14px 12px;
+  }
+
+  .message-inner{
+    max-width:86%;
   }
 
 }
 
 @media(max-width:480px){
-
-  .stats{
-    grid-template-columns:1fr 1fr;
-  }
 
   .controls{
     grid-template-columns:1fr;
@@ -846,15 +853,6 @@ button{
     grid-column:auto;
   }
 
-  .actions{
-    gap:6px;
-  }
-
-  .icon-btn{
-    width:40px;
-    height:40px;
-  }
-
   .brand h1{
     font-size:19px;
   }
@@ -864,7 +862,13 @@ button{
   }
 
   .message-inner{
-    max-width:94%;
+    max-width:90%;
+  }
+
+  .bubble{
+    font-size:13px;
+    padding:8px 11px !important;
+    border-radius:13px;
   }
 
 }
@@ -873,191 +877,114 @@ button{
 
 <body>
 
-<!-- =====================================================
-     ADMIN APP
-===================================================== -->
+<div class="shell" id="app" style="display:none">
 
-<div
-  class="shell"
-  id="app"
-  style="display:none"
->
+<header class="topbar">
 
-  <!-- TOP BAR -->
+  <div class="brand">
 
-  <header class="topbar">
-
-    <div class="brand">
-
-      <div class="logo">
-
-        <svg viewBox="0 0 24 24">
-          <path d="M5 5.5h14v9H11l-4 4v-4H5z"/>
-          <path d="M8 9.5h8M8 12h5"/>
-        </svg>
-
-      </div>
-
-      <div>
-        <h1>ToTalk Admin</h1>
-        <p>Owner moderation dashboard</p>
-      </div>
-
+    <div class="logo">
+      <svg viewBox="0 0 24 24">
+        <path d="M5 5.5h14v9H11l-4 4v-4H5z"/>
+        <path d="M8 9.5h8M8 12h5"/>
+      </svg>
     </div>
 
-
-    <div class="actions">
-
-      <!-- REFRESH -->
-
-      <button
-        class="icon-btn"
-        id="refreshBtn"
-        title="Refresh reports"
-        aria-label="Refresh reports"
-      >
-
-        <svg viewBox="0 0 24 24">
-          <path d="M20 11a8 8 0 0 0-14.9-4"/>
-          <path d="M5 3v4h4"/>
-          <path d="M4 13a8 8 0 0 0 14.9 4"/>
-          <path d="M19 21v-4h-4"/>
-        </svg>
-
-      </button>
-
-
-      <!-- SIGN OUT -->
-
-      <button
-        class="icon-btn danger"
-        id="signOutBtn"
-        title="Sign out"
-        aria-label="Sign out"
-      >
-
-        <svg viewBox="0 0 24 24">
-          <path d="M10 17l5-5-5-5"/>
-          <path d="M15 12H3"/>
-          <path d="M21 3v18"/>
-        </svg>
-
-      </button>
-
-    </div>
-
-  </header>
-
-
-  <!-- ERROR -->
-
-  <div
-    class="banner"
-    id="errorBanner"
-  ></div>
-
-
-  <!-- STATS -->
-
-  <section class="stats">
-
-    <div class="stat pending">
-      <span>Pending</span>
-      <strong id="countPending">0</strong>
-    </div>
-
-    <div class="stat investigating">
-      <span>Investigating</span>
-      <strong id="countInvestigating">0</strong>
-    </div>
-
-    <div class="stat resolved">
-      <span>Resolved</span>
-      <strong id="countResolved">0</strong>
-    </div>
-
-    <div class="stat dismissed">
-      <span>Dismissed</span>
-      <strong id="countDismissed">0</strong>
-    </div>
-
-  </section>
-
-
-  <!-- FILTER TABS -->
-
-  <div class="toolbar">
-
-    <div
-      class="tabs"
-      id="tabs"
-    >
-
-      <button
-        class="tab active"
-        data-status="pending"
-      >
-        Pending
-      </button>
-
-      <button
-        class="tab"
-        data-status="investigating"
-      >
-        Investigating
-      </button>
-
-      <button
-        class="tab"
-        data-status="resolved"
-      >
-        Resolved
-      </button>
-
-      <button
-        class="tab"
-        data-status="dismissed"
-      >
-        Dismissed
-      </button>
-
-      <button
-        class="tab"
-        data-status="all"
-      >
-        All
-      </button>
-
+    <div>
+      <h1>ToTalk Admin</h1>
+      <p>Owner moderation dashboard</p>
     </div>
 
   </div>
 
+  <div class="actions">
 
-  <!-- REPORTS -->
+    <button
+      class="icon-btn"
+      id="refreshBtn"
+      title="Refresh reports"
+    >
+      ↻
+    </button>
 
-  <main
-    class="reports"
-    id="reports"
-  >
+    <button
+      class="icon-btn danger"
+      id="signOutBtn"
+      title="Sign out"
+    >
+      ↪
+    </button>
 
-    <div class="loading">
-      Loading reports…
-    </div>
+  </div>
 
-  </main>
+</header>
+
+<div class="banner" id="errorBanner"></div>
+
+<section class="stats">
+
+  <div class="stat pending">
+    <span>Pending</span>
+    <strong id="countPending">0</strong>
+  </div>
+
+  <div class="stat investigating">
+    <span>Investigating</span>
+    <strong id="countInvestigating">0</strong>
+  </div>
+
+  <div class="stat resolved">
+    <span>Resolved</span>
+    <strong id="countResolved">0</strong>
+  </div>
+
+  <div class="stat dismissed">
+    <span>Dismissed</span>
+    <strong id="countDismissed">0</strong>
+  </div>
+
+</section>
+
+<div class="toolbar">
+
+  <div class="tabs" id="tabs">
+
+    <button class="tab active" data-status="pending">
+      Pending
+    </button>
+
+    <button class="tab" data-status="investigating">
+      Investigating
+    </button>
+
+    <button class="tab" data-status="resolved">
+      Resolved
+    </button>
+
+    <button class="tab" data-status="dismissed">
+      Dismissed
+    </button>
+
+    <button class="tab" data-status="all">
+      All
+    </button>
+
+  </div>
+
+</div>
+
+<main class="reports" id="reports">
+  <div class="loading">
+    Loading reports…
+  </div>
+</main>
 
 </div>
 
 
-<!-- =====================================================
-     LOGIN
-===================================================== -->
+<!-- LOGIN -->
 
-<div
-  class="login"
-  id="loginBox"
-  style="display:none"
->
+<div class="login" id="loginBox" style="display:none">
 
   <h2>Owner access required</h2>
 
@@ -1066,24 +993,16 @@ button{
     that has an owner, admin, or moderator role.
   </p>
 
-  <button
-    class="btn primary"
-    id="goChatBtn"
-  >
+  <button class="btn primary" id="goChatBtn">
     Open ToTalk
   </button>
 
 </div>
 
 
-<!-- =====================================================
-     CONVERSATION MODAL
-===================================================== -->
+<!-- CONVERSATION -->
 
-<div
-  class="modal"
-  id="conversationModal"
->
+<div class="modal" id="conversationModal">
 
   <div class="modal-box">
 
@@ -1101,22 +1020,18 @@ button{
 
       </div>
 
-
       <button
         class="close-btn"
         id="closeConversationBtn"
-        aria-label="Close conversation"
+        aria-label="Close"
       >
-
         <svg viewBox="0 0 24 24">
           <path d="M6 6l12 12"/>
           <path d="M18 6L6 18"/>
         </svg>
-
       </button>
 
     </div>
-
 
     <div
       class="conversation"
@@ -1134,14 +1049,7 @@ button{
 </div>
 
 
-<!-- =====================================================
-     TOAST
-===================================================== -->
-
-<div
-  class="toast"
-  id="toast"
-></div>
+<div class="toast" id="toast"></div>
 
 
 <script>
@@ -1190,49 +1098,36 @@ const toast =
   document.getElementById("toast");
 
 const conversationModal =
-  document.getElementById(
-    "conversationModal"
-  );
+  document.getElementById("conversationModal");
 
 const conversationEl =
-  document.getElementById(
-    "conversation"
-  );
+  document.getElementById("conversation");
 
 const conversationIdLabel =
-  document.getElementById(
-    "conversationIdLabel"
-  );
+  document.getElementById("conversationIdLabel");
 
 
-/* =====================================================
-   STATE
-===================================================== */
-
-let currentStatus =
-  "pending";
-
+let currentStatus = "pending";
 let allReports = [];
 
 
 /* =====================================================
-   ESCAPE HTML
+   ESCAPE
 ===================================================== */
 
 function esc(value){
 
-  return String(
-    value ?? ""
-  ).replace(
-    /[&<>'"]/g,
-    char => ({
-      "&":"&amp;",
-      "<":"&lt;",
-      ">":"&gt;",
-      "'":"&#39;",
-      '"':"&quot;"
-    })[char]
-  );
+  return String(value ?? "")
+    .replace(
+      /[&<>'"]/g,
+      char => ({
+        "&":"&amp;",
+        "<":"&lt;",
+        ">":"&gt;",
+        "'":"&#39;",
+        '"':"&quot;"
+      })[char]
+    );
 
 }
 
@@ -1250,12 +1145,8 @@ function fmtDate(value){
   const date =
     new Date(value);
 
-  if(
-    isNaN(date.getTime())
-  ){
-
+  if(isNaN(date.getTime())){
     return String(value);
-
   }
 
   return date.toLocaleString(
@@ -1295,20 +1186,14 @@ function showToast(message){
   toast.textContent =
     message;
 
-  toast.classList.add(
-    "show"
-  );
+  toast.classList.add("show");
 
-  clearTimeout(
-    showToast.timer
-  );
+  clearTimeout(showToast.timer);
 
   showToast.timer =
     setTimeout(
       ()=>{
-        toast.classList.remove(
-          "show"
-        );
+        toast.classList.remove("show");
       },
       2600
     );
@@ -1329,44 +1214,31 @@ function setCounts(rows){
     dismissed:0
   };
 
+  rows.forEach(row => {
 
-  rows.forEach(
-    row => {
-
-      if(
-        counts[row.status] !== undefined
-      ){
-
-        counts[row.status]++;
-
-      }
-
+    if(
+      counts[row.status] !== undefined
+    ){
+      counts[row.status]++;
     }
-  );
 
+  });
 
   document.getElementById(
     "countPending"
-  ).textContent =
-    counts.pending;
-
+  ).textContent = counts.pending;
 
   document.getElementById(
     "countInvestigating"
-  ).textContent =
-    counts.investigating;
-
+  ).textContent = counts.investigating;
 
   document.getElementById(
     "countResolved"
-  ).textContent =
-    counts.resolved;
-
+  ).textContent = counts.resolved;
 
   document.getElementById(
     "countDismissed"
-  ).textContent =
-    counts.dismissed;
+  ).textContent = counts.dismissed;
 
 }
 
@@ -1375,11 +1247,7 @@ function setCounts(rows){
    PERSON
 ===================================================== */
 
-function person(
-  label,
-  name,
-  id
-){
+function person(label,name,id){
 
   return `
 
@@ -1416,12 +1284,9 @@ function card(report){
       "investigating",
       "resolved",
       "dismissed"
-    ].includes(
-      report.status
-    )
+    ].includes(report.status)
       ? report.status
       : "pending";
-
 
   return `
 
@@ -1440,23 +1305,14 @@ function card(report){
 
           <div class="idline">
             Submitted
-            ${esc(
-              fmtDate(
-                report.created_at
-              )
-            )}
+            ${esc(fmtDate(report.created_at))}
           </div>
 
         </div>
 
-
-        <span
-          class="status ${status}"
-        >
+        <span class="status ${status}">
           ${esc(
-            status
-              .charAt(0)
-              .toUpperCase() +
+            status.charAt(0).toUpperCase() +
             status.slice(1)
           )}
         </span>
@@ -1482,96 +1338,56 @@ function card(report){
 
 
       <div class="reason">
-
         <b>Reason:</b>
-
-        ${esc(
-          report.reason ||
-          "Not specified"
-        )}
-
+        ${esc(report.reason || "Not specified")}
       </div>
 
 
       ${
         report.details
-          ? `
-
-            <div class="details">
-
-              <b>Details:</b>
-
-              ${esc(
-                report.details
-              )}
-
-            </div>
-
-          `
-          : ""
+        ? `
+          <div class="details">
+            <b>Details:</b>
+            ${esc(report.details)}
+          </div>
+        `
+        : ""
       }
 
 
       <div class="meta">
 
         Conversation:
-        ${esc(
-          report.conversation_id ||
-          "—"
-        )}
+        ${esc(report.conversation_id || "—")}
 
       </div>
 
 
       ${
         report.conversation_id
-          ? `
-
-            <button
-              class="btn view"
-              data-view-conversation="1"
-              data-conversation-id="${esc(
-                report.conversation_id
-              )}"
-            >
-
-              <svg viewBox="0 0 24 24">
-
-                <path
-                  d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12z"
-                />
-
-                <circle
-                  cx="12"
-                  cy="12"
-                  r="2.5"
-                />
-
-              </svg>
-
-              View Conversation
-
-            </button>
-
-          `
-          : ""
+        ? `
+          <button
+            class="btn view"
+            data-view-conversation="1"
+            data-conversation-id="${esc(
+              report.conversation_id
+            )}"
+          >
+            👁
+            View Conversation
+          </button>
+        `
+        : ""
       }
 
 
       <div class="controls">
 
-
-        <!-- STATUS -->
-
         <div class="field">
 
-          <label>
-            Status
-          </label>
+          <label>Status</label>
 
-          <select
-            class="statusSelect"
-          >
+          <select class="statusSelect">
 
             <option value="pending">
               Pending
@@ -1594,17 +1410,11 @@ function card(report){
         </div>
 
 
-        <!-- ACTION -->
-
         <div class="field">
 
-          <label>
-            Action
-          </label>
+          <label>Action</label>
 
-          <select
-            class="actionSelect"
-          >
+          <select class="actionSelect">
 
             <option value="">
               No action
@@ -1631,8 +1441,6 @@ function card(report){
         </div>
 
 
-        <!-- NOTES -->
-
         <div class="field notes">
 
           <label>
@@ -1646,8 +1454,6 @@ function card(report){
 
         </div>
 
-
-        <!-- SAVE -->
 
         <button
           class="btn primary save"
@@ -1666,7 +1472,7 @@ function card(report){
 
 
 /* =====================================================
-   RENDER REPORTS
+   RENDER
 ===================================================== */
 
 function render(){
@@ -1676,14 +1482,10 @@ function render(){
       ? allReports
       : allReports.filter(
           report =>
-            report.status ===
-            currentStatus
+            report.status === currentStatus
         );
 
-
-  if(
-    !rows.length
-  ){
+  if(!rows.length){
 
     reportsEl.innerHTML = `
 
@@ -1693,8 +1495,7 @@ function render(){
           ${
             currentStatus === "all"
               ? "No reports."
-              : currentStatus +
-                " reports."
+              : currentStatus + " reports."
           }
         </strong>
 
@@ -1705,62 +1506,47 @@ function render(){
     `;
 
     return;
-
   }
 
 
   reportsEl.innerHTML =
-    rows.map(
-      card
-    ).join("");
+    rows.map(card).join("");
 
 
-  rows.forEach(
-    report => {
+  rows.forEach(report => {
 
-      const element =
-        reportsEl.querySelector(
-          `[data-id="${CSS.escape(
-            String(report.id)
-          )}"]`
-        );
+    const element =
+      reportsEl.querySelector(
+        `[data-id="${CSS.escape(String(report.id))}"]`
+      );
 
-
-      if(!element){
-        return;
-      }
-
-
-      element.querySelector(
-        ".statusSelect"
-      ).value =
-        [
-          "pending",
-          "investigating",
-          "resolved",
-          "dismissed"
-        ].includes(
-          report.status
-        )
-          ? report.status
-          : "pending";
-
-
-      element.querySelector(
-        ".actionSelect"
-      ).value =
-        report.action ||
-        "";
-
-
-      element.querySelector(
-        ".notesInput"
-      ).value =
-        report.admin_notes ||
-        "";
-
+    if(!element){
+      return;
     }
-  );
+
+    element.querySelector(
+      ".statusSelect"
+    ).value =
+      [
+        "pending",
+        "investigating",
+        "resolved",
+        "dismissed"
+      ].includes(report.status)
+        ? report.status
+        : "pending";
+
+    element.querySelector(
+      ".actionSelect"
+    ).value =
+      report.action || "";
+
+    element.querySelector(
+      ".notesInput"
+    ).value =
+      report.admin_notes || "";
+
+  });
 
 }
 
@@ -1773,13 +1559,10 @@ async function loadReports(){
 
   showError("");
 
-
   reportsEl.innerHTML = `
-
     <div class="loading">
       Loading reports…
     </div>
-
   `;
 
 
@@ -1805,24 +1588,16 @@ async function loadReports(){
       error.message
     );
 
-
     reportsEl.innerHTML = `
-
       <div class="empty">
-
         <strong>
           Could not load reports.
         </strong>
-
-        Check your admin permissions
-        and Supabase function setup.
-
+        Check your admin permissions.
       </div>
-
     `;
 
     return;
-
   }
 
 
@@ -1831,11 +1606,7 @@ async function loadReports(){
       ? data
       : [];
 
-
-  setCounts(
-    allReports
-  );
-
+  setCounts(allReports);
 
   render();
 
@@ -1846,49 +1617,33 @@ async function loadReports(){
    SAVE REPORT
 ===================================================== */
 
-async function saveReport(
-  element
-){
+async function saveReport(element){
 
   const id =
     element.dataset.id;
-
 
   const status =
     element.querySelector(
       ".statusSelect"
     ).value;
 
-
   const action =
     element.querySelector(
       ".actionSelect"
-    ).value ||
-    null;
-
+    ).value || null;
 
   const notes =
     element.querySelector(
       ".notesInput"
-    ).value.trim() ||
-    null;
-
+    ).value.trim() || null;
 
   const button =
     element.querySelector(
       "[data-save]"
     );
 
-
-  button.disabled =
-    true;
-
-  button.textContent =
-    "Saving…";
-
-
-  showError("");
-
+  button.disabled = true;
+  button.textContent = "Saving…";
 
   const {
     data,
@@ -1906,15 +1661,7 @@ async function saveReport(
       );
 
 
-  if(
-    error ||
-    data !== true
-  ){
-
-    console.error(
-      error
-    );
-
+  if(error || data !== true){
 
     showError(
       "Could not update report #" +
@@ -1926,24 +1673,16 @@ async function saveReport(
       )
     );
 
-
-    button.disabled =
-      false;
-
-    button.textContent =
-      "Save";
+    button.disabled = false;
+    button.textContent = "Save";
 
     return;
-
   }
 
 
   showToast(
-    "Report #" +
-    id +
-    " updated"
+    "Report #" + id + " updated"
   );
-
 
   await loadReports();
 
@@ -1954,23 +1693,14 @@ async function saveReport(
    OPEN CONVERSATION
 ===================================================== */
 
-async function openConversation(
-  conversationId
-){
+async function openConversation(conversationId){
 
-  if(
-    !conversationId
-  ){
-
+  if(!conversationId){
     return;
-
   }
 
 
-  conversationModal.classList.add(
-    "show"
-  );
-
+  conversationModal.classList.add("show");
 
   conversationIdLabel.textContent =
     "Conversation ID: " +
@@ -1978,11 +1708,9 @@ async function openConversation(
 
 
   conversationEl.innerHTML = `
-
     <div class="conversation-loading">
       Loading conversation…
     </div>
-
   `;
 
 
@@ -2002,11 +1730,7 @@ async function openConversation(
 
   if(error){
 
-    console.error(
-      "Conversation error:",
-      error
-    );
-
+    console.error(error);
 
     conversationEl.innerHTML = `
 
@@ -2025,9 +1749,7 @@ async function openConversation(
           </strong>
 
           <span>
-            ${esc(
-              error.message
-            )}
+            ${esc(error.message)}
           </span>
 
         </div>
@@ -2037,7 +1759,6 @@ async function openConversation(
     `;
 
     return;
-
   }
 
 
@@ -2047,9 +1768,7 @@ async function openConversation(
       : [];
 
 
-  if(
-    !rows.length
-  ){
+  if(!rows.length){
 
     conversationEl.innerHTML = `
 
@@ -2063,160 +1782,167 @@ async function openConversation(
     `;
 
     return;
-
   }
 
 
   /*
-   * We use the first report's reported user
-   * only to make the visual alignment nicer.
+   * Determine participants.
+   * The RPC already returns sender_id,
+   * sender_name and totalk_id.
    *
-   * Messages from the same conversation still
-   * display correctly regardless of sender.
+   * We use the first sender as the
+   * visual "left" participant and
+   * the second as "right".
    */
 
+  const senderIds = [];
+
+  rows.forEach(message => {
+
+    const id =
+      message.sender_id;
+
+    if(
+      id &&
+      !senderIds.includes(id)
+    ){
+      senderIds.push(id);
+    }
+
+  });
+
+
+  const firstSender =
+    senderIds[0];
+
+
   conversationEl.innerHTML =
-    rows.map(
-      message => {
+    rows.map(message => {
 
-        const deleted =
-          !!message.is_deleted ||
-          !!message.deleted_at;
-
-
-        const messageText =
-          deleted
-            ? "[Message deleted by user]"
-            : (
-                message.message_text ||
-                ""
-              );
+      const deleted =
+        !!message.is_deleted ||
+        !!message.deleted_at;
 
 
-        /*
-         * Keep UUID hidden from the admin UI.
-         * Only name + ToTalk ID are shown.
-         */
-
-        const senderName =
-          message.sender_name ||
-          "Unknown user";
+      const senderId =
+        message.sender_id;
 
 
-        const totalkId =
-          message.totalk_id ||
-          "No ToTalk ID";
+      /*
+       * First participant = left
+       * Everyone else = right
+       */
+
+      const side =
+        senderId === firstSender
+          ? "left"
+          : "right";
 
 
-        return `
+      const messageText =
+        deleted
+          ? "[Message deleted by user]"
+          : (
+              message.message_text ||
+              message.content ||
+              ""
+            );
 
-          <div
-            class="
-              message
+
+      const senderName =
+        message.sender_name ||
+        "Unknown user";
+
+
+      const totalkId =
+        message.totalk_id ||
+        "No ToTalk ID";
+
+
+      return `
+
+        <div
+          class="
+            message
+            ${side}
+            ${deleted ? "deleted" : ""}
+          "
+        >
+
+          <div class="message-inner">
+
+
+            <div class="message-info">
+
+              <span class="sender-name">
+                ${esc(senderName)}
+              </span>
+
+              <span class="sender-id">
+                ${esc(totalkId)}
+              </span>
+
+            </div>
+
+
+            <div class="bubble">
+              ${esc(messageText)}
+            </div>
+
+
+            ${
+              deleted
+              ? `
+                <div class="deleted-label">
+
+                  <svg viewBox="0 0 24 24">
+
+                    <path d="M4 7h16"/>
+                    <path d="M9 7V4h6v3"/>
+                    <path d="M7 7l1 13h8l1-13"/>
+
+                  </svg>
+
+                  Deleted message preserved
+                  for moderation
+
+                </div>
+              `
+              : ""
+            }
+
+
+            <div class="message-time">
+
+              ${esc(
+                fmtDate(
+                  message.created_at
+                )
+              )}
+
               ${
-                deleted
-                  ? "deleted"
+                message.edited_at && !deleted
+                  ? " · Edited"
                   : ""
               }
-            "
-          >
-
-            <div class="message-inner">
-
-
-              <div class="message-info">
-
-                <span class="sender-name">
-                  ${esc(
-                    senderName
-                  )}
-                </span>
-
-                <span class="sender-id">
-                  ${esc(
-                    totalkId
-                  )}
-                </span>
-
-              </div>
-
-
-              <div class="bubble">
-
-                ${esc(
-                  messageText
-                )}
-
-              </div>
-
-
-              ${
-                deleted
-                  ? `
-
-                    <div class="deleted-label">
-
-                      <svg viewBox="0 0 24 24">
-
-                        <path
-                          d="M4 7h16"
-                        />
-
-                        <path
-                          d="M9 7V4h6v3"
-                        />
-
-                        <path
-                          d="M7 7l1 13h8l1-13"
-                        />
-
-                      </svg>
-
-                      Deleted message preserved
-                      for moderation
-
-                    </div>
-
-                  `
-                  : ""
-              }
-
-
-              <div
-                class="
-                  message-time
-                  ${
-                    deleted
-                      ? ""
-                      : ""
-                  }
-                "
-                style="margin-top:6px"
-              >
-
-                ${esc(
-                  fmtDate(
-                    message.created_at
-                  )
-                )}
-
-                ${
-                  message.edited_at &&
-                  !deleted
-                    ? " · Edited"
-                    : ""
-                }
-
-              </div>
 
             </div>
 
           </div>
 
-        `;
+        </div>
 
-      }
-    ).join("");
+      `;
+
+    }).join("");
+
+
+  /*
+   * Start at the newest message.
+   */
+
+  conversationEl.scrollTop =
+    conversationEl.scrollHeight;
 
 }
 
@@ -2227,9 +1953,7 @@ async function openConversation(
 
 function closeConversation(){
 
-  conversationModal.classList.remove(
-    "show"
-  );
+  conversationModal.classList.remove("show");
 
 }
 
@@ -2256,7 +1980,6 @@ async function boot(){
       "block";
 
     return;
-
   }
 
 
@@ -2265,34 +1988,25 @@ async function boot(){
     error
   } =
     await supabaseClient
-      .rpc(
-        "is_totalk_admin"
-      );
+      .rpc("is_totalk_admin");
 
 
-  if(
-    error ||
-    data !== true
-  ){
+  if(error || data !== true){
 
     loginBox.style.display =
       "block";
-
 
     showError(
       error?.message ||
       "This account does not have admin access."
     );
 
-
     return;
-
   }
 
 
   app.style.display =
     "block";
-
 
   await loadReports();
 
@@ -2300,27 +2014,19 @@ async function boot(){
 
 
 /* =====================================================
-   REFRESH
+   BUTTONS
 ===================================================== */
 
 document
-  .getElementById(
-    "refreshBtn"
-  )
+  .getElementById("refreshBtn")
   .addEventListener(
     "click",
     loadReports
   );
 
 
-/* =====================================================
-   SIGN OUT
-===================================================== */
-
 document
-  .getElementById(
-    "signOutBtn"
-  )
+  .getElementById("signOutBtn")
   .addEventListener(
     "click",
     async ()=>{
@@ -2335,14 +2041,8 @@ document
   );
 
 
-/* =====================================================
-   OPEN CHAT
-===================================================== */
-
 document
-  .getElementById(
-    "goChatBtn"
-  )
+  .getElementById("goChatBtn")
   .addEventListener(
     "click",
     ()=>{
@@ -2357,44 +2057,29 @@ document
 ===================================================== */
 
 document
-  .getElementById(
-    "tabs"
-  )
+  .getElementById("tabs")
   .addEventListener(
     "click",
     event => {
 
       const button =
-        event.target.closest(
-          ".tab"
-        );
-
+        event.target.closest(".tab");
 
       if(!button){
         return;
       }
 
-
       document
-        .querySelectorAll(
-          ".tab"
-        )
+        .querySelectorAll(".tab")
         .forEach(
           item =>
-            item.classList.remove(
-              "active"
-            )
+            item.classList.remove("active")
         );
 
-
-      button.classList.add(
-        "active"
-      );
-
+      button.classList.add("active");
 
       currentStatus =
         button.dataset.status;
-
 
       render();
 
@@ -2403,45 +2088,30 @@ document
 
 
 /* =====================================================
-   REPORT BUTTONS
+   REPORT ACTIONS
 ===================================================== */
 
 reportsEl.addEventListener(
   "click",
   event => {
 
-
-    /*
-     * VIEW CONVERSATION
-     */
-
     const viewButton =
       event.target.closest(
         "[data-view-conversation]"
       );
 
-
     if(viewButton){
 
       openConversation(
-        viewButton.dataset
-          .conversationId
+        viewButton.dataset.conversationId
       );
 
       return;
-
     }
 
 
-    /*
-     * SAVE REPORT
-     */
-
     const saveButton =
-      event.target.closest(
-        "[data-save]"
-      );
-
+      event.target.closest("[data-save]");
 
     if(!saveButton){
       return;
@@ -2449,17 +2119,10 @@ reportsEl.addEventListener(
 
 
     const reportCard =
-      saveButton.closest(
-        ".card"
-      );
-
+      saveButton.closest(".card");
 
     if(reportCard){
-
-      saveReport(
-        reportCard
-      );
-
+      saveReport(reportCard);
     }
 
   }
@@ -2471,19 +2134,12 @@ reportsEl.addEventListener(
 ===================================================== */
 
 document
-  .getElementById(
-    "closeConversationBtn"
-  )
+  .getElementById("closeConversationBtn")
   .addEventListener(
     "click",
     closeConversation
   );
 
-
-/*
- * Click outside the conversation box
- * to close it.
- */
 
 conversationModal.addEventListener(
   "click",
@@ -2493,18 +2149,12 @@ conversationModal.addEventListener(
       event.target ===
       conversationModal
     ){
-
       closeConversation();
-
     }
 
   }
 );
 
-
-/*
- * Escape key closes the viewer.
- */
 
 document.addEventListener(
   "keydown",
@@ -2512,13 +2162,9 @@ document.addEventListener(
 
     if(
       event.key === "Escape" &&
-      conversationModal.classList.contains(
-        "show"
-      )
+      conversationModal.classList.contains("show")
     ){
-
       closeConversation();
-
     }
 
   }
@@ -2526,21 +2172,18 @@ document.addEventListener(
 
 
 /* =====================================================
-   AUTH STATE
+   AUTH
 ===================================================== */
 
 supabaseClient
   .auth
   .onAuthStateChange(
-    (event)=>{
-      if(
-        event ===
-        "SIGNED_OUT"
-      ){
+    event => {
 
+      if(event === "SIGNED_OUT"){
         location.reload();
-
       }
+
     }
   );
 
