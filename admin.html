@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -5,206 +6,1008 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#05020f">
 <title>ToTalk Admin</title>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
+
 :root{
-  --bg:#03020b;--panel:#07051a;--panel2:#0a0822;--panel3:#0d0a2b;
-  --purple:#7c35ff;--purple2:#a978ff;--purple3:#c3a5ff;
-  --line:rgba(124,53,255,.34);--line2:rgba(124,53,255,.18);
-  --text:#f7f4ff;--muted:#9990b8;--yellow:#ffd43b;--blue:#58b8ff;
-  --green:#45e69b;--red:#ff4fa0;
+  --bg:#07070b;
+  --panel:#12121c;
+  --panel2:#1c192b;
+  --line:rgba(255,255,255,.11);
+  --line2:rgba(255,255,255,.07);
+  --text:#f7f4ff;
+  --muted:#a8a4bb;
+  --accent:#ff4ecd;
+  --accent2:#6d5cff;
+  --yellow:#ffd43b;
+  --blue:#58b8ff;
+  --green:#45e69b;
+  --red:#ff4f86;
 }
-html,body{min-height:100%;background:
-radial-gradient(circle at 50% -8%,rgba(116,48,255,.22),transparent 32%),
-radial-gradient(circle at 100% 30%,rgba(75,30,180,.10),transparent 35%),var(--bg);
-color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+
+html,body{
+  min-height:100%;
+  background:
+    radial-gradient(circle at 15% 0%,rgba(255,78,205,.18),transparent 32%),
+    radial-gradient(circle at 90% 10%,rgba(109,92,255,.2),transparent 35%),
+    #07070b;
+  color:var(--text);
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif
+}
+
 body{padding:24px}
+
+body:before{
+  content:"";
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  background:
+    linear-gradient(115deg,transparent 0 47%,rgba(255,255,255,.025) 48%,transparent 49%);
+  background-size:18px 18px;
+  opacity:.35
+}
+
 button,input,textarea,select{font:inherit}
 button{cursor:pointer}
+
 .shell{max-width:1120px;margin:auto}
 
 /* TOP */
-.topbar{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:18px}
-.brand{display:flex;align-items:center;gap:12px}
-.logo{width:48px;height:48px;border-radius:15px;display:grid;place-items:center;
-background:linear-gradient(145deg,#8a39ff,#5b20dd);border:1px solid #b07cff;
-box-shadow:0 0 28px rgba(124,53,255,.35)}
-.logo svg{width:25px;height:25px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.brand h1{font-size:21px}.brand p{font-size:12px;color:var(--muted);margin-top:2px}
+.topbar{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:16px;
+  margin-bottom:18px
+}
+
+.brand{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  text-shadow:0 0 24px rgba(255,78,205,.55)
+}
+
+.logo{
+  width:48px;
+  height:48px;
+  border-radius:15px;
+  display:grid;
+  place-items:center;
+  background:linear-gradient(145deg,#8a39ff,#5b20dd);
+  border:1px solid #b07cff;
+  box-shadow:0 0 28px rgba(124,53,255,.35)
+}
+
+.logo svg{
+  width:25px;
+  height:25px;
+  fill:none;
+  stroke:#fff;
+  stroke-width:2;
+  stroke-linecap:round;
+  stroke-linejoin:round
+}
+
+.brand h1{font-size:21px}
+.brand p{
+  font-size:12px;
+  color:var(--muted);
+  margin-top:2px;
+  text-transform:none;
+  letter-spacing:0
+}
+
 .actions{display:flex;gap:8px}
-.icon-btn{width:44px;height:44px;border:1px solid var(--line);border-radius:13px;
-background:rgba(124,53,255,.08);color:#fff;display:grid;place-items:center;transition:.18s}
-.icon-btn:hover{background:rgba(124,53,255,.18);transform:translateY(-1px)}
-.icon-btn svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-.icon-btn.danger{color:#ff9cc6;border-color:rgba(255,79,160,.3)}
+
+.icon-btn{
+  width:44px;
+  height:44px;
+  border:1px solid var(--line);
+  border-radius:13px;
+  background:rgba(124,53,255,.08);
+  color:#fff;
+  display:grid;
+  place-items:center;
+  transition:.18s
+}
+
+.icon-btn:hover{
+  background:rgba(124,53,255,.18);
+  transform:translateY(-1px)
+}
+
+.icon-btn svg{
+  width:19px;
+  height:19px;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:1.8;
+  stroke-linecap:round;
+  stroke-linejoin:round
+}
+
+.icon-btn.danger{
+  color:#ff9cc6;
+  border-color:rgba(255,79,160,.3)
+}
 
 /* ERROR */
-.banner{display:none;padding:12px 14px;border:1px solid rgba(255,79,160,.35);background:rgba(255,79,160,.08);
-border-radius:14px;margin-bottom:16px;color:#ffc0da}.banner.show{display:block}
+.banner{
+  display:none;
+  padding:12px 14px;
+  border:1px solid rgba(255,79,160,.35);
+  background:rgba(255,79,160,.08);
+  border-radius:14px;
+  margin-bottom:16px;
+  color:#ffc0da
+}
+
+.banner.show{display:block}
 
 /* STATS */
-.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
-.stat{background:linear-gradient(180deg,rgba(13,10,38,.96),rgba(7,5,22,.96));border:1px solid var(--line);
-border-radius:17px;padding:15px 16px;box-shadow:0 15px 45px rgba(0,0,0,.22)}
-.stat-top{display:flex;align-items:center;gap:9px}.stat-icon{width:31px;height:31px;border-radius:50%;display:grid;place-items:center;border:1px solid currentColor}
-.stat-icon svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-.stat span{color:var(--muted);font-size:11px}.stat strong{font-size:24px;margin-left:auto}
-.stat.pending{color:var(--yellow)}.stat.investigating{color:var(--blue)}.stat.resolved{color:var(--green)}.stat.dismissed{color:#aaa6bd}
+.stats{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:10px;
+  margin-bottom:16px
+}
+
+.stat{
+  background:linear-gradient(145deg,rgba(28,25,43,.92),rgba(10,10,17,.88));
+  border:1px solid var(--line);
+  border-radius:24px;
+  padding:15px 16px;
+  box-shadow:0 22px 70px rgba(0,0,0,.35),inset 0 1px rgba(255,255,255,.05)
+}
+
+.stat-top{
+  display:flex;
+  align-items:center;
+  gap:9px
+}
+
+.stat-icon{
+  width:31px;
+  height:31px;
+  border-radius:50%;
+  display:grid;
+  place-items:center;
+  border:1px solid currentColor
+}
+
+.stat-icon svg{
+  width:16px;
+  height:16px;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:1.8;
+  stroke-linecap:round;
+  stroke-linejoin:round
+}
+
+.stat span{color:var(--muted);font-size:11px}
+.stat strong{font-size:24px;margin-left:auto}
+
+.stat.pending{color:var(--yellow)}
+.stat.investigating{color:var(--blue)}
+.stat.resolved{color:var(--green)}
+.stat.dismissed{color:#aaa6bd}
 
 /* TABS */
-.toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
-.tabs{display:flex;gap:7px;flex-wrap:wrap}
-.tab{border:1px solid var(--line2);background:rgba(124,53,255,.055);color:var(--muted);
-border-radius:999px;padding:8px 12px;font-size:12px}
-.tab.active{color:#fff;background:rgba(124,53,255,.19);border-color:rgba(167,117,255,.7);box-shadow:0 0 18px rgba(124,53,255,.12)}
+.toolbar{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:12px
+}
+
+.tabs{
+  display:flex;
+  gap:7px;
+  flex-wrap:wrap
+}
+
+.tab{
+  border:1px solid var(--line);
+  background:rgba(124,53,255,.055);
+  color:var(--muted);
+  border-radius:999px;
+  padding:8px 12px;
+  font-size:12px
+}
+
+.tab.active{
+  color:#fff;
+  background:rgba(124,53,255,.19);
+  border-color:rgba(167,117,255,.7);
+  box-shadow:0 0 18px rgba(124,53,255,.12)
+}
 
 /* CARDS */
-.reports{display:grid;gap:12px}
-.card{background:linear-gradient(180deg,rgba(13,10,36,.98),rgba(6,4,18,.98));
-border:1px solid rgba(124,53,255,.3);border-radius:18px;padding:16px;box-shadow:0 18px 55px rgba(0,0,0,.28)}
-.card-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
-.report-title{display:flex;align-items:center;gap:9px}
-.report-badge{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:rgba(124,53,255,.17);
-border:1px solid rgba(160,111,255,.55);color:#bd9aff}
-.report-badge svg{width:17px;height:17px;fill:currentColor}
-.card-head strong{font-size:16px}.idline{font-size:11px;color:#817995;margin-top:3px}
-.status{display:inline-flex;align-items:center;gap:7px;border-radius:999px;padding:7px 10px;font-size:11px;border:1px solid}
-.status-dot{width:7px;height:7px;border-radius:50%;background:currentColor}
-.status.pending{color:var(--yellow);border-color:rgba(255,212,59,.42);background:rgba(255,212,59,.06)}
-.status.investigating{color:var(--blue);border-color:rgba(88,184,255,.38);background:rgba(88,184,255,.06)}
-.status.resolved{color:var(--green);border-color:rgba(69,230,155,.38);background:rgba(69,230,155,.06)}
-.status.dismissed{color:#aaa6bd;border-color:rgba(170,166,189,.28);background:rgba(170,166,189,.04)}
+.reports{
+  display:grid;
+  gap:12px
+}
 
-.people{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0 10px}
-.person{border:1px solid var(--line2);background:rgba(124,53,255,.045);border-radius:14px;padding:11px}
-.person label{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:#9990b8;margin-bottom:7px}
-.person-main{display:flex;align-items:center;gap:9px}
-.avatar{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(145deg,#7c35ff,#352080);
-border:1px solid rgba(175,130,255,.5)}
-.avatar svg{width:18px;height:18px;fill:#d8c5ff}
-.person strong{font-size:13px;display:block}.person code{font-size:10px;color:#a978ff;display:block;margin-top:2px}
+.card{
+  background:linear-gradient(145deg,rgba(28,25,43,.92),rgba(10,10,17,.88));
+  border:1px solid var(--line);
+  border-radius:24px;
+  padding:16px;
+  box-shadow:0 22px 70px rgba(0,0,0,.35),inset 0 1px rgba(255,255,255,.05)
+}
 
-.info-box{border:1px solid var(--line2);background:rgba(124,53,255,.035);border-radius:13px;padding:11px;margin-top:8px}
-.info-label{display:flex;align-items:center;gap:8px;font-size:11px;color:#e9e4f5;font-weight:700}
-.info-label svg{width:15px;height:15px;fill:#a978ff}
-.info-value{font-size:12px;color:#bfb7d0;line-height:1.5;margin-top:5px;padding-left:23px;word-break:break-word}
-.meta{font-size:10px;color:#756d88;margin:10px 0}
+.card-head{
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+  align-items:flex-start
+}
 
-.view{width:100%;display:flex;align-items:center;justify-content:center;gap:9px;margin-top:10px}
-.btn{border:1px solid var(--line);background:rgba(124,53,255,.1);color:#fff;border-radius:12px;padding:10px 14px;transition:.18s}
-.btn:hover{background:rgba(124,53,255,.18)}
-.btn.primary{background:linear-gradient(135deg,#6621e9,#a14fff);border-color:#ad77ff;box-shadow:0 8px 22px rgba(104,33,233,.2)}
-.btn svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
-.btn .arrow{margin-left:auto}
+.report-title{
+  display:flex;
+  align-items:center;
+  gap:9px
+}
 
-.controls{margin-top:13px;padding-top:14px;border-top:1px solid var(--line2);display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.field label{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:#9990b8;margin-bottom:6px}
-.field select,.field textarea{width:100%;border:1px solid var(--line);background:#07051a;color:#fff;border-radius:11px;padding:10px;outline:none}
-.field select:focus,.field textarea:focus{border-color:#a978ff;box-shadow:0 0 0 3px rgba(124,53,255,.09)}
-.notes{grid-column:1/-1}.field textarea{min-height:68px;resize:vertical}
-.note-wrap{position:relative}.counter{position:absolute;right:9px;bottom:7px;color:#706882;font-size:9px}
-.save{grid-column:1/-1;width:100%;height:42px}
+.report-badge{
+  width:34px;
+  height:34px;
+  border-radius:50%;
+  display:grid;
+  place-items:center;
+  background:rgba(124,53,255,.17);
+  border:1px solid rgba(160,111,255,.55);
+  color:#bd9aff
+}
+
+.report-badge svg{
+  width:17px;
+  height:17px;
+  fill:currentColor
+}
+
+.card-head strong{font-size:16px}
+
+.idline{
+  font-size:11px;
+  color:#817995;
+  margin-top:3px
+}
+
+.status{
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+  border-radius:999px;
+  padding:7px 10px;
+  font-size:11px;
+  border:1px solid
+}
+
+.status-dot{
+  width:7px;
+  height:7px;
+  border-radius:50%;
+  background:currentColor
+}
+
+.status.pending{
+  color:var(--yellow);
+  border-color:rgba(255,212,59,.42);
+  background:rgba(255,212,59,.06)
+}
+
+.status.investigating{
+  color:var(--blue);
+  border-color:rgba(88,184,255,.38);
+  background:rgba(88,184,255,.06)
+}
+
+.status.resolved{
+  color:var(--green);
+  border-color:rgba(69,230,155,.38);
+  background:rgba(69,230,155,.06)
+}
+
+.status.dismissed{
+  color:#aaa6bd;
+  border-color:rgba(170,166,189,.28);
+  background:rgba(170,166,189,.04)
+}
+
+.people{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  margin:14px 0 10px
+}
+
+.person{
+  border:1px solid var(--line2);
+  background:rgba(124,53,255,.045);
+  border-radius:14px;
+  padding:11px
+}
+
+.person label{
+  display:block;
+  font-size:10px;
+  text-transform:uppercase;
+  letter-spacing:.12em;
+  color:#9990b8;
+  margin-bottom:7px
+}
+
+.person-main{
+  display:flex;
+  align-items:center;
+  gap:9px
+}
+
+.avatar{
+  width:34px;
+  height:34px;
+  border-radius:50%;
+  display:grid;
+  place-items:center;
+  background:linear-gradient(145deg,#7c35ff,#352080);
+  border:1px solid rgba(175,130,255,.5)
+}
+
+.avatar svg{
+  width:18px;
+  height:18px;
+  fill:#d8c5ff
+}
+
+.person strong{
+  font-size:13px;
+  display:block
+}
+
+.person code{
+  font-size:10px;
+  color:#a978ff;
+  display:block;
+  margin-top:2px;
+  word-break:break-all
+}
+
+.info-box{
+  border:1px solid var(--line2);
+  background:rgba(124,53,255,.035);
+  border-radius:13px;
+  padding:11px;
+  margin-top:8px
+}
+
+.info-label{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-size:11px;
+  color:#e9e4f5;
+  font-weight:700
+}
+
+.info-label svg{
+  width:15px;
+  height:15px;
+  fill:#a978ff
+}
+
+.info-value{
+  font-size:12px;
+  color:#bfb7d0;
+  line-height:1.5;
+  margin-top:5px;
+  padding-left:23px;
+  word-break:break-word
+}
+
+.meta{
+  font-size:10px;
+  color:#756d88;
+  margin:10px 0
+}
+
+/* BUTTONS */
+.btn{
+  border-radius:14px;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  color:white;
+  border:0;
+  box-shadow:0 10px 30px rgba(255,78,205,.22);
+  padding:10px 14px;
+  transition:.18s
+}
+
+.btn:hover{
+  transform:translateY(-2px);
+  filter:saturate(1.2)
+}
+
+.btn:disabled{
+  opacity:.55;
+  cursor:not-allowed;
+  transform:none
+}
+
+.btn.secondary{
+  background:rgba(255,255,255,.06);
+  border:1px solid var(--line);
+  box-shadow:none
+}
+
+.btn.warning{
+  background:linear-gradient(135deg,#ff9f43,#ff4ecd)
+}
+
+.btn.danger-btn{
+  background:linear-gradient(135deg,#ff4f86,#a41cff)
+}
+
+.btn.success{
+  background:linear-gradient(135deg,#14c989,#5d5cff)
+}
+
+.btn svg{
+  width:17px;
+  height:17px;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:1.9;
+  stroke-linecap:round;
+  stroke-linejoin:round
+}
+
+.view{
+  width:100%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:9px;
+  margin-top:10px
+}
+
+.arrow{margin-left:auto}
+
+/* CONTROLS */
+.controls{
+  margin-top:13px;
+  padding-top:14px;
+  border-top:1px solid var(--line2);
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px
+}
+
+.field label{
+  display:block;
+  font-size:10px;
+  text-transform:uppercase;
+  letter-spacing:.1em;
+  color:#9990b8;
+  margin-bottom:6px
+}
+
+.field select,
+.field textarea{
+  width:100%;
+  border:1px solid rgba(255,255,255,.12)!important;
+  background:rgba(255,255,255,.045)!important;
+  color:var(--text)!important;
+  border-radius:13px!important;
+  padding:10px;
+  outline:none
+}
+
+.field select:focus,
+.field textarea:focus{
+  border-color:#a978ff!important;
+  box-shadow:0 0 0 3px rgba(124,53,255,.09)
+}
+
+.notes{grid-column:1/-1}
+
+.field textarea{
+  min-height:68px;
+  resize:vertical
+}
+
+.note-wrap{position:relative}
+
+.counter{
+  position:absolute;
+  right:9px;
+  bottom:7px;
+  color:#706882;
+  font-size:9px
+}
+
+.moderation-box{
+  grid-column:1/-1;
+  border:1px solid rgba(255,78,205,.16);
+  background:linear-gradient(145deg,rgba(255,78,205,.045),rgba(109,92,255,.045));
+  border-radius:16px;
+  padding:13px
+}
+
+.moderation-title{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-size:12px;
+  font-weight:800;
+  margin-bottom:10px
+}
+
+.moderation-title svg{
+  width:17px;
+  height:17px;
+  fill:none;
+  stroke:#ff7bdc;
+  stroke-width:2;
+  stroke-linecap:round;
+  stroke-linejoin:round
+}
+
+.moderation-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px
+}
+
+.ban-help{
+  font-size:10px;
+  color:#8f89a5;
+  line-height:1.45;
+  margin-top:8px
+}
+
+.ban-actions{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+  margin-top:10px
+}
+
+.save{
+  grid-column:1/-1;
+  width:100%;
+  height:42px
+}
 
 /* EMPTY */
-.empty,.loading{padding:55px 20px;text-align:center;border:1px dashed rgba(124,53,255,.28);border-radius:18px;color:var(--muted)}
-.empty strong{display:block;color:#fff;margin-bottom:5px}
+.empty,.loading{
+  padding:55px 20px;
+  text-align:center;
+  border:1px dashed rgba(124,53,255,.28);
+  border-radius:18px;
+  color:var(--muted)
+}
+
+.empty strong{
+  display:block;
+  color:#fff;
+  margin-bottom:5px
+}
 
 /* MODAL */
-.modal{position:fixed;inset:0;z-index:500;display:none;background:rgba(0,0,0,.77);backdrop-filter:blur(12px);padding:14px}
-.modal.show{display:flex;align-items:center;justify-content:center}
-.modal-box{width:min(900px,100%);height:min(92vh,820px);display:flex;flex-direction:column;
-background:linear-gradient(180deg,#090620,#03020d);border:1px solid rgba(124,53,255,.5);border-radius:22px;
-box-shadow:0 30px 110px rgba(0,0,0,.7);overflow:hidden}
-.modal-head{padding:16px 18px;border-bottom:1px solid var(--line2);display:flex;align-items:center;gap:13px}
-.modal-brand{display:flex;align-items:center;gap:10px;min-width:0;flex:1}
-.modal-logo{width:40px;height:40px;border-radius:13px;display:grid;place-items:center;background:linear-gradient(145deg,#8536ff,#5a20dc);
-border:1px solid #aa72ff;box-shadow:0 0 20px rgba(124,53,255,.28)}
-.modal-logo svg{width:21px;height:21px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.modal-title{min-width:0}.modal-title strong{display:block;font-size:17px}.modal-title span{display:block;color:#9f96bd;font-size:11px;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.close-btn{flex:none;width:40px;height:40px;border-radius:12px;border:1px solid var(--line);background:rgba(124,53,255,.08);color:#fff;display:grid;place-items:center}
-.close-btn svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
+.modal{
+  position:fixed;
+  inset:0;
+  z-index:500;
+  display:none;
+  background:rgba(0,0,0,.77);
+  backdrop-filter:blur(12px);
+  padding:14px
+}
 
-.conversation{overflow:auto;padding:17px 18px 30px;min-height:0}
-.conversation::-webkit-scrollbar{width:6px}.conversation::-webkit-scrollbar-thumb{background:rgba(124,53,255,.35);border-radius:99px}
-.date-divider{display:flex;align-items:center;gap:9px;color:#a69dbc;font-size:10px;margin:12px 0 17px}
-.date-divider:before,.date-divider:after{content:"";height:1px;background:var(--line2);flex:1}
-.date-pill{border:1px solid rgba(124,53,255,.3);background:rgba(124,53,255,.08);padding:5px 10px;border-radius:99px}
+.modal.show{
+  display:flex;
+  align-items:center;
+  justify-content:center
+}
 
-.message{display:flex;margin:0 0 18px}.message.left{justify-content:flex-start}.message.right{justify-content:flex-end}
-.message-inner{max-width:min(650px,90%)}.message-info{display:flex;align-items:center;gap:7px;margin:0 0 6px 5px}
-.sender-name{font-size:12px;font-weight:700}.sender-id{font-size:9px;color:#b38bff;background:rgba(124,53,255,.1);border:1px solid rgba(124,53,255,.2);padding:3px 7px;border-radius:99px}
-.message-time{font-size:9px;color:#716982;margin:6px 0 0 5px}
-.bubble{border:1px solid rgba(124,53,255,.2);background:linear-gradient(180deg,rgba(124,53,255,.13),rgba(124,53,255,.07));
-border-radius:14px;padding:11px 13px;color:#eeeaf6;font-size:13px;line-height:1.5;white-space:pre-wrap;word-break:break-word}
-.message.right .bubble{background:rgba(124,53,255,.18);border-color:rgba(124,53,255,.32)}
-.message.deleted .message-inner{max-width:min(650px,94%);width:100%}
-.deleted-card{border:1px solid rgba(255,79,160,.52);background:linear-gradient(180deg,rgba(89,17,84,.19),rgba(18,7,31,.76));
-border-radius:16px;padding:14px;box-shadow:inset 0 0 35px rgba(255,79,160,.035)}
-.deleted-head{display:flex;align-items:center;gap:8px;color:#ff62b1;font-size:11px;font-weight:800;letter-spacing:.04em}
-.deleted-head svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.deleted-author{display:flex;align-items:center;gap:8px;margin:12px 0 8px}
-.deleted-original{color:#eeeaf6;font-size:14px;line-height:1.55;white-space:pre-wrap;word-break:break-word}
-.deleted-original.missing{color:#b8aec9;font-style:italic}
-.preserved{display:flex;align-items:center;gap:8px;margin-top:12px;padding-top:11px;border-top:1px solid rgba(255,79,160,.15);font-size:10px;color:#c9a8c5}
-.preserved svg{width:15px;height:15px;fill:none;stroke:#ff62b1;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.deleted-time{display:flex;align-items:center;gap:7px;margin-top:9px;font-size:10px;color:#8e7d99}
-.deleted-time svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-.conversation-empty{min-height:260px;display:grid;place-items:center;text-align:center;color:var(--muted)}
+.modal-box{
+  width:min(900px,100%);
+  height:min(92vh,820px);
+  display:flex;
+  flex-direction:column;
+  background:linear-gradient(180deg,#090620,#03020d);
+  border:1px solid rgba(124,53,255,.5);
+  border-radius:22px;
+  box-shadow:0 30px 110px rgba(0,0,0,.7);
+  overflow:hidden
+}
+
+.modal-head{
+  padding:16px 18px;
+  border-bottom:1px solid var(--line2);
+  display:flex;
+  align-items:center;
+  gap:13px
+}
+
+.modal-brand{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  min-width:0;
+  flex:1
+}
+
+.modal-logo{
+  width:40px;
+  height:40px;
+  border-radius:13px;
+  display:grid;
+  place-items:center;
+  background:linear-gradient(145deg,#8536ff,#5a20dc);
+  border:1px solid #aa72ff;
+  box-shadow:0 0 20px rgba(124,53,255,.28)
+}
+
+.modal-logo svg{
+  width:21px;
+  height:21px;
+  fill:none;
+  stroke:#fff;
+  stroke-width:2;
+  stroke-linecap:round;
+  stroke-linejoin:round
+}
+
+.modal-title{min-width:0}
+.modal-title strong{
+  display:block;
+  font-size:17px
+}
+
+.modal-title span{
+  display:block;
+  color:#9f96bd;
+  font-size:11px;
+  margin-top:3px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis
+}
+
+.close-btn{
+  flex:none;
+  width:40px;
+  height:40px;
+  border-radius:12px;
+  border:1px solid var(--line);
+  background:rgba(124,53,255,.08);
+  color:#fff;
+  display:grid;
+  place-items:center
+}
+
+.close-btn svg{
+  width:18px;
+  height:18px;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:2;
+  stroke-linecap:round
+}
+
+.conversation{
+  overflow:auto;
+  padding:17px 18px 30px;
+  min-height:0
+}
+
+.conversation::-webkit-scrollbar{width:6px}
+
+.conversation::-webkit-scrollbar-thumb{
+  background:rgba(124,53,255,.35);
+  border-radius:99px
+}
+
+.date-divider{
+  display:flex;
+  align-items:center;
+  gap:9px;
+  color:#a69dbc;
+  font-size:10px;
+  margin:12px 0 17px
+}
+
+.date-divider:before,
+.date-divider:after{
+  content:"";
+  height:1px;
+  background:var(--line2);
+  flex:1
+}
+
+.date-pill{
+  border:1px solid rgba(124,53,255,.3);
+  background:rgba(124,53,255,.08);
+  padding:5px 10px;
+  border-radius:99px
+}
+
+.message{
+  display:flex;
+  margin:0 0 18px
+}
+
+.message.left{justify-content:flex-start}
+.message.right{justify-content:flex-end}
+
+.message-inner{max-width:min(650px,90%)}
+
+.message-info{
+  display:flex;
+  align-items:center;
+  gap:7px;
+  margin:0 0 6px 5px
+}
+
+.sender-name{
+  font-size:12px;
+  font-weight:700
+}
+
+.sender-id{
+  font-size:9px;
+  color:#b38bff;
+  background:rgba(124,53,255,.1);
+  border:1px solid rgba(124,53,255,.2);
+  padding:3px 7px;
+  border-radius:99px
+}
+
+.message-time{
+  font-size:9px;
+  color:#716982;
+  margin:6px 0 0 5px
+}
+
+.bubble{
+  border:1px solid rgba(124,53,255,.2);
+  background:linear-gradient(180deg,rgba(124,53,255,.13),rgba(124,53,255,.07));
+  border-radius:14px;
+  padding:11px 13px;
+  color:#eeeaf6;
+  font-size:13px;
+  line-height:1.5;
+  white-space:pre-wrap;
+  word-break:break-word
+}
+
+.message.right .bubble{
+  background:rgba(124,53,255,.18);
+  border-color:rgba(124,53,255,.32)
+}
+
+.message.deleted .message-inner{
+  max-width:min(650px,94%);
+  width:100%
+}
+
+.deleted-card{
+  border:1px solid rgba(255,79,160,.52);
+  background:linear-gradient(180deg,rgba(89,17,84,.19),rgba(18,7,31,.76));
+  border-radius:16px;
+  padding:14px
+}
+
+.deleted-head{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  color:#ff62b1;
+  font-size:11px;
+  font-weight:800;
+  letter-spacing:.04em
+}
+
+.deleted-head svg{
+  width:17px;
+  height:17px;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:2;
+  stroke-linecap:round;
+  stroke-linejoin:round
+}
+
+.deleted-author{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin:12px 0 8px
+}
+
+.deleted-original{
+  color:#eeeaf6;
+  font-size:14px;
+  line-height:1.55;
+  white-space:pre-wrap;
+  word-break:break-word
+}
+
+.deleted-original.missing{
+  color:#b8aec9;
+  font-style:italic
+}
+
+.preserved{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin-top:12px;
+  padding-top:11px;
+  border-top:1px solid rgba(255,79,160,.15);
+  font-size:10px;
+  color:#c9a8c5
+}
+
+.preserved svg{
+  width:15px;
+  height:15px;
+  fill:none;
+  stroke:#ff62b1;
+  stroke-width:2;
+  stroke-linecap:round;
+  stroke-linejoin:round
+}
+
+.deleted-time{
+  display:flex;
+  align-items:center;
+  gap:7px;
+  margin-top:9px;
+  font-size:10px;
+  color:#8e7d99
+}
+
+.deleted-time svg{
+  width:14px;
+  height:14px;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:1.8;
+  stroke-linecap:round;
+  stroke-linejoin:round
+}
+
+.conversation-empty{
+  min-height:260px;
+  display:grid;
+  place-items:center;
+  text-align:center;
+  color:var(--muted)
+}
 
 /* LOGIN */
-.login{max-width:460px;margin:12vh auto;background:linear-gradient(180deg,#0d0920,#060411);border:1px solid var(--line);
-border-radius:21px;padding:28px;text-align:center;box-shadow:0 25px 80px rgba(0,0,0,.45)}
-.login h2{margin-bottom:8px}.login p{color:var(--muted);line-height:1.5;font-size:13px}.login .btn{margin-top:18px}
+.login{
+  max-width:460px;
+  margin:12vh auto;
+  background:linear-gradient(145deg,#100d2b,#071827);
+  border:1px solid #8c6cff88;
+  border-radius:24px;
+  padding:28px;
+  text-align:center;
+  box-shadow:0 25px 80px rgba(0,0,0,.45)
+}
+
+.login h2{margin-bottom:8px}
+
+.login p{
+  color:var(--muted);
+  line-height:1.5;
+  font-size:13px
+}
+
+.login .btn{margin-top:18px}
 
 /* TOAST */
-.toast{position:fixed;right:18px;bottom:18px;max-width:360px;padding:12px 15px;border:1px solid rgba(69,230,155,.4);
-background:#08150f;color:#d8ffea;border-radius:12px;box-shadow:0 15px 40px rgba(0,0,0,.35);opacity:0;transform:translateY(8px);
-pointer-events:none;transition:.2s;z-index:1000}.toast.show{opacity:1;transform:none}
+.toast{
+  position:fixed;
+  right:18px;
+  bottom:18px;
+  max-width:380px;
+  padding:12px 15px;
+  border:1px solid rgba(69,230,155,.4);
+  background:#08150f;
+  color:#d8ffea;
+  border-radius:12px;
+  box-shadow:0 15px 40px rgba(0,0,0,.35);
+  opacity:0;
+  transform:translateY(8px);
+  pointer-events:none;
+  transition:.2s;
+  z-index:1000
+}
+
+.toast.show{
+  opacity:1;
+  transform:none
+}
+
+.toast.error{
+  border-color:rgba(255,79,160,.4);
+  background:#1b0813;
+  color:#ffd5e5
+}
 
 @media(max-width:760px){
- body{padding:14px}.stats{grid-template-columns:1fr 1fr}.people{grid-template-columns:1fr}
- .modal{padding:8px}.modal-box{height:95vh;border-radius:18px}.conversation{padding:14px}
+  body{padding:14px}
+  .stats{grid-template-columns:1fr 1fr}
+  .people{grid-template-columns:1fr}
+  .modal{padding:8px}
+  .modal-box{height:95vh;border-radius:18px}
+  .conversation{padding:14px}
+  .moderation-grid{grid-template-columns:1fr}
 }
+
 @media(max-width:480px){
- .topbar{align-items:flex-start}.brand h1{font-size:19px}.actions{gap:6px}.icon-btn{width:40px;height:40px}
- .stats{gap:7px}.stat{padding:12px}.stat strong{font-size:21px}.stat-icon{width:27px;height:27px}
- .controls{grid-template-columns:1fr}.notes,.save{grid-column:1}.message-inner{max-width:95%}
+  .topbar{align-items:flex-start}
+  .brand h1{font-size:19px}
+  .actions{gap:6px}
+  .icon-btn{width:40px;height:40px}
+  .stats{gap:7px}
+  .stat{padding:12px}
+  .stat strong{font-size:21px}
+  .stat-icon{width:27px;height:27px}
+  .controls{grid-template-columns:1fr}
+  .notes,.save,.moderation-box{grid-column:1}
+  .message-inner{max-width:95%}
+  .ban-actions{grid-template-columns:1fr}
 }
-
-/* Theme override: Neon Cosmic */
-body{background:radial-gradient(circle at 15% 0%,#30206b 0,transparent 35%),radial-gradient(circle at 100% 20%,#073d58 0,transparent 32%),#050711!important}.card,.stat,.person,.info-box{box-shadow:0 0 0 1px #6c4cff22,0 18px 55px #0008!important}.btn.primary,.view{background:linear-gradient(100deg,#7c35ff,#20d9ff)!important;box-shadow:0 0 25px #7c35ff55!important}.login{background:linear-gradient(145deg,#100d2b,#071827)!important;border:1px solid #8c6cff88!important}
-</style>
-
-<style>
-:root{--bg:#07070b;--panel:rgba(18,18,28,.88);--line:rgba(255,255,255,.11);--text:#f7f4ff;--muted:#a8a4bb;--accent:#ff4ecd;--accent2:#6d5cff}
-body{background:radial-gradient(circle at 15% 0%,rgba(255,78,205,.18),transparent 32%),radial-gradient(circle at 90% 10%,rgba(109,92,255,.2),transparent 35%),#07070b;color:var(--text)}
-body:before{content:"";position:fixed;inset:0;pointer-events:none;background:linear-gradient(115deg,transparent 0 47%,rgba(255,255,255,.025) 48%,transparent 49%);background-size:18px 18px;opacity:.35}
-.card,.panel,.report-card,.stat-card,.modal-content,.login-card{background:linear-gradient(145deg,rgba(28,25,43,.92),rgba(10,10,17,.88));border:1px solid var(--line);box-shadow:0 22px 70px rgba(0,0,0,.35),inset 0 1px rgba(255,255,255,.05);border-radius:24px}
-button,.btn{border-radius:14px;background:linear-gradient(135deg,var(--accent),var(--accent2));color:white;border:0;box-shadow:0 10px 30px rgba(255,78,205,.22)}
-button:hover,.btn:hover{transform:translateY(-2px);filter:saturate(1.2)}
-.logo,.brand{letter-spacing:.08em;text-transform:uppercase;text-shadow:0 0 24px rgba(255,78,205,.55)}
-input,select,textarea{background:rgba(255,255,255,.045)!important;border:1px solid rgba(255,255,255,.12)!important;color:var(--text)!important;border-radius:13px!important}
 </style>
 </head>
 
 <body>
 
 <div class="shell" id="app" style="display:none">
+
 <header class="topbar">
   <div class="brand">
     <div class="logo">
-      <svg viewBox="0 0 24 24"><path d="M5 5.5h14v9H11l-4 4v-4H5z"/><path d="M8 9.5h8M8 12h5"/></svg>
+      <svg viewBox="0 0 24 24">
+        <path d="M5 5.5h14v9H11l-4 4v-4H5z"/>
+        <path d="M8 9.5h8M8 12h5"/>
+      </svg>
     </div>
-    <div><h1>ToTalk</h1><p>Admin Panel</p></div>
+    <div>
+      <h1>ToTalk</h1>
+      <p>Admin Panel</p>
+    </div>
   </div>
+
   <div class="actions">
     <button class="icon-btn" id="refreshBtn" title="Refresh" aria-label="Refresh">
-      <svg viewBox="0 0 24 24"><path d="M20 11a8 8 0 0 0-14.9-4"/><path d="M5 3v4h4"/><path d="M4 13a8 8 0 0 0 14.9 4"/><path d="M19 21v-4h-4"/></svg>
+      <svg viewBox="0 0 24 24">
+        <path d="M20 11a8 8 0 0 0-14.9-4"/>
+        <path d="M5 3v4h4"/>
+        <path d="M4 13a8 8 0 0 0 14.9 4"/>
+        <path d="M19 21v-4h-4"/>
+      </svg>
     </button>
+
     <button class="icon-btn danger" id="signOutBtn" title="Sign out" aria-label="Sign out">
-      <svg viewBox="0 0 24 24"><path d="M10 17l5-5-5-5"/><path d="M15 12H3"/><path d="M21 3v18"/></svg>
+      <svg viewBox="0 0 24 24">
+        <path d="M10 17l5-5-5-5"/>
+        <path d="M15 12H3"/>
+        <path d="M21 3v18"/>
+      </svg>
     </button>
   </div>
 </header>
@@ -212,10 +1015,59 @@ input,select,textarea{background:rgba(255,255,255,.045)!important;border:1px sol
 <div class="banner" id="errorBanner"></div>
 
 <section class="stats">
-  <div class="stat pending"><div class="stat-top"><div class="stat-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 8v5l3 2"/></svg></div><span>Pending</span><strong id="countPending">0</strong></div></div>
-  <div class="stat investigating"><div class="stat-top"><div class="stat-icon"><svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4 4"/></svg></div><span>Investigating</span><strong id="countInvestigating">0</strong></div></div>
-  <div class="stat resolved"><div class="stat-top"><div class="stat-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="m8.5 12 2.3 2.3 4.8-5"/></svg></div><span>Resolved</span><strong id="countResolved">0</strong></div></div>
-  <div class="stat dismissed"><div class="stat-top"><div class="stat-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M8 12h8"/></svg></div><span>Dismissed</span><strong id="countDismissed">0</strong></div></div>
+
+  <div class="stat pending">
+    <div class="stat-top">
+      <div class="stat-icon">
+        <svg viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="8"/>
+          <path d="M12 8v5l3 2"/>
+        </svg>
+      </div>
+      <span>Pending</span>
+      <strong id="countPending">0</strong>
+    </div>
+  </div>
+
+  <div class="stat investigating">
+    <div class="stat-top">
+      <div class="stat-icon">
+        <svg viewBox="0 0 24 24">
+          <circle cx="10.5" cy="10.5" r="6.5"/>
+          <path d="m16 16 4 4"/>
+        </svg>
+      </div>
+      <span>Investigating</span>
+      <strong id="countInvestigating">0</strong>
+    </div>
+  </div>
+
+  <div class="stat resolved">
+    <div class="stat-top">
+      <div class="stat-icon">
+        <svg viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="8"/>
+          <path d="m8.5 12 2.3 2.3 4.8-5"/>
+        </svg>
+      </div>
+      <span>Resolved</span>
+      <strong id="countResolved">0</strong>
+    </div>
+  </div>
+
+  <div class="stat dismissed">
+    <div class="stat-top">
+      <div class="stat-icon">
+        <svg viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="8"/>
+          <path d="M8 12h8"/>
+        </svg>
+      </div>
+      <span>Dismissed</span>
+      <strong id="countDismissed">0</strong>
+    </div>
+  </div>
+
 </section>
 
 <div class="toolbar">
@@ -228,200 +1080,1617 @@ input,select,textarea{background:rgba(255,255,255,.045)!important;border:1px sol
   </div>
 </div>
 
-<main class="reports" id="reports"><div class="loading">Loading reports…</div></main>
+<main class="reports" id="reports">
+  <div class="loading">Loading reports…</div>
+</main>
+
 </div>
 
+<!-- LOGIN -->
 <div class="login" id="loginBox" style="display:none">
   <h2>Owner access required</h2>
-  <p>You must be signed in with a ToTalk account that has an owner, admin, or moderator role.</p>
-  <button class="btn primary" id="goChatBtn">Open ToTalk</button>
+  <p>
+    You must be signed in with a ToTalk account that has an owner,
+    admin, or moderator role.
+  </p>
+  <button class="btn" id="goChatBtn">Open ToTalk</button>
 </div>
 
+<!-- CONVERSATION MODAL -->
 <div class="modal" id="conversationModal">
+
   <div class="modal-box">
+
     <div class="modal-head">
+
       <div class="modal-brand">
-        <div class="modal-logo"><svg viewBox="0 0 24 24"><path d="M5 5.5h14v9H11l-4 4v-4H5z"/><path d="M8 9.5h8M8 12h5"/></svg></div>
-        <div class="modal-title"><strong>Conversation</strong><span id="conversationIdLabel">Loading…</span></div>
+
+        <div class="modal-logo">
+          <svg viewBox="0 0 24 24">
+            <path d="M5 5.5h14v9H11l-4 4v-4H5z"/>
+            <path d="M8 9.5h8M8 12h5"/>
+          </svg>
+        </div>
+
+        <div class="modal-title">
+          <strong>Conversation</strong>
+          <span id="conversationIdLabel">Loading…</span>
+        </div>
+
       </div>
+
       <button class="close-btn" id="closeConversationBtn" aria-label="Close">
-        <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg>
+        <svg viewBox="0 0 24 24">
+          <path d="M6 6l12 12M18 6 6 18"/>
+        </svg>
       </button>
+
     </div>
-    <div class="conversation" id="conversation"><div class="conversation-empty">Loading conversation…</div></div>
+
+    <div class="conversation" id="conversation">
+      <div class="conversation-empty">
+        Loading conversation…
+      </div>
+    </div>
+
   </div>
+
 </div>
 
 <div class="toast" id="toast"></div>
 
 <script>
+
+/* =========================================================
+   SUPABASE
+   ========================================================= */
+
 const SUPABASE_URL="https://qiynczbrhpxwuabwuyiy.supabase.co";
 const SUPABASE_KEY="sb_publishable_eUPz4c_nYckgINEK-AIWqw_JAXIHozd";
-const supabaseClient=supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
 
-const app=document.getElementById("app"),loginBox=document.getElementById("loginBox"),reportsEl=document.getElementById("reports");
-const errorBanner=document.getElementById("errorBanner"),toast=document.getElementById("toast");
-const conversationModal=document.getElementById("conversationModal"),conversationEl=document.getElementById("conversation"),conversationIdLabel=document.getElementById("conversationIdLabel");
+const supabaseClient=supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_KEY,
+  {
+    auth:{
+      persistSession:true,
+      autoRefreshToken:true,
+      detectSessionInUrl:true
+    }
+  }
+);
 
-let currentStatus="pending",allReports=[],conversationTimer=null;
 
-function esc(v){return String(v??"").replace(/[&<>'"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[c]))}
-function fmtDate(v){if(!v)return "—";const d=new Date(v);return isNaN(d.getTime())?String(v):d.toLocaleString([],{dateStyle:"medium",timeStyle:"short"})}
-function fmtTime(v){if(!v)return "";const d=new Date(v);return isNaN(d.getTime())?"":d.toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})}
-function showError(m){errorBanner.textContent=m||"";errorBanner.classList.toggle("show",!!m)}
-function showToast(m){toast.textContent=m;toast.classList.add("show");clearTimeout(showToast.t);showToast.t=setTimeout(()=>toast.classList.remove("show"),2600)}
+/* =========================================================
+   ELEMENTS
+   ========================================================= */
+
+const app=document.getElementById("app");
+const loginBox=document.getElementById("loginBox");
+const reportsEl=document.getElementById("reports");
+const errorBanner=document.getElementById("errorBanner");
+const toast=document.getElementById("toast");
+
+const conversationModal=document.getElementById("conversationModal");
+const conversationEl=document.getElementById("conversation");
+const conversationIdLabel=document.getElementById("conversationIdLabel");
+
+
+/* =========================================================
+   STATE
+   ========================================================= */
+
+let currentStatus="pending";
+let allReports=[];
+let conversationTimer=null;
+
+
+/* =========================================================
+   HELPERS
+   ========================================================= */
+
+function esc(v){
+  return String(v??"").replace(
+    /[&<>'"]/g,
+    c=>({
+      "&":"&amp;",
+      "<":"&lt;",
+      ">":"&gt;",
+      "'":"&#39;",
+      '"':"&quot;"
+    }[c])
+  );
+}
+
+function fmtDate(v){
+  if(!v)return "—";
+
+  const d=new Date(v);
+
+  return isNaN(d.getTime())
+    ? String(v)
+    : d.toLocaleString([],{
+        dateStyle:"medium",
+        timeStyle:"short"
+      });
+}
+
+function fmtTime(v){
+  if(!v)return "";
+
+  const d=new Date(v);
+
+  return isNaN(d.getTime())
+    ? ""
+    : d.toLocaleTimeString([],{
+        hour:"2-digit",
+        minute:"2-digit"
+      });
+}
+
+function showError(message){
+  errorBanner.textContent=message||"";
+  errorBanner.classList.toggle("show",!!message);
+}
+
+function showToast(message,isError=false){
+  toast.textContent=message;
+  toast.classList.toggle("error",!!isError);
+  toast.classList.add("show");
+
+  clearTimeout(showToast.timer);
+
+  showToast.timer=setTimeout(()=>{
+    toast.classList.remove("show");
+  },3000);
+}
+
+
+/* =========================================================
+   UUID CHECK
+   ========================================================= */
+
+function isUUID(value){
+  if(!value)return false;
+
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+    String(value)
+  );
+}
+
+
+/*
+  Different versions of admin_list_reports may return
+  different column names.
+
+  We prefer an actual UUID because apply_temporary_ban()
+  requires:
+
+  target_user uuid
+*/
+function getReportedUserUUID(report){
+
+  const possible=[
+    report.reported_user_id,
+    report.reported_auth_user_id,
+    report.target_user_id,
+    report.target_user,
+    report.user_id,
+    report.reported_id,
+    report.reported_uuid,
+    report.reported_user_uuid
+  ];
+
+  for(const value of possible){
+    if(isUUID(value))return String(value);
+  }
+
+  return null;
+}
+
+
+/* =========================================================
+   ICONS
+   ========================================================= */
 
 function avatar(){
- return `<div class="avatar"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.2"/><path d="M5.5 20c.8-4 3-6 6.5-6s5.7 2 6.5 6"/></svg></div>`;
+  return `
+    <div class="avatar">
+      <svg viewBox="0 0 24 24">
+        <circle cx="12" cy="8" r="3.2"/>
+        <path d="M5.5 20c.8-4 3-6 6.5-6s5.7 2 6.5 6"/>
+      </svg>
+    </div>
+  `;
 }
+
 function reportIcon(){
- return `<svg viewBox="0 0 24 24"><path d="M12 3 4 6v5c0 5 3.2 8.2 8 10 4.8-1.8 8-5 8-10V6z"/><path d="M12 8v4M12 15h.01"/></svg>`;
+  return `
+    <svg viewBox="0 0 24 24">
+      <path d="M12 3 4 6v5c0 5 3.2 8.2 8 10 4.8-1.8 8-5 8-10V6z"/>
+      <path d="M12 8v4M12 15h.01"/>
+    </svg>
+  `;
 }
+
+
+/* =========================================================
+   STATS
+   ========================================================= */
+
 function setCounts(rows){
- const c={pending:0,investigating:0,resolved:0,dismissed:0};
- rows.forEach(r=>{if(c[r.status]!==undefined)c[r.status]++});
- for(const k of Object.keys(c))document.getElementById("count"+k[0].toUpperCase()+k.slice(1)).textContent=c[k];
+
+  const c={
+    pending:0,
+    investigating:0,
+    resolved:0,
+    dismissed:0
+  };
+
+  rows.forEach(r=>{
+    if(c[r.status]!==undefined){
+      c[r.status]++;
+    }
+  });
+
+  for(const k of Object.keys(c)){
+    const el=document.getElementById(
+      "count"+k[0].toUpperCase()+k.slice(1)
+    );
+
+    if(el)el.textContent=c[k];
+  }
 }
+
+
+/* =========================================================
+   PERSON
+   ========================================================= */
+
 function person(label,name,id){
- return `<div class="person"><label>${esc(label)}</label><div class="person-main">${avatar()}<div><strong>${esc(name||"Unknown user")}</strong><code>${esc(id||"No ToTalk ID")}</code></div></div></div>`;
+
+  return `
+    <div class="person">
+
+      <label>${esc(label)}</label>
+
+      <div class="person-main">
+
+        ${avatar()}
+
+        <div>
+          <strong>${esc(name||"Unknown user")}</strong>
+          <code>${esc(id||"No ToTalk ID")}</code>
+        </div>
+
+      </div>
+
+    </div>
+  `;
 }
+
+
+/* =========================================================
+   REPORT CARD
+   ========================================================= */
 
 function card(r){
- const status=["pending","investigating","resolved","dismissed"].includes(r.status)?r.status:"pending";
- return `<article class="card" data-id="${esc(r.id)}">
-  <div class="card-head">
-   <div class="report-title"><div class="report-badge">${reportIcon()}</div><div><strong>Report #${esc(r.id)}</strong><div class="idline">Submitted ${esc(fmtDate(r.created_at))}</div></div></div>
-   <span class="status ${status}"><i class="status-dot"></i>${esc(status[0].toUpperCase()+status.slice(1))}</span>
-  </div>
-  <div class="people">${person("Reporter",r.reporter_name,r.reporter_totalk_id)}${person("Reported user",r.reported_name,r.reported_totalk_id)}</div>
-  <div class="info-box"><div class="info-label"><svg viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="16" rx="2"/><path d="M8 8h8M8 12h6"/></svg>Reason</div><div class="info-value">${esc(r.reason||"Not specified")}</div></div>
-  ${r.details?`<div class="info-box"><div class="info-label"><svg viewBox="0 0 24 24"><path d="M5 5h14v10H9l-4 4z"/><path d="M8 9h8M8 12h5"/></svg>Details</div><div class="info-value">${esc(r.details)}</div></div>`:""}
-  <div class="info-box"><div class="info-label"><svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 0 1 14-5l2 2"/><path d="M20 12a8 8 0 0 1-14 5l-2-2"/></svg>Conversation ID</div><div class="info-value">${esc(r.conversation_id||"—")}</div></div>
-  ${r.conversation_id?`<button class="btn primary view" data-view-conversation="1" data-conversation-id="${esc(r.conversation_id)}">
-   <svg viewBox="0 0 24 24"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12z"/><circle cx="12" cy="12" r="2.5"/></svg>
-   View Conversation <span class="arrow">›</span></button>`:""}
-  <div class="controls">
-   <div class="field"><label>Status</label><select class="statusSelect"><option value="pending">Pending</option><option value="investigating">Investigating</option><option value="resolved">Resolved</option><option value="dismissed">Dismissed</option></select></div>
-   <div class="field"><label>Action</label><select class="actionSelect"><option value="">No action</option><option value="warning">Warning</option><option value="restrict">Restrict</option><option value="suspend">Suspend</option><option value="ban">Ban</option></select></div>
-   <div class="field notes"><label>Admin Notes</label><div class="note-wrap"><textarea maxlength="500" class="notesInput" placeholder="Add a private note…"></textarea><span class="counter">0/500</span></div></div>
-   <button class="btn primary save" data-save="1"><svg viewBox="0 0 24 24"><path d="M5 4h12l2 2v14H5z"/><path d="M8 4v6h8V4M8 20v-5h8v5"/></svg> Save Changes</button>
-  </div>
- </article>`;
+
+  const status=[
+    "pending",
+    "investigating",
+    "resolved",
+    "dismissed"
+  ].includes(r.status)
+    ? r.status
+    : "pending";
+
+  const reportedUUID=getReportedUserUUID(r);
+
+  return `
+    <article class="card" data-id="${esc(r.id)}">
+
+      <div class="card-head">
+
+        <div class="report-title">
+
+          <div class="report-badge">
+            ${reportIcon()}
+          </div>
+
+          <div>
+            <strong>Report #${esc(r.id)}</strong>
+
+            <div class="idline">
+              Submitted ${esc(fmtDate(r.created_at))}
+            </div>
+          </div>
+
+        </div>
+
+        <span class="status ${status}">
+          <i class="status-dot"></i>
+          ${esc(status[0].toUpperCase()+status.slice(1))}
+        </span>
+
+      </div>
+
+
+      <div class="people">
+
+        ${person(
+          "Reporter",
+          r.reporter_name,
+          r.reporter_totalk_id
+        )}
+
+        ${person(
+          "Reported user",
+          r.reported_name,
+          r.reported_totalk_id
+        )}
+
+      </div>
+
+
+      <div class="info-box">
+
+        <div class="info-label">
+
+          <svg viewBox="0 0 24 24">
+            <rect x="5" y="4" width="14" height="16" rx="2"/>
+            <path d="M8 8h8M8 12h6"/>
+          </svg>
+
+          Reason
+
+        </div>
+
+        <div class="info-value">
+          ${esc(r.reason||"Not specified")}
+        </div>
+
+      </div>
+
+
+      ${
+        r.details
+        ? `
+          <div class="info-box">
+
+            <div class="info-label">
+
+              <svg viewBox="0 0 24 24">
+                <path d="M5 5h14v10H9l-4 4z"/>
+                <path d="M8 9h8M8 12h5"/>
+              </svg>
+
+              Details
+
+            </div>
+
+            <div class="info-value">
+              ${esc(r.details)}
+            </div>
+
+          </div>
+        `
+        : ""
+      }
+
+
+      <div class="info-box">
+
+        <div class="info-label">
+
+          <svg viewBox="0 0 24 24">
+            <path d="M4 12a8 8 0 0 1 14-5l2 2"/>
+            <path d="M20 12a8 8 0 0 1-14 5l-2-2"/>
+          </svg>
+
+          Conversation ID
+
+        </div>
+
+        <div class="info-value">
+          ${esc(r.conversation_id||"—")}
+        </div>
+
+      </div>
+
+
+      ${
+        r.conversation_id
+        ? `
+          <button
+            class="btn view"
+            data-view-conversation="1"
+            data-conversation-id="${esc(r.conversation_id)}"
+          >
+
+            <svg viewBox="0 0 24 24">
+              <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12z"/>
+              <circle cx="12" cy="12" r="2.5"/>
+            </svg>
+
+            View Conversation
+
+            <span class="arrow">›</span>
+
+          </button>
+        `
+        : ""
+      }
+
+
+      <div class="controls">
+
+
+        <!-- REPORT STATUS -->
+
+        <div class="field">
+
+          <label>Status</label>
+
+          <select class="statusSelect">
+
+            <option value="pending">Pending</option>
+            <option value="investigating">Investigating</option>
+            <option value="resolved">Resolved</option>
+            <option value="dismissed">Dismissed</option>
+
+          </select>
+
+        </div>
+
+
+        <!-- REPORT ACTION -->
+
+        <div class="field">
+
+          <label>Report Action</label>
+
+          <select class="actionSelect">
+
+            <option value="">No action</option>
+            <option value="warning">Warning</option>
+            <option value="restrict">Restrict</option>
+            <option value="suspend">Suspend</option>
+            <option value="ban">Temporary Ban</option>
+
+          </select>
+
+        </div>
+
+
+        <!-- MODERATION -->
+
+        <div class="moderation-box">
+
+          <div class="moderation-title">
+
+            <svg viewBox="0 0 24 24">
+              <path d="M12 3 4 6v5c0 5 3.2 8.2 8 10 4.8-1.8 8-5 8-10V6z"/>
+              <path d="M12 8v4"/>
+              <path d="M12 15h.01"/>
+            </svg>
+
+            User Moderation
+
+          </div>
+
+
+          <div class="moderation-grid">
+
+
+            <div class="field">
+
+              <label>Temporary Ban Duration</label>
+
+              <select class="banDuration">
+
+                <option value="">Choose duration…</option>
+                <option value="5">5 minutes</option>
+                <option value="30">30 minutes</option>
+                <option value="60">1 hour</option>
+                <option value="1440">24 hours</option>
+                <option value="10080">7 days</option>
+
+              </select>
+
+            </div>
+
+
+            <div class="field">
+
+              <label>Ban Reason</label>
+
+              <input
+                class="banReason"
+                maxlength="300"
+                placeholder="Reason for temporary ban…"
+              >
+
+            </div>
+
+
+          </div>
+
+
+          <div class="ban-help">
+
+            Temporary bans are manual moderator actions.
+            Submitting a report does not automatically ban anyone.
+
+          </div>
+
+
+          <div class="ban-actions">
+
+            <button
+              class="btn danger-btn"
+              data-ban="1"
+              ${reportedUUID?"":"disabled"}
+            >
+
+              Temporary Ban
+
+            </button>
+
+
+            <button
+              class="btn secondary"
+              data-clear-ban="1"
+              ${reportedUUID?"":"disabled"}
+            >
+
+              Clear / Remove Ban
+
+            </button>
+
+          </div>
+
+
+          ${
+            reportedUUID
+            ? ""
+            : `
+              <div class="ban-help">
+                The report does not currently expose the reported
+                user's UUID. The ban buttons are disabled until
+                admin_list_reports returns the user's UUID.
+              </div>
+            `
+          }
+
+        </div>
+
+
+        <!-- ADMIN NOTES -->
+
+        <div class="field notes">
+
+          <label>Admin Notes</label>
+
+          <div class="note-wrap">
+
+            <textarea
+              maxlength="500"
+              class="notesInput"
+              placeholder="Add a private note…"
+            ></textarea>
+
+            <span class="counter">0/500</span>
+
+          </div>
+
+        </div>
+
+
+        <!-- SAVE REPORT -->
+
+        <button class="btn save" data-save="1">
+
+          <svg viewBox="0 0 24 24">
+            <path d="M5 4h12l2 2v14H5z"/>
+            <path d="M8 4v6h8V4M8 20v-5h8v5"/>
+          </svg>
+
+          Save Report Changes
+
+        </button>
+
+      </div>
+
+    </article>
+  `;
 }
+
+
+/* =========================================================
+   RENDER
+   ========================================================= */
 
 function render(){
- const rows=currentStatus==="all"?allReports:allReports.filter(r=>r.status===currentStatus);
- if(!rows.length){reportsEl.innerHTML=`<div class="empty"><strong>${currentStatus==="all"?"No reports.":currentStatus+" reports."}</strong>You're all caught up here.</div>`;return}
- reportsEl.innerHTML=rows.map(card).join("");
- rows.forEach(r=>{
-  const el=reportsEl.querySelector(`[data-id="${CSS.escape(String(r.id))}"]`);if(!el)return;
-  el.querySelector(".statusSelect").value=["pending","investigating","resolved","dismissed"].includes(r.status)?r.status:"pending";
-  el.querySelector(".actionSelect").value=r.action||"";
-  el.querySelector(".notesInput").value=r.admin_notes||"";
-  updateCounter(el.querySelector(".notesInput"));
- });
+
+  const rows=currentStatus==="all"
+    ? allReports
+    : allReports.filter(r=>r.status===currentStatus);
+
+  if(!rows.length){
+
+    reportsEl.innerHTML=`
+      <div class="empty">
+
+        <strong>
+          ${
+            currentStatus==="all"
+            ? "No reports."
+            : currentStatus+" reports."
+          }
+        </strong>
+
+        You're all caught up here.
+
+      </div>
+    `;
+
+    return;
+  }
+
+
+  reportsEl.innerHTML=rows.map(card).join("");
+
+
+  rows.forEach(r=>{
+
+    const el=reportsEl.querySelector(
+      `[data-id="${CSS.escape(String(r.id))}"]`
+    );
+
+    if(!el)return;
+
+
+    el.querySelector(".statusSelect").value=
+      [
+        "pending",
+        "investigating",
+        "resolved",
+        "dismissed"
+      ].includes(r.status)
+      ? r.status
+      : "pending";
+
+
+    el.querySelector(".actionSelect").value=
+      r.action||"";
+
+
+    el.querySelector(".notesInput").value=
+      r.admin_notes||"";
+
+
+    updateCounter(
+      el.querySelector(".notesInput")
+    );
+
+  });
 }
-function updateCounter(t){if(!t)return;t.parentElement.querySelector(".counter").textContent=`${t.value.length}/500`}
+
+
+function updateCounter(textarea){
+
+  if(!textarea)return;
+
+  const counter=textarea.parentElement.querySelector(".counter");
+
+  if(counter){
+    counter.textContent=
+      `${textarea.value.length}/500`;
+  }
+}
+
+
+/* =========================================================
+   LOAD REPORTS
+   ========================================================= */
 
 async function loadReports(){
- showError("");reportsEl.innerHTML=`<div class="loading">Loading reports…</div>`;
- const {data,error}=await supabaseClient.rpc("admin_list_reports",{p_status:null});
- if(error){console.error(error);showError("Could not load reports: "+error.message);reportsEl.innerHTML=`<div class="empty"><strong>Could not load reports.</strong>Check your admin permissions and Supabase function setup.</div>`;return}
- allReports=Array.isArray(data)?data:[];setCounts(allReports);render();
+
+  showError("");
+
+  reportsEl.innerHTML=`
+    <div class="loading">
+      Loading reports…
+    </div>
+  `;
+
+
+  const {
+    data,
+    error
+  }=await supabaseClient.rpc(
+    "admin_list_reports",
+    {
+      p_status:null
+    }
+  );
+
+
+  if(error){
+
+    console.error(error);
+
+    showError(
+      "Could not load reports: "+
+      error.message
+    );
+
+    reportsEl.innerHTML=`
+      <div class="empty">
+
+        <strong>
+          Could not load reports.
+        </strong>
+
+        Check your admin permissions
+        and Supabase function setup.
+
+      </div>
+    `;
+
+    return;
+  }
+
+
+  allReports=Array.isArray(data)
+    ? data
+    : [];
+
+  setCounts(allReports);
+
+  render();
 }
+
+
+/* =========================================================
+   SAVE REPORT
+   ========================================================= */
 
 async function saveReport(el){
- const id=el.dataset.id,status=el.querySelector(".statusSelect").value,action=el.querySelector(".actionSelect").value||null,notes=el.querySelector(".notesInput").value.trim()||null,button=el.querySelector("[data-save]");
- button.disabled=true;button.textContent="Saving…";showError("");
- const {data,error}=await supabaseClient.rpc("admin_update_report",{p_report_id:Number(id),p_status:status,p_action:action,p_admin_notes:notes});
- if(error||data!==true){showError("Could not update report #"+id+": "+(error?.message||"Update was not accepted."));button.disabled=false;button.innerHTML=`<svg viewBox="0 0 24 24"><path d="M5 4h12l2 2v14H5z"/><path d="M8 4v6h8V4M8 20v-5h8v5"/></svg> Save Changes`;return}
- showToast("Report #"+id+" updated");await loadReports();
+
+  const id=el.dataset.id;
+
+  const status=
+    el.querySelector(".statusSelect").value;
+
+  const action=
+    el.querySelector(".actionSelect").value||null;
+
+  const notes=
+    el.querySelector(".notesInput").value.trim()||null;
+
+  const button=
+    el.querySelector("[data-save]");
+
+
+  button.disabled=true;
+  button.textContent="Saving…";
+
+  showError("");
+
+
+  const {
+    data,
+    error
+  }=await supabaseClient.rpc(
+    "admin_update_report",
+    {
+      p_report_id:Number(id),
+      p_status:status,
+      p_action:action,
+      p_admin_notes:notes
+    }
+  );
+
+
+  if(error||data!==true){
+
+    showError(
+      "Could not update report #"+
+      id+
+      ": "+
+      (error?.message||"Update was not accepted.")
+    );
+
+    button.disabled=false;
+
+    button.innerHTML=`
+      <svg viewBox="0 0 24 24">
+        <path d="M5 4h12l2 2v14H5z"/>
+        <path d="M8 4v6h8V4M8 20v-5h8v5"/>
+      </svg>
+      Save Report Changes
+    `;
+
+    return;
+  }
+
+
+  showToast(
+    "Report #"+id+" updated"
+  );
+
+  await loadReports();
 }
+
+
+/* =========================================================
+   TEMPORARY BAN
+   ========================================================= */
+
+async function temporaryBan(el){
+
+  const reportId=el.dataset.id;
+
+  const report=allReports.find(
+    r=>String(r.id)===String(reportId)
+  );
+
+  if(!report){
+
+    showToast(
+      "Report could not be found.",
+      true
+    );
+
+    return;
+  }
+
+
+  const targetUser=getReportedUserUUID(report);
+
+  if(!targetUser){
+
+    showToast(
+      "Reported user's UUID is missing from admin_list_reports.",
+      true
+    );
+
+    return;
+  }
+
+
+  const durationSelect=
+    el.querySelector(".banDuration");
+
+  const reasonInput=
+    el.querySelector(".banReason");
+
+  const duration=Number(
+    durationSelect.value
+  );
+
+  const reason=
+    reasonInput.value.trim()||
+    report.reason||
+    "Temporary moderation ban";
+
+
+  if(!duration){
+
+    showToast(
+      "Choose a temporary ban duration first.",
+      true
+    );
+
+    durationSelect.focus();
+
+    return;
+  }
+
+
+  const confirmed=confirm(
+    "Apply a temporary ban to this user for "+
+    formatBanDuration(duration)+
+    "?\n\nReason: "+
+    reason
+  );
+
+  if(!confirmed)return;
+
+
+  const buttons=el.querySelectorAll(
+    "[data-ban],[data-clear-ban]"
+  );
+
+  buttons.forEach(b=>b.disabled=true);
+
+  showError("");
+
+
+  /*
+    EXACT EXISTING RPC SIGNATURE:
+
+    apply_temporary_ban(
+      target_user uuid,
+      ban_minutes integer,
+      ban_reason text
+    )
+  */
+
+  const {
+    data,
+    error
+  }=await supabaseClient.rpc(
+    "apply_temporary_ban",
+    {
+      target_user:targetUser,
+      ban_minutes:duration,
+      ban_reason:reason
+    }
+  );
+
+
+  if(error){
+
+    console.error("Temporary ban error:",error);
+
+    showError(
+      "Could not apply temporary ban: "+
+      error.message
+    );
+
+    buttons.forEach(b=>{
+      b.disabled=false;
+    });
+
+    return;
+  }
+
+
+  showToast(
+    "Temporary ban applied for "+
+    formatBanDuration(duration)+"."
+  );
+
+
+  /*
+    Also save the report action as "ban".
+    This does NOT trigger the ban again.
+    The actual ban was already performed above.
+  */
+
+  const actionSelect=
+    el.querySelector(".actionSelect");
+
+  if(actionSelect){
+    actionSelect.value="ban";
+  }
+
+
+  buttons.forEach(b=>{
+    b.disabled=false;
+  });
+}
+
+
+function formatBanDuration(minutes){
+
+  if(minutes===5){
+    return "5 minutes";
+  }
+
+  if(minutes===30){
+    return "30 minutes";
+  }
+
+  if(minutes===60){
+    return "1 hour";
+  }
+
+  if(minutes===1440){
+    return "24 hours";
+  }
+
+  if(minutes===10080){
+    return "7 days";
+  }
+
+  if(minutes%1440===0){
+    return (minutes/1440)+" days";
+  }
+
+  if(minutes%60===0){
+    return (minutes/60)+" hours";
+  }
+
+  return minutes+" minutes";
+}
+
+
+/* =========================================================
+   CLEAR / REMOVE BAN
+   ========================================================= */
+
+/*
+  IMPORTANT:
+
+  You gave us the exact signature for
+  apply_temporary_ban(), but we do NOT yet know whether
+  your database has a separate clear-ban function.
+
+  Therefore we do NOT guess a dangerous RPC name or
+  parameter list here.
+
+  The button explains what is needed instead of silently
+  calling a nonexistent/wrong function.
+*/
+
+async function clearBan(el){
+
+  const reportId=el.dataset.id;
+
+  const report=allReports.find(
+    r=>String(r.id)===String(reportId)
+  );
+
+  if(!report){
+
+    showToast(
+      "Report could not be found.",
+      true
+    );
+
+    return;
+  }
+
+
+  alert(
+    "The Clear / Remove Ban button is ready, but your current database function list has not yet provided a clear-ban RPC.\n\n"+
+    "We know apply_temporary_ban() exists, but we should not guess the name or parameters of the function that removes a ban.\n\n"+
+    "Your temporary-ban function is safely connected."
+  );
+}
+
+
+/* =========================================================
+   CONVERSATION
+   ========================================================= */
 
 function getOriginalText(m){
- // Supports the common names returned by different RPC versions.
- return m.deleted_message_content ?? m.original_content ?? m.content_before_delete ?? m.preserved_content ?? m.original_message ?? m.message_text ?? m.content ?? "";
+
+  return (
+    m.deleted_message_content ??
+    m.original_content ??
+    m.content_before_delete ??
+    m.preserved_content ??
+    m.original_message ??
+    m.message_text ??
+    m.content ??
+    ""
+  );
 }
-function isDeleted(m){return !!(m.is_deleted||m.deleted_at)}
-function dateKey(v){const d=new Date(v);return isNaN(d.getTime())?"":d.toLocaleDateString([],{day:"numeric",month:"short",year:"numeric"})}
+
+
+function isDeleted(m){
+
+  return !!(
+    m.is_deleted||
+    m.deleted_at
+  );
+}
+
+
+function dateKey(v){
+
+  const d=new Date(v);
+
+  return isNaN(d.getTime())
+    ? ""
+    : d.toLocaleDateString([],{
+        day:"numeric",
+        month:"short",
+        year:"numeric"
+      });
+}
+
 
 function deletedMessage(m){
- const original=getOriginalText(m);
- const hasOriginal=String(original||"").trim().length>0;
- return `<div class="message deleted">
-  <div class="message-inner">
-   <div class="deleted-card">
-    <div class="deleted-head">
-      <svg viewBox="0 0 24 24"><path d="M5 7h14M9 7V4h6v3M7 7l1 13h8l1-13"/></svg>
-      DELETED MESSAGE
+
+  const original=getOriginalText(m);
+
+  const hasOriginal=
+    String(original||"").trim().length>0;
+
+
+  return `
+    <div class="message deleted">
+
+      <div class="message-inner">
+
+        <div class="deleted-card">
+
+          <div class="deleted-head">
+
+            <svg viewBox="0 0 24 24">
+              <path d="M5 7h14M9 7V4h6v3M7 7l1 13h8l1-13"/>
+            </svg>
+
+            DELETED MESSAGE
+
+          </div>
+
+
+          <div class="deleted-author">
+
+            ${avatar()}
+
+            <div>
+              <span class="sender-name">
+                ${esc(m.sender_name||"Unknown user")}
+              </span>
+
+              <span class="sender-id">
+                ${esc(m.totalk_id||"No ToTalk ID")}
+              </span>
+            </div>
+
+          </div>
+
+
+          <div class="deleted-original ${hasOriginal?"":"missing"}">
+
+            ${esc(
+              hasOriginal
+              ? original
+              : "Original text was not preserved in the database."
+            )}
+
+          </div>
+
+
+          <div class="preserved">
+
+            <svg viewBox="0 0 24 24">
+              <path d="M12 3 4 6v5c0 5 3.2 8.2 8 10 4.8-1.8 8-5 8-10V6z"/>
+              <path d="m8.5 12 2.2 2.2 4.8-5"/>
+            </svg>
+
+            ${
+              hasOriginal
+              ? "Original message preserved for moderation"
+              : "Only deletion metadata is available"
+            }
+
+          </div>
+
+
+          ${
+            m.deleted_at
+            ? `
+              <div class="deleted-time">
+
+                <svg viewBox="0 0 24 24">
+                  <circle cx="12" cy="12" r="8"/>
+                  <path d="M12 8v5l3 2"/>
+                </svg>
+
+                Deleted ${esc(fmtDate(m.deleted_at))}
+
+              </div>
+            `
+            : ""
+          }
+
+        </div>
+
+      </div>
+
     </div>
-    <div class="deleted-author">${avatar()}<div><span class="sender-name">${esc(m.sender_name||"Unknown user")}</span><span class="sender-id">${esc(m.totalk_id||"No ToTalk ID")}</span></div></div>
-    <div class="deleted-original ${hasOriginal?"":"missing"}">${esc(hasOriginal?original:"Original text was not preserved in the database.")}</div>
-    <div class="preserved">
-      <svg viewBox="0 0 24 24"><path d="M12 3 4 6v5c0 5 3.2 8.2 8 10 4.8-1.8 8-5 8-10V6z"/><path d="m8.5 12 2.2 2.2 4.8-5"/></svg>
-      ${hasOriginal?"Original message preserved for moderation":"Only deletion metadata is available"}
-    </div>
-    ${m.deleted_at?`<div class="deleted-time"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 8v5l3 2"/></svg>Deleted ${esc(fmtDate(m.deleted_at))}</div>`:""}
-   </div>
-  </div>
- </div>`;
+  `;
 }
+
 
 function normalMessage(m){
- return `<div class="message ${m.sender_side==="right"?"right":"left"}"><div class="message-inner">
-  <div class="message-info"><span class="sender-name">${esc(m.sender_name||"Unknown user")}</span><span class="sender-id">${esc(m.totalk_id||"No ToTalk ID")}</span></div>
-  <div class="bubble">${esc(m.message_text??m.content??"")}</div>
-  <div class="message-time">${esc(fmtDate(m.created_at))}${m.edited_at?" · Edited":""}</div>
- </div></div>`;
+
+  return `
+    <div class="message ${m.sender_side==="right"?"right":"left"}">
+
+      <div class="message-inner">
+
+        <div class="message-info">
+
+          <span class="sender-name">
+            ${esc(m.sender_name||"Unknown user")}
+          </span>
+
+          <span class="sender-id">
+            ${esc(m.totalk_id||"No ToTalk ID")}
+          </span>
+
+        </div>
+
+
+        <div class="bubble">
+          ${esc(m.message_text??m.content??"")}
+        </div>
+
+
+        <div class="message-time">
+
+          ${esc(fmtDate(m.created_at))}
+
+          ${m.edited_at?" · Edited":""}
+
+        </div>
+
+      </div>
+
+    </div>
+  `;
 }
+
 
 async function openConversation(conversationId){
- conversationModal.classList.add("show");conversationIdLabel.textContent="Conversation ID: "+conversationId;
- conversationEl.innerHTML=`<div class="conversation-empty">Loading conversation…</div>`;
- const {data,error}=await supabaseClient.rpc("admin_view_conversation",{p_conversation_id:conversationId});
- if(error){conversationEl.innerHTML=`<div class="conversation-empty"><div><strong style="display:block;color:#fff;margin-bottom:6px">Could not load conversation</strong><span>${esc(error.message)}</span></div></div>`;return}
- const rows=Array.isArray(data)?data:[];
- if(!rows.length){conversationEl.innerHTML=`<div class="conversation-empty">No messages found in this conversation.</div>`;return}
- let lastDate="";
- conversationEl.innerHTML=rows.map(m=>{
-   const k=dateKey(m.created_at);let divider="";
-   if(k&&k!==lastDate){lastDate=k;divider=`<div class="date-divider"><span class="date-pill">${esc(k)}</span></div>`}
-   return divider+(isDeleted(m)?deletedMessage(m):normalMessage(m));
- }).join("");
+
+  conversationModal.classList.add("show");
+
+  conversationIdLabel.textContent=
+    "Conversation ID: "+conversationId;
+
+  conversationEl.innerHTML=`
+    <div class="conversation-empty">
+      Loading conversation…
+    </div>
+  `;
+
+
+  const {
+    data,
+    error
+  }=await supabaseClient.rpc(
+    "admin_view_conversation",
+    {
+      p_conversation_id:conversationId
+    }
+  );
+
+
+  if(error){
+
+    conversationEl.innerHTML=`
+      <div class="conversation-empty">
+
+        <div>
+
+          <strong style="
+            display:block;
+            color:#fff;
+            margin-bottom:6px
+          ">
+            Could not load conversation
+          </strong>
+
+          <span>
+            ${esc(error.message)}
+          </span>
+
+        </div>
+
+      </div>
+    `;
+
+    return;
+  }
+
+
+  const rows=Array.isArray(data)
+    ? data
+    : [];
+
+
+  if(!rows.length){
+
+    conversationEl.innerHTML=`
+      <div class="conversation-empty">
+        No messages found in this conversation.
+      </div>
+    `;
+
+    return;
+  }
+
+
+  let lastDate="";
+
+
+  conversationEl.innerHTML=rows.map(m=>{
+
+    const k=dateKey(m.created_at);
+
+    let divider="";
+
+
+    if(k&&k!==lastDate){
+
+      lastDate=k;
+
+      divider=`
+        <div class="date-divider">
+          <span class="date-pill">
+            ${esc(k)}
+          </span>
+        </div>
+      `;
+    }
+
+
+    return divider+
+      (
+        isDeleted(m)
+        ? deletedMessage(m)
+        : normalMessage(m)
+      );
+
+  }).join("");
 }
 
-function closeConversation(){conversationModal.classList.remove("show")}
 
-document.getElementById("refreshBtn").addEventListener("click",loadReports);
-document.getElementById("signOutBtn").addEventListener("click",async()=>{await supabaseClient.auth.signOut();location.reload()});
-document.getElementById("goChatBtn").addEventListener("click",()=>location.href="chat.html");
+function closeConversation(){
 
-document.getElementById("tabs").addEventListener("click",e=>{
- const b=e.target.closest(".tab");if(!b)return;
- document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));b.classList.add("active");
- currentStatus=b.dataset.status;render();
-});
+  conversationModal.classList.remove("show");
+}
 
-reportsEl.addEventListener("click",e=>{
- const v=e.target.closest("[data-view-conversation]");if(v){openConversation(v.dataset.conversationId);return}
- const s=e.target.closest("[data-save]");if(s){const c=s.closest(".card");if(c)saveReport(c)}
-});
-reportsEl.addEventListener("input",e=>{if(e.target.classList.contains("notesInput"))updateCounter(e.target)});
 
-document.getElementById("closeConversationBtn").addEventListener("click",closeConversation);
-conversationModal.addEventListener("click",e=>{if(e.target===conversationModal)closeConversation()});
-document.addEventListener("keydown",e=>{if(e.key==="Escape"&&conversationModal.classList.contains("show"))closeConversation()});
+/* =========================================================
+   EVENTS
+   ========================================================= */
 
-supabaseClient.auth.onAuthStateChange(event=>{if(event==="SIGNED_OUT")location.reload()});
+document
+  .getElementById("refreshBtn")
+  .addEventListener(
+    "click",
+    loadReports
+  );
+
+
+document
+  .getElementById("signOutBtn")
+  .addEventListener(
+    "click",
+    async()=>{
+      await supabaseClient.auth.signOut();
+      location.reload();
+    }
+  );
+
+
+document
+  .getElementById("goChatBtn")
+  .addEventListener(
+    "click",
+    ()=>{
+      location.href="chat.html";
+    }
+  );
+
+
+/* TABS */
+
+document
+  .getElementById("tabs")
+  .addEventListener(
+    "click",
+    e=>{
+
+      const b=e.target.closest(".tab");
+
+      if(!b)return;
+
+      document
+        .querySelectorAll(".tab")
+        .forEach(x=>x.classList.remove("active"));
+
+      b.classList.add("active");
+
+      currentStatus=b.dataset.status;
+
+      render();
+    }
+  );
+
+
+/* REPORT BUTTONS */
+
+reportsEl.addEventListener(
+  "click",
+  e=>{
+
+    const view=e.target.closest(
+      "[data-view-conversation]"
+    );
+
+    if(view){
+
+      openConversation(
+        view.dataset.conversationId
+      );
+
+      return;
+    }
+
+
+    const save=e.target.closest(
+      "[data-save]"
+    );
+
+    if(save){
+
+      const cardEl=
+        save.closest(".card");
+
+      if(cardEl){
+        saveReport(cardEl);
+      }
+
+      return;
+    }
+
+
+    const ban=e.target.closest(
+      "[data-ban]"
+    );
+
+    if(ban){
+
+      const cardEl=
+        ban.closest(".card");
+
+      if(cardEl){
+        temporaryBan(cardEl);
+      }
+
+      return;
+    }
+
+
+    const clearBan=e.target.closest(
+      "[data-clear-ban]"
+    );
+
+    if(clearBan){
+
+      const cardEl=
+        clearBan.closest(".card");
+
+      if(cardEl){
+        clearBan(cardEl);
+      }
+
+      return;
+    }
+
+  }
+);
+
+
+/* NOTES COUNTER */
+
+reportsEl.addEventListener(
+  "input",
+  e=>{
+
+    if(
+      e.target.classList.contains(
+        "notesInput"
+      )
+    ){
+      updateCounter(e.target);
+    }
+
+  }
+);
+
+
+/* CLOSE CONVERSATION */
+
+document
+  .getElementById("closeConversationBtn")
+  .addEventListener(
+    "click",
+    closeConversation
+  );
+
+
+conversationModal.addEventListener(
+  "click",
+  e=>{
+    if(e.target===conversationModal){
+      closeConversation();
+    }
+  }
+);
+
+
+document.addEventListener(
+  "keydown",
+  e=>{
+
+    if(
+      e.key==="Escape"&&
+      conversationModal.classList.contains("show")
+    ){
+      closeConversation();
+    }
+
+  }
+);
+
+
+/* AUTH */
+
+supabaseClient.auth.onAuthStateChange(
+  event=>{
+
+    if(event==="SIGNED_OUT"){
+      location.reload();
+    }
+
+  }
+);
+
+
+/* =========================================================
+   BOOT
+   ========================================================= */
 
 async function boot(){
- const {data:{session}}=await supabaseClient.auth.getSession();
- if(!session){loginBox.style.display="block";return}
- const {data,error}=await supabaseClient.rpc("is_totalk_admin");
- if(error||data!==true){loginBox.style.display="block";showError(error?.message||"This account does not have admin access.");return}
- app.style.display="block";await loadReports();
+
+  const {
+    data:{session}
+  }=await supabaseClient.auth.getSession();
+
+
+  if(!session){
+
+    loginBox.style.display="block";
+
+    return;
+  }
+
+
+  const {
+    data,
+    error
+  }=await supabaseClient.rpc(
+    "is_totalk_admin"
+  );
+
+
+  if(error||data!==true){
+
+    loginBox.style.display="block";
+
+    showError(
+      error?.message||
+      "This account does not have admin access."
+    );
+
+    return;
+  }
+
+
+  app.style.display="block";
+
+  await loadReports();
 }
+
+
 boot();
+
 </script>
+
 </body>
 </html>
+```
