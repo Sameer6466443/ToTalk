@@ -2545,7 +2545,7 @@ header{
 
 
 /* =====================================================
-   ADMIN WARNING POPUP — TO TALK GALAXY THEME
+   TOTAlK WARNING POPUP — COSMIC GALAXY STYLE #9
 ===================================================== */
 #totalkWarningBackdrop{
   position:fixed;
@@ -2555,13 +2555,13 @@ header{
   align-items:center;
   justify-content:center;
   padding:22px;
-  background:rgba(2,1,8,.72);
-  backdrop-filter:blur(7px);
-  -webkit-backdrop-filter:blur(7px);
+  background:rgba(1,1,10,.78);
+  backdrop-filter:blur(10px);
+  -webkit-backdrop-filter:blur(10px);
   opacity:0;
   visibility:hidden;
   pointer-events:none;
-  transition:opacity .22s ease,visibility .22s ease;
+  transition:opacity .28s ease,visibility .28s ease;
 }
 #totalkWarningBackdrop.open{
   opacity:1;
@@ -2570,130 +2570,217 @@ header{
 }
 .totalk-warning-card{
   position:relative;
-  width:min(100%,440px);
+  width:min(100%,455px);
   overflow:hidden;
-  border:1px solid rgba(145,76,255,.52);
-  border-radius:20px;
+  border:1px solid rgba(157,91,255,.72);
+  border-radius:26px;
   background:
-    radial-gradient(circle at 50% 0%,rgba(145,76,255,.18),transparent 42%),
-    linear-gradient(145deg,rgba(13,7,27,.99),rgba(3,2,12,.99));
+    radial-gradient(circle at 50% -8%,rgba(147,67,255,.28),transparent 34%),
+    radial-gradient(circle at 8% 92%,rgba(40,105,255,.18),transparent 32%),
+    linear-gradient(145deg,rgba(11,7,31,.985),rgba(2,3,18,.99));
   box-shadow:
-    0 0 0 1px rgba(255,255,255,.025),
-    0 20px 70px rgba(0,0,0,.55),
-    0 0 42px rgba(110,45,210,.22);
-  transform:translateY(12px) scale(.97);
-  transition:transform .24s ease;
+    0 30px 90px rgba(0,0,0,.72),
+    0 0 0 1px rgba(255,255,255,.035) inset,
+    0 0 55px rgba(113,53,255,.25),
+    0 0 110px rgba(45,87,255,.10);
+  transform:translateY(18px) scale(.94);
+  transition:transform .42s cubic-bezier(.2,.85,.25,1);
 }
 #totalkWarningBackdrop.open .totalk-warning-card{
   transform:translateY(0) scale(1);
 }
-.totalk-warning-glow{
+.totalk-warning-card::before{
+  content:"";
   position:absolute;
-  width:180px;
-  height:180px;
-  left:50%;
-  top:-110px;
-  transform:translateX(-50%);
-  border-radius:50%;
-  background:rgba(145,76,255,.18);
+  inset:-2px;
+  border-radius:28px;
+  padding:1px;
+  background:linear-gradient(125deg,rgba(165,91,255,.95),rgba(55,100,255,.12),rgba(207,73,255,.78),rgba(165,91,255,.18));
+  -webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);
+  -webkit-mask-composite:xor;
+  mask-composite:exclude;
   pointer-events:none;
+  opacity:.85;
+}
+.totalk-warning-stars{
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  overflow:hidden;
+}
+.totalk-warning-stars span{
+  position:absolute;
+  width:3px;
+  height:3px;
+  border-radius:50%;
+  background:#fff;
+  box-shadow:0 0 7px rgba(180,145,255,.95);
+  opacity:.65;
+}
+.totalk-warning-stars span:nth-child(1){top:14%;left:10%;}
+.totalk-warning-stars span:nth-child(2){top:28%;right:9%;width:2px;height:2px;}
+.totalk-warning-stars span:nth-child(3){top:72%;left:7%;width:2px;height:2px;}
+.totalk-warning-stars span:nth-child(4){bottom:13%;right:12%;}
+.totalk-warning-stars span:nth-child(5){top:47%;left:4%;width:2px;height:2px;}
+.totalk-warning-stars span:nth-child(6){top:10%;right:27%;width:2px;height:2px;}
+.totalk-warning-orbit{
+  position:absolute;
+  width:250px;
+  height:250px;
+  left:50%;
+  top:-132px;
+  transform:translateX(-50%);
+  border:1px solid rgba(157,99,255,.20);
+  border-radius:50%;
+  box-shadow:0 0 22px rgba(121,65,255,.12);
+  pointer-events:none;
+}
+.totalk-warning-orbit::after{
+  content:"";
+  position:absolute;
+  width:9px;
+  height:9px;
+  top:42px;
+  right:18px;
+  border-radius:50%;
+  background:#b58aff;
+  box-shadow:0 0 15px #9d6cff,0 0 28px rgba(120,75,255,.8);
 }
 .totalk-warning-close{
   position:absolute;
-  top:13px;
-  right:13px;
-  width:34px;
-  height:34px;
-  border:1px solid rgba(160,120,255,.20);
-  border-radius:11px;
-  background:rgba(255,255,255,.035);
-  color:#dcd4eb;
-  font-size:20px;
+  top:15px;
+  right:15px;
+  z-index:3;
+  width:36px;
+  height:36px;
+  border:1px solid rgba(177,145,255,.24);
+  border-radius:50%;
+  background:rgba(255,255,255,.045);
+  color:#eeeaff;
+  font-size:21px;
   line-height:1;
   cursor:pointer;
+  transition:transform .2s ease,background .2s ease,border-color .2s ease;
 }
 .totalk-warning-close:hover{
-  border-color:rgba(166,116,255,.52);
-  background:rgba(125,76,255,.10);
+  transform:rotate(90deg);
+  border-color:rgba(187,139,255,.65);
+  background:rgba(134,74,255,.14);
 }
 .totalk-warning-content{
   position:relative;
-  padding:30px 28px 25px;
+  z-index:2;
+  padding:38px 30px 28px;
   text-align:center;
 }
+.totalk-warning-brand{
+  margin-bottom:18px;
+  color:#f4efff;
+  font-size:17px;
+  font-weight:900;
+  letter-spacing:-.5px;
+}
+.totalk-warning-brand span{color:#9a58ff;}
 .totalk-warning-icon{
-  width:62px;
-  height:62px;
-  margin:0 auto 16px;
+  width:82px;
+  height:82px;
+  margin:0 auto 18px;
   display:flex;
   align-items:center;
   justify-content:center;
-  border:1px solid rgba(166,103,255,.42);
-  border-radius:18px;
-  background:linear-gradient(135deg,rgba(113,48,233,.25),rgba(166,92,255,.10));
-  box-shadow:0 0 26px rgba(145,76,255,.18);
-  color:#d7bdff;
-  font-size:29px;
+  border:1px solid rgba(183,119,255,.75);
+  border-radius:50%;
+  background:
+    radial-gradient(circle,rgba(155,87,255,.34),rgba(65,31,145,.12) 58%,transparent 72%);
+  color:#d9bdff;
+  font-size:38px;
+  font-weight:800;
+  text-shadow:0 0 14px rgba(190,143,255,.9);
+  box-shadow:
+    0 0 0 7px rgba(137,70,255,.055),
+    0 0 30px rgba(140,71,255,.36),
+    0 0 65px rgba(66,90,255,.14);
 }
 .totalk-warning-kicker{
-  margin-bottom:7px;
-  color:#bfa4ff;
+  margin-bottom:6px;
+  color:#aa80ff;
   font-size:10px;
-  font-weight:800;
-  letter-spacing:1.7px;
+  font-weight:900;
+  letter-spacing:2px;
   text-transform:uppercase;
 }
 .totalk-warning-title{
-  margin-bottom:9px;
+  margin-bottom:10px;
   color:#fff;
-  font-size:23px;
+  font-size:26px;
   font-weight:900;
-  letter-spacing:-.4px;
+  letter-spacing:-.6px;
+  text-shadow:0 0 20px rgba(168,106,255,.16);
 }
 .totalk-warning-text{
-  color:#aaa3bb;
+  max-width:340px;
+  margin:0 auto;
+  color:#aaa7bd;
   font-size:13px;
   line-height:1.55;
 }
 .totalk-warning-note{
-  margin-top:17px;
-  padding:13px 14px;
-  border:1px solid rgba(145,76,255,.23);
-  border-radius:13px;
-  background:rgba(145,76,255,.07);
-  color:#eee9f8;
+  position:relative;
+  margin-top:20px;
+  padding:15px 16px 15px 43px;
+  border:1px solid rgba(131,82,225,.28);
+  border-radius:16px;
+  background:linear-gradient(135deg,rgba(91,52,180,.16),rgba(28,33,79,.20));
+  color:#eeeaff;
   font-size:12px;
-  line-height:1.5;
+  line-height:1.55;
   text-align:left;
   white-space:pre-wrap;
   word-break:break-word;
+  box-shadow:0 10px 35px rgba(0,0,0,.18) inset;
+}
+.totalk-warning-note::before{
+  content:"✦";
+  position:absolute;
+  left:16px;
+  top:15px;
+  color:#ae76ff;
+  font-size:17px;
+  text-shadow:0 0 10px rgba(174,118,255,.8);
 }
 .totalk-warning-date{
-  margin-top:13px;
-  color:#777187;
+  margin-top:14px;
+  color:#77758b;
   font-size:10px;
 }
 .totalk-warning-ok{
   width:100%;
-  height:44px;
+  height:46px;
   margin-top:20px;
-  border:1px solid rgba(184,143,255,.55);
-  border-radius:13px;
-  background:linear-gradient(135deg,#5620b0,#7c3ee1);
+  border:1px solid rgba(182,137,255,.68);
+  border-radius:14px;
+  background:linear-gradient(100deg,#5520b7,#7b39ef,#a64cff);
   color:#fff;
   font:inherit;
   font-size:13px;
-  font-weight:800;
+  font-weight:900;
+  letter-spacing:.1px;
   cursor:pointer;
-  box-shadow:0 7px 24px rgba(86,32,176,.24);
+  box-shadow:0 10px 28px rgba(91,37,205,.28),0 0 22px rgba(142,70,255,.12);
+  transition:transform .18s ease,filter .18s ease,box-shadow .18s ease;
 }
 .totalk-warning-ok:hover{
-  filter:brightness(1.08);
+  transform:translateY(-1px);
+  filter:brightness(1.09);
+  box-shadow:0 13px 32px rgba(91,37,205,.34),0 0 28px rgba(142,70,255,.18);
 }
+.totalk-warning-ok:active{transform:translateY(1px);}
 @media(max-width:520px){
-  #totalkWarningBackdrop{padding:16px;}
-  .totalk-warning-content{padding:27px 20px 21px;}
-  .totalk-warning-title{font-size:21px;}
+  #totalkWarningBackdrop{padding:15px;}
+  .totalk-warning-card{border-radius:22px;}
+  .totalk-warning-content{padding:32px 19px 22px;}
+  .totalk-warning-title{font-size:23px;}
+  .totalk-warning-icon{width:72px;height:72px;font-size:33px;}
 }
 </style>
 </head>
@@ -2705,10 +2792,12 @@ header{
 ===================================================== -->
 <div id="totalkWarningBackdrop" aria-hidden="true">
   <div class="totalk-warning-card" role="dialog" aria-modal="true" aria-labelledby="totalkWarningTitle">
-    <div class="totalk-warning-glow"></div>
+    <div class="totalk-warning-stars" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span></div>
+    <div class="totalk-warning-orbit" aria-hidden="true"></div>
     <button type="button" class="totalk-warning-close" id="totalkWarningClose" aria-label="Close warning">×</button>
     <div class="totalk-warning-content">
-      <div class="totalk-warning-icon" aria-hidden="true">⚠</div>
+      <div class="totalk-warning-brand">To<span>Talk</span></div>
+      <div class="totalk-warning-icon" aria-hidden="true">!</div>
       <div class="totalk-warning-kicker">ToTalk Safety</div>
       <div class="totalk-warning-title" id="totalkWarningTitle">Official Warning</div>
       <div class="totalk-warning-text">A moderator has reviewed a report involving your account.</div>
