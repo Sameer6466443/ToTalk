@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#020108">
+<meta name="theme-color" content="#05020b">
 <title>ToTalk Admin</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -12,363 +12,291 @@
 *{
   box-sizing:border-box;
   margin:0;
-  padding:0;
+  padding:0
 }
 
 :root{
-  --black:#020108;
-  --dark:#070313;
-  --panel:#0b0617;
-  --panel2:#10091d;
+  --bg:#05020b;
+  --panel:#0b0615;
+  --panel2:#10091c;
   --purple:#914cff;
-  --purple2:#b878ff;
-  --purple3:#6f35d9;
-  --green:#52e69a;
+  --purple2:#b777ff;
+  --green:#50e59a;
   --yellow:#ffe34f;
-  --red:#ff557d;
-  --blue:#66b8ff;
-  --white:#f8f5ff;
-  --muted:#958da9;
-  --muted2:#70687d;
-  --border:rgba(145,76,255,.32);
+  --red:#ff6b91;
+  --blue:#68baff;
+  --text:#f8f5ff;
+  --muted:#8e879e;
+  --border:rgba(145,76,255,.28)
 }
 
-html,
-body{
+html,body{
   min-height:100%;
   background:
-    radial-gradient(
-      circle at 50% -10%,
-      rgba(145,76,255,.18),
-      transparent 38%
-    ),
-    var(--black);
-  color:var(--white);
-  font-family:
-    Inter,
-    ui-sans-serif,
-    system-ui,
-    -apple-system,
-    BlinkMacSystemFont,
-    "Segoe UI",
-    sans-serif;
+    radial-gradient(circle at 50% -10%,rgba(145,76,255,.18),transparent 38%),
+    var(--bg);
+  color:var(--text);
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif
 }
 
 body{
-  padding:18px;
+  padding:18px
 }
 
-button,
-input,
-textarea,
-select{
-  font:inherit;
+button,input,textarea,select{
+  font:inherit
 }
 
 button{
-  cursor:pointer;
+  cursor:pointer
 }
 
 .shell{
   width:100%;
-  max-width:1180px;
-  margin:0 auto;
+  max-width:1150px;
+  margin:auto
 }
 
-/* =========================
-   TOP BAR
-========================= */
+/* ================= HEADER ================= */
 
 .topbar{
   display:flex;
   align-items:center;
   justify-content:space-between;
-  gap:14px;
-  margin-bottom:20px;
+  gap:15px;
+  margin-bottom:20px
 }
 
 .brand{
   display:flex;
   align-items:center;
-  gap:13px;
-  min-width:0;
+  gap:12px
 }
 
 .logo{
-  width:58px;
-  height:58px;
-  flex:0 0 58px;
-  border:1px solid rgba(145,76,255,.72);
-  border-radius:18px;
+  width:54px;
+  height:54px;
+  border-radius:17px;
+  border:1px solid rgba(145,76,255,.65);
+  background:rgba(145,76,255,.1);
   display:grid;
   place-items:center;
-  background:
-    linear-gradient(
-      145deg,
-      rgba(145,76,255,.18),
-      rgba(145,76,255,.05)
-    );
-  box-shadow:
-    0 0 30px rgba(145,76,255,.18),
-    inset 0 0 18px rgba(145,76,255,.06);
+  box-shadow:0 0 28px rgba(145,76,255,.15)
 }
 
 .logo svg{
-  width:29px;
-  height:29px;
+  width:28px;
+  height:28px;
   fill:none;
   stroke:var(--purple2);
   stroke-width:1.8;
   stroke-linecap:round;
-  stroke-linejoin:round;
+  stroke-linejoin:round
 }
 
 .brand h1{
-  font-size:25px;
-  line-height:1.1;
-  letter-spacing:-.5px;
+  font-size:24px;
+  letter-spacing:-.5px
 }
 
 .brand p{
   color:var(--muted);
   font-size:12px;
-  margin-top:4px;
+  margin-top:2px
 }
 
 .actions{
   display:flex;
-  gap:8px;
+  gap:8px
 }
 
 .icon-btn{
-  width:58px;
-  height:58px;
-  border-radius:18px;
+  width:54px;
+  height:54px;
+  border-radius:17px;
+  border:1px solid var(--border);
+  background:rgba(145,76,255,.07);
+  color:white;
   display:grid;
   place-items:center;
-  border:1px solid rgba(145,76,255,.38);
-  background:
-    linear-gradient(
-      145deg,
-      rgba(145,76,255,.13),
-      rgba(145,76,255,.04)
-    );
-  color:var(--white);
-  transition:.18s ease;
+  transition:.2s
 }
 
 .icon-btn:hover{
-  background:rgba(145,76,255,.18);
-  border-color:rgba(145,76,255,.7);
-  transform:translateY(-1px);
+  background:rgba(145,76,255,.17);
+  transform:translateY(-1px)
 }
 
 .icon-btn svg{
-  width:25px;
-  height:25px;
+  width:24px;
+  height:24px;
   fill:none;
   stroke:currentColor;
   stroke-width:1.8;
   stroke-linecap:round;
-  stroke-linejoin:round;
+  stroke-linejoin:round
 }
 
 .icon-btn.danger{
-  color:#ff9bb3;
-  border-color:rgba(255,85,125,.38);
-  background:rgba(255,85,125,.06);
+  color:#ff9ab6;
+  border-color:rgba(255,85,125,.3)
 }
 
-.icon-btn.danger:hover{
-  background:rgba(255,85,125,.12);
-  border-color:rgba(255,85,125,.65);
-}
-
-/* =========================
-   ERROR
-========================= */
+/* ================= ERROR ================= */
 
 .banner{
   display:none;
   padding:13px 15px;
-  border:1px solid rgba(255,85,125,.4);
-  background:rgba(255,85,125,.08);
-  border-radius:14px;
-  margin-bottom:18px;
-  color:#ffc0cf;
-  font-size:13px;
+  border:1px solid rgba(255,85,125,.35);
+  background:rgba(255,85,125,.07);
+  border-radius:13px;
+  margin-bottom:15px;
+  color:#ffc4d2;
+  font-size:13px
 }
 
 .banner.show{
-  display:block;
+  display:block
 }
 
-/* =========================
-   STATS
-========================= */
+/* ================= STATS ================= */
 
 .stats{
   display:grid;
   grid-template-columns:repeat(4,1fr);
-  gap:12px;
-  margin-bottom:18px;
+  gap:11px;
+  margin-bottom:17px
 }
 
 .stat{
   position:relative;
   overflow:hidden;
-  background:
-    linear-gradient(
-      180deg,
-      rgba(16,9,29,.96),
-      rgba(8,4,15,.96)
-    );
+  min-height:112px;
+  padding:17px;
   border:1px solid var(--border);
   border-radius:18px;
-  padding:17px;
-  min-height:112px;
-  box-shadow:0 12px 40px rgba(0,0,0,.22);
+  background:linear-gradient(180deg,rgba(16,9,29,.96),rgba(8,4,15,.96));
 }
 
-.stat::after{
+.stat:after{
   content:"";
   position:absolute;
-  width:120px;
-  height:120px;
-  right:-58px;
-  bottom:-65px;
+  width:110px;
+  height:110px;
+  right:-45px;
+  bottom:-60px;
   border-radius:50%;
-  background:rgba(145,76,255,.08);
-  pointer-events:none;
+  background:rgba(145,76,255,.08)
 }
 
 .stat span{
   display:block;
   color:var(--muted);
-  font-size:13px;
-  font-weight:600;
+  font-size:12px;
+  font-weight:600
 }
 
 .stat strong{
   display:block;
-  font-size:34px;
-  line-height:1;
-  margin-top:9px;
-  letter-spacing:-1px;
+  font-size:30px;
+  margin-top:7px
 }
 
 .stat.pending strong{
-  color:var(--yellow);
+  color:var(--yellow)
 }
 
 .stat.investigating strong{
-  color:var(--blue);
+  color:var(--blue)
 }
 
 .stat.resolved strong{
-  color:var(--green);
+  color:var(--green)
 }
 
 .stat.dismissed strong{
-  color:#aaa2b7;
+  color:#aaa3b7
 }
 
-/* =========================
-   TABS
-========================= */
+/* ================= TABS ================= */
 
 .toolbar{
   margin-bottom:15px;
-  overflow:hidden;
+  overflow:hidden
 }
 
 .tabs{
   display:flex;
-  gap:8px;
+  gap:7px;
   overflow-x:auto;
   padding-bottom:3px;
-  scrollbar-width:none;
+  scrollbar-width:none
 }
 
 .tabs::-webkit-scrollbar{
-  display:none;
+  display:none
 }
 
 .tab{
   flex:0 0 auto;
-  border:1px solid rgba(145,76,255,.28);
+  border:1px solid rgba(145,76,255,.27);
   background:rgba(145,76,255,.055);
-  color:var(--muted);
+  color:#91899f;
   border-radius:999px;
-  padding:9px 17px;
+  padding:9px 15px;
   font-size:13px;
-  font-weight:600;
-  white-space:nowrap;
-  transition:.18s ease;
-}
-
-.tab:hover{
-  color:var(--white);
-  border-color:rgba(145,76,255,.5);
+  font-weight:600
 }
 
 .tab.active{
-  color:var(--white);
-  background:
-    linear-gradient(
-      135deg,
-      rgba(145,76,255,.23),
-      rgba(145,76,255,.11)
-    );
-  border-color:rgba(145,76,255,.72);
-  box-shadow:0 0 20px rgba(145,76,255,.12);
+  color:white;
+  background:rgba(145,76,255,.19);
+  border-color:rgba(145,76,255,.65);
+  box-shadow:0 0 18px rgba(145,76,255,.12)
 }
 
-/* =========================
-   REPORTS
-========================= */
+/* ================= REPORTS ================= */
 
 .reports{
   display:grid;
-  gap:14px;
+  gap:13px
 }
 
 .card{
-  background:
-    linear-gradient(
-      180deg,
-      rgba(15,8,27,.98),
-      rgba(8,4,15,.98)
-    );
-  border:1px solid rgba(145,76,255,.3);
+  border:1px solid rgba(145,76,255,.27);
   border-radius:20px;
+  background:
+    linear-gradient(180deg,rgba(15,8,27,.98),rgba(7,3,14,.98));
   overflow:hidden;
-  box-shadow:0 15px 55px rgba(0,0,0,.25);
+  box-shadow:0 14px 45px rgba(0,0,0,.2)
+}
+
+.card-inner{
+  padding:17px
 }
 
 .card-head{
   display:flex;
   justify-content:space-between;
-  gap:15px;
   align-items:flex-start;
-  padding:19px 19px 15px;
+  gap:12px
 }
 
 .report-title{
   display:flex;
   align-items:center;
-  gap:11px;
+  gap:10px
 }
 
 .report-icon{
-  width:40px;
-  height:40px;
-  border-radius:13px;
+  width:38px;
+  height:38px;
+  border-radius:12px;
   display:grid;
   place-items:center;
+  border:1px solid rgba(145,76,255,.28);
   background:rgba(145,76,255,.1);
-  border:1px solid rgba(145,76,255,.25);
-  color:var(--purple2);
+  color:var(--purple2)
 }
 
 .report-icon svg{
@@ -378,420 +306,467 @@ button{
   stroke:currentColor;
   stroke-width:1.8;
   stroke-linecap:round;
-  stroke-linejoin:round;
+  stroke-linejoin:round
 }
 
-.report-number{
-  font-size:20px;
-  font-weight:750;
-  letter-spacing:-.3px;
+.report-title strong{
+  font-size:18px
 }
 
 .idline{
-  color:var(--muted);
-  font-size:12px;
-  margin-top:4px;
+  color:#726b7e;
+  font-size:11px;
+  margin-top:3px
 }
 
 .status{
   display:inline-flex;
   align-items:center;
-  gap:7px;
+  gap:6px;
   border-radius:999px;
-  padding:8px 12px;
-  font-size:12px;
-  font-weight:650;
-  border:1px solid;
-  white-space:nowrap;
+  padding:7px 11px;
+  font-size:11px;
+  font-weight:700;
+  border:1px solid
 }
 
-.status::before{
+.status:before{
   content:"";
-  width:7px;
-  height:7px;
+  width:6px;
+  height:6px;
   border-radius:50%;
-  background:currentColor;
-  box-shadow:0 0 9px currentColor;
+  background:currentColor
 }
 
 .status.pending{
   color:var(--yellow);
   border-color:rgba(255,227,79,.35);
-  background:rgba(255,227,79,.07);
+  background:rgba(255,227,79,.06)
 }
 
 .status.investigating{
   color:var(--blue);
   border-color:rgba(102,184,255,.35);
-  background:rgba(102,184,255,.07);
+  background:rgba(102,184,255,.06)
 }
 
 .status.resolved{
   color:var(--green);
   border-color:rgba(82,230,154,.35);
-  background:rgba(82,230,154,.07);
+  background:rgba(82,230,154,.06)
 }
 
 .status.dismissed{
   color:#aaa2b7;
   border-color:rgba(170,162,183,.3);
-  background:rgba(170,162,183,.05);
+  background:rgba(170,162,183,.05)
 }
 
-/* =========================
-   PEOPLE
-========================= */
+/* ================= PEOPLE ================= */
 
 .people{
   display:grid;
   grid-template-columns:1fr 1fr;
   gap:10px;
-  padding:0 19px;
+  margin-top:15px
 }
 
 .person{
-  border:1px solid rgba(145,76,255,.2);
-  background:
-    linear-gradient(
-      145deg,
-      rgba(145,76,255,.055),
-      rgba(145,76,255,.025)
-    );
+  border:1px solid rgba(145,76,255,.18);
+  background:rgba(145,76,255,.045);
   border-radius:15px;
-  padding:15px;
+  padding:13px
 }
 
 .person-top{
   display:flex;
   align-items:center;
-  gap:10px;
-  margin-bottom:12px;
+  gap:8px;
+  color:#928aa1;
+  font-size:10px;
+  font-weight:700;
+  letter-spacing:.12em
 }
 
 .person-icon{
-  width:38px;
-  height:38px;
-  border-radius:12px;
+  width:28px;
+  height:28px;
+  border-radius:9px;
   display:grid;
   place-items:center;
   background:rgba(145,76,255,.1);
-  color:var(--purple2);
-}
-
-.person-icon.reported{
-  color:#ff8fac;
-  background:rgba(255,85,125,.08);
+  color:var(--purple2)
 }
 
 .person-icon svg{
-  width:19px;
-  height:19px;
+  width:15px;
+  height:15px;
   fill:none;
   stroke:currentColor;
   stroke-width:1.8;
   stroke-linecap:round;
-  stroke-linejoin:round;
+  stroke-linejoin:round
 }
 
-.person label{
-  display:block;
-  font-size:10px;
-  text-transform:uppercase;
-  letter-spacing:.13em;
-  color:var(--muted);
+.person-name{
+  font-size:15px;
   font-weight:700;
-}
-
-.person strong{
-  display:block;
-  font-size:16px;
-  line-height:1.25;
-  margin-bottom:8px;
+  margin-top:9px
 }
 
 .totalk-id{
+  margin-top:5px;
+  font-size:11px;
+  color:var(--purple2);
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+  word-break:break-all
+}
+
+/* ================= REASON ================= */
+
+.reason{
+  margin-top:15px;
+  font-size:14px;
+  color:#ddd7e7
+}
+
+.reason-label{
+  color:var(--purple2);
+  font-size:11px;
+  font-weight:800;
+  letter-spacing:.1em;
+  margin-right:8px
+}
+
+.details{
+  margin-top:8px;
+  color:#a9a1b5;
+  font-size:13px;
+  line-height:1.5;
+  white-space:pre-wrap
+}
+
+.meta{
   display:flex;
   align-items:center;
-  gap:7px;
-  flex-wrap:wrap;
-  color:var(--muted);
-  font-size:11px;
+  gap:8px;
+  margin-top:12px;
+  color:#716a7c;
+  font-size:11px
 }
 
-.totalk-id span{
-  color:var(--muted);
+.meta svg{
+  width:15px;
+  height:15px;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:1.7;
+  stroke-linecap:round;
+  stroke-linejoin:round
 }
 
-.totalk-id code{
-  color:var(--purple2);
-  font-family:
-    ui-monospace,
-    SFMono-Regular,
-    Menlo,
-    Monaco,
-    Consolas,
-    monospace;
-  font-size:12px;
-  letter-spacing:.5px;
-  background:rgba(145,76,255,.07);
-  border:1px solid rgba(145,76,255,.16);
-  padding:4px 7px;
-  border-radius:7px;
+.conversation-id{
+  word-break:break-all
 }
 
-/* =========================
-   REPORT INFORMATION
-========================= */
+/* ================= VIEW CONVERSATION ================= */
 
-.report-info{
-  padding:17px 19px 18px;
-}
-
-.info-row{
-  display:grid;
-  grid-template-columns:120px 1fr;
-  align-items:center;
-  gap:12px;
-  padding:10px 0;
-  border-bottom:1px solid rgba(145,76,255,.08);
-}
-
-.info-row:last-child{
-  border-bottom:0;
-  padding-bottom:2px;
-}
-
-.info-label{
-  color:var(--muted);
-  font-size:11px;
-  font-weight:750;
-  text-transform:uppercase;
-  letter-spacing:.1em;
-}
-
-.info-value{
-  min-width:0;
-  font-size:14px;
-  color:#eee9f5;
-}
-
-/* FIXED REASON DESIGN */
-
-.reason-value{
-  display:inline-flex;
-  align-items:center;
-  gap:7px;
-  padding:6px 10px;
-  border-radius:8px;
+.conversation-btn{
+  width:100%;
+  margin-top:13px;
+  height:43px;
+  border-radius:12px;
+  border:1px solid rgba(145,76,255,.4);
   background:rgba(145,76,255,.09);
-  border:1px solid rgba(145,76,255,.2);
-  color:#ddd1ee;
+  color:#d9baff;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
   font-size:13px;
-  font-weight:600;
+  font-weight:700
 }
 
-.reason-value::before{
-  content:"";
-  width:6px;
-  height:6px;
-  border-radius:50%;
-  background:var(--purple2);
-  box-shadow:0 0 8px rgba(184,120,255,.7);
+.conversation-btn:hover{
+  background:rgba(145,76,255,.17)
 }
 
-.conversation-value{
-  color:#7e758e;
-  font-size:11px;
-  font-family:
-    ui-monospace,
-    SFMono-Regular,
-    Menlo,
-    Monaco,
-    Consolas,
-    monospace;
-  word-break:break-all;
+.conversation-btn svg{
+  width:18px;
+  height:18px;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:1.8;
+  stroke-linecap:round;
+  stroke-linejoin:round
 }
 
-/* =========================
-   DETAILS
-========================= */
+/* ================= CONTROLS ================= */
 
-.details-box{
-  margin:0 19px 18px;
-  padding:13px 14px;
-  border-radius:13px;
-  background:rgba(145,76,255,.035);
-  border:1px solid rgba(145,76,255,.13);
+.decision{
+  margin-top:17px;
+  border-top:1px solid rgba(145,76,255,.14);
+  padding-top:16px
 }
 
-.details-label{
-  color:var(--muted);
-  font-size:10px;
-  font-weight:750;
-  text-transform:uppercase;
-  letter-spacing:.1em;
-  margin-bottom:7px;
-}
-
-.details-text{
-  color:#bcb4c9;
-  font-size:13px;
-  line-height:1.55;
-  white-space:pre-wrap;
-}
-
-/* =========================
-   MODERATION
-========================= */
-
-.moderation{
-  border-top:1px solid rgba(145,76,255,.16);
-  background:
-    linear-gradient(
-      180deg,
-      rgba(145,76,255,.025),
-      rgba(0,0,0,.04)
-    );
-  padding:18px 19px 20px;
-}
-
-.moderation-head{
+.decision-head{
   display:flex;
   justify-content:space-between;
   align-items:center;
-  gap:10px;
-  margin-bottom:16px;
+  margin-bottom:13px
 }
 
-.moderation-title{
-  font-size:17px;
-  font-weight:750;
-  letter-spacing:-.2px;
+.decision-head strong{
+  font-size:15px
 }
 
-.moderation-subtitle{
-  color:var(--muted2);
-  font-size:11px;
+.decision-head span{
+  color:#6f687b;
+  font-size:11px
 }
 
 .controls{
   display:grid;
   grid-template-columns:1fr 1fr;
-  gap:12px;
+  gap:10px
 }
 
-.field{
-  min-width:0;
-}
-
-.field.notes{
-  grid-column:1 / -1;
+.field.full{
+  grid-column:1/-1
 }
 
 .field label{
   display:block;
-  color:var(--muted);
+  color:#938b9f;
   font-size:10px;
-  font-weight:750;
-  text-transform:uppercase;
-  letter-spacing:.11em;
-  margin-bottom:7px;
+  font-weight:800;
+  letter-spacing:.1em;
+  margin-bottom:6px
 }
 
 .field select,
 .field textarea{
   width:100%;
-  border:1px solid rgba(145,76,255,.28);
+  border:1px solid rgba(145,76,255,.3);
   background:#08040f;
-  color:var(--white);
+  color:white;
   border-radius:12px;
-  padding:12px 13px;
-  outline:none;
-  transition:.18s ease;
+  padding:11px 12px;
+  outline:none
 }
 
 .field select{
-  height:48px;
+  height:44px
+}
+
+.field textarea{
+  min-height:78px;
+  resize:vertical
 }
 
 .field select:focus,
 .field textarea:focus{
   border-color:rgba(145,76,255,.7);
-  box-shadow:0 0 0 3px rgba(145,76,255,.08);
-}
-
-.field textarea{
-  min-height:82px;
-  resize:vertical;
-  line-height:1.45;
-}
-
-.field textarea::placeholder{
-  color:#625a6c;
+  box-shadow:0 0 0 3px rgba(145,76,255,.08)
 }
 
 .save{
-  grid-column:1 / -1;
-  width:100%;
-  height:48px;
-  border:1px solid #a86bff;
+  grid-column:1/-1;
+  height:44px;
   border-radius:12px;
+  border:1px solid #a86bff;
+  background:linear-gradient(135deg,#7130d8,#9b4dff);
   color:white;
   font-weight:700;
-  background:
-    linear-gradient(
-      135deg,
-      #7130d8,
-      #9b4dff
-    );
-  box-shadow:
-    0 8px 25px rgba(145,76,255,.2);
-  transition:.18s ease;
-}
-
-.save:hover{
-  transform:translateY(-1px);
-  box-shadow:
-    0 10px 30px rgba(145,76,255,.3);
+  box-shadow:0 8px 25px rgba(145,76,255,.18)
 }
 
 .save:disabled{
-  opacity:.65;
-  cursor:not-allowed;
-  transform:none;
+  opacity:.6;
+  cursor:not-allowed
 }
 
-/* =========================
-   EMPTY / LOADING
-========================= */
+/* ================= EMPTY ================= */
 
 .empty,
 .loading{
-  padding:60px 20px;
+  padding:50px 20px;
   text-align:center;
-  border:1px dashed rgba(145,76,255,.28);
+  border:1px dashed rgba(145,76,255,.25);
   border-radius:18px;
-  color:var(--muted);
+  color:var(--muted)
 }
 
 .empty strong{
   display:block;
-  color:var(--white);
-  margin-bottom:6px;
+  color:white;
+  margin-bottom:5px
 }
 
-/* =========================
-   TOAST
-========================= */
+/* ================= MODAL ================= */
+
+.modal{
+  position:fixed;
+  inset:0;
+  z-index:1000;
+  display:none;
+  background:rgba(0,0,0,.76);
+  backdrop-filter:blur(8px);
+  padding:15px
+}
+
+.modal.show{
+  display:flex;
+  align-items:center;
+  justify-content:center
+}
+
+.modal-box{
+  width:100%;
+  max-width:720px;
+  max-height:90vh;
+  display:flex;
+  flex-direction:column;
+  border:1px solid rgba(145,76,255,.4);
+  border-radius:21px;
+  background:
+    linear-gradient(180deg,#10091c,#07030d);
+  box-shadow:0 30px 100px rgba(0,0,0,.6);
+  overflow:hidden
+}
+
+.modal-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  padding:16px 17px;
+  border-bottom:1px solid rgba(145,76,255,.16)
+}
+
+.modal-title{
+  display:flex;
+  align-items:center;
+  gap:10px
+}
+
+.modal-title-icon{
+  width:39px;
+  height:39px;
+  border-radius:12px;
+  background:rgba(145,76,255,.1);
+  border:1px solid rgba(145,76,255,.25);
+  display:grid;
+  place-items:center;
+  color:var(--purple2)
+}
+
+.modal-title-icon svg{
+  width:20px;
+  height:20px;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:1.8;
+  stroke-linecap:round;
+  stroke-linejoin:round
+}
+
+.modal-title h2{
+  font-size:16px
+}
+
+.modal-title p{
+  color:#716a7c;
+  font-size:10px;
+  margin-top:2px;
+  word-break:break-all
+}
+
+.close-modal{
+  width:38px;
+  height:38px;
+  border-radius:11px;
+  border:1px solid rgba(255,255,255,.08);
+  background:rgba(255,255,255,.04);
+  color:#aaa2b7;
+  display:grid;
+  place-items:center
+}
+
+.close-modal svg{
+  width:18px;
+  height:18px;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:2;
+  stroke-linecap:round
+}
+
+.messages{
+  padding:16px;
+  overflow-y:auto;
+  display:flex;
+  flex-direction:column;
+  gap:9px
+}
+
+.message{
+  max-width:82%;
+  border:1px solid rgba(145,76,255,.17);
+  background:rgba(145,76,255,.055);
+  border-radius:15px;
+  padding:10px 12px
+}
+
+.message.mine{
+  align-self:flex-end;
+  background:rgba(145,76,255,.13);
+  border-color:rgba(145,76,255,.27)
+}
+
+.message-user{
+  color:var(--purple2);
+  font-size:10px;
+  font-weight:800;
+  margin-bottom:4px
+}
+
+.message-text{
+  color:#eeeaf4;
+  font-size:13px;
+  line-height:1.5;
+  white-space:pre-wrap;
+  overflow-wrap:anywhere
+}
+
+.message-time{
+  color:#6e6779;
+  font-size:9px;
+  margin-top:5px
+}
+
+.no-messages{
+  padding:45px 20px;
+  text-align:center;
+  color:#777080
+}
+
+.modal-loading{
+  padding:45px 20px;
+  text-align:center;
+  color:#92899d
+}
+
+/* ================= TOAST ================= */
 
 .toast{
   position:fixed;
   right:18px;
   bottom:18px;
-  z-index:20;
-  max-width:360px;
+  z-index:2000;
+  max-width:340px;
   padding:12px 15px;
-  border:1px solid rgba(82,230,154,.4);
+  border:1px solid rgba(82,230,154,.35);
   background:#0b1712;
   color:#d8ffea;
   border-radius:12px;
@@ -800,312 +775,137 @@ button{
   transform:translateY(8px);
   pointer-events:none;
   transition:.2s;
-  font-size:13px;
+  font-size:13px
 }
 
 .toast.show{
   opacity:1;
-  transform:none;
+  transform:none
 }
 
-/* =========================
-   LOGIN
-========================= */
+/* ================= LOGIN ================= */
 
 .login{
   max-width:440px;
-  margin:12vh auto;
-  background:
-    linear-gradient(
-      180deg,
-      rgba(15,8,27,.98),
-      rgba(8,4,15,.98)
-    );
+  margin:15vh auto;
+  background:linear-gradient(180deg,rgba(15,8,27,.98),rgba(8,4,15,.98));
   border:1px solid var(--border);
   border-radius:20px;
   padding:28px;
-  text-align:center;
-  box-shadow:0 25px 80px rgba(0,0,0,.4);
+  text-align:center
 }
 
 .login h2{
-  margin-bottom:8px;
+  margin-bottom:8px
 }
 
 .login p{
   color:var(--muted);
   line-height:1.5;
-  font-size:13px;
+  font-size:13px
 }
 
-.login .btn{
+.login button{
   margin-top:18px;
-}
-
-.btn{
-  border:1px solid var(--border);
-  background:rgba(145,76,255,.1);
-  color:var(--white);
+  height:43px;
+  padding:0 18px;
   border-radius:11px;
-  padding:10px 14px;
+  border:1px solid #a86bff;
+  background:linear-gradient(135deg,#7130d8,#9b4dff);
+  color:white
 }
 
-/* =========================
-   DESKTOP
-========================= */
+/* ================= MOBILE ================= */
 
-@media(min-width:801px){
-
-  .card-head{
-    padding:20px 21px 16px;
-  }
-
-  .people{
-    padding:0 21px;
-  }
-
-  .report-info{
-    padding-left:21px;
-    padding-right:21px;
-  }
-
-  .details-box{
-    margin-left:21px;
-    margin-right:21px;
-  }
-
-  .moderation{
-    padding-left:21px;
-    padding-right:21px;
-  }
-}
-
-/* =========================
-   TABLET
-========================= */
-
-@media(max-width:800px){
+@media(max-width:700px){
 
   body{
-    padding:14px;
+    padding:12px
+  }
+
+  .topbar{
+    margin-bottom:16px
+  }
+
+  .logo{
+    width:50px;
+    height:50px
+  }
+
+  .brand h1{
+    font-size:21px
+  }
+
+  .brand p{
+    font-size:11px
+  }
+
+  .icon-btn{
+    width:48px;
+    height:48px;
+    border-radius:15px
   }
 
   .stats{
     grid-template-columns:1fr 1fr;
-  }
-
-  .people{
-    grid-template-columns:1fr;
-  }
-
-  .topbar{
-    align-items:center;
-  }
-
-  .brand p{
-    display:none;
-  }
-
-  .brand h1{
-    font-size:22px;
-  }
-
-  .logo{
-    width:52px;
-    height:52px;
-    flex-basis:52px;
-    border-radius:17px;
-  }
-
-  .icon-btn{
-    width:52px;
-    height:52px;
-    border-radius:17px;
-  }
-
-  .controls{
-    grid-template-columns:1fr;
-  }
-
-  .field.notes{
-    grid-column:auto;
-  }
-
-  .save{
-    grid-column:auto;
-  }
-}
-
-/* =========================
-   PHONE
-========================= */
-
-@media(max-width:520px){
-
-  body{
-    padding:10px;
-  }
-
-  .topbar{
-    margin-bottom:16px;
-  }
-
-  .brand{
-    gap:10px;
-  }
-
-  .brand h1{
-    font-size:20px;
-  }
-
-  .logo{
-    width:49px;
-    height:49px;
-    flex-basis:49px;
-    border-radius:16px;
-  }
-
-  .logo svg{
-    width:25px;
-    height:25px;
-  }
-
-  .actions{
-    gap:6px;
-  }
-
-  .icon-btn{
-    width:49px;
-    height:49px;
-    border-radius:16px;
-  }
-
-  .icon-btn svg{
-    width:23px;
-    height:23px;
-  }
-
-  .stats{
-    gap:9px;
-    margin-bottom:14px;
+    gap:9px
   }
 
   .stat{
-    min-height:105px;
-    padding:14px;
-    border-radius:16px;
-  }
-
-  .stat span{
-    font-size:12px;
+    min-height:100px;
+    padding:15px
   }
 
   .stat strong{
-    font-size:30px;
-    margin-top:8px;
-  }
-
-  .tab{
-    padding:9px 15px;
-  }
-
-  .card{
-    border-radius:18px;
-  }
-
-  .card-head{
-    padding:16px 14px 14px;
-  }
-
-  .report-icon{
-    width:37px;
-    height:37px;
-    border-radius:11px;
-  }
-
-  .report-number{
-    font-size:18px;
-  }
-
-  .status{
-    padding:7px 9px;
-    font-size:11px;
+    font-size:27px
   }
 
   .people{
-    padding:0 14px;
-    gap:9px;
+    grid-template-columns:1fr
   }
 
-  .person{
-    padding:13px;
+  .controls{
+    grid-template-columns:1fr
   }
 
-  .person strong{
-    font-size:15px;
+  .field.full{
+    grid-column:auto
   }
 
-  .report-info{
-    padding:13px 14px 16px;
+  .save{
+    grid-column:auto
   }
 
-  .info-row{
-    grid-template-columns:92px 1fr;
-    gap:8px;
+  .card-inner{
+    padding:14px
   }
 
-  .info-label{
-    font-size:9px;
+  .message{
+    max-width:90%
   }
 
-  .info-value{
-    font-size:13px;
+  .modal{
+    padding:8px
   }
 
-  .details-box{
-    margin:0 14px 16px;
-  }
-
-  .moderation{
-    padding:16px 14px 17px;
-  }
-
-  .moderation-title{
-    font-size:16px;
-  }
-
-  .moderation-subtitle{
-    font-size:10px;
+  .modal-box{
+    max-height:94vh;
+    border-radius:18px
   }
 }
 
-/* =========================
-   VERY SMALL PHONE
-========================= */
+@media(max-width:430px){
 
-@media(max-width:380px){
-
-  .brand h1{
-    font-size:18px;
+  .brand p{
+    max-width:130px
   }
 
-  .logo,
-  .icon-btn{
-    width:45px;
-    height:45px;
-    flex-basis:45px;
-  }
-
-  .actions{
-    gap:4px;
+  .report-title strong{
+    font-size:17px
   }
 
   .status{
-    padding:6px 8px;
-  }
-
-  .info-row{
-    grid-template-columns:82px 1fr;
+    padding:6px 8px
   }
 }
 </style>
@@ -1115,7 +915,7 @@ button{
 
 <div class="shell" id="app" style="display:none">
 
-  <!-- TOP BAR -->
+  <!-- HEADER -->
   <header class="topbar">
 
     <div class="brand">
@@ -1123,8 +923,7 @@ button{
       <div class="logo">
         <svg viewBox="0 0 24 24">
           <path d="M5 5.5h14v9H11l-4 4v-4H5z"/>
-          <path d="M8 9.5h8"/>
-          <path d="M8 12h5"/>
+          <path d="M8 9.5h8M8 12h5"/>
         </svg>
       </div>
 
@@ -1137,28 +936,16 @@ button{
 
     <div class="actions">
 
-      <!-- REFRESH -->
-      <button
-        class="icon-btn"
-        id="refreshBtn"
-        title="Refresh"
-        aria-label="Refresh"
-      >
+      <button class="icon-btn" id="refreshBtn" title="Refresh">
         <svg viewBox="0 0 24 24">
-          <path d="M20 11a8 8 0 0 0-14.9-4"/>
-          <path d="M5 3v4h4"/>
-          <path d="M4 13a8 8 0 0 0 14.9 4"/>
-          <path d="M19 21v-4h-4"/>
+          <path d="M20 11a8.1 8.1 0 0 0-14.8-4L3 10"/>
+          <path d="M3 5v5h5"/>
+          <path d="M4 13a8.1 8.1 0 0 0 14.8 4L21 14"/>
+          <path d="M21 19v-5h-5"/>
         </svg>
       </button>
 
-      <!-- SIGN OUT -->
-      <button
-        class="icon-btn danger"
-        id="signOutBtn"
-        title="Sign out"
-        aria-label="Sign out"
-      >
+      <button class="icon-btn danger" id="signOutBtn" title="Sign out">
         <svg viewBox="0 0 24 24">
           <path d="M10 17l5-5-5-5"/>
           <path d="M15 12H3"/>
@@ -1170,10 +957,7 @@ button{
 
   </header>
 
-
-  <!-- ERROR -->
   <div class="banner" id="errorBanner"></div>
-
 
   <!-- STATS -->
   <section class="stats">
@@ -1199,7 +983,6 @@ button{
     </div>
 
   </section>
-
 
   <!-- TABS -->
   <div class="toolbar">
@@ -1230,12 +1013,8 @@ button{
 
   </div>
 
-
-  <!-- REPORTS -->
   <main class="reports" id="reports">
-    <div class="loading">
-      Loading reports…
-    </div>
+    <div class="loading">Loading reports…</div>
   </main>
 
 </div>
@@ -1251,14 +1030,57 @@ button{
     an owner, admin, or moderator role.
   </p>
 
-  <button class="btn" id="goChatBtn">
+  <button id="goChatBtn">
     Open ToTalk
   </button>
 
 </div>
 
 
-<!-- TOAST -->
+<!-- CONVERSATION MODAL -->
+<div class="modal" id="conversationModal">
+
+  <div class="modal-box">
+
+    <div class="modal-head">
+
+      <div class="modal-title">
+
+        <div class="modal-title-icon">
+          <svg viewBox="0 0 24 24">
+            <path d="M5 5.5h14v9H11l-4 4v-4H5z"/>
+            <path d="M8 9.5h8M8 12h5"/>
+          </svg>
+        </div>
+
+        <div>
+          <h2>Conversation</h2>
+          <p id="modalConversationId">Loading…</p>
+        </div>
+
+      </div>
+
+      <button class="close-modal" id="closeModal">
+
+        <svg viewBox="0 0 24 24">
+          <path d="M6 6l12 12M18 6L6 18"/>
+        </svg>
+
+      </button>
+
+    </div>
+
+    <div class="messages" id="messages">
+      <div class="modal-loading">
+        Loading conversation…
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+
 <div class="toast" id="toast"></div>
 
 
@@ -1307,79 +1129,76 @@ const errorBanner =
 const toast =
   document.getElementById("toast");
 
+const conversationModal =
+  document.getElementById("conversationModal");
+
+const messagesEl =
+  document.getElementById("messages");
+
+const modalConversationId =
+  document.getElementById("modalConversationId");
+
 
 /* =========================================================
    STATE
 ========================================================= */
 
 let currentStatus = "pending";
+
 let allReports = [];
 
 
 /* =========================================================
-   ESCAPE HTML
+   HELPERS
 ========================================================= */
 
-const esc = value =>
-  String(value ?? "")
+const esc = value => {
+
+  return String(value ?? "")
     .replace(
       /[&<>'"]/g,
-      character =>
-        ({
-          "&":"&amp;",
-          "<":"&lt;",
-          ">":"&gt;",
-          "'":"&#39;",
-          '"':"&quot;"
-        })[character]
+      char => ({
+        "&":"&amp;",
+        "<":"&lt;",
+        ">":"&gt;",
+        "'":"&#39;",
+        '"':"&quot;"
+      }[char])
     );
 
+};
 
-/* =========================================================
-   DATE
-========================================================= */
 
 const fmtDate = value => {
 
-  if(!value){
-    return "—";
-  }
+  if(!value) return "—";
 
-  const date = new Date(value);
+  const d = new Date(value);
 
-  if(isNaN(date)){
-    return String(value);
-  }
+  if(isNaN(d)) return String(value);
 
-  return date.toLocaleString(
+  return d.toLocaleString(
     [],
     {
       dateStyle:"medium",
       timeStyle:"short"
     }
   );
+
 };
 
 
-/* =========================================================
-   ERROR
-========================================================= */
-
 function showError(message){
 
-  errorBanner.textContent =
-    message || "";
+  errorBanner.textContent = message || "";
 
   errorBanner.classList.toggle(
     "show",
     !!message
   );
+
 }
 
-
-/* =========================================================
-   TOAST
-========================================================= */
 
 function showToast(message){
 
@@ -1387,459 +1206,14 @@ function showToast(message){
 
   toast.classList.add("show");
 
-  clearTimeout(showToast.t);
+  clearTimeout(showToast.timer);
 
-  showToast.t =
+  showToast.timer =
     setTimeout(
       () => toast.classList.remove("show"),
       2600
     );
-}
 
-
-/* =========================================================
-   TOTAlK ID FORMAT
-=========================================================
-
-   If your RPC already returns a real ToTalk ID such as:
-
-   TT-ABC123
-
-   it will use that.
-
-   If the RPC currently only returns a UUID, we display
-   a clean ToTalk-style identifier instead of the UUID.
-
-========================================================= */
-
-function makeToTalkId(value){
-
-  if(!value){
-    return "TT-UNKNOWN";
-  }
-
-  const raw =
-    String(value).trim();
-
-  /* Already a ToTalk ID */
-  if(/^TT-[A-Za-z0-9]+$/i.test(raw)){
-    return raw.toUpperCase();
-  }
-
-  /* UUID / existing user ID */
-  const cleaned =
-    raw.replace(/[^a-zA-Z0-9]/g,"");
-
-  if(!cleaned){
-    return "TT-UNKNOWN";
-  }
-
-  return (
-    "TT-" +
-    cleaned
-      .substring(0,6)
-      .toUpperCase()
-  );
-}
-
-
-/* =========================================================
-   GET USER ID FROM REPORT
-========================================================= */
-
-function getReporterId(report){
-
-  return (
-    report.reporter_totalk_id ||
-    report.reporter_to_talk_id ||
-    report.reporter_id ||
-    report.reporter_user_id ||
-    report.reporter_uuid ||
-    null
-  );
-}
-
-
-function getReportedUserId(report){
-
-  return (
-    report.reported_totalk_id ||
-    report.reported_to_talk_id ||
-    report.reported_id ||
-    report.reported_user_id ||
-    report.reported_uuid ||
-    null
-  );
-}
-
-
-/* =========================================================
-   PERSON CARD
-========================================================= */
-
-function person(
-  type,
-  name,
-  id,
-  reported = false
-){
-
-  const finalName =
-    name || "Unknown user";
-
-  const finalId =
-    makeToTalkId(id);
-
-  return `
-
-    <div class="person">
-
-      <div class="person-top">
-
-        <div class="person-icon ${reported ? "reported" : ""}">
-
-          ${
-            reported
-            ?
-            `
-            <svg viewBox="0 0 24 24">
-              <path d="M5 20V4"/>
-              <path d="M5 5h10l-2 3 2 3H5"/>
-            </svg>
-            `
-            :
-            `
-            <svg viewBox="0 0 24 24">
-              <circle cx="12" cy="8" r="3"/>
-              <path d="M5 20c.8-3.3 3.1-5 7-5s6.2 1.7 7 5"/>
-            </svg>
-            `
-          }
-
-        </div>
-
-        <label>
-          ${esc(type)}
-        </label>
-
-      </div>
-
-      <strong>
-        ${esc(finalName)}
-      </strong>
-
-      <div class="totalk-id">
-
-        <span>ToTalk ID</span>
-
-        <code>
-          ${esc(finalId)}
-        </code>
-
-      </div>
-
-    </div>
-
-  `;
-}
-
-
-/* =========================================================
-   STATUS LABEL
-========================================================= */
-
-function statusName(status){
-
-  const valid =
-    [
-      "pending",
-      "investigating",
-      "resolved",
-      "dismissed"
-    ];
-
-  const safe =
-    valid.includes(status)
-      ? status
-      : "pending";
-
-  return (
-    safe.charAt(0).toUpperCase() +
-    safe.slice(1)
-  );
-}
-
-
-/* =========================================================
-   REPORT CARD
-========================================================= */
-
-function card(report){
-
-  const status =
-    [
-      "pending",
-      "investigating",
-      "resolved",
-      "dismissed"
-    ].includes(report.status)
-      ? report.status
-      : "pending";
-
-
-  const reporterId =
-    getReporterId(report);
-
-  const reportedUserId =
-    getReportedUserId(report);
-
-
-  return `
-
-    <article
-      class="card"
-      data-id="${esc(report.id)}"
-    >
-
-      <!-- HEADER -->
-
-      <div class="card-head">
-
-        <div class="report-title">
-
-          <div class="report-icon">
-
-            <svg viewBox="0 0 24 24">
-              <path d="M6 4h12v12H10l-4 4z"/>
-              <path d="M9 8h6"/>
-              <path d="M9 11h4"/>
-            </svg>
-
-          </div>
-
-          <div>
-
-            <div class="report-number">
-              Report #${esc(report.id)}
-            </div>
-
-            <div class="idline">
-              Submitted ${esc(fmtDate(report.created_at))}
-            </div>
-
-          </div>
-
-        </div>
-
-
-        <span class="status ${status}">
-          ${esc(statusName(status))}
-        </span>
-
-      </div>
-
-
-      <!-- PEOPLE -->
-
-      <div class="people">
-
-        ${person(
-          "REPORTER",
-          report.reporter_name,
-          reporterId,
-          false
-        )}
-
-        ${person(
-          "REPORTED USER",
-          report.reported_name,
-          reportedUserId,
-          true
-        )}
-
-      </div>
-
-
-      <!-- REPORT INFORMATION -->
-
-      <div class="report-info">
-
-        <!-- REASON -->
-
-        <div class="info-row">
-
-          <div class="info-label">
-            Reason
-          </div>
-
-          <div class="info-value">
-
-            <span class="reason-value">
-              ${esc(report.reason || "Not specified")}
-            </span>
-
-          </div>
-
-        </div>
-
-
-        <!-- CONVERSATION -->
-
-        <div class="info-row">
-
-          <div class="info-label">
-            Conversation
-          </div>
-
-          <div class="info-value conversation-value">
-            ${esc(report.conversation_id || "—")}
-          </div>
-
-        </div>
-
-      </div>
-
-
-      <!-- DETAILS -->
-
-      ${
-        report.details
-        ?
-        `
-        <div class="details-box">
-
-          <div class="details-label">
-            Report details
-          </div>
-
-          <div class="details-text">
-            ${esc(report.details)}
-          </div>
-
-        </div>
-        `
-        :
-        ""
-      }
-
-
-      <!-- MODERATION -->
-
-      <div class="moderation">
-
-        <div class="moderation-head">
-
-          <div class="moderation-title">
-            Moderation decision
-          </div>
-
-          <div class="moderation-subtitle">
-            Private admin controls
-          </div>
-
-        </div>
-
-
-        <div class="controls">
-
-          <!-- STATUS -->
-
-          <div class="field">
-
-            <label>
-              Status
-            </label>
-
-            <select class="statusSelect">
-
-              <option value="pending">
-                Pending
-              </option>
-
-              <option value="investigating">
-                Investigating
-              </option>
-
-              <option value="resolved">
-                Resolved
-              </option>
-
-              <option value="dismissed">
-                Dismissed
-              </option>
-
-            </select>
-
-          </div>
-
-
-          <!-- ACTION -->
-
-          <div class="field">
-
-            <label>
-              Action
-            </label>
-
-            <select class="actionSelect">
-
-              <option value="">
-                No action
-              </option>
-
-              <option value="warning">
-                Warning
-              </option>
-
-              <option value="restrict">
-                Restrict
-              </option>
-
-              <option value="suspend">
-                Suspend
-              </option>
-
-              <option value="ban">
-                Ban
-              </option>
-
-            </select>
-
-          </div>
-
-
-          <!-- NOTES -->
-
-          <div class="field notes">
-
-            <label>
-              Admin note
-            </label>
-
-            <textarea
-              class="notesInput"
-              placeholder="Add a private moderation note…"
-            ></textarea>
-
-          </div>
-
-
-          <!-- SAVE -->
-
-          <button
-            class="save"
-            data-save="1"
-          >
-            Save decision
-          </button>
-
-        </div>
-
-      </div>
-
-    </article>
-
-  `;
 }
 
 
@@ -1856,42 +1230,354 @@ function setCounts(rows){
     dismissed:0
   };
 
-
-  rows.forEach(report => {
+  rows.forEach(row => {
 
     if(
-      counts[report.status] !== undefined
+      counts[row.status] !== undefined
     ){
-
-      counts[report.status]++;
-
+      counts[row.status]++;
     }
 
   });
 
-
   document.getElementById(
     "countPending"
-  ).textContent =
-    counts.pending;
-
+  ).textContent = counts.pending;
 
   document.getElementById(
     "countInvestigating"
-  ).textContent =
-    counts.investigating;
-
+  ).textContent = counts.investigating;
 
   document.getElementById(
     "countResolved"
-  ).textContent =
-    counts.resolved;
-
+  ).textContent = counts.resolved;
 
   document.getElementById(
     "countDismissed"
-  ).textContent =
-    counts.dismissed;
+  ).textContent = counts.dismissed;
+
+}
+
+
+/* =========================================================
+   PERSON CARD
+========================================================= */
+
+function person(type,name,id){
+
+  const isReporter =
+    type === "Reporter";
+
+  return `
+
+    <div class="person">
+
+      <div class="person-top">
+
+        <div class="person-icon">
+
+          <svg viewBox="0 0 24 24">
+
+            ${
+              isReporter
+              ?
+              `<circle cx="12" cy="8" r="3"/>
+               <path d="M5 20c.8-4 3.1-6 7-6s6.2 2 7 6"/>`
+              :
+              `<path d="M5 4h14v12H9l-4 4V4z"/>`
+            }
+
+          </svg>
+
+        </div>
+
+        ${esc(type)}
+
+      </div>
+
+      <div class="person-name">
+        ${esc(name || "Unknown user")}
+      </div>
+
+      <div class="totalk-id">
+        ToTalk ID:
+        ${esc(id || "Not available")}
+      </div>
+
+    </div>
+
+  `;
+
+}
+
+
+/* =========================================================
+   REPORT CARD
+========================================================= */
+
+function card(report){
+
+  const allowedStatuses = [
+    "pending",
+    "investigating",
+    "resolved",
+    "dismissed"
+  ];
+
+  const status =
+    allowedStatuses.includes(report.status)
+    ? report.status
+    : "pending";
+
+
+  return `
+
+    <article
+      class="card"
+      data-id="${esc(report.id)}"
+      data-conversation="${esc(report.conversation_id || "")}"
+    >
+
+      <div class="card-inner">
+
+        <div class="card-head">
+
+          <div class="report-title">
+
+            <div class="report-icon">
+
+              <svg viewBox="0 0 24 24">
+                <path d="M5 5.5h14v9H11l-4 4v-4H5z"/>
+                <path d="M8 9.5h8M8 12h5"/>
+              </svg>
+
+            </div>
+
+            <div>
+
+              <strong>
+                Report #${esc(report.id)}
+              </strong>
+
+              <div class="idline">
+                Submitted ${esc(fmtDate(report.created_at))}
+              </div>
+
+            </div>
+
+          </div>
+
+          <span class="status ${status}">
+            ${esc(
+              status.charAt(0).toUpperCase()
+              + status.slice(1)
+            )}
+          </span>
+
+        </div>
+
+
+        <div class="people">
+
+          ${person(
+            "Reporter",
+            report.reporter_name,
+            report.reporter_totalk_id ||
+            report.reporter_id
+          )}
+
+          ${person(
+            "Reported user",
+            report.reported_name,
+            report.reported_totalk_id ||
+            report.reported_id
+          )}
+
+        </div>
+
+
+        <div class="reason">
+
+          <span class="reason-label">
+            REASON
+          </span>
+
+          ${esc(
+            report.reason || "Not specified"
+          )}
+
+        </div>
+
+
+        ${
+          report.details
+          ?
+          `
+            <div class="details">
+              ${esc(report.details)}
+            </div>
+          `
+          :
+          ""
+        }
+
+
+        <div class="meta">
+
+          <svg viewBox="0 0 24 24">
+            <path d="M5 5.5h14v9H11l-4 4v-4H5z"/>
+          </svg>
+
+          <span>
+            Conversation:
+          </span>
+
+          <span class="conversation-id">
+            ${esc(
+              report.conversation_id || "—"
+            )}
+          </span>
+
+        </div>
+
+
+        ${
+          report.conversation_id
+          ?
+          `
+            <button
+              class="conversation-btn"
+              data-view-conversation="1"
+            >
+
+              <svg viewBox="0 0 24 24">
+                <path d="M5 5.5h14v9H11l-4 4v-4H5z"/>
+                <path d="M8 9.5h8M8 12h5"/>
+              </svg>
+
+              View Conversation
+
+            </button>
+          `
+          :
+          ""
+        }
+
+
+        <!-- MODERATION -->
+
+        <div class="decision">
+
+          <div class="decision-head">
+
+            <strong>
+              Moderation decision
+            </strong>
+
+            <span>
+              Private admin controls
+            </span>
+
+          </div>
+
+
+          <div class="controls">
+
+
+            <div class="field">
+
+              <label>
+                STATUS
+              </label>
+
+              <select class="statusSelect">
+
+                <option value="pending">
+                  Pending
+                </option>
+
+                <option value="investigating">
+                  Investigating
+                </option>
+
+                <option value="resolved">
+                  Resolved
+                </option>
+
+                <option value="dismissed">
+                  Dismissed
+                </option>
+
+              </select>
+
+            </div>
+
+
+            <div class="field">
+
+              <label>
+                ACTION
+              </label>
+
+              <select class="actionSelect">
+
+                <option value="">
+                  No action
+                </option>
+
+                <option value="warning">
+                  Warning
+                </option>
+
+                <option value="restrict">
+                  Restrict
+                </option>
+
+                <option value="suspend">
+                  Suspend
+                </option>
+
+                <option value="ban">
+                  Ban
+                </option>
+
+              </select>
+
+            </div>
+
+
+            <div class="field full">
+
+              <label>
+                ADMIN NOTE
+              </label>
+
+              <textarea
+                class="notesInput"
+                placeholder="Add a private moderation note..."
+              ></textarea>
+
+            </div>
+
+
+            <button
+              class="save"
+              data-save="1"
+            >
+              Save decision
+            </button>
+
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </article>
+
+  `;
+
 }
 
 
@@ -1903,11 +1589,13 @@ function render(){
 
   const rows =
     currentStatus === "all"
-      ? allReports
-      : allReports.filter(
-          report =>
-            report.status === currentStatus
-        );
+    ?
+    allReports
+    :
+    allReports.filter(
+      report =>
+        report.status === currentStatus
+    );
 
 
   if(!rows.length){
@@ -1917,11 +1605,11 @@ function render(){
       <div class="empty">
 
         <strong>
-          ${
+          No ${
             currentStatus === "all"
-              ? "No reports."
-              : `No ${currentStatus} reports.`
-          }
+            ? "reports"
+            : currentStatus + " reports"
+          }.
         </strong>
 
         You're all caught up here.
@@ -1931,6 +1619,7 @@ function render(){
     `;
 
     return;
+
   }
 
 
@@ -1940,15 +1629,15 @@ function render(){
 
   rows.forEach(report => {
 
+    const selector =
+      `[data-id="${CSS.escape(
+        String(report.id)
+      )}"]`;
+
     const element =
-      reportsEl.querySelector(
-        `[data-id="${CSS.escape(String(report.id))}"]`
-      );
+      reportsEl.querySelector(selector);
 
-
-    if(!element){
-      return;
-    }
+    if(!element) return;
 
 
     element.querySelector(
@@ -1960,8 +1649,10 @@ function render(){
         "resolved",
         "dismissed"
       ].includes(report.status)
-        ? report.status
-        : "pending";
+      ?
+      report.status
+      :
+      "pending";
 
 
     element.querySelector(
@@ -1976,6 +1667,7 @@ function render(){
       report.admin_notes || "";
 
   });
+
 }
 
 
@@ -1987,11 +1679,10 @@ async function loadReports(){
 
   showError("");
 
-  reportsEl.innerHTML = `
-    <div class="loading">
+  reportsEl.innerHTML =
+    `<div class="loading">
       Loading reports…
-    </div>
-  `;
+    </div>`;
 
 
   const {
@@ -2011,39 +1702,33 @@ async function loadReports(){
     console.error(error);
 
     showError(
-      "Could not load reports: " +
-      error.message
+      "Could not load reports: "
+      + error.message
     );
 
-
-    reportsEl.innerHTML = `
-
-      <div class="empty">
-
+    reportsEl.innerHTML =
+      `<div class="empty">
         <strong>
           Could not load reports.
         </strong>
-
-        Check your admin permissions
-        and Supabase function setup.
-
-      </div>
-
-    `;
+        Check your admin permissions and Supabase function setup.
+      </div>`;
 
     return;
+
   }
 
 
   allReports =
     Array.isArray(data)
-      ? data
-      : [];
+    ? data
+    : [];
 
 
   setCounts(allReports);
 
   render();
+
 }
 
 
@@ -2056,24 +1741,20 @@ async function saveReport(element){
   const id =
     element.dataset.id;
 
-
   const status =
     element.querySelector(
       ".statusSelect"
     ).value;
-
 
   const action =
     element.querySelector(
       ".actionSelect"
     ).value || null;
 
-
   const notes =
     element.querySelector(
       ".notesInput"
     ).value.trim() || null;
-
 
   const button =
     element.querySelector(
@@ -2104,23 +1785,19 @@ async function saveReport(element){
     );
 
 
-  if(
-    error ||
-    data !== true
-  ){
+  if(error || data !== true){
 
     console.error(error);
 
     showError(
-      "Could not update report #" +
-      id +
-      ": " +
-      (
+      "Could not update report #"
+      + id
+      + ": "
+      + (
         error?.message ||
         "Update was not accepted."
       )
     );
-
 
     button.disabled = false;
 
@@ -2128,17 +1805,235 @@ async function saveReport(element){
       "Save decision";
 
     return;
+
   }
 
 
   showToast(
-    "Report #" +
-    id +
-    " updated"
+    "Report #" + id + " updated"
   );
 
 
   await loadReports();
+
+}
+
+
+/* =========================================================
+   VIEW CONVERSATION
+========================================================= */
+
+async function viewConversation(
+  conversationId,
+  report
+){
+
+  if(!conversationId){
+
+    showError(
+      "This report does not have a conversation ID."
+    );
+
+    return;
+
+  }
+
+
+  conversationModal.classList.add(
+    "show"
+  );
+
+
+  modalConversationId.textContent =
+    conversationId;
+
+
+  messagesEl.innerHTML =
+    `<div class="modal-loading">
+      Loading conversation…
+    </div>`;
+
+
+  /*
+    We search the messages table using
+    the exact conversation_id from the report.
+  */
+
+  const {
+    data,
+    error
+  } =
+    await supabaseClient
+      .from("messages")
+      .select("*")
+      .eq(
+        "conversation_id",
+        conversationId
+      )
+      .order(
+        "created_at",
+        {
+          ascending:true
+        }
+      );
+
+
+  if(error){
+
+    console.error(error);
+
+    messagesEl.innerHTML = `
+
+      <div class="no-messages">
+
+        <strong style="display:block;color:#fff;margin-bottom:6px">
+          Could not load conversation
+        </strong>
+
+        <span>
+          ${esc(error.message)}
+        </span>
+
+      </div>
+
+    `;
+
+    return;
+
+  }
+
+
+  if(!data || !data.length){
+
+    messagesEl.innerHTML = `
+
+      <div class="no-messages">
+        No messages found for this conversation.
+      </div>
+
+    `;
+
+    return;
+
+  }
+
+
+  messagesEl.innerHTML = "";
+
+
+  data.forEach(message => {
+
+    /*
+      Different chat systems use different
+      column names.
+
+      This automatically checks common names.
+    */
+
+    const text =
+      message.content ??
+      message.message ??
+      message.body ??
+      message.text ??
+      "";
+
+
+    const sender =
+      message.sender_id ??
+      message.user_id ??
+      message.from_user_id ??
+      "Unknown sender";
+
+
+    const created =
+      message.created_at ??
+      message.sent_at ??
+      message.inserted_at ??
+      null;
+
+
+    const messageElement =
+      document.createElement("div");
+
+
+    messageElement.className =
+      "message";
+
+
+    /*
+      If the sender is the reporter,
+      show the bubble on the right.
+
+      This is only a visual fallback.
+    */
+
+    if(
+      report &&
+      (
+        sender === report.reporter_id ||
+        sender === report.reporter_totalk_id
+      )
+    ){
+
+      messageElement.classList.add(
+        "mine"
+      );
+
+    }
+
+
+    messageElement.innerHTML = `
+
+      <div class="message-user">
+        ${esc(sender)}
+      </div>
+
+      <div class="message-text">
+        ${esc(
+          text || "[No text content]"
+        )}
+      </div>
+
+      ${
+        created
+        ?
+        `
+          <div class="message-time">
+            ${esc(fmtDate(created))}
+          </div>
+        `
+        :
+        ""
+      }
+
+    `;
+
+
+    messagesEl.appendChild(
+      messageElement
+    );
+
+  });
+
+
+  messagesEl.scrollTop =
+    messagesEl.scrollHeight;
+
+}
+
+
+/* =========================================================
+   CLOSE MODAL
+========================================================= */
+
+function closeConversation(){
+
+  conversationModal.classList.remove(
+    "show"
+  );
+
+  messagesEl.innerHTML = "";
+
 }
 
 
@@ -2153,7 +2048,9 @@ async function boot(){
       session
     }
   } =
-    await supabaseClient.auth.getSession();
+    await supabaseClient
+      .auth
+      .getSession();
 
 
   if(!session){
@@ -2162,30 +2059,31 @@ async function boot(){
       "block";
 
     return;
+
   }
 
 
-  const result =
+  const {
+    data,
+    error
+  } =
     await supabaseClient.rpc(
       "is_totalk_admin"
     );
 
 
-  if(
-    result.error ||
-    result.data !== true
-  ){
+  if(error || data !== true){
 
     loginBox.style.display =
       "block";
 
-
     showError(
-      result.error?.message ||
+      error?.message ||
       "This account does not have admin access."
     );
 
     return;
+
   }
 
 
@@ -2194,12 +2092,16 @@ async function boot(){
 
 
   await loadReports();
+
 }
 
 
 /* =========================================================
-   REFRESH
+   EVENTS
 ========================================================= */
+
+
+/* Refresh */
 
 document
   .getElementById("refreshBtn")
@@ -2209,9 +2111,7 @@ document
   );
 
 
-/* =========================================================
-   SIGN OUT
-========================================================= */
+/* Sign out */
 
 document
   .getElementById("signOutBtn")
@@ -2219,7 +2119,9 @@ document
     "click",
     async () => {
 
-      await supabaseClient.auth.signOut();
+      await supabaseClient
+        .auth
+        .signOut();
 
       location.reload();
 
@@ -2227,9 +2129,7 @@ document
   );
 
 
-/* =========================================================
-   OPEN CHAT
-========================================================= */
+/* Open ToTalk */
 
 document
   .getElementById("goChatBtn")
@@ -2244,9 +2144,7 @@ document
   );
 
 
-/* =========================================================
-   TABS
-========================================================= */
+/* Tabs */
 
 document
   .getElementById("tabs")
@@ -2255,21 +2153,16 @@ document
     event => {
 
       const button =
-        event.target.closest(
-          ".tab"
-        );
+        event.target.closest(".tab");
 
-
-      if(!button){
-        return;
-      }
+      if(!button) return;
 
 
       document
         .querySelectorAll(".tab")
         .forEach(
-          item =>
-            item.classList.remove(
+          tab =>
+            tab.classList.remove(
               "active"
             )
         );
@@ -2290,51 +2183,123 @@ document
   );
 
 
-/* =========================================================
-   SAVE CLICK
-========================================================= */
+/* Report buttons */
 
-reportsEl.addEventListener(
-  "click",
+reportsEl
+  .addEventListener(
+    "click",
+    event => {
+
+      /* View conversation */
+
+      const conversationButton =
+        event.target.closest(
+          "[data-view-conversation]"
+        );
+
+
+      if(conversationButton){
+
+        const cardElement =
+          conversationButton.closest(
+            ".card"
+          );
+
+        if(!cardElement) return;
+
+
+        const conversationId =
+          cardElement.dataset.conversation;
+
+
+        const report =
+          allReports.find(
+            item =>
+              String(item.id) ===
+              String(cardElement.dataset.id)
+          );
+
+
+        viewConversation(
+          conversationId,
+          report
+        );
+
+        return;
+
+      }
+
+
+      /* Save report */
+
+      const saveButton =
+        event.target.closest(
+          "[data-save]"
+        );
+
+
+      if(saveButton){
+
+        const cardElement =
+          saveButton.closest(
+            ".card"
+          );
+
+        if(cardElement){
+
+          saveReport(
+            cardElement
+          );
+
+        }
+
+      }
+
+    }
+  );
+
+
+/* Close modal */
+
+document
+  .getElementById("closeModal")
+  .addEventListener(
+    "click",
+    closeConversation
+  );
+
+
+/* Click outside modal */
+
+conversationModal
+  .addEventListener(
+    "click",
+    event => {
+
+      if(
+        event.target ===
+        conversationModal
+      ){
+
+        closeConversation();
+
+      }
+
+    }
+  );
+
+
+/* Escape key */
+
+document.addEventListener(
+  "keydown",
   event => {
 
-    const button =
-      event.target.closest(
-        "[data-save]"
-      );
-
-
-    if(!button){
-      return;
-    }
-
-
-    const cardElement =
-      button.closest(".card");
-
-
-    if(cardElement){
-
-      saveReport(cardElement);
-
-    }
-
-  }
-);
-
-
-/* =========================================================
-   AUTH LISTENER
-========================================================= */
-
-supabaseClient.auth.onAuthStateChange(
-  (event, session) => {
-
     if(
-      event === "SIGNED_OUT"
+      event.key === "Escape"
     ){
 
-      location.reload();
+      closeConversation();
 
     }
 
@@ -2342,9 +2307,26 @@ supabaseClient.auth.onAuthStateChange(
 );
 
 
-/* =========================================================
-   START
-========================================================= */
+/* Auth */
+
+supabaseClient
+  .auth
+  .onAuthStateChange(
+    (event) => {
+
+      if(
+        event === "SIGNED_OUT"
+      ){
+
+        location.reload();
+
+      }
+
+    }
+  );
+
+
+/* Start */
 
 boot();
 
