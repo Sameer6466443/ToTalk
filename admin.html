@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#05020b">
+<meta name="theme-color" content="#020108">
 <title>ToTalk Admin</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -12,311 +12,297 @@
 *{
   box-sizing:border-box;
   margin:0;
-  padding:0
+  padding:0;
 }
 
 :root{
-  --bg:#05020b;
-  --panel:#0b0615;
-  --panel2:#10091c;
+  --black:#020108;
+  --dark:#070313;
+  --panel:#0a0616;
+  --panel2:#10091d;
   --purple:#914cff;
-  --purple2:#b777ff;
-  --green:#50e59a;
+  --purple2:#b878ff;
+  --green:#52e69a;
   --yellow:#ffe34f;
-  --red:#ff6b91;
-  --blue:#68baff;
-  --text:#f8f5ff;
-  --muted:#8e879e;
-  --border:rgba(145,76,255,.28)
+  --red:#ff557d;
+  --blue:#66b8ff;
+  --white:#f8f5ff;
+  --muted:#958da9;
+  --border:rgba(145,76,255,.35);
 }
 
-html,body{
+html,
+body{
   min-height:100%;
   background:
-    radial-gradient(circle at 50% -10%,rgba(145,76,255,.18),transparent 38%),
-    var(--bg);
-  color:var(--text);
-  font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif
+    radial-gradient(
+      circle at 50% -10%,
+      rgba(145,76,255,.18),
+      transparent 38%
+    ),
+    var(--black);
+  color:var(--white);
+  font-family:
+    Inter,
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
 }
 
 body{
-  padding:18px
+  padding:24px;
 }
 
-button,input,textarea,select{
-  font:inherit
+button,
+input,
+textarea,
+select{
+  font:inherit;
 }
 
 button{
-  cursor:pointer
+  cursor:pointer;
 }
 
 .shell{
-  width:100%;
-  max-width:1150px;
-  margin:auto
+  max-width:1200px;
+  margin:auto;
 }
 
-/* ================= HEADER ================= */
+/* =====================================================
+   TOP BAR
+===================================================== */
 
 .topbar{
   display:flex;
   align-items:center;
   justify-content:space-between;
-  gap:15px;
-  margin-bottom:20px
+  gap:18px;
+  margin-bottom:22px;
 }
 
 .brand{
   display:flex;
   align-items:center;
-  gap:12px
+  gap:12px;
 }
 
 .logo{
-  width:54px;
-  height:54px;
-  border-radius:17px;
-  border:1px solid rgba(145,76,255,.65);
-  background:rgba(145,76,255,.1);
+  width:44px;
+  height:44px;
+  border:1px solid rgba(145,76,255,.7);
+  border-radius:14px;
   display:grid;
   place-items:center;
-  box-shadow:0 0 28px rgba(145,76,255,.15)
+  background:rgba(145,76,255,.12);
+  box-shadow:
+    0 0 28px rgba(145,76,255,.2);
 }
 
 .logo svg{
-  width:28px;
-  height:28px;
+  width:25px;
+  height:25px;
   fill:none;
   stroke:var(--purple2);
   stroke-width:1.8;
   stroke-linecap:round;
-  stroke-linejoin:round
+  stroke-linejoin:round;
 }
 
 .brand h1{
-  font-size:24px;
-  letter-spacing:-.5px
+  font-size:22px;
+  letter-spacing:.2px;
 }
 
 .brand p{
-  color:var(--muted);
   font-size:12px;
-  margin-top:2px
+  color:var(--muted);
+  margin-top:2px;
 }
 
 .actions{
   display:flex;
-  gap:8px
+  gap:9px;
 }
 
 .icon-btn{
-  width:54px;
-  height:54px;
-  border-radius:17px;
-  border:1px solid var(--border);
-  background:rgba(145,76,255,.07);
-  color:white;
+  width:42px;
+  height:42px;
   display:grid;
   place-items:center;
-  transition:.2s
+  border:1px solid var(--border);
+  background:rgba(145,76,255,.08);
+  color:var(--white);
+  border-radius:12px;
+  transition:.18s;
 }
 
 .icon-btn:hover{
-  background:rgba(145,76,255,.17);
-  transform:translateY(-1px)
+  background:rgba(145,76,255,.18);
+  transform:translateY(-1px);
 }
 
 .icon-btn svg{
-  width:24px;
-  height:24px;
+  width:18px;
+  height:18px;
   fill:none;
   stroke:currentColor;
   stroke-width:1.8;
   stroke-linecap:round;
-  stroke-linejoin:round
+  stroke-linejoin:round;
 }
 
 .icon-btn.danger{
-  color:#ff9ab6;
-  border-color:rgba(255,85,125,.3)
+  color:#ff9bb3;
+  border-color:rgba(255,85,125,.35);
 }
 
-/* ================= ERROR ================= */
+.icon-btn.danger:hover{
+  background:rgba(255,85,125,.1);
+}
+
+/* =====================================================
+   BANNER
+===================================================== */
 
 .banner{
   display:none;
-  padding:13px 15px;
-  border:1px solid rgba(255,85,125,.35);
-  background:rgba(255,85,125,.07);
-  border-radius:13px;
-  margin-bottom:15px;
-  color:#ffc4d2;
-  font-size:13px
+  padding:14px 16px;
+  border:1px solid rgba(255,85,125,.4);
+  background:rgba(255,85,125,.08);
+  border-radius:14px;
+  margin-bottom:18px;
+  color:#ffc0cf;
 }
 
 .banner.show{
-  display:block
+  display:block;
 }
 
-/* ================= STATS ================= */
+/* =====================================================
+   STATS
+===================================================== */
 
 .stats{
   display:grid;
   grid-template-columns:repeat(4,1fr);
-  gap:11px;
-  margin-bottom:17px
+  gap:12px;
+  margin-bottom:18px;
 }
 
 .stat{
-  position:relative;
-  overflow:hidden;
-  min-height:112px;
-  padding:17px;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(16,9,29,.96),
+      rgba(9,5,18,.96)
+    );
   border:1px solid var(--border);
-  border-radius:18px;
-  background:linear-gradient(180deg,rgba(16,9,29,.96),rgba(8,4,15,.96));
-}
-
-.stat:after{
-  content:"";
-  position:absolute;
-  width:110px;
-  height:110px;
-  right:-45px;
-  bottom:-60px;
-  border-radius:50%;
-  background:rgba(145,76,255,.08)
+  border-radius:15px;
+  padding:16px;
+  box-shadow:
+    0 12px 40px rgba(0,0,0,.22);
 }
 
 .stat span{
   display:block;
   color:var(--muted);
   font-size:12px;
-  font-weight:600
 }
 
 .stat strong{
   display:block;
-  font-size:30px;
-  margin-top:7px
+  font-size:25px;
+  margin-top:5px;
 }
 
 .stat.pending strong{
-  color:var(--yellow)
+  color:var(--yellow);
 }
 
 .stat.investigating strong{
-  color:var(--blue)
+  color:var(--blue);
 }
 
 .stat.resolved strong{
-  color:var(--green)
+  color:var(--green);
 }
 
 .stat.dismissed strong{
-  color:#aaa3b7
+  color:#aaa2b7;
 }
 
-/* ================= TABS ================= */
+/* =====================================================
+   TOOLBAR
+===================================================== */
 
 .toolbar{
-  margin-bottom:15px;
-  overflow:hidden
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:14px;
 }
 
 .tabs{
   display:flex;
   gap:7px;
-  overflow-x:auto;
-  padding-bottom:3px;
-  scrollbar-width:none
-}
-
-.tabs::-webkit-scrollbar{
-  display:none
+  flex-wrap:wrap;
 }
 
 .tab{
-  flex:0 0 auto;
-  border:1px solid rgba(145,76,255,.27);
-  background:rgba(145,76,255,.055);
-  color:#91899f;
+  border:1px solid rgba(145,76,255,.28);
+  background:rgba(145,76,255,.06);
+  color:var(--muted);
   border-radius:999px;
-  padding:9px 15px;
-  font-size:13px;
-  font-weight:600
+  padding:8px 12px;
 }
 
 .tab.active{
-  color:white;
-  background:rgba(145,76,255,.19);
+  color:var(--white);
+  background:rgba(145,76,255,.2);
   border-color:rgba(145,76,255,.65);
-  box-shadow:0 0 18px rgba(145,76,255,.12)
+  box-shadow:
+    0 0 18px rgba(145,76,255,.12);
 }
 
-/* ================= REPORTS ================= */
+/* =====================================================
+   REPORTS
+===================================================== */
 
 .reports{
   display:grid;
-  gap:13px
+  gap:12px;
 }
 
 .card{
-  border:1px solid rgba(145,76,255,.27);
-  border-radius:20px;
   background:
-    linear-gradient(180deg,rgba(15,8,27,.98),rgba(7,3,14,.98));
-  overflow:hidden;
-  box-shadow:0 14px 45px rgba(0,0,0,.2)
-}
-
-.card-inner{
-  padding:17px
+    linear-gradient(
+      180deg,
+      rgba(15,8,27,.98),
+      rgba(8,4,15,.98)
+    );
+  border:1px solid rgba(145,76,255,.3);
+  border-radius:17px;
+  padding:17px;
+  box-shadow:
+    0 12px 50px rgba(0,0,0,.25);
 }
 
 .card-head{
   display:flex;
   justify-content:space-between;
+  gap:15px;
   align-items:flex-start;
-  gap:12px
-}
-
-.report-title{
-  display:flex;
-  align-items:center;
-  gap:10px
-}
-
-.report-icon{
-  width:38px;
-  height:38px;
-  border-radius:12px;
-  display:grid;
-  place-items:center;
-  border:1px solid rgba(145,76,255,.28);
-  background:rgba(145,76,255,.1);
-  color:var(--purple2)
-}
-
-.report-icon svg{
-  width:19px;
-  height:19px;
-  fill:none;
-  stroke:currentColor;
-  stroke-width:1.8;
-  stroke-linecap:round;
-  stroke-linejoin:round
-}
-
-.report-title strong{
-  font-size:18px
 }
 
 .idline{
-  color:#726b7e;
   font-size:11px;
-  margin-top:3px
+  color:#756d84;
+  margin-top:5px;
 }
 
 .status{
@@ -324,224 +310,123 @@ button{
   align-items:center;
   gap:6px;
   border-radius:999px;
-  padding:7px 11px;
+  padding:6px 9px;
   font-size:11px;
-  font-weight:700;
-  border:1px solid
-}
-
-.status:before{
-  content:"";
-  width:6px;
-  height:6px;
-  border-radius:50%;
-  background:currentColor
+  border:1px solid;
 }
 
 .status.pending{
   color:var(--yellow);
   border-color:rgba(255,227,79,.35);
-  background:rgba(255,227,79,.06)
+  background:rgba(255,227,79,.07);
 }
 
 .status.investigating{
   color:var(--blue);
   border-color:rgba(102,184,255,.35);
-  background:rgba(102,184,255,.06)
+  background:rgba(102,184,255,.07);
 }
 
 .status.resolved{
   color:var(--green);
   border-color:rgba(82,230,154,.35);
-  background:rgba(82,230,154,.06)
+  background:rgba(82,230,154,.07);
 }
 
 .status.dismissed{
   color:#aaa2b7;
   border-color:rgba(170,162,183,.3);
-  background:rgba(170,162,183,.05)
+  background:rgba(170,162,183,.05);
 }
 
-/* ================= PEOPLE ================= */
+/* =====================================================
+   PEOPLE
+===================================================== */
 
 .people{
   display:grid;
   grid-template-columns:1fr 1fr;
   gap:10px;
-  margin-top:15px
+  margin:15px 0;
 }
 
 .person{
   border:1px solid rgba(145,76,255,.18);
   background:rgba(145,76,255,.045);
-  border-radius:15px;
-  padding:13px
+  border-radius:13px;
+  padding:12px;
 }
 
-.person-top{
-  display:flex;
-  align-items:center;
-  gap:8px;
-  color:#928aa1;
+.person label{
+  display:block;
   font-size:10px;
-  font-weight:700;
-  letter-spacing:.12em
+  text-transform:uppercase;
+  letter-spacing:.12em;
+  color:var(--muted);
+  margin-bottom:5px;
 }
 
-.person-icon{
-  width:28px;
-  height:28px;
-  border-radius:9px;
-  display:grid;
-  place-items:center;
-  background:rgba(145,76,255,.1);
-  color:var(--purple2)
+.person strong{
+  font-size:14px;
+  display:block;
 }
 
-.person-icon svg{
-  width:15px;
-  height:15px;
-  fill:none;
-  stroke:currentColor;
-  stroke-width:1.8;
-  stroke-linecap:round;
-  stroke-linejoin:round
-}
-
-.person-name{
-  font-size:15px;
-  font-weight:700;
-  margin-top:9px
-}
-
-.totalk-id{
-  margin-top:5px;
+.person code{
   font-size:11px;
   color:var(--purple2);
-  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
-  word-break:break-all
+  display:block;
+  margin-top:3px;
 }
 
-/* ================= REASON ================= */
+/* =====================================================
+   REPORT TEXT
+===================================================== */
 
 .reason{
-  margin-top:15px;
-  font-size:14px;
-  color:#ddd7e7
+  font-size:13px;
+  color:#ddd7e7;
 }
 
-.reason-label{
+.reason b{
   color:var(--purple2);
-  font-size:11px;
-  font-weight:800;
-  letter-spacing:.1em;
-  margin-right:8px
 }
 
 .details{
-  margin-top:8px;
-  color:#a9a1b5;
+  margin-top:9px;
+  color:#aaa2b7;
   font-size:13px;
-  line-height:1.5;
-  white-space:pre-wrap
+  line-height:1.55;
+  white-space:pre-wrap;
 }
 
 .meta{
-  display:flex;
-  align-items:center;
-  gap:8px;
-  margin-top:12px;
+  font-size:11px;
   color:#716a7c;
-  font-size:11px
+  margin-top:10px;
 }
 
-.meta svg{
-  width:15px;
-  height:15px;
-  fill:none;
-  stroke:currentColor;
-  stroke-width:1.7;
-  stroke-linecap:round;
-  stroke-linejoin:round
-}
-
-.conversation-id{
-  word-break:break-all
-}
-
-/* ================= VIEW CONVERSATION ================= */
-
-.conversation-btn{
-  width:100%;
-  margin-top:13px;
-  height:43px;
-  border-radius:12px;
-  border:1px solid rgba(145,76,255,.4);
-  background:rgba(145,76,255,.09);
-  color:#d9baff;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  gap:8px;
-  font-size:13px;
-  font-weight:700
-}
-
-.conversation-btn:hover{
-  background:rgba(145,76,255,.17)
-}
-
-.conversation-btn svg{
-  width:18px;
-  height:18px;
-  fill:none;
-  stroke:currentColor;
-  stroke-width:1.8;
-  stroke-linecap:round;
-  stroke-linejoin:round
-}
-
-/* ================= CONTROLS ================= */
-
-.decision{
-  margin-top:17px;
-  border-top:1px solid rgba(145,76,255,.14);
-  padding-top:16px
-}
-
-.decision-head{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  margin-bottom:13px
-}
-
-.decision-head strong{
-  font-size:15px
-}
-
-.decision-head span{
-  color:#6f687b;
-  font-size:11px
-}
+/* =====================================================
+   CONTROLS
+===================================================== */
 
 .controls{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:10px
-}
+  margin-top:15px;
+  padding-top:15px;
+  border-top:1px solid rgba(145,76,255,.16);
 
-.field.full{
-  grid-column:1/-1
+  display:grid;
+  grid-template-columns:180px 180px 1fr auto;
+  gap:9px;
+  align-items:end;
 }
 
 .field label{
   display:block;
-  color:#938b9f;
   font-size:10px;
-  font-weight:800;
+  text-transform:uppercase;
   letter-spacing:.1em;
-  margin-bottom:6px
+  color:var(--muted);
+  margin-bottom:6px;
 }
 
 .field select,
@@ -549,382 +434,468 @@ button{
   width:100%;
   border:1px solid rgba(145,76,255,.3);
   background:#08040f;
-  color:white;
-  border-radius:12px;
-  padding:11px 12px;
-  outline:none
-}
-
-.field select{
-  height:44px
-}
-
-.field textarea{
-  min-height:78px;
-  resize:vertical
+  color:var(--white);
+  border-radius:10px;
+  padding:9px 10px;
+  outline:none;
 }
 
 .field select:focus,
 .field textarea:focus{
-  border-color:rgba(145,76,255,.7);
-  box-shadow:0 0 0 3px rgba(145,76,255,.08)
+  border-color:rgba(145,76,255,.75);
+  box-shadow:
+    0 0 0 3px rgba(145,76,255,.08);
+}
+
+.field textarea{
+  min-height:40px;
+  resize:vertical;
 }
 
 .save{
-  grid-column:1/-1;
-  height:44px;
-  border-radius:12px;
-  border:1px solid #a86bff;
-  background:linear-gradient(135deg,#7130d8,#9b4dff);
-  color:white;
-  font-weight:700;
-  box-shadow:0 8px 25px rgba(145,76,255,.18)
+  height:40px;
 }
 
-.save:disabled{
-  opacity:.6;
-  cursor:not-allowed
+.btn{
+  border:1px solid var(--border);
+  background:rgba(145,76,255,.1);
+  color:var(--white);
+  border-radius:11px;
+  padding:10px 14px;
+  transition:.18s;
 }
 
-/* ================= EMPTY ================= */
+.btn:hover{
+  background:rgba(145,76,255,.18);
+}
+
+.btn.primary{
+  background:
+    linear-gradient(
+      135deg,
+      #7130d8,
+      #9b4dff
+    );
+  border-color:#a86bff;
+}
+
+.btn.view{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:7px;
+  margin-top:13px;
+  width:100%;
+}
+
+.btn.view svg{
+  width:16px;
+  height:16px;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:1.8;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+
+/* =====================================================
+   EMPTY / LOADING
+===================================================== */
 
 .empty,
 .loading{
-  padding:50px 20px;
+  padding:55px 20px;
   text-align:center;
-  border:1px dashed rgba(145,76,255,.25);
-  border-radius:18px;
-  color:var(--muted)
+  border:1px dashed rgba(145,76,255,.28);
+  border-radius:17px;
+  color:var(--muted);
 }
 
 .empty strong{
   display:block;
-  color:white;
-  margin-bottom:5px
+  color:var(--white);
+  margin-bottom:5px;
 }
 
-/* ================= MODAL ================= */
+/* =====================================================
+   TOAST
+===================================================== */
+
+.toast{
+  position:fixed;
+  right:20px;
+  bottom:20px;
+  max-width:360px;
+  padding:12px 15px;
+  border:1px solid rgba(82,230,154,.4);
+  background:#0b1712;
+  color:#d8ffea;
+  border-radius:12px;
+  box-shadow:
+    0 15px 40px rgba(0,0,0,.35);
+  opacity:0;
+  transform:translateY(8px);
+  pointer-events:none;
+  transition:.2s;
+  z-index:1000;
+}
+
+.toast.show{
+  opacity:1;
+  transform:none;
+}
+
+/* =====================================================
+   LOGIN
+===================================================== */
+
+.login{
+  max-width:480px;
+  margin:12vh auto;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(15,8,27,.98),
+      rgba(8,4,15,.98)
+    );
+  border:1px solid var(--border);
+  border-radius:20px;
+  padding:28px;
+  text-align:center;
+  box-shadow:
+    0 25px 80px rgba(0,0,0,.4);
+}
+
+.login h2{
+  margin-bottom:8px;
+}
+
+.login p{
+  color:var(--muted);
+  line-height:1.5;
+  font-size:13px;
+}
+
+.login .btn{
+  margin-top:18px;
+}
+
+/* =====================================================
+   CONVERSATION MODAL
+===================================================== */
 
 .modal{
   position:fixed;
   inset:0;
-  z-index:1000;
+  z-index:500;
   display:none;
-  background:rgba(0,0,0,.76);
-  backdrop-filter:blur(8px);
-  padding:15px
+  background:rgba(0,0,0,.72);
+  backdrop-filter:blur(10px);
+  padding:20px;
 }
 
 .modal.show{
   display:flex;
   align-items:center;
-  justify-content:center
+  justify-content:center;
 }
 
 .modal-box{
-  width:100%;
-  max-width:720px;
+  width:min(900px,100%);
   max-height:90vh;
   display:flex;
   flex-direction:column;
-  border:1px solid rgba(145,76,255,.4);
-  border-radius:21px;
+
   background:
-    linear-gradient(180deg,#10091c,#07030d);
-  box-shadow:0 30px 100px rgba(0,0,0,.6);
-  overflow:hidden
+    linear-gradient(
+      180deg,
+      #10091d,
+      #07030e
+    );
+
+  border:1px solid rgba(145,76,255,.4);
+  border-radius:20px;
+
+  box-shadow:
+    0 30px 100px rgba(0,0,0,.6);
+
+  overflow:hidden;
 }
 
 .modal-head{
   display:flex;
   align-items:center;
   justify-content:space-between;
-  gap:10px;
-  padding:16px 17px;
-  border-bottom:1px solid rgba(145,76,255,.16)
+  gap:15px;
+  padding:17px 18px;
+  border-bottom:1px solid rgba(145,76,255,.18);
 }
 
 .modal-title{
-  display:flex;
-  align-items:center;
-  gap:10px
+  min-width:0;
 }
 
-.modal-title-icon{
-  width:39px;
-  height:39px;
-  border-radius:12px;
-  background:rgba(145,76,255,.1);
-  border:1px solid rgba(145,76,255,.25);
+.modal-title strong{
+  display:block;
+  font-size:16px;
+}
+
+.modal-title span{
+  display:block;
+  color:var(--muted);
+  font-size:11px;
+  margin-top:4px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+.close-btn{
+  flex:none;
+  width:38px;
+  height:38px;
+  border-radius:11px;
+  border:1px solid rgba(145,76,255,.3);
+  background:rgba(145,76,255,.08);
+  color:var(--white);
   display:grid;
   place-items:center;
-  color:var(--purple2)
 }
 
-.modal-title-icon svg{
-  width:20px;
-  height:20px;
+.close-btn svg{
+  width:17px;
+  height:17px;
   fill:none;
   stroke:currentColor;
   stroke-width:1.8;
   stroke-linecap:round;
-  stroke-linejoin:round
 }
 
-.modal-title h2{
-  font-size:16px
+.conversation{
+  overflow:auto;
+  padding:20px;
+  min-height:280px;
 }
 
-.modal-title p{
-  color:#716a7c;
-  font-size:10px;
-  margin-top:2px;
-  word-break:break-all
-}
-
-.close-modal{
-  width:38px;
-  height:38px;
-  border-radius:11px;
-  border:1px solid rgba(255,255,255,.08);
-  background:rgba(255,255,255,.04);
-  color:#aaa2b7;
+.conversation-loading,
+.conversation-empty{
+  min-height:260px;
   display:grid;
-  place-items:center
-}
-
-.close-modal svg{
-  width:18px;
-  height:18px;
-  fill:none;
-  stroke:currentColor;
-  stroke-width:2;
-  stroke-linecap:round
-}
-
-.messages{
-  padding:16px;
-  overflow-y:auto;
-  display:flex;
-  flex-direction:column;
-  gap:9px
+  place-items:center;
+  text-align:center;
+  color:var(--muted);
 }
 
 .message{
-  max-width:82%;
-  border:1px solid rgba(145,76,255,.17);
-  background:rgba(145,76,255,.055);
-  border-radius:15px;
-  padding:10px 12px
+  display:flex;
+  margin-bottom:14px;
 }
 
-.message.mine{
-  align-self:flex-end;
-  background:rgba(145,76,255,.13);
-  border-color:rgba(145,76,255,.27)
+.message.left{
+  justify-content:flex-start;
 }
 
-.message-user{
-  color:var(--purple2);
+.message.right{
+  justify-content:flex-end;
+}
+
+.message-inner{
+  max-width:min(680px,90%);
+}
+
+.message-info{
+  display:flex;
+  align-items:center;
+  gap:7px;
+  margin-bottom:5px;
+}
+
+.message.right .message-info{
+  justify-content:flex-end;
+}
+
+.sender-name{
+  font-size:12px;
+  font-weight:700;
+  color:var(--white);
+}
+
+.sender-id{
   font-size:10px;
-  font-weight:800;
-  margin-bottom:4px
-}
-
-.message-text{
-  color:#eeeaf4;
-  font-size:13px;
-  line-height:1.5;
-  white-space:pre-wrap;
-  overflow-wrap:anywhere
+  color:var(--purple2);
+  background:rgba(145,76,255,.08);
+  border:1px solid rgba(145,76,255,.16);
+  padding:2px 6px;
+  border-radius:999px;
 }
 
 .message-time{
-  color:#6e6779;
-  font-size:9px;
-  margin-top:5px
+  font-size:10px;
+  color:#716a7c;
 }
 
-.no-messages{
-  padding:45px 20px;
-  text-align:center;
-  color:#777080
-}
-
-.modal-loading{
-  padding:45px 20px;
-  text-align:center;
-  color:#92899d
-}
-
-/* ================= TOAST ================= */
-
-.toast{
-  position:fixed;
-  right:18px;
-  bottom:18px;
-  z-index:2000;
-  max-width:340px;
-  padding:12px 15px;
-  border:1px solid rgba(82,230,154,.35);
-  background:#0b1712;
-  color:#d8ffea;
-  border-radius:12px;
-  box-shadow:0 15px 40px rgba(0,0,0,.35);
-  opacity:0;
-  transform:translateY(8px);
-  pointer-events:none;
-  transition:.2s;
-  font-size:13px
-}
-
-.toast.show{
-  opacity:1;
-  transform:none
-}
-
-/* ================= LOGIN ================= */
-
-.login{
-  max-width:440px;
-  margin:15vh auto;
-  background:linear-gradient(180deg,rgba(15,8,27,.98),rgba(8,4,15,.98));
-  border:1px solid var(--border);
-  border-radius:20px;
-  padding:28px;
-  text-align:center
-}
-
-.login h2{
-  margin-bottom:8px
-}
-
-.login p{
-  color:var(--muted);
+.bubble{
+  border:1px solid rgba(145,76,255,.2);
+  background:rgba(145,76,255,.07);
+  border-radius:14px;
+  padding:10px 12px;
+  color:#e8e3ee;
+  font-size:13px;
   line-height:1.5;
-  font-size:13px
+  white-space:pre-wrap;
+  word-break:break-word;
 }
 
-.login button{
-  margin-top:18px;
-  height:43px;
-  padding:0 18px;
-  border-radius:11px;
-  border:1px solid #a86bff;
-  background:linear-gradient(135deg,#7130d8,#9b4dff);
-  color:white
+.message.right .bubble{
+  background:rgba(145,76,255,.15);
+  border-color:rgba(145,76,255,.3);
 }
 
-/* ================= MOBILE ================= */
+.message.deleted .bubble{
+  color:#aaa2b7;
+  font-style:italic;
+  border-color:rgba(255,85,125,.2);
+  background:rgba(255,85,125,.05);
+}
 
-@media(max-width:700px){
+.deleted-label{
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  margin-top:6px;
+  font-size:9px;
+  color:#ff9bb3;
+}
+
+.deleted-label svg{
+  width:12px;
+  height:12px;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:1.8;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+
+/* =====================================================
+   MOBILE
+===================================================== */
+
+@media(max-width:800px){
 
   body{
-    padding:12px
-  }
-
-  .topbar{
-    margin-bottom:16px
-  }
-
-  .logo{
-    width:50px;
-    height:50px
-  }
-
-  .brand h1{
-    font-size:21px
-  }
-
-  .brand p{
-    font-size:11px
-  }
-
-  .icon-btn{
-    width:48px;
-    height:48px;
-    border-radius:15px
+    padding:14px;
   }
 
   .stats{
     grid-template-columns:1fr 1fr;
-    gap:9px
-  }
-
-  .stat{
-    min-height:100px;
-    padding:15px
-  }
-
-  .stat strong{
-    font-size:27px
   }
 
   .people{
-    grid-template-columns:1fr
+    grid-template-columns:1fr;
   }
 
   .controls{
-    grid-template-columns:1fr
+    grid-template-columns:1fr 1fr;
   }
 
-  .field.full{
-    grid-column:auto
+  .controls .field.notes{
+    grid-column:1/-1;
   }
 
-  .save{
-    grid-column:auto
+  .controls .save{
+    grid-column:1/-1;
+    width:100%;
   }
 
-  .card-inner{
-    padding:14px
+  .topbar{
+    align-items:flex-start;
   }
 
-  .message{
-    max-width:90%
+  .toolbar{
+    align-items:flex-start;
+    flex-direction:column;
   }
 
   .modal{
-    padding:8px
+    padding:10px;
   }
 
   .modal-box{
     max-height:94vh;
-    border-radius:18px
+    border-radius:17px;
   }
+
 }
 
-@media(max-width:430px){
+@media(max-width:480px){
 
-  .brand p{
-    max-width:130px
+  .stats{
+    grid-template-columns:1fr 1fr;
   }
 
-  .report-title strong{
-    font-size:17px
+  .controls{
+    grid-template-columns:1fr;
   }
 
-  .status{
-    padding:6px 8px
+  .controls .field.notes{
+    grid-column:auto;
   }
+
+  .controls .save{
+    grid-column:auto;
+  }
+
+  .actions{
+    gap:6px;
+  }
+
+  .icon-btn{
+    width:40px;
+    height:40px;
+  }
+
+  .brand h1{
+    font-size:19px;
+  }
+
+  .card{
+    padding:14px;
+  }
+
+  .message-inner{
+    max-width:94%;
+  }
+
 }
 </style>
 </head>
 
 <body>
 
-<div class="shell" id="app" style="display:none">
+<!-- =====================================================
+     ADMIN APP
+===================================================== -->
 
-  <!-- HEADER -->
+<div
+  class="shell"
+  id="app"
+  style="display:none"
+>
+
+  <!-- TOP BAR -->
+
   <header class="topbar">
 
     <div class="brand">
 
       <div class="logo">
+
         <svg viewBox="0 0 24 24">
           <path d="M5 5.5h14v9H11l-4 4v-4H5z"/>
           <path d="M8 9.5h8M8 12h5"/>
         </svg>
+
       </div>
 
       <div>
@@ -934,32 +905,60 @@ button{
 
     </div>
 
+
     <div class="actions">
 
-      <button class="icon-btn" id="refreshBtn" title="Refresh">
+      <!-- REFRESH -->
+
+      <button
+        class="icon-btn"
+        id="refreshBtn"
+        title="Refresh reports"
+        aria-label="Refresh reports"
+      >
+
         <svg viewBox="0 0 24 24">
-          <path d="M20 11a8.1 8.1 0 0 0-14.8-4L3 10"/>
-          <path d="M3 5v5h5"/>
-          <path d="M4 13a8.1 8.1 0 0 0 14.8 4L21 14"/>
-          <path d="M21 19v-5h-5"/>
+          <path d="M20 11a8 8 0 0 0-14.9-4"/>
+          <path d="M5 3v4h4"/>
+          <path d="M4 13a8 8 0 0 0 14.9 4"/>
+          <path d="M19 21v-4h-4"/>
         </svg>
+
       </button>
 
-      <button class="icon-btn danger" id="signOutBtn" title="Sign out">
+
+      <!-- SIGN OUT -->
+
+      <button
+        class="icon-btn danger"
+        id="signOutBtn"
+        title="Sign out"
+        aria-label="Sign out"
+      >
+
         <svg viewBox="0 0 24 24">
           <path d="M10 17l5-5-5-5"/>
           <path d="M15 12H3"/>
-          <path d="M13 4h6a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-6"/>
+          <path d="M21 3v18"/>
         </svg>
+
       </button>
 
     </div>
 
   </header>
 
-  <div class="banner" id="errorBanner"></div>
+
+  <!-- ERROR -->
+
+  <div
+    class="banner"
+    id="errorBanner"
+  ></div>
+
 
   <!-- STATS -->
+
   <section class="stats">
 
     <div class="stat pending">
@@ -984,28 +983,48 @@ button{
 
   </section>
 
-  <!-- TABS -->
+
+  <!-- FILTER TABS -->
+
   <div class="toolbar">
 
-    <div class="tabs" id="tabs">
+    <div
+      class="tabs"
+      id="tabs"
+    >
 
-      <button class="tab active" data-status="pending">
+      <button
+        class="tab active"
+        data-status="pending"
+      >
         Pending
       </button>
 
-      <button class="tab" data-status="investigating">
+      <button
+        class="tab"
+        data-status="investigating"
+      >
         Investigating
       </button>
 
-      <button class="tab" data-status="resolved">
+      <button
+        class="tab"
+        data-status="resolved"
+      >
         Resolved
       </button>
 
-      <button class="tab" data-status="dismissed">
+      <button
+        class="tab"
+        data-status="dismissed"
+      >
         Dismissed
       </button>
 
-      <button class="tab" data-status="all">
+      <button
+        class="tab"
+        data-status="all"
+      >
         All
       </button>
 
@@ -1013,32 +1032,58 @@ button{
 
   </div>
 
-  <main class="reports" id="reports">
-    <div class="loading">Loading reports…</div>
+
+  <!-- REPORTS -->
+
+  <main
+    class="reports"
+    id="reports"
+  >
+
+    <div class="loading">
+      Loading reports…
+    </div>
+
   </main>
 
 </div>
 
 
-<!-- LOGIN -->
-<div class="login" id="loginBox" style="display:none">
+<!-- =====================================================
+     LOGIN
+===================================================== -->
+
+<div
+  class="login"
+  id="loginBox"
+  style="display:none"
+>
 
   <h2>Owner access required</h2>
 
   <p>
-    You must be signed in with a ToTalk account that has
-    an owner, admin, or moderator role.
+    You must be signed in with a ToTalk account
+    that has an owner, admin, or moderator role.
   </p>
 
-  <button id="goChatBtn">
+  <button
+    class="btn primary"
+    id="goChatBtn"
+  >
     Open ToTalk
   </button>
 
 </div>
 
 
-<!-- CONVERSATION MODAL -->
-<div class="modal" id="conversationModal">
+<!-- =====================================================
+     CONVERSATION MODAL
+===================================================== -->
+
+<div
+  class="modal"
+  id="conversationModal"
+>
 
   <div class="modal-box">
 
@@ -1046,34 +1091,42 @@ button{
 
       <div class="modal-title">
 
-        <div class="modal-title-icon">
-          <svg viewBox="0 0 24 24">
-            <path d="M5 5.5h14v9H11l-4 4v-4H5z"/>
-            <path d="M8 9.5h8M8 12h5"/>
-          </svg>
-        </div>
+        <strong>
+          Conversation
+        </strong>
 
-        <div>
-          <h2>Conversation</h2>
-          <p id="modalConversationId">Loading…</p>
-        </div>
+        <span id="conversationIdLabel">
+          Loading…
+        </span>
 
       </div>
 
-      <button class="close-modal" id="closeModal">
+
+      <button
+        class="close-btn"
+        id="closeConversationBtn"
+        aria-label="Close conversation"
+      >
 
         <svg viewBox="0 0 24 24">
-          <path d="M6 6l12 12M18 6L6 18"/>
+          <path d="M6 6l12 12"/>
+          <path d="M18 6L6 18"/>
         </svg>
 
       </button>
 
     </div>
 
-    <div class="messages" id="messages">
-      <div class="modal-loading">
+
+    <div
+      class="conversation"
+      id="conversation"
+    >
+
+      <div class="conversation-loading">
         Loading conversation…
       </div>
+
     </div>
 
   </div>
@@ -1081,14 +1134,21 @@ button{
 </div>
 
 
-<div class="toast" id="toast"></div>
+<!-- =====================================================
+     TOAST
+===================================================== -->
+
+<div
+  class="toast"
+  id="toast"
+></div>
 
 
 <script>
 
-/* =========================================================
+/* =====================================================
    SUPABASE
-========================================================= */
+===================================================== */
 
 const SUPABASE_URL =
   "https://qiynczbrhpxwuabwuyiy.supabase.co";
@@ -1110,9 +1170,9 @@ const supabaseClient =
   );
 
 
-/* =========================================================
+/* =====================================================
    ELEMENTS
-========================================================= */
+===================================================== */
 
 const app =
   document.getElementById("app");
@@ -1130,54 +1190,75 @@ const toast =
   document.getElementById("toast");
 
 const conversationModal =
-  document.getElementById("conversationModal");
+  document.getElementById(
+    "conversationModal"
+  );
 
-const messagesEl =
-  document.getElementById("messages");
+const conversationEl =
+  document.getElementById(
+    "conversation"
+  );
 
-const modalConversationId =
-  document.getElementById("modalConversationId");
+const conversationIdLabel =
+  document.getElementById(
+    "conversationIdLabel"
+  );
 
 
-/* =========================================================
+/* =====================================================
    STATE
-========================================================= */
+===================================================== */
 
-let currentStatus = "pending";
+let currentStatus =
+  "pending";
 
 let allReports = [];
 
 
-/* =========================================================
-   HELPERS
-========================================================= */
+/* =====================================================
+   ESCAPE HTML
+===================================================== */
 
-const esc = value => {
+function esc(value){
 
-  return String(value ?? "")
-    .replace(
-      /[&<>'"]/g,
-      char => ({
-        "&":"&amp;",
-        "<":"&lt;",
-        ">":"&gt;",
-        "'":"&#39;",
-        '"':"&quot;"
-      }[char])
-    );
+  return String(
+    value ?? ""
+  ).replace(
+    /[&<>'"]/g,
+    char => ({
+      "&":"&amp;",
+      "<":"&lt;",
+      ">":"&gt;",
+      "'":"&#39;",
+      '"':"&quot;"
+    })[char]
+  );
 
-};
+}
 
 
-const fmtDate = value => {
+/* =====================================================
+   DATE
+===================================================== */
 
-  if(!value) return "—";
+function fmtDate(value){
 
-  const d = new Date(value);
+  if(!value){
+    return "—";
+  }
 
-  if(isNaN(d)) return String(value);
+  const date =
+    new Date(value);
 
-  return d.toLocaleString(
+  if(
+    isNaN(date.getTime())
+  ){
+
+    return String(value);
+
+  }
+
+  return date.toLocaleString(
     [],
     {
       dateStyle:"medium",
@@ -1185,12 +1266,17 @@ const fmtDate = value => {
     }
   );
 
-};
+}
 
+
+/* =====================================================
+   ERROR
+===================================================== */
 
 function showError(message){
 
-  errorBanner.textContent = message || "";
+  errorBanner.textContent =
+    message || "";
 
   errorBanner.classList.toggle(
     "show",
@@ -1200,26 +1286,39 @@ function showError(message){
 }
 
 
+/* =====================================================
+   TOAST
+===================================================== */
+
 function showToast(message){
 
-  toast.textContent = message;
+  toast.textContent =
+    message;
 
-  toast.classList.add("show");
+  toast.classList.add(
+    "show"
+  );
 
-  clearTimeout(showToast.timer);
+  clearTimeout(
+    showToast.timer
+  );
 
   showToast.timer =
     setTimeout(
-      () => toast.classList.remove("show"),
+      ()=>{
+        toast.classList.remove(
+          "show"
+        );
+      },
       2600
     );
 
 }
 
 
-/* =========================================================
+/* =====================================================
    COUNTS
-========================================================= */
+===================================================== */
 
 function setCounts(rows){
 
@@ -1230,79 +1329,73 @@ function setCounts(rows){
     dismissed:0
   };
 
-  rows.forEach(row => {
 
-    if(
-      counts[row.status] !== undefined
-    ){
-      counts[row.status]++;
+  rows.forEach(
+    row => {
+
+      if(
+        counts[row.status] !== undefined
+      ){
+
+        counts[row.status]++;
+
+      }
+
     }
+  );
 
-  });
 
   document.getElementById(
     "countPending"
-  ).textContent = counts.pending;
+  ).textContent =
+    counts.pending;
+
 
   document.getElementById(
     "countInvestigating"
-  ).textContent = counts.investigating;
+  ).textContent =
+    counts.investigating;
+
 
   document.getElementById(
     "countResolved"
-  ).textContent = counts.resolved;
+  ).textContent =
+    counts.resolved;
+
 
   document.getElementById(
     "countDismissed"
-  ).textContent = counts.dismissed;
+  ).textContent =
+    counts.dismissed;
 
 }
 
 
-/* =========================================================
-   PERSON CARD
-========================================================= */
+/* =====================================================
+   PERSON
+===================================================== */
 
-function person(type,name,id){
-
-  const isReporter =
-    type === "Reporter";
+function person(
+  label,
+  name,
+  id
+){
 
   return `
 
     <div class="person">
 
-      <div class="person-top">
+      <label>
+        ${esc(label)}
+      </label>
 
-        <div class="person-icon">
-
-          <svg viewBox="0 0 24 24">
-
-            ${
-              isReporter
-              ?
-              `<circle cx="12" cy="8" r="3"/>
-               <path d="M5 20c.8-4 3.1-6 7-6s6.2 2 7 6"/>`
-              :
-              `<path d="M5 4h14v12H9l-4 4V4z"/>`
-            }
-
-          </svg>
-
-        </div>
-
-        ${esc(type)}
-
-      </div>
-
-      <div class="person-name">
+      <strong>
         ${esc(name || "Unknown user")}
-      </div>
+      </strong>
 
-      <div class="totalk-id">
-        ToTalk ID:
-        ${esc(id || "Not available")}
-      </div>
+      <code>
+        ${esc(id || "No ToTalk ID")}
+      </code>
 
     </div>
 
@@ -1311,23 +1404,23 @@ function person(type,name,id){
 }
 
 
-/* =========================================================
+/* =====================================================
    REPORT CARD
-========================================================= */
+===================================================== */
 
 function card(report){
 
-  const allowedStatuses = [
-    "pending",
-    "investigating",
-    "resolved",
-    "dismissed"
-  ];
-
   const status =
-    allowedStatuses.includes(report.status)
-    ? report.status
-    : "pending";
+    [
+      "pending",
+      "investigating",
+      "resolved",
+      "dismissed"
+    ].includes(
+      report.status
+    )
+      ? report.status
+      : "pending";
 
 
   return `
@@ -1335,242 +1428,233 @@ function card(report){
     <article
       class="card"
       data-id="${esc(report.id)}"
-      data-conversation="${esc(report.conversation_id || "")}"
     >
 
-      <div class="card-inner">
+      <div class="card-head">
 
-        <div class="card-head">
+        <div>
 
-          <div class="report-title">
+          <strong>
+            Report #${esc(report.id)}
+          </strong>
 
-            <div class="report-icon">
-
-              <svg viewBox="0 0 24 24">
-                <path d="M5 5.5h14v9H11l-4 4v-4H5z"/>
-                <path d="M8 9.5h8M8 12h5"/>
-              </svg>
-
-            </div>
-
-            <div>
-
-              <strong>
-                Report #${esc(report.id)}
-              </strong>
-
-              <div class="idline">
-                Submitted ${esc(fmtDate(report.created_at))}
-              </div>
-
-            </div>
-
+          <div class="idline">
+            Submitted
+            ${esc(
+              fmtDate(
+                report.created_at
+              )
+            )}
           </div>
 
-          <span class="status ${status}">
-            ${esc(
-              status.charAt(0).toUpperCase()
-              + status.slice(1)
-            )}
-          </span>
-
         </div>
 
 
-        <div class="people">
-
-          ${person(
-            "Reporter",
-            report.reporter_name,
-            report.reporter_totalk_id ||
-            report.reporter_id
-          )}
-
-          ${person(
-            "Reported user",
-            report.reported_name,
-            report.reported_totalk_id ||
-            report.reported_id
-          )}
-
-        </div>
-
-
-        <div class="reason">
-
-          <span class="reason-label">
-            REASON
-          </span>
-
+        <span
+          class="status ${status}"
+        >
           ${esc(
-            report.reason || "Not specified"
+            status
+              .charAt(0)
+              .toUpperCase() +
+            status.slice(1)
           )}
+        </span>
 
-        </div>
+      </div>
 
 
-        ${
-          report.details
-          ?
-          `
+      <div class="people">
+
+        ${person(
+          "Reporter",
+          report.reporter_name,
+          report.reporter_totalk_id
+        )}
+
+        ${person(
+          "Reported user",
+          report.reported_name,
+          report.reported_totalk_id
+        )}
+
+      </div>
+
+
+      <div class="reason">
+
+        <b>Reason:</b>
+
+        ${esc(
+          report.reason ||
+          "Not specified"
+        )}
+
+      </div>
+
+
+      ${
+        report.details
+          ? `
+
             <div class="details">
-              ${esc(report.details)}
+
+              <b>Details:</b>
+
+              ${esc(
+                report.details
+              )}
+
             </div>
+
           `
-          :
-          ""
-        }
+          : ""
+      }
 
 
-        <div class="meta">
+      <div class="meta">
 
-          <svg viewBox="0 0 24 24">
-            <path d="M5 5.5h14v9H11l-4 4v-4H5z"/>
-          </svg>
+        Conversation:
+        ${esc(
+          report.conversation_id ||
+          "—"
+        )}
 
-          <span>
-            Conversation:
-          </span>
-
-          <span class="conversation-id">
-            ${esc(
-              report.conversation_id || "—"
-            )}
-          </span>
-
-        </div>
+      </div>
 
 
-        ${
-          report.conversation_id
-          ?
-          `
+      ${
+        report.conversation_id
+          ? `
+
             <button
-              class="conversation-btn"
+              class="btn view"
               data-view-conversation="1"
+              data-conversation-id="${esc(
+                report.conversation_id
+              )}"
             >
 
               <svg viewBox="0 0 24 24">
-                <path d="M5 5.5h14v9H11l-4 4v-4H5z"/>
-                <path d="M8 9.5h8M8 12h5"/>
+
+                <path
+                  d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12z"
+                />
+
+                <circle
+                  cx="12"
+                  cy="12"
+                  r="2.5"
+                />
+
               </svg>
 
               View Conversation
 
             </button>
+
           `
-          :
-          ""
-        }
+          : ""
+      }
 
 
-        <!-- MODERATION -->
-
-        <div class="decision">
-
-          <div class="decision-head">
-
-            <strong>
-              Moderation decision
-            </strong>
-
-            <span>
-              Private admin controls
-            </span>
-
-          </div>
+      <div class="controls">
 
 
-          <div class="controls">
+        <!-- STATUS -->
 
+        <div class="field">
 
-            <div class="field">
+          <label>
+            Status
+          </label>
 
-              <label>
-                STATUS
-              </label>
+          <select
+            class="statusSelect"
+          >
 
-              <select class="statusSelect">
+            <option value="pending">
+              Pending
+            </option>
 
-                <option value="pending">
-                  Pending
-                </option>
+            <option value="investigating">
+              Investigating
+            </option>
 
-                <option value="investigating">
-                  Investigating
-                </option>
+            <option value="resolved">
+              Resolved
+            </option>
 
-                <option value="resolved">
-                  Resolved
-                </option>
+            <option value="dismissed">
+              Dismissed
+            </option>
 
-                <option value="dismissed">
-                  Dismissed
-                </option>
-
-              </select>
-
-            </div>
-
-
-            <div class="field">
-
-              <label>
-                ACTION
-              </label>
-
-              <select class="actionSelect">
-
-                <option value="">
-                  No action
-                </option>
-
-                <option value="warning">
-                  Warning
-                </option>
-
-                <option value="restrict">
-                  Restrict
-                </option>
-
-                <option value="suspend">
-                  Suspend
-                </option>
-
-                <option value="ban">
-                  Ban
-                </option>
-
-              </select>
-
-            </div>
-
-
-            <div class="field full">
-
-              <label>
-                ADMIN NOTE
-              </label>
-
-              <textarea
-                class="notesInput"
-                placeholder="Add a private moderation note..."
-              ></textarea>
-
-            </div>
-
-
-            <button
-              class="save"
-              data-save="1"
-            >
-              Save decision
-            </button>
-
-
-          </div>
+          </select>
 
         </div>
+
+
+        <!-- ACTION -->
+
+        <div class="field">
+
+          <label>
+            Action
+          </label>
+
+          <select
+            class="actionSelect"
+          >
+
+            <option value="">
+              No action
+            </option>
+
+            <option value="warning">
+              Warning
+            </option>
+
+            <option value="restrict">
+              Restrict
+            </option>
+
+            <option value="suspend">
+              Suspend
+            </option>
+
+            <option value="ban">
+              Ban
+            </option>
+
+          </select>
+
+        </div>
+
+
+        <!-- NOTES -->
+
+        <div class="field notes">
+
+          <label>
+            Admin notes
+          </label>
+
+          <textarea
+            class="notesInput"
+            placeholder="Private moderation note…"
+          ></textarea>
+
+        </div>
+
+
+        <!-- SAVE -->
+
+        <button
+          class="btn primary save"
+          data-save="1"
+        >
+          Save
+        </button>
 
       </div>
 
@@ -1581,35 +1665,37 @@ function card(report){
 }
 
 
-/* =========================================================
-   RENDER
-========================================================= */
+/* =====================================================
+   RENDER REPORTS
+===================================================== */
 
 function render(){
 
   const rows =
     currentStatus === "all"
-    ?
-    allReports
-    :
-    allReports.filter(
-      report =>
-        report.status === currentStatus
-    );
+      ? allReports
+      : allReports.filter(
+          report =>
+            report.status ===
+            currentStatus
+        );
 
 
-  if(!rows.length){
+  if(
+    !rows.length
+  ){
 
     reportsEl.innerHTML = `
 
       <div class="empty">
 
         <strong>
-          No ${
+          ${
             currentStatus === "all"
-            ? "reports"
-            : currentStatus + " reports"
-          }.
+              ? "No reports."
+              : currentStatus +
+                " reports."
+          }
         </strong>
 
         You're all caught up here.
@@ -1624,77 +1710,90 @@ function render(){
 
 
   reportsEl.innerHTML =
-    rows.map(card).join("");
+    rows.map(
+      card
+    ).join("");
 
 
-  rows.forEach(report => {
+  rows.forEach(
+    report => {
 
-    const selector =
-      `[data-id="${CSS.escape(
-        String(report.id)
-      )}"]`;
-
-    const element =
-      reportsEl.querySelector(selector);
-
-    if(!element) return;
+      const element =
+        reportsEl.querySelector(
+          `[data-id="${CSS.escape(
+            String(report.id)
+          )}"]`
+        );
 
 
-    element.querySelector(
-      ".statusSelect"
-    ).value =
-      [
-        "pending",
-        "investigating",
-        "resolved",
-        "dismissed"
-      ].includes(report.status)
-      ?
-      report.status
-      :
-      "pending";
+      if(!element){
+        return;
+      }
 
 
-    element.querySelector(
-      ".actionSelect"
-    ).value =
-      report.action || "";
+      element.querySelector(
+        ".statusSelect"
+      ).value =
+        [
+          "pending",
+          "investigating",
+          "resolved",
+          "dismissed"
+        ].includes(
+          report.status
+        )
+          ? report.status
+          : "pending";
 
 
-    element.querySelector(
-      ".notesInput"
-    ).value =
-      report.admin_notes || "";
+      element.querySelector(
+        ".actionSelect"
+      ).value =
+        report.action ||
+        "";
 
-  });
+
+      element.querySelector(
+        ".notesInput"
+      ).value =
+        report.admin_notes ||
+        "";
+
+    }
+  );
 
 }
 
 
-/* =========================================================
+/* =====================================================
    LOAD REPORTS
-========================================================= */
+===================================================== */
 
 async function loadReports(){
 
   showError("");
 
-  reportsEl.innerHTML =
-    `<div class="loading">
+
+  reportsEl.innerHTML = `
+
+    <div class="loading">
       Loading reports…
-    </div>`;
+    </div>
+
+  `;
 
 
   const {
     data,
     error
   } =
-    await supabaseClient.rpc(
-      "admin_list_reports",
-      {
-        p_status:null
-      }
-    );
+    await supabaseClient
+      .rpc(
+        "admin_list_reports",
+        {
+          p_status:null
+        }
+      );
 
 
   if(error){
@@ -1702,17 +1801,25 @@ async function loadReports(){
     console.error(error);
 
     showError(
-      "Could not load reports: "
-      + error.message
+      "Could not load reports: " +
+      error.message
     );
 
-    reportsEl.innerHTML =
-      `<div class="empty">
+
+    reportsEl.innerHTML = `
+
+      <div class="empty">
+
         <strong>
           Could not load reports.
         </strong>
-        Check your admin permissions and Supabase function setup.
-      </div>`;
+
+        Check your admin permissions
+        and Supabase function setup.
+
+      </div>
+
+    `;
 
     return;
 
@@ -1721,40 +1828,51 @@ async function loadReports(){
 
   allReports =
     Array.isArray(data)
-    ? data
-    : [];
+      ? data
+      : [];
 
 
-  setCounts(allReports);
+  setCounts(
+    allReports
+  );
+
 
   render();
 
 }
 
 
-/* =========================================================
+/* =====================================================
    SAVE REPORT
-========================================================= */
+===================================================== */
 
-async function saveReport(element){
+async function saveReport(
+  element
+){
 
   const id =
     element.dataset.id;
+
 
   const status =
     element.querySelector(
       ".statusSelect"
     ).value;
 
+
   const action =
     element.querySelector(
       ".actionSelect"
-    ).value || null;
+    ).value ||
+    null;
+
 
   const notes =
     element.querySelector(
       ".notesInput"
-    ).value.trim() || null;
+    ).value.trim() ||
+    null;
+
 
   const button =
     element.querySelector(
@@ -1762,10 +1880,12 @@ async function saveReport(element){
     );
 
 
-  button.disabled = true;
+  button.disabled =
+    true;
 
   button.textContent =
     "Saving…";
+
 
   showError("");
 
@@ -1774,35 +1894,44 @@ async function saveReport(element){
     data,
     error
   } =
-    await supabaseClient.rpc(
-      "admin_update_report",
-      {
-        p_report_id:Number(id),
-        p_status:status,
-        p_action:action,
-        p_admin_notes:notes
-      }
+    await supabaseClient
+      .rpc(
+        "admin_update_report",
+        {
+          p_report_id:Number(id),
+          p_status:status,
+          p_action:action,
+          p_admin_notes:notes
+        }
+      );
+
+
+  if(
+    error ||
+    data !== true
+  ){
+
+    console.error(
+      error
     );
 
 
-  if(error || data !== true){
-
-    console.error(error);
-
     showError(
-      "Could not update report #"
-      + id
-      + ": "
-      + (
+      "Could not update report #" +
+      id +
+      ": " +
+      (
         error?.message ||
         "Update was not accepted."
       )
     );
 
-    button.disabled = false;
+
+    button.disabled =
+      false;
 
     button.textContent =
-      "Save decision";
+      "Save";
 
     return;
 
@@ -1810,7 +1939,9 @@ async function saveReport(element){
 
 
   showToast(
-    "Report #" + id + " updated"
+    "Report #" +
+    id +
+    " updated"
   );
 
 
@@ -1819,20 +1950,17 @@ async function saveReport(element){
 }
 
 
-/* =========================================================
-   VIEW CONVERSATION
-========================================================= */
+/* =====================================================
+   OPEN CONVERSATION
+===================================================== */
 
-async function viewConversation(
-  conversationId,
-  report
+async function openConversation(
+  conversationId
 ){
 
-  if(!conversationId){
-
-    showError(
-      "This report does not have a conversation ID."
-    );
+  if(
+    !conversationId
+  ){
 
     return;
 
@@ -1844,187 +1972,258 @@ async function viewConversation(
   );
 
 
-  modalConversationId.textContent =
+  conversationIdLabel.textContent =
+    "Conversation ID: " +
     conversationId;
 
 
-  messagesEl.innerHTML =
-    `<div class="modal-loading">
+  conversationEl.innerHTML = `
+
+    <div class="conversation-loading">
       Loading conversation…
-    </div>`;
+    </div>
 
+  `;
 
-  /*
-    We search the messages table using
-    the exact conversation_id from the report.
-  */
 
   const {
     data,
     error
   } =
     await supabaseClient
-      .from("messages")
-      .select("*")
-      .eq(
-        "conversation_id",
-        conversationId
-      )
-      .order(
-        "created_at",
+      .rpc(
+        "admin_view_conversation",
         {
-          ascending:true
+          p_conversation_id:
+            conversationId
         }
       );
 
 
   if(error){
 
-    console.error(error);
-
-    messagesEl.innerHTML = `
-
-      <div class="no-messages">
-
-        <strong style="display:block;color:#fff;margin-bottom:6px">
-          Could not load conversation
-        </strong>
-
-        <span>
-          ${esc(error.message)}
-        </span>
-
-      </div>
-
-    `;
-
-    return;
-
-  }
-
-
-  if(!data || !data.length){
-
-    messagesEl.innerHTML = `
-
-      <div class="no-messages">
-        No messages found for this conversation.
-      </div>
-
-    `;
-
-    return;
-
-  }
-
-
-  messagesEl.innerHTML = "";
-
-
-  data.forEach(message => {
-
-    /*
-      Different chat systems use different
-      column names.
-
-      This automatically checks common names.
-    */
-
-    const text =
-      message.content ??
-      message.message ??
-      message.body ??
-      message.text ??
-      "";
-
-
-    const sender =
-      message.sender_id ??
-      message.user_id ??
-      message.from_user_id ??
-      "Unknown sender";
-
-
-    const created =
-      message.created_at ??
-      message.sent_at ??
-      message.inserted_at ??
-      null;
-
-
-    const messageElement =
-      document.createElement("div");
-
-
-    messageElement.className =
-      "message";
-
-
-    /*
-      If the sender is the reporter,
-      show the bubble on the right.
-
-      This is only a visual fallback.
-    */
-
-    if(
-      report &&
-      (
-        sender === report.reporter_id ||
-        sender === report.reporter_totalk_id
-      )
-    ){
-
-      messageElement.classList.add(
-        "mine"
-      );
-
-    }
-
-
-    messageElement.innerHTML = `
-
-      <div class="message-user">
-        ${esc(sender)}
-      </div>
-
-      <div class="message-text">
-        ${esc(
-          text || "[No text content]"
-        )}
-      </div>
-
-      ${
-        created
-        ?
-        `
-          <div class="message-time">
-            ${esc(fmtDate(created))}
-          </div>
-        `
-        :
-        ""
-      }
-
-    `;
-
-
-    messagesEl.appendChild(
-      messageElement
+    console.error(
+      "Conversation error:",
+      error
     );
 
-  });
+
+    conversationEl.innerHTML = `
+
+      <div class="conversation-empty">
+
+        <div>
+
+          <strong
+            style="
+              display:block;
+              color:var(--white);
+              margin-bottom:6px;
+            "
+          >
+            Could not load conversation
+          </strong>
+
+          <span>
+            ${esc(
+              error.message
+            )}
+          </span>
+
+        </div>
+
+      </div>
+
+    `;
+
+    return;
+
+  }
 
 
-  messagesEl.scrollTop =
-    messagesEl.scrollHeight;
+  const rows =
+    Array.isArray(data)
+      ? data
+      : [];
+
+
+  if(
+    !rows.length
+  ){
+
+    conversationEl.innerHTML = `
+
+      <div class="conversation-empty">
+
+        No messages found
+        in this conversation.
+
+      </div>
+
+    `;
+
+    return;
+
+  }
+
+
+  /*
+   * We use the first report's reported user
+   * only to make the visual alignment nicer.
+   *
+   * Messages from the same conversation still
+   * display correctly regardless of sender.
+   */
+
+  conversationEl.innerHTML =
+    rows.map(
+      message => {
+
+        const deleted =
+          !!message.is_deleted ||
+          !!message.deleted_at;
+
+
+        const messageText =
+          deleted
+            ? "[Message deleted by user]"
+            : (
+                message.message_text ||
+                ""
+              );
+
+
+        /*
+         * Keep UUID hidden from the admin UI.
+         * Only name + ToTalk ID are shown.
+         */
+
+        const senderName =
+          message.sender_name ||
+          "Unknown user";
+
+
+        const totalkId =
+          message.totalk_id ||
+          "No ToTalk ID";
+
+
+        return `
+
+          <div
+            class="
+              message
+              ${
+                deleted
+                  ? "deleted"
+                  : ""
+              }
+            "
+          >
+
+            <div class="message-inner">
+
+
+              <div class="message-info">
+
+                <span class="sender-name">
+                  ${esc(
+                    senderName
+                  )}
+                </span>
+
+                <span class="sender-id">
+                  ${esc(
+                    totalkId
+                  )}
+                </span>
+
+              </div>
+
+
+              <div class="bubble">
+
+                ${esc(
+                  messageText
+                )}
+
+              </div>
+
+
+              ${
+                deleted
+                  ? `
+
+                    <div class="deleted-label">
+
+                      <svg viewBox="0 0 24 24">
+
+                        <path
+                          d="M4 7h16"
+                        />
+
+                        <path
+                          d="M9 7V4h6v3"
+                        />
+
+                        <path
+                          d="M7 7l1 13h8l1-13"
+                        />
+
+                      </svg>
+
+                      Deleted message preserved
+                      for moderation
+
+                    </div>
+
+                  `
+                  : ""
+              }
+
+
+              <div
+                class="
+                  message-time
+                  ${
+                    deleted
+                      ? ""
+                      : ""
+                  }
+                "
+                style="margin-top:6px"
+              >
+
+                ${esc(
+                  fmtDate(
+                    message.created_at
+                  )
+                )}
+
+                ${
+                  message.edited_at &&
+                  !deleted
+                    ? " · Edited"
+                    : ""
+                }
+
+              </div>
+
+            </div>
+
+          </div>
+
+        `;
+
+      }
+    ).join("");
 
 }
 
 
-/* =========================================================
-   CLOSE MODAL
-========================================================= */
+/* =====================================================
+   CLOSE CONVERSATION
+===================================================== */
 
 function closeConversation(){
 
@@ -2032,14 +2231,12 @@ function closeConversation(){
     "show"
   );
 
-  messagesEl.innerHTML = "";
-
 }
 
 
-/* =========================================================
+/* =====================================================
    BOOT
-========================================================= */
+===================================================== */
 
 async function boot(){
 
@@ -2067,20 +2264,26 @@ async function boot(){
     data,
     error
   } =
-    await supabaseClient.rpc(
-      "is_totalk_admin"
-    );
+    await supabaseClient
+      .rpc(
+        "is_totalk_admin"
+      );
 
 
-  if(error || data !== true){
+  if(
+    error ||
+    data !== true
+  ){
 
     loginBox.style.display =
       "block";
+
 
     showError(
       error?.message ||
       "This account does not have admin access."
     );
+
 
     return;
 
@@ -2096,28 +2299,31 @@ async function boot(){
 }
 
 
-/* =========================================================
-   EVENTS
-========================================================= */
-
-
-/* Refresh */
+/* =====================================================
+   REFRESH
+===================================================== */
 
 document
-  .getElementById("refreshBtn")
+  .getElementById(
+    "refreshBtn"
+  )
   .addEventListener(
     "click",
     loadReports
   );
 
 
-/* Sign out */
+/* =====================================================
+   SIGN OUT
+===================================================== */
 
 document
-  .getElementById("signOutBtn")
+  .getElementById(
+    "signOutBtn"
+  )
   .addEventListener(
     "click",
-    async () => {
+    async ()=>{
 
       await supabaseClient
         .auth
@@ -2129,40 +2335,53 @@ document
   );
 
 
-/* Open ToTalk */
+/* =====================================================
+   OPEN CHAT
+===================================================== */
 
 document
-  .getElementById("goChatBtn")
+  .getElementById(
+    "goChatBtn"
+  )
   .addEventListener(
     "click",
-    () => {
-
+    ()=>{
       location.href =
         "chat.html";
-
     }
   );
 
 
-/* Tabs */
+/* =====================================================
+   TABS
+===================================================== */
 
 document
-  .getElementById("tabs")
+  .getElementById(
+    "tabs"
+  )
   .addEventListener(
     "click",
     event => {
 
       const button =
-        event.target.closest(".tab");
+        event.target.closest(
+          ".tab"
+        );
 
-      if(!button) return;
+
+      if(!button){
+        return;
+      }
 
 
       document
-        .querySelectorAll(".tab")
+        .querySelectorAll(
+          ".tab"
+        )
         .forEach(
-          tab =>
-            tab.classList.remove(
+          item =>
+            item.classList.remove(
               "active"
             )
         );
@@ -2183,120 +2402,96 @@ document
   );
 
 
-/* Report buttons */
+/* =====================================================
+   REPORT BUTTONS
+===================================================== */
 
-reportsEl
-  .addEventListener(
-    "click",
-    event => {
-
-      /* View conversation */
-
-      const conversationButton =
-        event.target.closest(
-          "[data-view-conversation]"
-        );
+reportsEl.addEventListener(
+  "click",
+  event => {
 
 
-      if(conversationButton){
+    /*
+     * VIEW CONVERSATION
+     */
 
-        const cardElement =
-          conversationButton.closest(
-            ".card"
-          );
-
-        if(!cardElement) return;
-
-
-        const conversationId =
-          cardElement.dataset.conversation;
+    const viewButton =
+      event.target.closest(
+        "[data-view-conversation]"
+      );
 
 
-        const report =
-          allReports.find(
-            item =>
-              String(item.id) ===
-              String(cardElement.dataset.id)
-          );
+    if(viewButton){
 
+      openConversation(
+        viewButton.dataset
+          .conversationId
+      );
 
-        viewConversation(
-          conversationId,
-          report
-        );
-
-        return;
-
-      }
-
-
-      /* Save report */
-
-      const saveButton =
-        event.target.closest(
-          "[data-save]"
-        );
-
-
-      if(saveButton){
-
-        const cardElement =
-          saveButton.closest(
-            ".card"
-          );
-
-        if(cardElement){
-
-          saveReport(
-            cardElement
-          );
-
-        }
-
-      }
+      return;
 
     }
-  );
 
 
-/* Close modal */
+    /*
+     * SAVE REPORT
+     */
+
+    const saveButton =
+      event.target.closest(
+        "[data-save]"
+      );
+
+
+    if(!saveButton){
+      return;
+    }
+
+
+    const reportCard =
+      saveButton.closest(
+        ".card"
+      );
+
+
+    if(reportCard){
+
+      saveReport(
+        reportCard
+      );
+
+    }
+
+  }
+);
+
+
+/* =====================================================
+   CLOSE MODAL
+===================================================== */
 
 document
-  .getElementById("closeModal")
+  .getElementById(
+    "closeConversationBtn"
+  )
   .addEventListener(
     "click",
     closeConversation
   );
 
 
-/* Click outside modal */
+/*
+ * Click outside the conversation box
+ * to close it.
+ */
 
-conversationModal
-  .addEventListener(
-    "click",
-    event => {
-
-      if(
-        event.target ===
-        conversationModal
-      ){
-
-        closeConversation();
-
-      }
-
-    }
-  );
-
-
-/* Escape key */
-
-document.addEventListener(
-  "keydown",
+conversationModal.addEventListener(
+  "click",
   event => {
 
     if(
-      event.key === "Escape"
+      event.target ===
+      conversationModal
     ){
 
       closeConversation();
@@ -2307,26 +2502,52 @@ document.addEventListener(
 );
 
 
-/* Auth */
+/*
+ * Escape key closes the viewer.
+ */
+
+document.addEventListener(
+  "keydown",
+  event => {
+
+    if(
+      event.key === "Escape" &&
+      conversationModal.classList.contains(
+        "show"
+      )
+    ){
+
+      closeConversation();
+
+    }
+
+  }
+);
+
+
+/* =====================================================
+   AUTH STATE
+===================================================== */
 
 supabaseClient
   .auth
   .onAuthStateChange(
-    (event) => {
-
+    (event)=>{
       if(
-        event === "SIGNED_OUT"
+        event ===
+        "SIGNED_OUT"
       ){
 
         location.reload();
 
       }
-
     }
   );
 
 
-/* Start */
+/* =====================================================
+   START
+===================================================== */
 
 boot();
 
