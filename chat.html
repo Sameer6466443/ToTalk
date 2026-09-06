@@ -2484,6 +2484,38 @@ header{
 .report-success-close{margin-top:17px;width:100%;border:1px solid rgba(166,103,255,.55);border-radius:12px;padding:11px 12px;background:linear-gradient(135deg,#7130e9,#a65cff);color:#fff;font:800 13px system-ui,sans-serif;cursor:pointer;}
 .report-error{display:none;margin-top:9px;padding:9px 10px;border:1px solid rgba(255,91,120,.25);border-radius:10px;background:rgba(255,59,92,.07);color:#ff9ab0;font:600 11px/1.4 system-ui,sans-serif;}
 .report-error.show{display:block;}
+
+
+/* =====================================================
+   TEMPORARY BAN UI
+===================================================== */
+#temporaryBanNotice{
+  position:fixed;
+  inset:0;
+  z-index:999998;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding:22px;
+  background:rgba(2,1,8,.72);
+  backdrop-filter:blur(7px);
+  -webkit-backdrop-filter:blur(7px);
+}
+#temporaryBanNotice.open{display:flex;}
+.temporary-ban-card{
+  width:min(92vw,430px);
+  padding:28px 24px;
+  border:1px solid rgba(145,76,255,.52);
+  border-radius:22px;
+  background:linear-gradient(145deg,rgba(18,9,38,.98),rgba(6,3,16,.99));
+  box-shadow:0 20px 70px rgba(0,0,0,.65),0 0 35px rgba(116,55,220,.18);
+  text-align:center;
+}
+.temporary-ban-icon{font-size:42px;line-height:1;margin-bottom:14px;}
+.temporary-ban-card h2{font-size:20px;margin-bottom:9px;}
+.temporary-ban-card p{color:#aaa1bb;font-size:12px;line-height:1.6;}
+#temporaryBanUntil{margin-top:13px;color:#d7c5ff;font-weight:800;}
+#temporaryBanReason{margin-top:8px;color:#8f849f;}
 </style>
 
 <style id="totalk-final-galaxy-fix">
@@ -2998,6 +3030,107 @@ const sideAvatar =
 
 const statusBox =
   document.getElementById("status");
+
+/* =====================================================
+   TEMPORARY BAN STATE
+===================================================== */
+let currentBanStatus = {
+  is_banned:false,
+  banned_until:null,
+  ban_reason:null
+};
+let banStatusTimer = null;
+
+function ensureTemporaryBanNotice(){
+  let notice = document.getElementById("temporaryBanNotice");
+  if(notice) return notice;
+
+  notice = document.createElement("div");
+  notice.id = "temporaryBanNotice";
+  notice.innerHTML = `
+    <div class="temporary-ban-card" role="alert" aria-live="polite">
+      <div class="temporary-ban-icon">⏳</div>
+      <h2>Temporary restriction</h2>
+      <p>Your ToTalk account is temporarily restricted from sending messages.</p>
+      <div id="temporaryBanUntil"></div>
+      <div id="temporaryBanReason"></div>
+    </div>
+  `;
+  document.body.appendChild(notice);
+  return notice;
+}
+
+function formatBanUntil(value){
+  if(!value) return "";
+  const date = new Date(value);
+  if(Number.isNaN(date.getTime())) return "";
+  return "Until: " + date.toLocaleString([], {
+    dateStyle:"medium",
+    timeStyle:"short"
+  });
+}
+
+function applyTemporaryBanUI(status){
+  const notice = ensureTemporaryBanNotice();
+  const banned = !!status?.is_banned;
+
+  if(banned){
+    notice.classList.add("open");
+    const until = document.getElementById("temporaryBanUntil");
+    const reason = document.getElementById("temporaryBanReason");
+    if(until) until.textContent = formatBanUntil(status.banned_until);
+    if(reason) reason.textContent = status.ban_reason ? "Reason: " + status.ban_reason : "";
+
+    if(messageInput){
+      messageInput.disabled = true;
+      messageInput.placeholder = "Messaging is temporarily restricted";
+    }
+    if(sendButton) sendButton.disabled = true;
+  }else{
+    notice.classList.remove("open");
+    if(currentConversationPartner){
+      if(messageInput){
+        messageInput.disabled = false;
+        messageInput.placeholder = "Write a message...";
+      }
+      if(sendButton) sendButton.disabled = false;
+    }
+  }
+}
+
+async function refreshBanStatus(){
+  if(!currentProfile?.id) return false;
+
+  try{
+    const {data,error} = await supabaseClient.rpc(
+      "get_user_ban_status",
+      {target_user:currentProfile.id}
+    );
+
+    if(error) throw error;
+
+    const row = Array.isArray(data) ? data[0] : data;
+    currentBanStatus = {
+      is_banned:!!row?.is_banned,
+      banned_until:row?.banned_until || null,
+      ban_reason:row?.ban_reason || null
+    };
+
+    applyTemporaryBanUI(currentBanStatus);
+    return currentBanStatus.is_banned;
+  }catch(error){
+    console.error("Temporary ban status error:",error);
+    /* Do not lock a user out merely because the status check failed. */
+    return false;
+  }
+}
+
+function startBanStatusWatcher(){
+  if(banStatusTimer) clearInterval(banStatusTimer);
+  banStatusTimer = setInterval(()=>{
+    void refreshBanStatus();
+  },30000);
+}
 
 const chatLayout =
   document.querySelector(".chat-layout");
@@ -3759,10 +3892,12 @@ function renderActivePartner(){
   if(chatAvatar) chatAvatar.textContent = first;
   if(chatPresence) chatPresence.textContent = "Offline";
   if(messageInput){
-    messageInput.disabled = false;
-    messageInput.placeholder = "Write a message...";
+    messageInput.disabled = !!currentBanStatus.is_banned;
+    messageInput.placeholder = currentBanStatus.is_banned
+      ? "Messaging is temporarily restricted"
+      : "Write a message...";
   }
-  if(sendButton) sendButton.disabled = false;
+  if(sendButton) sendButton.disabled = !!currentBanStatus.is_banned;
   chatBoxEmpty(false);
 }
 
@@ -5609,6 +5744,12 @@ async function sendMessage(){
     return;
   }
 
+  /* Always verify the latest server-side ban state before saving a message. */
+  const banned = await refreshBanStatus();
+  if(banned){
+    return;
+  }
+
   const replyId = replyTarget?.id || null;
   const tempId = "local-" + Date.now() + "-" + Math.random().toString(36).slice(2);
 
@@ -6428,6 +6569,11 @@ logoutBtn.addEventListener(
 
       }
 
+      if(banStatusTimer){
+        clearInterval(banStatusTimer);
+        banStatusTimer = null;
+      }
+
       if(presenceChannel){
 
         await supabaseClient
@@ -6821,6 +6967,10 @@ async function startApp(){
       }
 
     }
+
+    /* Load the current temporary-ban state before enabling messaging. */
+    await refreshBanStatus();
+    startBanStatusWatcher();
 
     setLoadingText(
       "ToTalk",
