@@ -5429,49 +5429,43 @@ async function sendMessage(){
       conversation_id: currentConversationId
     };
 
-    const {data,error} = await supabaseClient
+    /*
+     * IMPORTANT: do not chain .select().single() after INSERT here.
+     * Some ToTalk RLS setups allow a user to INSERT a message but do not
+     * allow the INSERT response to SELECT the newly-created row. That made
+     * a valid send appear as "Not sent".
+     *
+     * We only need the INSERT result to know that Supabase accepted the
+     * message. The realtime listener / reload below will reconcile the
+     * optimistic message with the real database row.
+     */
+    const {error} = await supabaseClient
       .from("messages")
-      .insert(payload)
-      .select("id,sender_id,content,created_at,edited_at,reply_to_id,conversation_id")
-      .single();
+      .insert(payload);
 
     if(error){
       console.error("Supabase send error:", error);
       throw error;
     }
 
-    /* Convert the optimistic row into the real database message. */
-    messageCache.delete(tempId);
-    messageCache.set(data.id, data);
-
+    /* The database accepted the message. Mark the optimistic row as sent. */
     if(optimisticRow){
-      optimisticRow.dataset.messageId = data.id;
-
       const status = optimisticRow.querySelector(".message-status");
       if(status){
         status.textContent = "Sent";
+        status.classList.remove("send-failed");
       }
+    }
 
-      /* Keep the same smooth visual row; do not remove/re-add it. */
-      const menuButton = optimisticRow.querySelector(".message-menu-btn");
-      if(menuButton){
-        menuButton.replaceWith(menuButton.cloneNode(true));
-        const newMenuButton = optimisticRow.querySelector(".message-menu-btn");
-        newMenuButton.addEventListener("click", event=>{
-          event.stopPropagation();
-          const bubble = optimisticRow.querySelector(".message");
-          openMessageMenu(data,bubble);
-        });
-      }
-
-      /* Reaction picker keeps the real message id. */
-      const bubble = optimisticRow.querySelector(".message");
-      if(bubble){
-        const oldPicker = bubble._reactionPicker;
-        if(oldPicker) oldPicker.remove();
-        const picker = createReactionPicker(data, bubble);
-        bubble._reactionPicker = picker;
-      }
+    /*
+     * Reconcile the optimistic row with the real database message.
+     * loadMessages() replaces the temporary id with the real id, so edit,
+     * delete and reaction actions continue to work normally.
+     */
+    try{
+      await loadMessages();
+    }catch(reconcileError){
+      console.warn("Message sent, but refresh failed:", reconcileError);
     }
 
     /* Keep the sidebar preview/order current after a successful send. */
@@ -5487,9 +5481,15 @@ async function sendMessage(){
       optimisticStatus.classList.add("send-failed");
     }
 
+    const sendError =
+      error?.message ||
+      error?.details ||
+      error?.hint ||
+      "Unknown error";
+
     showStatus(
       "Message was not saved: " +
-      (error.message || "Unknown error")
+      sendError
     );
 
     /* Restore text so the user does not lose what they typed. */
