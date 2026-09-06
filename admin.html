@@ -1,1143 +1,2553 @@
-```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#05020f">
-<title>ToTalk Admin</title>
+<meta name="theme-color" content="#07051a">
+<title>ToTalk • Moderation Center</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
-*{box-sizing:border-box;margin:0;padding:0}
+/* =========================================================
+   TOTalk GALAXY ADMIN — PREMIUM MODERATION UI
+   ========================================================= */
+
+*{
+  box-sizing:border-box;
+  margin:0;
+  padding:0;
+}
 
 :root{
-  --bg:#07070b;
-  --panel:#12121c;
-  --panel2:#1c192b;
-  --line:rgba(255,255,255,.11);
-  --line2:rgba(255,255,255,.07);
-  --text:#f7f4ff;
-  --muted:#a8a4bb;
-  --accent:#ff4ecd;
-  --accent2:#6d5cff;
-  --yellow:#ffd43b;
-  --blue:#58b8ff;
-  --green:#45e69b;
-  --red:#ff4f86;
+  --bg:#05030d;
+  --bg2:#08051a;
+  --panel:rgba(16,11,34,.78);
+  --panel2:rgba(22,15,45,.82);
+
+  --purple:#8b5cff;
+  --purple2:#b178ff;
+  --pink:#ff43c7;
+  --cyan:#4edbff;
+
+  --yellow:#ffd84d;
+  --blue:#54bfff;
+  --green:#49e8a3;
+  --red:#ff4f8f;
+
+  --text:#f7f3ff;
+  --muted:#a49abf;
+  --dim:#716785;
+
+  --border:rgba(174,125,255,.16);
+  --borderStrong:rgba(174,125,255,.32);
+
+  --shadow:0 24px 80px rgba(0,0,0,.42);
 }
 
-html,body{
+html{
   min-height:100%;
-  background:
-    radial-gradient(circle at 15% 0%,rgba(255,78,205,.18),transparent 32%),
-    radial-gradient(circle at 90% 10%,rgba(109,92,255,.2),transparent 35%),
-    #07070b;
-  color:var(--text);
-  font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif
+  background:var(--bg);
 }
 
-body{padding:24px}
+body{
+  min-height:100vh;
+  color:var(--text);
+  font-family:
+    Inter,
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
 
-body:before{
+  background:
+    radial-gradient(
+      circle at 8% 0%,
+      rgba(126,73,255,.27),
+      transparent 30%
+    ),
+    radial-gradient(
+      circle at 92% 8%,
+      rgba(255,50,197,.13),
+      transparent 25%
+    ),
+    radial-gradient(
+      circle at 70% 75%,
+      rgba(47,130,255,.10),
+      transparent 32%
+    ),
+    linear-gradient(
+      180deg,
+      #070413 0%,
+      #04030b 55%,
+      #020208 100%
+    );
+
+  overflow-x:hidden;
+}
+
+body::before{
   content:"";
   position:fixed;
   inset:0;
   pointer-events:none;
-  background:
-    linear-gradient(115deg,transparent 0 47%,rgba(255,255,255,.025) 48%,transparent 49%);
-  background-size:18px 18px;
-  opacity:.35
+  z-index:0;
+
+  background-image:
+    radial-gradient(circle,rgba(255,255,255,.65) 0 1px,transparent 1.5px),
+    radial-gradient(circle,rgba(180,135,255,.5) 0 1px,transparent 1.5px),
+    radial-gradient(circle,rgba(255,255,255,.35) 0 1px,transparent 1.5px);
+
+  background-size:
+    91px 107px,
+    137px 163px,
+    211px 191px;
+
+  background-position:
+    15px 20px,
+    50px 80px,
+    110px 30px;
+
+  opacity:.18;
 }
 
-button,input,textarea,select{font:inherit}
-button{cursor:pointer}
+body::after{
+  content:"";
+  position:fixed;
+  width:650px;
+  height:650px;
+  top:-280px;
+  left:50%;
+  transform:translateX(-50%);
+  pointer-events:none;
+  z-index:0;
 
-.shell{max-width:1120px;margin:auto}
+  background:
+    radial-gradient(
+      circle,
+      rgba(132,74,255,.25),
+      rgba(132,74,255,.06) 35%,
+      transparent 70%
+    );
 
-/* TOP */
-.topbar{
+  filter:blur(20px);
+}
+
+/* =========================================================
+   GENERAL
+   ========================================================= */
+
+button,
+input,
+select,
+textarea{
+  font:inherit;
+}
+
+button{
+  cursor:pointer;
+}
+
+button:disabled{
+  opacity:.45;
+  cursor:not-allowed;
+  transform:none!important;
+}
+
+.app{
+  position:relative;
+  z-index:1;
+  width:min(1380px,calc(100% - 40px));
+  margin:0 auto;
+  padding:28px 0 70px;
+}
+
+/* =========================================================
+   HEADER
+   ========================================================= */
+
+.header{
   display:flex;
-  justify-content:space-between;
   align-items:center;
-  gap:16px;
-  margin-bottom:18px
+  justify-content:space-between;
+  gap:20px;
+  margin-bottom:26px;
 }
 
 .brand{
   display:flex;
   align-items:center;
-  gap:12px;
-  letter-spacing:.08em;
-  text-transform:uppercase;
-  text-shadow:0 0 24px rgba(255,78,205,.55)
+  gap:14px;
 }
 
-.logo{
-  width:48px;
-  height:48px;
-  border-radius:15px;
+.brand-logo{
+  position:relative;
+  width:58px;
+  height:58px;
+  border-radius:19px;
+
   display:grid;
   place-items:center;
-  background:linear-gradient(145deg,#8a39ff,#5b20dd);
-  border:1px solid #b07cff;
-  box-shadow:0 0 28px rgba(124,53,255,.35)
+
+  background:
+    linear-gradient(
+      145deg,
+      #9d42ff,
+      #5220db
+    );
+
+  border:1px solid rgba(207,166,255,.7);
+
+  box-shadow:
+    0 0 0 5px rgba(126,73,255,.07),
+    0 0 35px rgba(126,73,255,.45),
+    inset 0 1px rgba(255,255,255,.28);
 }
 
-.logo svg{
-  width:25px;
-  height:25px;
+.brand-logo::after{
+  content:"";
+  position:absolute;
+  inset:-7px;
+  border-radius:24px;
+  border:1px solid rgba(164,111,255,.15);
+}
+
+.brand-logo svg{
+  width:29px;
+  height:29px;
   fill:none;
   stroke:#fff;
-  stroke-width:2;
+  stroke-width:1.9;
   stroke-linecap:round;
-  stroke-linejoin:round
+  stroke-linejoin:round;
 }
 
-.brand h1{font-size:21px}
-.brand p{
+.brand-title{
+  font-size:25px;
+  font-weight:850;
+  letter-spacing:.06em;
+}
+
+.brand-subtitle{
+  color:var(--muted);
   font-size:12px;
-  color:var(--muted);
-  margin-top:2px;
-  text-transform:none;
-  letter-spacing:0
+  margin-top:4px;
+  letter-spacing:.05em;
 }
 
-.actions{display:flex;gap:8px}
-
-.icon-btn{
-  width:44px;
-  height:44px;
-  border:1px solid var(--line);
-  border-radius:13px;
-  background:rgba(124,53,255,.08);
-  color:#fff;
-  display:grid;
-  place-items:center;
-  transition:.18s
-}
-
-.icon-btn:hover{
-  background:rgba(124,53,255,.18);
-  transform:translateY(-1px)
-}
-
-.icon-btn svg{
-  width:19px;
-  height:19px;
-  fill:none;
-  stroke:currentColor;
-  stroke-width:1.8;
-  stroke-linecap:round;
-  stroke-linejoin:round
-}
-
-.icon-btn.danger{
-  color:#ff9cc6;
-  border-color:rgba(255,79,160,.3)
-}
-
-/* ERROR */
-.banner{
-  display:none;
-  padding:12px 14px;
-  border:1px solid rgba(255,79,160,.35);
-  background:rgba(255,79,160,.08);
-  border-radius:14px;
-  margin-bottom:16px;
-  color:#ffc0da
-}
-
-.banner.show{display:block}
-
-/* STATS */
-.stats{
-  display:grid;
-  grid-template-columns:repeat(4,1fr);
-  gap:10px;
-  margin-bottom:16px
-}
-
-.stat{
-  background:linear-gradient(145deg,rgba(28,25,43,.92),rgba(10,10,17,.88));
-  border:1px solid var(--line);
-  border-radius:24px;
-  padding:15px 16px;
-  box-shadow:0 22px 70px rgba(0,0,0,.35),inset 0 1px rgba(255,255,255,.05)
-}
-
-.stat-top{
+.header-actions{
   display:flex;
-  align-items:center;
-  gap:9px
+  gap:9px;
 }
 
-.stat-icon{
-  width:31px;
-  height:31px;
-  border-radius:50%;
-  display:grid;
-  place-items:center;
-  border:1px solid currentColor
-}
+.header-btn{
+  height:45px;
+  padding:0 15px;
 
-.stat-icon svg{
-  width:16px;
-  height:16px;
-  fill:none;
-  stroke:currentColor;
-  stroke-width:1.8;
-  stroke-linecap:round;
-  stroke-linejoin:round
-}
-
-.stat span{color:var(--muted);font-size:11px}
-.stat strong{font-size:24px;margin-left:auto}
-
-.stat.pending{color:var(--yellow)}
-.stat.investigating{color:var(--blue)}
-.stat.resolved{color:var(--green)}
-.stat.dismissed{color:#aaa6bd}
-
-/* TABS */
-.toolbar{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  margin-bottom:12px
-}
-
-.tabs{
-  display:flex;
-  gap:7px;
-  flex-wrap:wrap
-}
-
-.tab{
-  border:1px solid var(--line);
-  background:rgba(124,53,255,.055);
-  color:var(--muted);
-  border-radius:999px;
-  padding:8px 12px;
-  font-size:12px
-}
-
-.tab.active{
-  color:#fff;
-  background:rgba(124,53,255,.19);
-  border-color:rgba(167,117,255,.7);
-  box-shadow:0 0 18px rgba(124,53,255,.12)
-}
-
-/* CARDS */
-.reports{
-  display:grid;
-  gap:12px
-}
-
-.card{
-  background:linear-gradient(145deg,rgba(28,25,43,.92),rgba(10,10,17,.88));
-  border:1px solid var(--line);
-  border-radius:24px;
-  padding:16px;
-  box-shadow:0 22px 70px rgba(0,0,0,.35),inset 0 1px rgba(255,255,255,.05)
-}
-
-.card-head{
-  display:flex;
-  justify-content:space-between;
-  gap:12px;
-  align-items:flex-start
-}
-
-.report-title{
-  display:flex;
-  align-items:center;
-  gap:9px
-}
-
-.report-badge{
-  width:34px;
-  height:34px;
-  border-radius:50%;
-  display:grid;
-  place-items:center;
-  background:rgba(124,53,255,.17);
-  border:1px solid rgba(160,111,255,.55);
-  color:#bd9aff
-}
-
-.report-badge svg{
-  width:17px;
-  height:17px;
-  fill:currentColor
-}
-
-.card-head strong{font-size:16px}
-
-.idline{
-  font-size:11px;
-  color:#817995;
-  margin-top:3px
-}
-
-.status{
-  display:inline-flex;
-  align-items:center;
-  gap:7px;
-  border-radius:999px;
-  padding:7px 10px;
-  font-size:11px;
-  border:1px solid
-}
-
-.status-dot{
-  width:7px;
-  height:7px;
-  border-radius:50%;
-  background:currentColor
-}
-
-.status.pending{
-  color:var(--yellow);
-  border-color:rgba(255,212,59,.42);
-  background:rgba(255,212,59,.06)
-}
-
-.status.investigating{
-  color:var(--blue);
-  border-color:rgba(88,184,255,.38);
-  background:rgba(88,184,255,.06)
-}
-
-.status.resolved{
-  color:var(--green);
-  border-color:rgba(69,230,155,.38);
-  background:rgba(69,230,155,.06)
-}
-
-.status.dismissed{
-  color:#aaa6bd;
-  border-color:rgba(170,166,189,.28);
-  background:rgba(170,166,189,.04)
-}
-
-.people{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:10px;
-  margin:14px 0 10px
-}
-
-.person{
-  border:1px solid var(--line2);
-  background:rgba(124,53,255,.045);
-  border-radius:14px;
-  padding:11px
-}
-
-.person label{
-  display:block;
-  font-size:10px;
-  text-transform:uppercase;
-  letter-spacing:.12em;
-  color:#9990b8;
-  margin-bottom:7px
-}
-
-.person-main{
-  display:flex;
-  align-items:center;
-  gap:9px
-}
-
-.avatar{
-  width:34px;
-  height:34px;
-  border-radius:50%;
-  display:grid;
-  place-items:center;
-  background:linear-gradient(145deg,#7c35ff,#352080);
-  border:1px solid rgba(175,130,255,.5)
-}
-
-.avatar svg{
-  width:18px;
-  height:18px;
-  fill:#d8c5ff
-}
-
-.person strong{
-  font-size:13px;
-  display:block
-}
-
-.person code{
-  font-size:10px;
-  color:#a978ff;
-  display:block;
-  margin-top:2px;
-  word-break:break-all
-}
-
-.info-box{
-  border:1px solid var(--line2);
-  background:rgba(124,53,255,.035);
-  border-radius:13px;
-  padding:11px;
-  margin-top:8px
-}
-
-.info-label{
   display:flex;
   align-items:center;
   gap:8px;
-  font-size:11px;
-  color:#e9e4f5;
-  font-weight:700
-}
 
-.info-label svg{
-  width:15px;
-  height:15px;
-  fill:#a978ff
-}
+  color:#eae3ff;
 
-.info-value{
-  font-size:12px;
-  color:#bfb7d0;
-  line-height:1.5;
-  margin-top:5px;
-  padding-left:23px;
-  word-break:break-word
-}
+  background:
+    linear-gradient(
+      145deg,
+      rgba(141,86,255,.14),
+      rgba(255,255,255,.035)
+    );
 
-.meta{
-  font-size:10px;
-  color:#756d88;
-  margin:10px 0
-}
-
-/* BUTTONS */
-.btn{
+  border:1px solid var(--borderStrong);
   border-radius:14px;
-  background:linear-gradient(135deg,var(--accent),var(--accent2));
-  color:white;
-  border:0;
-  box-shadow:0 10px 30px rgba(255,78,205,.22);
-  padding:10px 14px;
-  transition:.18s
+
+  transition:.2s ease;
 }
 
-.btn:hover{
+.header-btn:hover{
   transform:translateY(-2px);
-  filter:saturate(1.2)
+  border-color:rgba(177,120,255,.6);
+  background:rgba(139,92,255,.18);
+  box-shadow:0 10px 30px rgba(102,48,220,.16);
 }
 
-.btn:disabled{
-  opacity:.55;
-  cursor:not-allowed;
-  transform:none
-}
-
-.btn.secondary{
-  background:rgba(255,255,255,.06);
-  border:1px solid var(--line);
-  box-shadow:none
-}
-
-.btn.warning{
-  background:linear-gradient(135deg,#ff9f43,#ff4ecd)
-}
-
-.btn.danger-btn{
-  background:linear-gradient(135deg,#ff4f86,#a41cff)
-}
-
-.btn.success{
-  background:linear-gradient(135deg,#14c989,#5d5cff)
-}
-
-.btn svg{
+.header-btn svg{
   width:17px;
   height:17px;
   fill:none;
   stroke:currentColor;
   stroke-width:1.9;
   stroke-linecap:round;
-  stroke-linejoin:round
+  stroke-linejoin:round;
 }
 
-.view{
+.header-btn.logout{
+  color:#ff9dc5;
+}
+
+/* =========================================================
+   TOP INTRO
+   ========================================================= */
+
+.hero{
+  position:relative;
+  overflow:hidden;
+
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-end;
+  gap:20px;
+
+  padding:24px 25px;
+  margin-bottom:18px;
+
+  border:1px solid var(--border);
+  border-radius:25px;
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(54,31,100,.38),
+      rgba(12,8,29,.78)
+    );
+
+  box-shadow:var(--shadow);
+}
+
+.hero::before{
+  content:"";
+  position:absolute;
+  width:280px;
+  height:280px;
+  right:-100px;
+  top:-140px;
+
+  background:
+    radial-gradient(
+      circle,
+      rgba(255,67,199,.18),
+      transparent 68%
+    );
+
+  pointer-events:none;
+}
+
+.hero-content{
+  position:relative;
+  z-index:1;
+}
+
+.eyebrow{
+  display:flex;
+  align-items:center;
+  gap:8px;
+
+  color:#c8a8ff;
+  font-size:10px;
+  font-weight:800;
+  letter-spacing:.18em;
+  text-transform:uppercase;
+}
+
+.live-dot{
+  width:7px;
+  height:7px;
+  border-radius:50%;
+  background:var(--green);
+  box-shadow:0 0 12px var(--green);
+}
+
+.hero h2{
+  margin-top:7px;
+  font-size:25px;
+  letter-spacing:-.02em;
+}
+
+.hero p{
+  margin-top:5px;
+  color:var(--muted);
+  font-size:12px;
+}
+
+.hero-side{
+  position:relative;
+  z-index:1;
+
+  display:flex;
+  align-items:center;
+  gap:10px;
+
+  padding:11px 14px;
+
+  border:1px solid rgba(73,232,163,.18);
+  background:rgba(73,232,163,.045);
+  border-radius:14px;
+
+  color:#bfffe4;
+  font-size:11px;
+}
+
+.hero-side svg{
+  width:17px;
+  height:17px;
+  fill:none;
+  stroke:var(--green);
+  stroke-width:1.8;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+
+/* =========================================================
+   ERROR
+   ========================================================= */
+
+.error-banner{
+  display:none;
+
+  padding:13px 16px;
+  margin-bottom:16px;
+
+  color:#ffd4e5;
+
+  border:1px solid rgba(255,79,143,.35);
+  background:rgba(255,79,143,.075);
+  border-radius:15px;
+
+  font-size:12px;
+  line-height:1.5;
+}
+
+.error-banner.show{
+  display:block;
+}
+
+/* =========================================================
+   STATS
+   ========================================================= */
+
+.stats{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:12px;
+  margin-bottom:18px;
+}
+
+.stat-card{
+  position:relative;
+  overflow:hidden;
+
+  padding:17px 18px;
+
+  border:1px solid var(--border);
+  border-radius:20px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(23,16,46,.83),
+      rgba(8,6,19,.88)
+    );
+
+  box-shadow:
+    0 18px 55px rgba(0,0,0,.27),
+    inset 0 1px rgba(255,255,255,.035);
+}
+
+.stat-card::after{
+  content:"";
+  position:absolute;
+  width:100px;
+  height:100px;
+  right:-45px;
+  bottom:-50px;
+
+  border-radius:50%;
+  background:currentColor;
+  opacity:.06;
+  filter:blur(10px);
+}
+
+.stat-top{
+  display:flex;
+  align-items:center;
+  gap:11px;
+}
+
+.stat-icon{
+  width:39px;
+  height:39px;
+
+  display:grid;
+  place-items:center;
+
+  border:1px solid currentColor;
+  border-radius:13px;
+
+  background:rgba(255,255,255,.025);
+}
+
+.stat-icon svg{
+  width:19px;
+  height:19px;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:1.8;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+
+.stat-name{
+  color:var(--muted);
+  font-size:11px;
+}
+
+.stat-number{
+  margin-left:auto;
+  font-size:28px;
+  font-weight:850;
+}
+
+.stat-card.pending{
+  color:var(--yellow);
+}
+
+.stat-card.investigating{
+  color:var(--blue);
+}
+
+.stat-card.resolved{
+  color:var(--green);
+}
+
+.stat-card.dismissed{
+  color:#a9a2bb;
+}
+
+/* =========================================================
+   FILTER BAR
+   ========================================================= */
+
+.filter-bar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:15px;
+
+  padding:7px;
+
+  margin-bottom:16px;
+
+  border:1px solid var(--border);
+  border-radius:18px;
+
+  background:rgba(10,7,25,.75);
+  backdrop-filter:blur(18px);
+}
+
+.tabs{
+  display:flex;
+  align-items:center;
+  gap:4px;
+  flex-wrap:wrap;
+}
+
+.tab{
+  display:flex;
+  align-items:center;
+  gap:7px;
+
+  padding:9px 13px;
+
+  color:#8f87a7;
+
+  background:transparent;
+
+  border:1px solid transparent;
+  border-radius:12px;
+
+  font-size:11px;
+  font-weight:650;
+
+  transition:.18s;
+}
+
+.tab:hover{
+  color:#dcd4f0;
+  background:rgba(139,92,255,.07);
+}
+
+.tab.active{
+  color:#fff;
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(139,92,255,.28),
+      rgba(255,67,199,.11)
+    );
+
+  border-color:rgba(167,117,255,.38);
+
+  box-shadow:
+    0 5px 20px rgba(112,58,220,.14);
+}
+
+.tab-count{
+  min-width:18px;
+  height:18px;
+
+  display:grid;
+  place-items:center;
+
+  padding:0 5px;
+
+  border-radius:99px;
+
+  color:#d6c9ff;
+  background:rgba(255,255,255,.07);
+
+  font-size:9px;
+}
+
+.filter-note{
+  color:#716885;
+  font-size:10px;
+  padding-right:10px;
+}
+
+/* =========================================================
+   REPORT AREA
+   ========================================================= */
+
+.reports{
+  display:grid;
+  gap:15px;
+}
+
+.loading,
+.empty{
+  padding:65px 20px;
+
+  text-align:center;
+
+  border:1px dashed rgba(139,92,255,.22);
+  border-radius:20px;
+
+  background:rgba(12,8,28,.45);
+
+  color:var(--muted);
+}
+
+.empty strong{
+  display:block;
+  margin-bottom:6px;
+  color:#fff;
+  font-size:14px;
+}
+
+/* =========================================================
+   REPORT CARD
+   ========================================================= */
+
+.report-card{
+  position:relative;
+  overflow:hidden;
+
+  border:1px solid var(--border);
+  border-radius:25px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(23,16,45,.86),
+      rgba(7,5,18,.92)
+    );
+
+  box-shadow:
+    0 22px 75px rgba(0,0,0,.32),
+    inset 0 1px rgba(255,255,255,.035);
+
+  transition:
+    border-color .2s,
+    transform .2s,
+    box-shadow .2s;
+}
+
+.report-card:hover{
+  border-color:rgba(169,120,255,.3);
+
+  box-shadow:
+    0 25px 90px rgba(0,0,0,.4),
+    0 0 0 1px rgba(139,92,255,.04),
+    inset 0 1px rgba(255,255,255,.05);
+}
+
+.report-accent{
+  position:absolute;
+  left:0;
+  top:0;
+  bottom:0;
+  width:3px;
+
+  background:
+    linear-gradient(
+      180deg,
+      var(--purple),
+      var(--pink),
+      transparent
+    );
+
+  opacity:.85;
+}
+
+.report-main{
+  padding:21px;
+}
+
+/* REPORT HEADER */
+
+.report-header{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:15px;
+
+  margin-bottom:18px;
+}
+
+.report-heading{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+
+.report-icon{
+  width:45px;
+  height:45px;
+
+  display:grid;
+  place-items:center;
+
+  border-radius:15px;
+
+  color:#d3b8ff;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(139,92,255,.25),
+      rgba(83,38,170,.1)
+    );
+
+  border:1px solid rgba(177,120,255,.3);
+
+  box-shadow:
+    0 0 25px rgba(139,92,255,.12);
+}
+
+.report-icon svg{
+  width:21px;
+  height:21px;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:1.8;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+
+.report-title{
+  font-size:16px;
+  font-weight:800;
+}
+
+.report-date{
+  margin-top:4px;
+  color:#756c88;
+  font-size:10px;
+}
+
+.status-pill{
+  display:flex;
+  align-items:center;
+  gap:7px;
+
+  padding:8px 12px;
+
+  border-radius:99px;
+
+  font-size:10px;
+  font-weight:750;
+  white-space:nowrap;
+
+  border:1px solid;
+}
+
+.status-dot{
+  width:7px;
+  height:7px;
+  border-radius:50%;
+  background:currentColor;
+  box-shadow:0 0 9px currentColor;
+}
+
+.status-pill.pending{
+  color:var(--yellow);
+  background:rgba(255,216,77,.055);
+  border-color:rgba(255,216,77,.35);
+}
+
+.status-pill.investigating{
+  color:var(--blue);
+  background:rgba(84,191,255,.055);
+  border-color:rgba(84,191,255,.3);
+}
+
+.status-pill.resolved{
+  color:var(--green);
+  background:rgba(73,232,163,.055);
+  border-color:rgba(73,232,163,.3);
+}
+
+.status-pill.dismissed{
+  color:#aaa3ba;
+  background:rgba(170,163,186,.04);
+  border-color:rgba(170,163,186,.24);
+}
+
+/* PEOPLE */
+
+.people-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:11px;
+
+  margin-bottom:11px;
+}
+
+.person-card{
+  padding:14px;
+
+  border:1px solid rgba(174,125,255,.105);
+  border-radius:17px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(139,92,255,.055),
+      rgba(255,255,255,.012)
+    );
+}
+
+.person-label{
+  margin-bottom:10px;
+
+  color:#817896;
+
+  font-size:9px;
+  font-weight:750;
+  letter-spacing:.15em;
+  text-transform:uppercase;
+}
+
+.person-content{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+
+.avatar{
+  width:39px;
+  height:39px;
+  flex:none;
+
+  display:grid;
+  place-items:center;
+
+  border-radius:13px;
+
+  background:
+    linear-gradient(
+      145deg,
+      #813cff,
+      #3a197c
+    );
+
+  border:1px solid rgba(191,145,255,.45);
+
+  box-shadow:
+    0 5px 20px rgba(92,39,211,.25);
+}
+
+.avatar svg{
+  width:20px;
+  height:20px;
+  fill:none;
+  stroke:#e5d7ff;
+  stroke-width:1.7;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+
+.person-name{
+  display:block;
+  color:#f5f1ff;
+  font-size:13px;
+  font-weight:750;
+}
+
+.person-id{
+  display:block;
+
+  margin-top:3px;
+
+  color:#ad7cff;
+  font-family:
+    ui-monospace,
+    SFMono-Regular,
+    Menlo,
+    monospace;
+
+  font-size:10px;
+}
+
+/* INFO GRID */
+
+.info-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:11px;
+
+  margin-bottom:11px;
+}
+
+.info-card{
+  min-width:0;
+
+  padding:13px 14px;
+
+  border:1px solid rgba(174,125,255,.105);
+  border-radius:16px;
+
+  background:rgba(255,255,255,.018);
+}
+
+.info-card.full{
+  grid-column:1/-1;
+}
+
+.info-label{
+  display:flex;
+  align-items:center;
+  gap:7px;
+
+  color:#9b91b1;
+
+  font-size:9px;
+  font-weight:750;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+}
+
+.info-label svg{
+  width:14px;
+  height:14px;
+  fill:none;
+  stroke:#b07cff;
+  stroke-width:1.8;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+
+.info-value{
+  margin-top:7px;
+
+  color:#d0c8df;
+
+  font-size:12px;
+  line-height:1.5;
+
+  word-break:break-word;
+}
+
+.conversation-id{
+  color:#a77aff;
+
+  font-family:
+    ui-monospace,
+    SFMono-Regular,
+    Menlo,
+    monospace;
+
+  font-size:10px;
+}
+
+/* VIEW CONVERSATION */
+
+.view-conversation{
   width:100%;
+
   display:flex;
   align-items:center;
   justify-content:center;
-  gap:9px;
-  margin-top:10px
-}
+  gap:10px;
 
-.arrow{margin-left:auto}
+  min-height:48px;
 
-/* CONTROLS */
-.controls{
-  margin-top:13px;
-  padding-top:14px;
-  border-top:1px solid var(--line2);
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:10px
-}
+  margin-top:12px;
 
-.field label{
-  display:block;
-  font-size:10px;
-  text-transform:uppercase;
-  letter-spacing:.1em;
-  color:#9990b8;
-  margin-bottom:6px
-}
+  color:#fff;
 
-.field select,
-.field textarea{
-  width:100%;
-  border:1px solid rgba(255,255,255,.12)!important;
-  background:rgba(255,255,255,.045)!important;
-  color:var(--text)!important;
-  border-radius:13px!important;
-  padding:10px;
-  outline:none
-}
+  background:
+    linear-gradient(
+      100deg,
+      #ff40bd,
+      #a238ff 55%,
+      #5e7aff
+    );
 
-.field select:focus,
-.field textarea:focus{
-  border-color:#a978ff!important;
-  box-shadow:0 0 0 3px rgba(124,53,255,.09)
-}
-
-.notes{grid-column:1/-1}
-
-.field textarea{
-  min-height:68px;
-  resize:vertical
-}
-
-.note-wrap{position:relative}
-
-.counter{
-  position:absolute;
-  right:9px;
-  bottom:7px;
-  color:#706882;
-  font-size:9px
-}
-
-.moderation-box{
-  grid-column:1/-1;
-  border:1px solid rgba(255,78,205,.16);
-  background:linear-gradient(145deg,rgba(255,78,205,.045),rgba(109,92,255,.045));
+  border:0;
   border-radius:16px;
-  padding:13px
+
+  font-size:13px;
+  font-weight:750;
+
+  box-shadow:
+    0 12px 35px rgba(209,52,209,.18);
+
+  transition:.2s;
+}
+
+.view-conversation:hover{
+  transform:translateY(-2px);
+  box-shadow:
+    0 16px 45px rgba(209,52,209,.28);
+}
+
+.view-conversation svg{
+  width:19px;
+  height:19px;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:1.9;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+
+.view-arrow{
+  margin-left:auto;
+  margin-right:4px;
+  font-size:20px;
+  font-weight:400;
+}
+
+/* =========================================================
+   MODERATION SECTION
+   ========================================================= */
+
+.moderation{
+  margin-top:18px;
+
+  padding-top:18px;
+
+  border-top:1px solid rgba(174,125,255,.10);
+}
+
+.moderation-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+
+  margin-bottom:13px;
 }
 
 .moderation-title{
   display:flex;
   align-items:center;
-  gap:8px;
-  font-size:12px;
-  font-weight:800;
-  margin-bottom:10px
+  gap:9px;
 }
 
-.moderation-title svg{
+.moderation-title-icon{
+  width:33px;
+  height:33px;
+
+  display:grid;
+  place-items:center;
+
+  border-radius:11px;
+
+  color:#ff7cd8;
+
+  background:rgba(255,67,199,.07);
+  border:1px solid rgba(255,67,199,.2);
+}
+
+.moderation-title-icon svg{
   width:17px;
   height:17px;
   fill:none;
-  stroke:#ff7bdc;
-  stroke-width:2;
+  stroke:currentColor;
+  stroke-width:1.8;
   stroke-linecap:round;
-  stroke-linejoin:round
+  stroke-linejoin:round;
 }
 
-.moderation-grid{
+.moderation-title strong{
+  font-size:13px;
+}
+
+.moderation-title span{
+  display:block;
+  margin-top:2px;
+  color:#776d8c;
+  font-size:9px;
+}
+
+.manual-badge{
+  padding:6px 9px;
+
+  color:#b9a7d5;
+
+  background:rgba(255,255,255,.025);
+  border:1px solid rgba(255,255,255,.08);
+
+  border-radius:99px;
+
+  font-size:9px;
+}
+
+/* CONTROL GRID */
+
+.control-grid{
   display:grid;
   grid-template-columns:1fr 1fr;
-  gap:10px
+  gap:11px;
 }
 
-.ban-help{
-  font-size:10px;
-  color:#8f89a5;
-  line-height:1.45;
-  margin-top:8px
+.control{
+  min-width:0;
+}
+
+.control.full{
+  grid-column:1/-1;
+}
+
+.control-label{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+
+  margin-bottom:7px;
+
+  color:#9085a9;
+
+  font-size:9px;
+  font-weight:750;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+}
+
+.control-label .optional{
+  color:#625a73;
+  font-weight:500;
+  letter-spacing:0;
+  text-transform:none;
+}
+
+.control select,
+.control input,
+.control textarea{
+  width:100%;
+
+  color:#f8f4ff;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255,255,255,.052),
+      rgba(255,255,255,.018)
+    )!important;
+
+  border:1px solid rgba(174,125,255,.14)!important;
+  border-radius:14px!important;
+
+  outline:none;
+
+  transition:.18s;
+
+  -webkit-appearance:none;
+  appearance:none;
+}
+
+.control select{
+  min-height:47px;
+  padding:0 40px 0 13px;
+
+  background-image:
+    linear-gradient(45deg,transparent 50%,#9e91b5 50%),
+    linear-gradient(135deg,#9e91b5 50%,transparent 50%)!important;
+
+  background-position:
+    calc(100% - 17px) 20px,
+    calc(100% - 12px) 20px!important;
+
+  background-size:
+    5px 5px,
+    5px 5px!important;
+
+  background-repeat:no-repeat!important;
+}
+
+.control input{
+  height:47px;
+  padding:0 13px;
+}
+
+.control textarea{
+  min-height:80px;
+  padding:12px 13px;
+  resize:vertical;
+}
+
+.control select:focus,
+.control input:focus,
+.control textarea:focus{
+  border-color:rgba(177,120,255,.58)!important;
+
+  box-shadow:
+    0 0 0 3px rgba(139,92,255,.08),
+    0 0 22px rgba(139,92,255,.07);
+}
+
+.control input::placeholder,
+.control textarea::placeholder{
+  color:#5f586e;
+}
+
+.control select option{
+  background:#171129;
+  color:#fff;
+}
+
+/* BAN PANEL */
+
+.ban-panel{
+  position:relative;
+  overflow:hidden;
+
+  grid-column:1/-1;
+
+  padding:15px;
+
+  border:1px solid rgba(255,67,199,.14);
+  border-radius:18px;
+
+  background:
+    radial-gradient(
+      circle at 100% 0%,
+      rgba(255,67,199,.07),
+      transparent 40%
+    ),
+    rgba(255,255,255,.012);
+}
+
+.ban-panel::before{
+  content:"";
+  position:absolute;
+  top:0;
+  left:0;
+  right:0;
+  height:1px;
+
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      rgba(255,67,199,.55),
+      transparent
+    );
+}
+
+.ban-row{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:11px;
+}
+
+.ban-description{
+  margin-top:9px;
+
+  color:#736b83;
+
+  font-size:9px;
+  line-height:1.5;
 }
 
 .ban-actions{
   display:grid;
   grid-template-columns:1fr 1fr;
+  gap:9px;
+
+  margin-top:12px;
+}
+
+.ban-btn{
+  min-height:45px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
   gap:8px;
-  margin-top:10px
+
+  border-radius:13px;
+
+  font-size:11px;
+  font-weight:750;
+
+  transition:.2s;
 }
 
-.save{
-  grid-column:1/-1;
-  width:100%;
-  height:42px
-}
-
-/* EMPTY */
-.empty,.loading{
-  padding:55px 20px;
-  text-align:center;
-  border:1px dashed rgba(124,53,255,.28);
-  border-radius:18px;
-  color:var(--muted)
-}
-
-.empty strong{
-  display:block;
+.ban-btn.primary{
   color:#fff;
-  margin-bottom:5px
+
+  background:
+    linear-gradient(
+      100deg,
+      #ff3e9d,
+      #a72fff
+    );
+
+  border:1px solid rgba(255,144,225,.3);
+
+  box-shadow:
+    0 10px 28px rgba(220,46,181,.16);
 }
 
-/* MODAL */
+.ban-btn.primary:hover{
+  transform:translateY(-2px);
+  box-shadow:
+    0 14px 35px rgba(220,46,181,.26);
+}
+
+.ban-btn.secondary{
+  color:#d5cde2;
+
+  background:rgba(255,255,255,.035);
+  border:1px solid rgba(255,255,255,.09);
+}
+
+.ban-btn.secondary:hover{
+  color:#fff;
+  background:rgba(255,255,255,.065);
+}
+
+.ban-btn svg{
+  width:16px;
+  height:16px;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:1.8;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+
+/* NOTES */
+
+.notes-wrap{
+  position:relative;
+}
+
+.note-counter{
+  position:absolute;
+  right:10px;
+  bottom:8px;
+
+  color:#60596e;
+
+  font-size:9px;
+}
+
+/* SAVE */
+
+.save-row{
+  display:flex;
+  justify-content:flex-end;
+
+  grid-column:1/-1;
+
+  padding-top:3px;
+}
+
+.save-btn{
+  min-height:46px;
+  padding:0 19px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+
+  color:#fff;
+
+  background:
+    linear-gradient(
+      100deg,
+      #713cff,
+      #a13bff
+    );
+
+  border:1px solid rgba(196,155,255,.3);
+  border-radius:14px;
+
+  font-size:11px;
+  font-weight:750;
+
+  box-shadow:
+    0 10px 30px rgba(113,60,255,.16);
+
+  transition:.2s;
+}
+
+.save-btn:hover{
+  transform:translateY(-2px);
+  box-shadow:
+    0 14px 35px rgba(113,60,255,.25);
+}
+
+.save-btn svg{
+  width:16px;
+  height:16px;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:1.8;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+
+/* =========================================================
+   CONVERSATION MODAL
+   ========================================================= */
+
 .modal{
   position:fixed;
   inset:0;
-  z-index:500;
+  z-index:100;
+
   display:none;
-  background:rgba(0,0,0,.77);
-  backdrop-filter:blur(12px);
-  padding:14px
+  align-items:center;
+  justify-content:center;
+
+  padding:18px;
+
+  background:rgba(2,1,8,.82);
+  backdrop-filter:blur(16px);
 }
 
 .modal.show{
   display:flex;
-  align-items:center;
-  justify-content:center
 }
 
 .modal-box{
   width:min(900px,100%);
-  height:min(92vh,820px);
+  height:min(91vh,850px);
+
   display:flex;
   flex-direction:column;
-  background:linear-gradient(180deg,#090620,#03020d);
-  border:1px solid rgba(124,53,255,.5);
-  border-radius:22px;
-  box-shadow:0 30px 110px rgba(0,0,0,.7);
-  overflow:hidden
+
+  overflow:hidden;
+
+  border:1px solid rgba(169,120,255,.32);
+  border-radius:25px;
+
+  background:
+    radial-gradient(
+      circle at 50% 0%,
+      rgba(104,58,206,.15),
+      transparent 35%
+    ),
+    #080513;
+
+  box-shadow:
+    0 40px 130px rgba(0,0,0,.7),
+    0 0 70px rgba(100,48,220,.09);
 }
 
-.modal-head{
-  padding:16px 18px;
-  border-bottom:1px solid var(--line2);
+.modal-header{
+  flex:none;
+
   display:flex;
   align-items:center;
-  gap:13px
+  gap:12px;
+
+  padding:15px 17px;
+
+  border-bottom:1px solid rgba(174,125,255,.10);
 }
 
-.modal-brand{
-  display:flex;
-  align-items:center;
-  gap:10px;
-  min-width:0;
-  flex:1
-}
+.modal-icon{
+  width:42px;
+  height:42px;
 
-.modal-logo{
-  width:40px;
-  height:40px;
-  border-radius:13px;
   display:grid;
   place-items:center;
-  background:linear-gradient(145deg,#8536ff,#5a20dc);
-  border:1px solid #aa72ff;
-  box-shadow:0 0 20px rgba(124,53,255,.28)
+
+  border-radius:13px;
+
+  background:
+    linear-gradient(
+      145deg,
+      #8c40ff,
+      #4d20bd
+    );
+
+  border:1px solid rgba(191,147,255,.4);
+
+  box-shadow:0 0 25px rgba(139,92,255,.2);
 }
 
-.modal-logo svg{
+.modal-icon svg{
   width:21px;
   height:21px;
   fill:none;
   stroke:#fff;
-  stroke-width:2;
+  stroke-width:1.8;
   stroke-linecap:round;
-  stroke-linejoin:round
+  stroke-linejoin:round;
 }
 
-.modal-title{min-width:0}
-.modal-title strong{
-  display:block;
-  font-size:17px
+.modal-heading{
+  flex:1;
+  min-width:0;
 }
 
-.modal-title span{
+.modal-heading strong{
   display:block;
-  color:#9f96bd;
-  font-size:11px;
+  font-size:15px;
+}
+
+.modal-heading span{
+  display:block;
   margin-top:3px;
-  white-space:nowrap;
+
   overflow:hidden;
-  text-overflow:ellipsis
+  text-overflow:ellipsis;
+  white-space:nowrap;
+
+  color:#817894;
+
+  font-size:9px;
+  font-family:ui-monospace,monospace;
 }
 
-.close-btn{
-  flex:none;
+.modal-close{
   width:40px;
   height:40px;
-  border-radius:12px;
-  border:1px solid var(--line);
-  background:rgba(124,53,255,.08);
-  color:#fff;
+
   display:grid;
-  place-items:center
+  place-items:center;
+
+  color:#d8d0e8;
+
+  background:rgba(255,255,255,.035);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:12px;
+
+  transition:.18s;
 }
 
-.close-btn svg{
+.modal-close:hover{
+  color:#fff;
+  background:rgba(255,67,199,.1);
+}
+
+.modal-close svg{
   width:18px;
   height:18px;
   fill:none;
   stroke:currentColor;
   stroke-width:2;
-  stroke-linecap:round
+  stroke-linecap:round;
 }
 
 .conversation{
+  flex:1;
+  min-height:0;
   overflow:auto;
-  padding:17px 18px 30px;
-  min-height:0
+
+  padding:18px 20px 30px;
 }
 
-.conversation::-webkit-scrollbar{width:6px}
+.conversation::-webkit-scrollbar{
+  width:6px;
+}
 
 .conversation::-webkit-scrollbar-thumb{
-  background:rgba(124,53,255,.35);
-  border-radius:99px
+  background:rgba(139,92,255,.28);
+  border-radius:99px;
 }
 
 .date-divider{
   display:flex;
   align-items:center;
-  gap:9px;
-  color:#a69dbc;
-  font-size:10px;
-  margin:12px 0 17px
+  gap:10px;
+
+  margin:8px 0 18px;
+
+  color:#776d8b;
+
+  font-size:9px;
 }
 
-.date-divider:before,
-.date-divider:after{
+.date-divider::before,
+.date-divider::after{
   content:"";
   height:1px;
-  background:var(--line2);
-  flex:1
+  flex:1;
+
+  background:rgba(174,125,255,.09);
 }
 
 .date-pill{
-  border:1px solid rgba(124,53,255,.3);
-  background:rgba(124,53,255,.08);
   padding:5px 10px;
-  border-radius:99px
+
+  border:1px solid rgba(174,125,255,.12);
+  border-radius:99px;
+
+  background:rgba(139,92,255,.055);
 }
 
 .message{
   display:flex;
-  margin:0 0 18px
+  margin-bottom:18px;
 }
 
-.message.left{justify-content:flex-start}
-.message.right{justify-content:flex-end}
+.message.left{
+  justify-content:flex-start;
+}
 
-.message-inner{max-width:min(650px,90%)}
+.message.right{
+  justify-content:flex-end;
+}
+
+.message-inner{
+  max-width:min(650px,86%);
+}
 
 .message-info{
   display:flex;
   align-items:center;
   gap:7px;
-  margin:0 0 6px 5px
+
+  margin:0 0 6px 5px;
 }
 
 .sender-name{
-  font-size:12px;
-  font-weight:700
+  font-size:11px;
+  font-weight:750;
 }
 
 .sender-id{
-  font-size:9px;
-  color:#b38bff;
-  background:rgba(124,53,255,.1);
-  border:1px solid rgba(124,53,255,.2);
   padding:3px 7px;
-  border-radius:99px
-}
 
-.message-time{
-  font-size:9px;
-  color:#716982;
-  margin:6px 0 0 5px
+  color:#aa7aff;
+
+  border:1px solid rgba(139,92,255,.16);
+  background:rgba(139,92,255,.055);
+  border-radius:99px;
+
+  font-size:8px;
 }
 
 .bubble{
-  border:1px solid rgba(124,53,255,.2);
-  background:linear-gradient(180deg,rgba(124,53,255,.13),rgba(124,53,255,.07));
-  border-radius:14px;
   padding:11px 13px;
-  color:#eeeaf6;
-  font-size:13px;
-  line-height:1.5;
+
+  color:#eee9f7;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(139,92,255,.13),
+      rgba(139,92,255,.055)
+    );
+
+  border:1px solid rgba(139,92,255,.17);
+  border-radius:15px;
+
+  font-size:12px;
+  line-height:1.55;
+
   white-space:pre-wrap;
-  word-break:break-word
+  word-break:break-word;
 }
 
 .message.right .bubble{
-  background:rgba(124,53,255,.18);
-  border-color:rgba(124,53,255,.32)
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255,67,199,.11),
+      rgba(139,92,255,.12)
+    );
+
+  border-color:rgba(255,67,199,.18);
 }
 
-.message.deleted .message-inner{
-  max-width:min(650px,94%);
-  width:100%
+.message-time{
+  margin:5px 0 0 5px;
+
+  color:#625a70;
+
+  font-size:8px;
 }
 
 .deleted-card{
-  border:1px solid rgba(255,79,160,.52);
-  background:linear-gradient(180deg,rgba(89,17,84,.19),rgba(18,7,31,.76));
-  border-radius:16px;
-  padding:14px
+  padding:15px;
+
+  border:1px solid rgba(255,79,143,.3);
+  border-radius:17px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255,79,143,.065),
+      rgba(30,7,27,.6)
+    );
 }
 
 .deleted-head{
   display:flex;
   align-items:center;
   gap:8px;
-  color:#ff62b1;
-  font-size:11px;
-  font-weight:800;
-  letter-spacing:.04em
+
+  color:#ff71b1;
+
+  font-size:9px;
+  font-weight:850;
+  letter-spacing:.1em;
 }
 
 .deleted-head svg{
-  width:17px;
-  height:17px;
+  width:16px;
+  height:16px;
   fill:none;
   stroke:currentColor;
-  stroke-width:2;
+  stroke-width:1.9;
   stroke-linecap:round;
-  stroke-linejoin:round
+  stroke-linejoin:round;
 }
 
 .deleted-author{
   display:flex;
   align-items:center;
   gap:8px;
-  margin:12px 0 8px
+
+  margin:12px 0 8px;
 }
 
 .deleted-original{
-  color:#eeeaf6;
-  font-size:14px;
+  color:#eee8f5;
+
+  font-size:13px;
   line-height:1.55;
+
   white-space:pre-wrap;
-  word-break:break-word
+  word-break:break-word;
 }
 
 .deleted-original.missing{
-  color:#b8aec9;
-  font-style:italic
+  color:#91869d;
+  font-style:italic;
 }
 
 .preserved{
   display:flex;
   align-items:center;
-  gap:8px;
-  margin-top:12px;
-  padding-top:11px;
-  border-top:1px solid rgba(255,79,160,.15);
-  font-size:10px;
-  color:#c9a8c5
+  gap:7px;
+
+  margin-top:11px;
+  padding-top:10px;
+
+  border-top:1px solid rgba(255,79,143,.10);
+
+  color:#ad8fa8;
+
+  font-size:9px;
 }
 
 .preserved svg{
-  width:15px;
-  height:15px;
-  fill:none;
-  stroke:#ff62b1;
-  stroke-width:2;
-  stroke-linecap:round;
-  stroke-linejoin:round
-}
-
-.deleted-time{
-  display:flex;
-  align-items:center;
-  gap:7px;
-  margin-top:9px;
-  font-size:10px;
-  color:#8e7d99
-}
-
-.deleted-time svg{
   width:14px;
   height:14px;
   fill:none;
-  stroke:currentColor;
+  stroke:#ff71b1;
   stroke-width:1.8;
   stroke-linecap:round;
-  stroke-linejoin:round
+  stroke-linejoin:round;
 }
 
 .conversation-empty{
-  min-height:260px;
+  min-height:300px;
+
   display:grid;
   place-items:center;
+
+  color:var(--muted);
+
   text-align:center;
-  color:var(--muted)
+  font-size:12px;
 }
 
-/* LOGIN */
+/* =========================================================
+   LOGIN
+   ========================================================= */
+
 .login{
-  max-width:460px;
-  margin:12vh auto;
-  background:linear-gradient(145deg,#100d2b,#071827);
-  border:1px solid #8c6cff88;
-  border-radius:24px;
-  padding:28px;
+  position:relative;
+  z-index:2;
+
+  width:min(440px,calc(100% - 30px));
+  margin:14vh auto;
+
+  padding:30px;
+
   text-align:center;
-  box-shadow:0 25px 80px rgba(0,0,0,.45)
+
+  border:1px solid rgba(174,125,255,.25);
+  border-radius:25px;
+
+  background:
+    radial-gradient(
+      circle at 50% 0%,
+      rgba(139,92,255,.18),
+      transparent 45%
+    ),
+    rgba(12,8,28,.9);
+
+  box-shadow:
+    0 30px 100px rgba(0,0,0,.55);
 }
 
-.login h2{margin-bottom:8px}
+.login-logo{
+  width:62px;
+  height:62px;
+
+  margin:0 auto 17px;
+
+  display:grid;
+  place-items:center;
+
+  border-radius:20px;
+
+  background:
+    linear-gradient(
+      145deg,
+      #9b42ff,
+      #5420d8
+    );
+
+  border:1px solid rgba(211,171,255,.55);
+  box-shadow:0 0 35px rgba(139,92,255,.3);
+}
+
+.login-logo svg{
+  width:29px;
+  height:29px;
+  fill:none;
+  stroke:#fff;
+  stroke-width:1.8;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+
+.login h2{
+  font-size:21px;
+}
 
 .login p{
+  margin-top:7px;
+
   color:var(--muted);
-  line-height:1.5;
-  font-size:13px
+
+  font-size:12px;
+  line-height:1.55;
 }
 
-.login .btn{margin-top:18px}
+.login button{
+  width:100%;
+  min-height:46px;
 
-/* TOAST */
+  margin-top:19px;
+
+  color:#fff;
+
+  background:
+    linear-gradient(
+      100deg,
+      #ff40bd,
+      #723cff
+    );
+
+  border:0;
+  border-radius:14px;
+
+  font-size:12px;
+  font-weight:750;
+
+  box-shadow:0 12px 35px rgba(172,55,224,.2);
+}
+
+/* =========================================================
+   TOAST
+   ========================================================= */
+
 .toast{
   position:fixed;
-  right:18px;
-  bottom:18px;
-  max-width:380px;
+  z-index:500;
+
+  right:20px;
+  bottom:20px;
+
+  max-width:min(390px,calc(100% - 40px));
+
   padding:12px 15px;
-  border:1px solid rgba(69,230,155,.4);
-  background:#08150f;
-  color:#d8ffea;
-  border-radius:12px;
-  box-shadow:0 15px 40px rgba(0,0,0,.35);
+
+  color:#dcffef;
+
+  background:
+    linear-gradient(
+      145deg,
+      #0d2018,
+      #07120e
+    );
+
+  border:1px solid rgba(73,232,163,.28);
+  border-radius:14px;
+
+  box-shadow:
+    0 18px 50px rgba(0,0,0,.45);
+
+  font-size:11px;
+
   opacity:0;
-  transform:translateY(8px);
+  transform:translateY(12px);
+
   pointer-events:none;
-  transition:.2s;
-  z-index:1000
+
+  transition:.22s;
 }
 
 .toast.show{
   opacity:1;
-  transform:none
+  transform:none;
 }
 
 .toast.error{
-  border-color:rgba(255,79,160,.4);
-  background:#1b0813;
-  color:#ffd5e5
+  color:#ffd7e7;
+  background:#210b17;
+  border-color:rgba(255,79,143,.3);
 }
 
-@media(max-width:760px){
-  body{padding:14px}
-  .stats{grid-template-columns:1fr 1fr}
-  .people{grid-template-columns:1fr}
-  .modal{padding:8px}
-  .modal-box{height:95vh;border-radius:18px}
-  .conversation{padding:14px}
-  .moderation-grid{grid-template-columns:1fr}
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media(max-width:900px){
+
+  .app{
+    width:min(100% - 28px,700px);
+    padding-top:18px;
+  }
+
+  .stats{
+    grid-template-columns:1fr 1fr;
+  }
+
+  .hero{
+    align-items:flex-start;
+    flex-direction:column;
+  }
+
+  .filter-bar{
+    align-items:flex-start;
+    flex-direction:column;
+  }
+
+  .filter-note{
+    display:none;
+  }
+
 }
 
-@media(max-width:480px){
-  .topbar{align-items:flex-start}
-  .brand h1{font-size:19px}
-  .actions{gap:6px}
-  .icon-btn{width:40px;height:40px}
-  .stats{gap:7px}
-  .stat{padding:12px}
-  .stat strong{font-size:21px}
-  .stat-icon{width:27px;height:27px}
-  .controls{grid-template-columns:1fr}
-  .notes,.save,.moderation-box{grid-column:1}
-  .message-inner{max-width:95%}
-  .ban-actions{grid-template-columns:1fr}
+@media(max-width:650px){
+
+  .app{
+    width:calc(100% - 20px);
+    padding-bottom:35px;
+  }
+
+  .header{
+    margin-bottom:18px;
+  }
+
+  .brand-logo{
+    width:49px;
+    height:49px;
+    border-radius:16px;
+  }
+
+  .brand-title{
+    font-size:21px;
+  }
+
+  .brand-subtitle{
+    font-size:10px;
+  }
+
+  .header-btn{
+    width:43px;
+    height:43px;
+    padding:0;
+    justify-content:center;
+  }
+
+  .header-btn span{
+    display:none;
+  }
+
+  .hero{
+    padding:19px;
+    border-radius:21px;
+  }
+
+  .hero h2{
+    font-size:20px;
+  }
+
+  .hero-side{
+    width:100%;
+  }
+
+  .stats{
+    gap:8px;
+  }
+
+  .stat-card{
+    padding:13px;
+    border-radius:17px;
+  }
+
+  .stat-icon{
+    width:33px;
+    height:33px;
+  }
+
+  .stat-number{
+    font-size:23px;
+  }
+
+  .stat-name{
+    font-size:10px;
+  }
+
+  .tabs{
+    width:100%;
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+  }
+
+  .tab{
+    justify-content:center;
+    padding:9px 5px;
+  }
+
+  .people-grid,
+  .info-grid,
+  .control-grid,
+  .ban-row{
+    grid-template-columns:1fr;
+  }
+
+  .info-card.full,
+  .control.full,
+  .ban-panel,
+  .save-row{
+    grid-column:1;
+  }
+
+  .report-main{
+    padding:16px;
+  }
+
+  .report-header{
+    align-items:flex-start;
+  }
+
+  .report-heading{
+    min-width:0;
+  }
+
+  .report-title{
+    font-size:14px;
+  }
+
+  .status-pill{
+    padding:7px 9px;
+    font-size:9px;
+  }
+
+  .report-icon{
+    width:40px;
+    height:40px;
+  }
+
+  .ban-actions{
+    grid-template-columns:1fr;
+  }
+
+  .save-row{
+    display:block;
+  }
+
+  .save-btn{
+    width:100%;
+  }
+
+  .modal{
+    padding:7px;
+  }
+
+  .modal-box{
+    height:96vh;
+    border-radius:20px;
+  }
+
+  .conversation{
+    padding:14px;
+  }
+
+  .message-inner{
+    max-width:94%;
+  }
+
+}
+
+@media(max-width:420px){
+
+  .tabs{
+    grid-template-columns:repeat(2,1fr);
+  }
+
+  .stats{
+    grid-template-columns:1fr 1fr;
+  }
+
+  .hero-side{
+    font-size:9px;
+  }
+
+  .person-card{
+    padding:12px;
+  }
+
+  .moderation{
+    margin-top:15px;
+  }
+
 }
 </style>
 </head>
 
 <body>
 
-<div class="shell" id="app" style="display:none">
+<!-- =======================================================
+     APP
+     ======================================================= -->
 
-<header class="topbar">
-  <div class="brand">
-    <div class="logo">
-      <svg viewBox="0 0 24 24">
-        <path d="M5 5.5h14v9H11l-4 4v-4H5z"/>
-        <path d="M8 9.5h8M8 12h5"/>
-      </svg>
-    </div>
-    <div>
-      <h1>ToTalk</h1>
-      <p>Admin Panel</p>
-    </div>
-  </div>
+<div class="app" id="app" style="display:none">
 
-  <div class="actions">
-    <button class="icon-btn" id="refreshBtn" title="Refresh" aria-label="Refresh">
-      <svg viewBox="0 0 24 24">
-        <path d="M20 11a8 8 0 0 0-14.9-4"/>
-        <path d="M5 3v4h4"/>
-        <path d="M4 13a8 8 0 0 0 14.9 4"/>
-        <path d="M19 21v-4h-4"/>
-      </svg>
-    </button>
+  <!-- HEADER -->
 
-    <button class="icon-btn danger" id="signOutBtn" title="Sign out" aria-label="Sign out">
-      <svg viewBox="0 0 24 24">
-        <path d="M10 17l5-5-5-5"/>
-        <path d="M15 12H3"/>
-        <path d="M21 3v18"/>
-      </svg>
-    </button>
-  </div>
-</header>
+  <header class="header">
 
-<div class="banner" id="errorBanner"></div>
+    <div class="brand">
 
-<section class="stats">
+      <div class="brand-logo">
 
-  <div class="stat pending">
-    <div class="stat-top">
-      <div class="stat-icon">
         <svg viewBox="0 0 24 24">
-          <circle cx="12" cy="12" r="8"/>
-          <path d="M12 8v5l3 2"/>
+          <path d="M5 5.5h14v9H11l-4 4v-4H5z"/>
+          <path d="M8 9.5h8M8 12h5"/>
         </svg>
-      </div>
-      <span>Pending</span>
-      <strong id="countPending">0</strong>
-    </div>
-  </div>
-
-  <div class="stat investigating">
-    <div class="stat-top">
-      <div class="stat-icon">
-        <svg viewBox="0 0 24 24">
-          <circle cx="10.5" cy="10.5" r="6.5"/>
-          <path d="m16 16 4 4"/>
-        </svg>
-      </div>
-      <span>Investigating</span>
-      <strong id="countInvestigating">0</strong>
-    </div>
-  </div>
-
-  <div class="stat resolved">
-    <div class="stat-top">
-      <div class="stat-icon">
-        <svg viewBox="0 0 24 24">
-          <circle cx="12" cy="12" r="8"/>
-          <path d="m8.5 12 2.3 2.3 4.8-5"/>
-        </svg>
-      </div>
-      <span>Resolved</span>
-      <strong id="countResolved">0</strong>
-    </div>
-  </div>
-
-  <div class="stat dismissed">
-    <div class="stat-top">
-      <div class="stat-icon">
-        <svg viewBox="0 0 24 24">
-          <circle cx="12" cy="12" r="8"/>
-          <path d="M8 12h8"/>
-        </svg>
-      </div>
-      <span>Dismissed</span>
-      <strong id="countDismissed">0</strong>
-    </div>
-  </div>
-
-</section>
-
-<div class="toolbar">
-  <div class="tabs" id="tabs">
-    <button class="tab active" data-status="pending">Pending</button>
-    <button class="tab" data-status="investigating">Investigating</button>
-    <button class="tab" data-status="resolved">Resolved</button>
-    <button class="tab" data-status="dismissed">Dismissed</button>
-    <button class="tab" data-status="all">All</button>
-  </div>
-</div>
-
-<main class="reports" id="reports">
-  <div class="loading">Loading reports…</div>
-</main>
-
-</div>
-
-<!-- LOGIN -->
-<div class="login" id="loginBox" style="display:none">
-  <h2>Owner access required</h2>
-  <p>
-    You must be signed in with a ToTalk account that has an owner,
-    admin, or moderator role.
-  </p>
-  <button class="btn" id="goChatBtn">Open ToTalk</button>
-</div>
-
-<!-- CONVERSATION MODAL -->
-<div class="modal" id="conversationModal">
-
-  <div class="modal-box">
-
-    <div class="modal-head">
-
-      <div class="modal-brand">
-
-        <div class="modal-logo">
-          <svg viewBox="0 0 24 24">
-            <path d="M5 5.5h14v9H11l-4 4v-4H5z"/>
-            <path d="M8 9.5h8M8 12h5"/>
-          </svg>
-        </div>
-
-        <div class="modal-title">
-          <strong>Conversation</strong>
-          <span id="conversationIdLabel">Loading…</span>
-        </div>
 
       </div>
 
-      <button class="close-btn" id="closeConversationBtn" aria-label="Close">
+      <div>
+        <div class="brand-title">TOTalk</div>
+        <div class="brand-subtitle">Moderation Center</div>
+      </div>
+
+    </div>
+
+
+    <div class="header-actions">
+
+      <button
+        class="header-btn"
+        id="refreshBtn"
+        title="Refresh reports"
+      >
+
         <svg viewBox="0 0 24 24">
-          <path d="M6 6l12 12M18 6 6 18"/>
+          <path d="M20 11a8 8 0 0 0-14.9-4"/>
+          <path d="M5 3v4h4"/>
+          <path d="M4 13a8 8 0 0 0 14.9 4"/>
+          <path d="M19 21v-4h-4"/>
         </svg>
+
+        <span>Refresh</span>
+
+      </button>
+
+
+      <button
+        class="header-btn logout"
+        id="signOutBtn"
+        title="Sign out"
+      >
+
+        <svg viewBox="0 0 24 24">
+          <path d="M10 17l5-5-5-5"/>
+          <path d="M15 12H3"/>
+          <path d="M21 3v18"/>
+        </svg>
+
+        <span>Sign out</span>
+
       </button>
 
     </div>
 
-    <div class="conversation" id="conversation">
+  </header>
+
+
+  <!-- HERO -->
+
+  <section class="hero">
+
+    <div class="hero-content">
+
+      <div class="eyebrow">
+        <span class="live-dot"></span>
+        Secure moderation workspace
+      </div>
+
+      <h2>Keep ToTalk safe.</h2>
+
+      <p>
+        Review reports, inspect conversations and take moderation action.
+      </p>
+
+    </div>
+
+
+    <div class="hero-side">
+
+      <svg viewBox="0 0 24 24">
+        <path d="M12 3 4 6v5c0 5 3.2 8.2 8 10 4.8-1.8 8-5 8-10V6z"/>
+        <path d="m8.5 12 2.2 2.2 4.8-5"/>
+      </svg>
+
+      Reports require manual review
+
+    </div>
+
+  </section>
+
+
+  <!-- ERROR -->
+
+  <div class="error-banner" id="errorBanner"></div>
+
+
+  <!-- STATS -->
+
+  <section class="stats">
+
+    <div class="stat-card pending">
+
+      <div class="stat-top">
+
+        <div class="stat-icon">
+
+          <svg viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="8"/>
+            <path d="M12 8v5l3 2"/>
+          </svg>
+
+        </div>
+
+        <span class="stat-name">Pending</span>
+
+        <strong
+          class="stat-number"
+          id="countPending"
+        >0</strong>
+
+      </div>
+
+    </div>
+
+
+    <div class="stat-card investigating">
+
+      <div class="stat-top">
+
+        <div class="stat-icon">
+
+          <svg viewBox="0 0 24 24">
+            <circle cx="10.5" cy="10.5" r="6.5"/>
+            <path d="m16 16 4 4"/>
+          </svg>
+
+        </div>
+
+        <span class="stat-name">Investigating</span>
+
+        <strong
+          class="stat-number"
+          id="countInvestigating"
+        >0</strong>
+
+      </div>
+
+    </div>
+
+
+    <div class="stat-card resolved">
+
+      <div class="stat-top">
+
+        <div class="stat-icon">
+
+          <svg viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="8"/>
+            <path d="m8.5 12 2.3 2.3 4.8-5"/>
+          </svg>
+
+        </div>
+
+        <span class="stat-name">Resolved</span>
+
+        <strong
+          class="stat-number"
+          id="countResolved"
+        >0</strong>
+
+      </div>
+
+    </div>
+
+
+    <div class="stat-card dismissed">
+
+      <div class="stat-top">
+
+        <div class="stat-icon">
+
+          <svg viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="8"/>
+            <path d="M8 12h8"/>
+          </svg>
+
+        </div>
+
+        <span class="stat-name">Dismissed</span>
+
+        <strong
+          class="stat-number"
+          id="countDismissed"
+        >0</strong>
+
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <!-- FILTER -->
+
+  <section class="filter-bar">
+
+    <div class="tabs" id="tabs">
+
+      <button
+        class="tab active"
+        data-status="pending"
+      >
+        Pending
+        <span class="tab-count" id="tabPending">0</span>
+      </button>
+
+      <button
+        class="tab"
+        data-status="investigating"
+      >
+        Investigating
+        <span class="tab-count" id="tabInvestigating">0</span>
+      </button>
+
+      <button
+        class="tab"
+        data-status="resolved"
+      >
+        Resolved
+        <span class="tab-count" id="tabResolved">0</span>
+      </button>
+
+      <button
+        class="tab"
+        data-status="dismissed"
+      >
+        Dismissed
+        <span class="tab-count" id="tabDismissed">0</span>
+      </button>
+
+      <button
+        class="tab"
+        data-status="all"
+      >
+        All
+        <span class="tab-count" id="tabAll">0</span>
+      </button>
+
+    </div>
+
+
+    <div class="filter-note">
+      Moderators only
+    </div>
+
+  </section>
+
+
+  <!-- REPORTS -->
+
+  <main
+    class="reports"
+    id="reports"
+  >
+    <div class="loading">
+      Loading moderation queue…
+    </div>
+  </main>
+
+</div>
+
+
+<!-- =======================================================
+     LOGIN
+     ======================================================= -->
+
+<div
+  class="login"
+  id="loginBox"
+  style="display:none"
+>
+
+  <div class="login-logo">
+
+    <svg viewBox="0 0 24 24">
+      <path d="M5 5.5h14v9H11l-4 4v-4H5z"/>
+      <path d="M8 9.5h8M8 12h5"/>
+    </svg>
+
+  </div>
+
+  <h2>Protected moderation area</h2>
+
+  <p>
+    Sign in with a ToTalk account that has
+    owner, admin or moderator access.
+  </p>
+
+  <button id="goChatBtn">
+    Open ToTalk
+  </button>
+
+</div>
+
+
+<!-- =======================================================
+     CONVERSATION MODAL
+     ======================================================= -->
+
+<div
+  class="modal"
+  id="conversationModal"
+>
+
+  <div class="modal-box">
+
+    <div class="modal-header">
+
+      <div class="modal-icon">
+
+        <svg viewBox="0 0 24 24">
+          <path d="M5 5.5h14v9H11l-4 4v-4H5z"/>
+          <path d="M8 9.5h8M8 12h5"/>
+        </svg>
+
+      </div>
+
+
+      <div class="modal-heading">
+
+        <strong>Conversation review</strong>
+
+        <span id="conversationIdLabel">
+          Loading…
+        </span>
+
+      </div>
+
+
+      <button
+        class="modal-close"
+        id="closeConversationBtn"
+        aria-label="Close conversation"
+      >
+
+        <svg viewBox="0 0 24 24">
+          <path d="M6 6l12 12M18 6 6 18"/>
+        </svg>
+
+      </button>
+
+    </div>
+
+
+    <div
+      class="conversation"
+      id="conversation"
+    >
+
       <div class="conversation-empty">
         Loading conversation…
       </div>
+
     </div>
 
   </div>
 
 </div>
 
-<div class="toast" id="toast"></div>
+
+<!-- TOAST -->
+
+<div
+  class="toast"
+  id="toast"
+></div>
+
 
 <script>
 
@@ -1145,132 +2555,177 @@ button{cursor:pointer}
    SUPABASE
    ========================================================= */
 
-const SUPABASE_URL="https://qiynczbrhpxwuabwuyiy.supabase.co";
-const SUPABASE_KEY="sb_publishable_eUPz4c_nYckgINEK-AIWqw_JAXIHozd";
+const SUPABASE_URL =
+  "https://qiynczbrhpxwuabwuyiy.supabase.co";
 
-const supabaseClient=supabase.createClient(
-  SUPABASE_URL,
-  SUPABASE_KEY,
-  {
-    auth:{
-      persistSession:true,
-      autoRefreshToken:true,
-      detectSessionInUrl:true
+const SUPABASE_KEY =
+  "sb_publishable_eUPz4c_nYckgINEK-AIWqw_JAXIHozd";
+
+const supabaseClient =
+  supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY,
+    {
+      auth:{
+        persistSession:true,
+        autoRefreshToken:true,
+        detectSessionInUrl:true
+      }
     }
-  }
-);
+  );
 
 
 /* =========================================================
    ELEMENTS
    ========================================================= */
 
-const app=document.getElementById("app");
-const loginBox=document.getElementById("loginBox");
-const reportsEl=document.getElementById("reports");
-const errorBanner=document.getElementById("errorBanner");
-const toast=document.getElementById("toast");
+const app =
+  document.getElementById("app");
 
-const conversationModal=document.getElementById("conversationModal");
-const conversationEl=document.getElementById("conversation");
-const conversationIdLabel=document.getElementById("conversationIdLabel");
+const loginBox =
+  document.getElementById("loginBox");
+
+const reportsEl =
+  document.getElementById("reports");
+
+const errorBanner =
+  document.getElementById("errorBanner");
+
+const toast =
+  document.getElementById("toast");
+
+const conversationModal =
+  document.getElementById("conversationModal");
+
+const conversationEl =
+  document.getElementById("conversation");
+
+const conversationIdLabel =
+  document.getElementById("conversationIdLabel");
 
 
 /* =========================================================
    STATE
    ========================================================= */
 
-let currentStatus="pending";
-let allReports=[];
-let conversationTimer=null;
+let currentStatus = "pending";
+let allReports = [];
 
 
 /* =========================================================
    HELPERS
    ========================================================= */
 
-function esc(v){
-  return String(v??"").replace(
-    /[&<>'"]/g,
-    c=>({
-      "&":"&amp;",
-      "<":"&lt;",
-      ">":"&gt;",
-      "'":"&#39;",
-      '"':"&quot;"
-    }[c])
+function esc(value){
+
+  return String(value ?? "")
+    .replace(
+      /[&<>'"]/g,
+      char => ({
+        "&":"&amp;",
+        "<":"&lt;",
+        ">":"&gt;",
+        "'":"&#39;",
+        '"':"&quot;"
+      }[char])
+    );
+
+}
+
+
+function fmtDate(value){
+
+  if(!value){
+    return "—";
+  }
+
+  const date =
+    new Date(value);
+
+  if(
+    isNaN(date.getTime())
+  ){
+    return String(value);
+  }
+
+  return date.toLocaleString(
+    [],
+    {
+      dateStyle:"medium",
+      timeStyle:"short"
+    }
   );
+
 }
 
-function fmtDate(v){
-  if(!v)return "—";
-
-  const d=new Date(v);
-
-  return isNaN(d.getTime())
-    ? String(v)
-    : d.toLocaleString([],{
-        dateStyle:"medium",
-        timeStyle:"short"
-      });
-}
-
-function fmtTime(v){
-  if(!v)return "";
-
-  const d=new Date(v);
-
-  return isNaN(d.getTime())
-    ? ""
-    : d.toLocaleTimeString([],{
-        hour:"2-digit",
-        minute:"2-digit"
-      });
-}
 
 function showError(message){
-  errorBanner.textContent=message||"";
-  errorBanner.classList.toggle("show",!!message);
+
+  errorBanner.textContent =
+    message || "";
+
+  errorBanner.classList.toggle(
+    "show",
+    !!message
+  );
+
 }
 
-function showToast(message,isError=false){
-  toast.textContent=message;
-  toast.classList.toggle("error",!!isError);
-  toast.classList.add("show");
 
-  clearTimeout(showToast.timer);
+function showToast(
+  message,
+  isError=false
+){
 
-  showToast.timer=setTimeout(()=>{
-    toast.classList.remove("show");
-  },3000);
+  toast.textContent =
+    message;
+
+  toast.classList.toggle(
+    "error",
+    isError
+  );
+
+  toast.classList.add(
+    "show"
+  );
+
+  clearTimeout(
+    showToast.timer
+  );
+
+  showToast.timer =
+    setTimeout(
+      ()=>{
+        toast.classList.remove(
+          "show"
+        );
+      },
+      3200
+    );
+
 }
 
 
 /* =========================================================
-   UUID CHECK
+   UUID
    ========================================================= */
 
 function isUUID(value){
-  if(!value)return false;
 
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
-    String(value)
-  );
+  if(!value){
+    return false;
+  }
+
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+    .test(String(value));
+
 }
 
 
-/*
-  Different versions of admin_list_reports may return
-  different column names.
-
-  We prefer an actual UUID because apply_temporary_ban()
-  requires:
-
-  target_user uuid
-*/
 function getReportedUserUUID(report){
 
-  const possible=[
+  const possible = [
+
     report.reported_user_id,
     report.reported_auth_user_id,
     report.target_user_id,
@@ -1279,13 +2734,25 @@ function getReportedUserUUID(report){
     report.reported_id,
     report.reported_uuid,
     report.reported_user_uuid
+
   ];
 
-  for(const value of possible){
-    if(isUUID(value))return String(value);
+  for(
+    const value of possible
+  ){
+
+    if(
+      isUUID(value)
+    ){
+
+      return String(value);
+
+    }
+
   }
 
   return null;
+
 }
 
 
@@ -1294,23 +2761,31 @@ function getReportedUserUUID(report){
    ========================================================= */
 
 function avatar(){
+
   return `
     <div class="avatar">
+
       <svg viewBox="0 0 24 24">
         <circle cx="12" cy="8" r="3.2"/>
         <path d="M5.5 20c.8-4 3-6 6.5-6s5.7 2 6.5 6"/>
       </svg>
+
     </div>
   `;
+
 }
 
+
 function reportIcon(){
+
   return `
     <svg viewBox="0 0 24 24">
       <path d="M12 3 4 6v5c0 5 3.2 8.2 8 10 4.8-1.8 8-5 8-10V6z"/>
-      <path d="M12 8v4M12 15h.01"/>
+      <path d="M12 8v4"/>
+      <path d="M12 15h.01"/>
     </svg>
   `;
+
 }
 
 
@@ -1320,26 +2795,78 @@ function reportIcon(){
 
 function setCounts(rows){
 
-  const c={
+  const counts = {
     pending:0,
     investigating:0,
     resolved:0,
     dismissed:0
   };
 
-  rows.forEach(r=>{
-    if(c[r.status]!==undefined){
-      c[r.status]++;
+
+  rows.forEach(
+    report => {
+
+      if(
+        counts[report.status]
+        !== undefined
+      ){
+
+        counts[
+          report.status
+        ]++;
+
+      }
+
     }
-  });
+  );
 
-  for(const k of Object.keys(c)){
-    const el=document.getElementById(
-      "count"+k[0].toUpperCase()+k.slice(1)
-    );
 
-    if(el)el.textContent=c[k];
-  }
+  document.getElementById(
+    "countPending"
+  ).textContent =
+    counts.pending;
+
+  document.getElementById(
+    "countInvestigating"
+  ).textContent =
+    counts.investigating;
+
+  document.getElementById(
+    "countResolved"
+  ).textContent =
+    counts.resolved;
+
+  document.getElementById(
+    "countDismissed"
+  ).textContent =
+    counts.dismissed;
+
+
+  document.getElementById(
+    "tabPending"
+  ).textContent =
+    counts.pending;
+
+  document.getElementById(
+    "tabInvestigating"
+  ).textContent =
+    counts.investigating;
+
+  document.getElementById(
+    "tabResolved"
+  ).textContent =
+    counts.resolved;
+
+  document.getElementById(
+    "tabDismissed"
+  ).textContent =
+    counts.dismissed;
+
+  document.getElementById(
+    "tabAll"
+  ).textContent =
+    rows.length;
+
 }
 
 
@@ -1347,26 +2874,46 @@ function setCounts(rows){
    PERSON
    ========================================================= */
 
-function person(label,name,id){
+function person(
+  label,
+  name,
+  id
+){
 
   return `
-    <div class="person">
+    <div class="person-card">
 
-      <label>${esc(label)}</label>
+      <div class="person-label">
+        ${esc(label)}
+      </div>
 
-      <div class="person-main">
+      <div class="person-content">
 
         ${avatar()}
 
         <div>
-          <strong>${esc(name||"Unknown user")}</strong>
-          <code>${esc(id||"No ToTalk ID")}</code>
+
+          <span class="person-name">
+            ${esc(
+              name ||
+              "Unknown user"
+            )}
+          </span>
+
+          <span class="person-id">
+            ${esc(
+              id ||
+              "No ToTalk ID"
+            )}
+          </span>
+
         </div>
 
       </div>
 
     </div>
   `;
+
 }
 
 
@@ -1374,336 +2921,542 @@ function person(label,name,id){
    REPORT CARD
    ========================================================= */
 
-function card(r){
+function card(report){
 
-  const status=[
-    "pending",
-    "investigating",
-    "resolved",
-    "dismissed"
-  ].includes(r.status)
-    ? r.status
-    : "pending";
+  const status =
+    [
+      "pending",
+      "investigating",
+      "resolved",
+      "dismissed"
+    ].includes(report.status)
+      ? report.status
+      : "pending";
 
-  const reportedUUID=getReportedUserUUID(r);
+
+  const reportedUUID =
+    getReportedUserUUID(
+      report
+    );
+
 
   return `
-    <article class="card" data-id="${esc(r.id)}">
 
-      <div class="card-head">
+    <article
+      class="report-card"
+      data-id="${esc(report.id)}"
+    >
 
-        <div class="report-title">
+      <div class="report-accent"></div>
 
-          <div class="report-badge">
-            ${reportIcon()}
-          </div>
+      <div class="report-main">
 
-          <div>
-            <strong>Report #${esc(r.id)}</strong>
 
-            <div class="idline">
-              Submitted ${esc(fmtDate(r.created_at))}
+        <!-- REPORT HEADER -->
+
+        <div class="report-header">
+
+          <div class="report-heading">
+
+            <div class="report-icon">
+              ${reportIcon()}
             </div>
+
+            <div>
+
+              <div class="report-title">
+                Report #${esc(report.id)}
+              </div>
+
+              <div class="report-date">
+                Submitted
+                ${esc(
+                  fmtDate(
+                    report.created_at
+                  )
+                )}
+              </div>
+
+            </div>
+
+          </div>
+
+
+          <div class="status-pill ${status}">
+
+            <span class="status-dot"></span>
+
+            ${esc(
+              status
+                .charAt(0)
+                .toUpperCase() +
+              status.slice(1)
+            )}
+
           </div>
 
         </div>
 
-        <span class="status ${status}">
-          <i class="status-dot"></i>
-          ${esc(status[0].toUpperCase()+status.slice(1))}
-        </span>
 
-      </div>
+        <!-- PEOPLE -->
 
+        <div class="people-grid">
 
-      <div class="people">
+          ${person(
+            "Reporter",
+            report.reporter_name,
+            report.reporter_totalk_id
+          )}
 
-        ${person(
-          "Reporter",
-          r.reporter_name,
-          r.reporter_totalk_id
-        )}
-
-        ${person(
-          "Reported user",
-          r.reported_name,
-          r.reported_totalk_id
-        )}
-
-      </div>
-
-
-      <div class="info-box">
-
-        <div class="info-label">
-
-          <svg viewBox="0 0 24 24">
-            <rect x="5" y="4" width="14" height="16" rx="2"/>
-            <path d="M8 8h8M8 12h6"/>
-          </svg>
-
-          Reason
+          ${person(
+            "Reported user",
+            report.reported_name,
+            report.reported_totalk_id
+          )}
 
         </div>
 
-        <div class="info-value">
-          ${esc(r.reason||"Not specified")}
-        </div>
 
-      </div>
+        <!-- REPORT INFORMATION -->
+
+        <div class="info-grid">
 
 
-      ${
-        r.details
-        ? `
-          <div class="info-box">
+          <div class="info-card">
 
             <div class="info-label">
 
               <svg viewBox="0 0 24 24">
-                <path d="M5 5h14v10H9l-4 4z"/>
-                <path d="M8 9h8M8 12h5"/>
+                <path d="M5 5h14v14H5z"/>
+                <path d="M8 9h8M8 12h6M8 15h4"/>
               </svg>
 
-              Details
+              Reason
 
             </div>
 
             <div class="info-value">
-              ${esc(r.details)}
+
+              ${esc(
+                report.reason ||
+                "Not specified"
+              )}
+
             </div>
 
           </div>
-        `
-        : ""
-      }
 
 
-      <div class="info-box">
+          <div class="info-card">
 
-        <div class="info-label">
+            <div class="info-label">
 
-          <svg viewBox="0 0 24 24">
-            <path d="M4 12a8 8 0 0 1 14-5l2 2"/>
-            <path d="M20 12a8 8 0 0 1-14 5l-2-2"/>
-          </svg>
+              <svg viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="8"/>
+                <path d="M12 8v4l3 2"/>
+              </svg>
 
-          Conversation ID
+              Report date
 
-        </div>
+            </div>
 
-        <div class="info-value">
-          ${esc(r.conversation_id||"—")}
-        </div>
+            <div class="info-value">
 
-      </div>
+              ${esc(
+                fmtDate(
+                  report.created_at
+                )
+              )}
 
+            </div>
 
-      ${
-        r.conversation_id
-        ? `
-          <button
-            class="btn view"
-            data-view-conversation="1"
-            data-conversation-id="${esc(r.conversation_id)}"
-          >
-
-            <svg viewBox="0 0 24 24">
-              <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12z"/>
-              <circle cx="12" cy="12" r="2.5"/>
-            </svg>
-
-            View Conversation
-
-            <span class="arrow">›</span>
-
-          </button>
-        `
-        : ""
-      }
+          </div>
 
 
-      <div class="controls">
+          ${
+            report.details
+            ? `
+
+              <div class="info-card full">
+
+                <div class="info-label">
+
+                  <svg viewBox="0 0 24 24">
+                    <path d="M5 5h14v10H9l-4 4z"/>
+                    <path d="M8 9h8M8 12h5"/>
+                  </svg>
+
+                  Report details
+
+                </div>
+
+                <div class="info-value">
+                  ${esc(report.details)}
+                </div>
+
+              </div>
+
+            `
+            : ""
+          }
 
 
-        <!-- REPORT STATUS -->
+          <div class="info-card full">
 
-        <div class="field">
+            <div class="info-label">
 
-          <label>Status</label>
+              <svg viewBox="0 0 24 24">
+                <path d="M4 12a8 8 0 0 1 14-5l2 2"/>
+                <path d="M20 12a8 8 0 0 1-14 5l-2-2"/>
+              </svg>
 
-          <select class="statusSelect">
+              Conversation
 
-            <option value="pending">Pending</option>
-            <option value="investigating">Investigating</option>
-            <option value="resolved">Resolved</option>
-            <option value="dismissed">Dismissed</option>
+            </div>
 
-          </select>
+            <div class="info-value conversation-id">
+              ${esc(
+                report.conversation_id ||
+                "No conversation ID"
+              )}
+            </div>
 
-        </div>
-
-
-        <!-- REPORT ACTION -->
-
-        <div class="field">
-
-          <label>Report Action</label>
-
-          <select class="actionSelect">
-
-            <option value="">No action</option>
-            <option value="warning">Warning</option>
-            <option value="restrict">Restrict</option>
-            <option value="suspend">Suspend</option>
-            <option value="ban">Temporary Ban</option>
-
-          </select>
+          </div>
 
         </div>
+
+
+        ${
+          report.conversation_id
+          ? `
+
+            <button
+              class="view-conversation"
+              data-view-conversation="1"
+              data-conversation-id="${esc(
+                report.conversation_id
+              )}"
+            >
+
+              <svg viewBox="0 0 24 24">
+                <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12z"/>
+                <circle cx="12" cy="12" r="2.5"/>
+              </svg>
+
+              Review conversation
+
+              <span class="view-arrow">
+                →
+              </span>
+
+            </button>
+
+          `
+          : ""
+        }
 
 
         <!-- MODERATION -->
 
-        <div class="moderation-box">
+        <section class="moderation">
 
-          <div class="moderation-title">
 
-            <svg viewBox="0 0 24 24">
-              <path d="M12 3 4 6v5c0 5 3.2 8.2 8 10 4.8-1.8 8-5 8-10V6z"/>
-              <path d="M12 8v4"/>
-              <path d="M12 15h.01"/>
-            </svg>
+          <div class="moderation-header">
 
-            User Moderation
+            <div class="moderation-title">
+
+              <div class="moderation-title-icon">
+
+                <svg viewBox="0 0 24 24">
+                  <path d="M12 3 4 6v5c0 5 3.2 8.2 8 10 4.8-1.8 8-5 8-10V6z"/>
+                  <path d="M12 8v4"/>
+                  <path d="M12 15h.01"/>
+                </svg>
+
+              </div>
+
+              <div>
+
+                <strong>
+                  Moderation action
+                </strong>
+
+                <span>
+                  Review before taking action
+                </span>
+
+              </div>
+
+            </div>
+
+
+            <span class="manual-badge">
+              MANUAL
+            </span>
 
           </div>
 
 
-          <div class="moderation-grid">
+          <div class="control-grid">
 
 
-            <div class="field">
+            <!-- STATUS -->
 
-              <label>Temporary Ban Duration</label>
+            <div class="control">
 
-              <select class="banDuration">
+              <div class="control-label">
+                Report status
+              </div>
 
-                <option value="">Choose duration…</option>
-                <option value="5">5 minutes</option>
-                <option value="30">30 minutes</option>
-                <option value="60">1 hour</option>
-                <option value="1440">24 hours</option>
-                <option value="10080">7 days</option>
+              <select class="statusSelect">
+
+                <option value="pending">
+                  Pending
+                </option>
+
+                <option value="investigating">
+                  Investigating
+                </option>
+
+                <option value="resolved">
+                  Resolved
+                </option>
+
+                <option value="dismissed">
+                  Dismissed
+                </option>
 
               </select>
 
             </div>
 
 
-            <div class="field">
+            <!-- ACTION -->
 
-              <label>Ban Reason</label>
+            <div class="control">
 
-              <input
-                class="banReason"
-                maxlength="300"
-                placeholder="Reason for temporary ban…"
+              <div class="control-label">
+                Report action
+              </div>
+
+              <select class="actionSelect">
+
+                <option value="">
+                  No action
+                </option>
+
+                <option value="warning">
+                  Warning
+                </option>
+
+                <option value="restrict">
+                  Restrict
+                </option>
+
+                <option value="suspend">
+                  Suspend
+                </option>
+
+                <option value="ban">
+                  Temporary ban
+                </option>
+
+              </select>
+
+            </div>
+
+
+            <!-- BAN -->
+
+            <div class="ban-panel">
+
+              <div class="ban-row">
+
+
+                <div class="control">
+
+                  <div class="control-label">
+                    Ban duration
+                  </div>
+
+                  <select class="banDuration">
+
+                    <option value="">
+                      Choose duration…
+                    </option>
+
+                    <option value="5">
+                      5 minutes
+                    </option>
+
+                    <option value="30">
+                      30 minutes
+                    </option>
+
+                    <option value="60">
+                      1 hour
+                    </option>
+
+                    <option value="1440">
+                      24 hours
+                    </option>
+
+                    <option value="10080">
+                      7 days
+                    </option>
+
+                  </select>
+
+                </div>
+
+
+                <div class="control">
+
+                  <div class="control-label">
+                    Ban reason
+                  </div>
+
+                  <input
+                    class="banReason"
+                    type="text"
+                    maxlength="300"
+                    placeholder="Why is this user being banned?"
+                  >
+
+                </div>
+
+
+              </div>
+
+
+              <div class="ban-description">
+
+                Temporary bans are manual moderator actions.
+                A report alone never bans the reported user.
+
+              </div>
+
+
+              <div class="ban-actions">
+
+                <button
+                  class="ban-btn primary"
+                  data-ban="1"
+                  ${reportedUUID ? "" : "disabled"}
+                >
+
+                  <svg viewBox="0 0 24 24">
+                    <path d="M12 3 4 6v5c0 5 3.2 8.2 8 10 4.8-1.8 8-5-8-10V6z"/>
+                  </svg>
+
+                  Apply temporary ban
+
+                </button>
+
+
+                <button
+                  class="ban-btn secondary"
+                  data-clear-ban="1"
+                  ${reportedUUID ? "" : "disabled"}
+                >
+
+                  <svg viewBox="0 0 24 24">
+                    <path d="M6 6h12"/>
+                    <path d="M9 6V4h6v2"/>
+                    <path d="M8 6l1 14h6l1-14"/>
+                  </svg>
+
+                  Clear / remove ban
+
+                </button>
+
+              </div>
+
+
+              ${
+                reportedUUID
+                ? ""
+                : `
+
+                  <div class="ban-description">
+
+                    Reported user's UUID is not included
+                    in the report response, so moderation
+                    buttons are safely disabled.
+
+                  </div>
+
+                `
+              }
+
+            </div>
+
+
+            <!-- ADMIN NOTES -->
+
+            <div class="control full">
+
+              <div class="control-label">
+
+                <span>
+                  Admin notes
+                </span>
+
+                <span class="optional">
+                  Private
+                </span>
+
+              </div>
+
+              <div class="notes-wrap">
+
+                <textarea
+                  class="notesInput"
+                  maxlength="500"
+                  placeholder="Add a private moderation note…"
+                ></textarea>
+
+                <span class="note-counter">
+                  0/500
+                </span>
+
+              </div>
+
+            </div>
+
+
+            <!-- SAVE -->
+
+            <div class="save-row">
+
+              <button
+                class="save-btn"
+                data-save="1"
               >
+
+                <svg viewBox="0 0 24 24">
+                  <path d="M5 4h12l2 2v14H5z"/>
+                  <path d="M8 4v6h8V4"/>
+                  <path d="M8 20v-5h8v5"/>
+                </svg>
+
+                Save report changes
+
+              </button>
 
             </div>
 
 
           </div>
 
-
-          <div class="ban-help">
-
-            Temporary bans are manual moderator actions.
-            Submitting a report does not automatically ban anyone.
-
-          </div>
-
-
-          <div class="ban-actions">
-
-            <button
-              class="btn danger-btn"
-              data-ban="1"
-              ${reportedUUID?"":"disabled"}
-            >
-
-              Temporary Ban
-
-            </button>
-
-
-            <button
-              class="btn secondary"
-              data-clear-ban="1"
-              ${reportedUUID?"":"disabled"}
-            >
-
-              Clear / Remove Ban
-
-            </button>
-
-          </div>
-
-
-          ${
-            reportedUUID
-            ? ""
-            : `
-              <div class="ban-help">
-                The report does not currently expose the reported
-                user's UUID. The ban buttons are disabled until
-                admin_list_reports returns the user's UUID.
-              </div>
-            `
-          }
-
-        </div>
-
-
-        <!-- ADMIN NOTES -->
-
-        <div class="field notes">
-
-          <label>Admin Notes</label>
-
-          <div class="note-wrap">
-
-            <textarea
-              maxlength="500"
-              class="notesInput"
-              placeholder="Add a private note…"
-            ></textarea>
-
-            <span class="counter">0/500</span>
-
-          </div>
-
-        </div>
-
-
-        <!-- SAVE REPORT -->
-
-        <button class="btn save" data-save="1">
-
-          <svg viewBox="0 0 24 24">
-            <path d="M5 4h12l2 2v14H5z"/>
-            <path d="M8 4v6h8V4M8 20v-5h8v5"/>
-          </svg>
-
-          Save Report Changes
-
-        </button>
+        </section>
 
       </div>
 
     </article>
+
   `;
+
 }
 
 
@@ -1713,81 +3466,131 @@ function card(r){
 
 function render(){
 
-  const rows=currentStatus==="all"
-    ? allReports
-    : allReports.filter(r=>r.status===currentStatus);
+  const rows =
+    currentStatus === "all"
+      ? allReports
+      : allReports.filter(
+          report =>
+            report.status ===
+            currentStatus
+        );
+
 
   if(!rows.length){
 
-    reportsEl.innerHTML=`
+    reportsEl.innerHTML = `
+
       <div class="empty">
 
         <strong>
           ${
-            currentStatus==="all"
-            ? "No reports."
-            : currentStatus+" reports."
+            currentStatus === "all"
+              ? "Moderation queue is clear."
+              : "No " +
+                currentStatus +
+                " reports."
           }
         </strong>
 
-        You're all caught up here.
+        There is nothing waiting in this section.
 
       </div>
+
     `;
 
     return;
   }
 
 
-  reportsEl.innerHTML=rows.map(card).join("");
+  reportsEl.innerHTML =
+    rows.map(card).join("");
 
 
-  rows.forEach(r=>{
+  rows.forEach(
+    report => {
 
-    const el=reportsEl.querySelector(
-      `[data-id="${CSS.escape(String(r.id))}"]`
-    );
-
-    if(!el)return;
-
-
-    el.querySelector(".statusSelect").value=
-      [
-        "pending",
-        "investigating",
-        "resolved",
-        "dismissed"
-      ].includes(r.status)
-      ? r.status
-      : "pending";
+      const element =
+        reportsEl.querySelector(
+          `[data-id="${CSS.escape(
+            String(report.id)
+          )}"]`
+        );
 
 
-    el.querySelector(".actionSelect").value=
-      r.action||"";
+      if(!element){
+        return;
+      }
 
 
-    el.querySelector(".notesInput").value=
-      r.admin_notes||"";
+      const statusSelect =
+        element.querySelector(
+          ".statusSelect"
+        );
+
+      const actionSelect =
+        element.querySelector(
+          ".actionSelect"
+        );
+
+      const notes =
+        element.querySelector(
+          ".notesInput"
+        );
 
 
-    updateCounter(
-      el.querySelector(".notesInput")
-    );
+      statusSelect.value =
+        [
+          "pending",
+          "investigating",
+          "resolved",
+          "dismissed"
+        ].includes(
+          report.status
+        )
+          ? report.status
+          : "pending";
 
-  });
+
+      actionSelect.value =
+        report.action || "";
+
+
+      notes.value =
+        report.admin_notes || "";
+
+
+      updateCounter(notes);
+
+    }
+  );
+
 }
 
 
+/* =========================================================
+   NOTE COUNTER
+   ========================================================= */
+
 function updateCounter(textarea){
 
-  if(!textarea)return;
+  if(!textarea){
+    return;
+  }
 
-  const counter=textarea.parentElement.querySelector(".counter");
+  const counter =
+    textarea.parentElement
+      .querySelector(
+        ".note-counter"
+      );
 
   if(counter){
-    counter.textContent=
-      `${textarea.value.length}/500`;
+
+    counter.textContent =
+      textarea.value.length +
+      "/500";
+
   }
+
 }
 
 
@@ -1799,9 +3602,9 @@ async function loadReports(){
 
   showError("");
 
-  reportsEl.innerHTML=`
+  reportsEl.innerHTML = `
     <div class="loading">
-      Loading reports…
+      Loading moderation queue…
     </div>
   `;
 
@@ -1809,47 +3612,58 @@ async function loadReports(){
   const {
     data,
     error
-  }=await supabaseClient.rpc(
-    "admin_list_reports",
-    {
-      p_status:null
-    }
-  );
+  } =
+    await supabaseClient.rpc(
+      "admin_list_reports",
+      {
+        p_status:null
+      }
+    );
 
 
   if(error){
 
-    console.error(error);
+    console.error(
+      "admin_list_reports:",
+      error
+    );
 
     showError(
-      "Could not load reports: "+
+      "Could not load reports: " +
       error.message
     );
 
-    reportsEl.innerHTML=`
+    reportsEl.innerHTML = `
+
       <div class="empty">
 
         <strong>
-          Could not load reports.
+          Unable to load moderation queue.
         </strong>
 
         Check your admin permissions
-        and Supabase function setup.
+        and Supabase configuration.
 
       </div>
+
     `;
 
     return;
   }
 
 
-  allReports=Array.isArray(data)
-    ? data
-    : [];
+  allReports =
+    Array.isArray(data)
+      ? data
+      : [];
 
-  setCounts(allReports);
+
+  setCounts(
+    allReports
+  );
 
   render();
+
 }
 
 
@@ -1857,25 +3671,51 @@ async function loadReports(){
    SAVE REPORT
    ========================================================= */
 
-async function saveReport(el){
+async function saveReport(cardElement){
 
-  const id=el.dataset.id;
-
-  const status=
-    el.querySelector(".statusSelect").value;
-
-  const action=
-    el.querySelector(".actionSelect").value||null;
-
-  const notes=
-    el.querySelector(".notesInput").value.trim()||null;
-
-  const button=
-    el.querySelector("[data-save]");
+  const reportId =
+    cardElement.dataset.id;
 
 
-  button.disabled=true;
-  button.textContent="Saving…";
+  const status =
+    cardElement
+      .querySelector(
+        ".statusSelect"
+      )
+      .value;
+
+
+  const action =
+    cardElement
+      .querySelector(
+        ".actionSelect"
+      )
+      .value ||
+    null;
+
+
+  const notes =
+    cardElement
+      .querySelector(
+        ".notesInput"
+      )
+      .value
+      .trim() ||
+    null;
+
+
+  const button =
+    cardElement
+      .querySelector(
+        "[data-save]"
+      );
+
+
+  button.disabled = true;
+
+  button.textContent =
+    "Saving…";
+
 
   showError("");
 
@@ -1883,34 +3723,58 @@ async function saveReport(el){
   const {
     data,
     error
-  }=await supabaseClient.rpc(
-    "admin_update_report",
-    {
-      p_report_id:Number(id),
-      p_status:status,
-      p_action:action,
-      p_admin_notes:notes
-    }
-  );
+  } =
+    await supabaseClient.rpc(
+      "admin_update_report",
+      {
+        p_report_id:
+          Number(reportId),
 
+        p_status:
+          status,
 
-  if(error||data!==true){
+        p_action:
+          action,
 
-    showError(
-      "Could not update report #"+
-      id+
-      ": "+
-      (error?.message||"Update was not accepted.")
+        p_admin_notes:
+          notes
+      }
     );
 
-    button.disabled=false;
 
-    button.innerHTML=`
+  if(
+    error ||
+    data !== true
+  ){
+
+    console.error(
+      "admin_update_report:",
+      error
+    );
+
+    showError(
+      "Could not update report #" +
+      reportId +
+      ": " +
+      (
+        error?.message ||
+        "Update was not accepted."
+      )
+    );
+
+
+    button.disabled = false;
+
+    button.innerHTML = `
+
       <svg viewBox="0 0 24 24">
         <path d="M5 4h12l2 2v14H5z"/>
-        <path d="M8 4v6h8V4M8 20v-5h8v5"/>
+        <path d="M8 4v6h8V4"/>
+        <path d="M8 20v-5h8v5"/>
       </svg>
-      Save Report Changes
+
+      Save report changes
+
     `;
 
     return;
@@ -1918,10 +3782,14 @@ async function saveReport(el){
 
 
   showToast(
-    "Report #"+id+" updated"
+    "Report #" +
+    reportId +
+    " updated successfully."
   );
 
+
   await loadReports();
+
 }
 
 
@@ -1929,18 +3797,26 @@ async function saveReport(el){
    TEMPORARY BAN
    ========================================================= */
 
-async function temporaryBan(el){
+async function temporaryBan(
+  cardElement
+){
 
-  const reportId=el.dataset.id;
+  const reportId =
+    cardElement.dataset.id;
 
-  const report=allReports.find(
-    r=>String(r.id)===String(reportId)
-  );
+
+  const report =
+    allReports.find(
+      item =>
+        String(item.id) ===
+        String(reportId)
+    );
+
 
   if(!report){
 
     showToast(
-      "Report could not be found.",
+      "Report not found.",
       true
     );
 
@@ -1948,12 +3824,16 @@ async function temporaryBan(el){
   }
 
 
-  const targetUser=getReportedUserUUID(report);
+  const targetUser =
+    getReportedUserUUID(
+      report
+    );
+
 
   if(!targetUser){
 
     showToast(
-      "Reported user's UUID is missing from admin_list_reports.",
+      "The reported user's UUID is missing.",
       true
     );
 
@@ -1961,56 +3841,75 @@ async function temporaryBan(el){
   }
 
 
-  const durationSelect=
-    el.querySelector(".banDuration");
+  const duration =
+    Number(
+      cardElement
+        .querySelector(
+          ".banDuration"
+        )
+        .value
+    );
 
-  const reasonInput=
-    el.querySelector(".banReason");
 
-  const duration=Number(
-    durationSelect.value
-  );
-
-  const reason=
-    reasonInput.value.trim()||
-    report.reason||
+  const reason =
+    cardElement
+      .querySelector(
+        ".banReason"
+      )
+      .value
+      .trim() ||
+    report.reason ||
     "Temporary moderation ban";
 
 
   if(!duration){
 
     showToast(
-      "Choose a temporary ban duration first.",
+      "Choose a ban duration first.",
       true
     );
 
-    durationSelect.focus();
+    cardElement
+      .querySelector(
+        ".banDuration"
+      )
+      .focus();
 
     return;
   }
 
 
-  const confirmed=confirm(
-    "Apply a temporary ban to this user for "+
-    formatBanDuration(duration)+
-    "?\n\nReason: "+
-    reason
+  const confirmed =
+    confirm(
+      "Apply a temporary ban for " +
+      formatBanDuration(
+        duration
+      ) +
+      "?\n\n" +
+      "Reason: " +
+      reason
+    );
+
+
+  if(!confirmed){
+    return;
+  }
+
+
+  const buttons =
+    cardElement.querySelectorAll(
+      "[data-ban],[data-clear-ban]"
+    );
+
+
+  buttons.forEach(
+    button =>
+      button.disabled = true
   );
-
-  if(!confirmed)return;
-
-
-  const buttons=el.querySelectorAll(
-    "[data-ban],[data-clear-ban]"
-  );
-
-  buttons.forEach(b=>b.disabled=true);
-
-  showError("");
 
 
   /*
-    EXACT EXISTING RPC SIGNATURE:
+    EXACT DATABASE FUNCTION:
 
     apply_temporary_ban(
       target_user uuid,
@@ -2022,135 +3921,162 @@ async function temporaryBan(el){
   const {
     data,
     error
-  }=await supabaseClient.rpc(
-    "apply_temporary_ban",
-    {
-      target_user:targetUser,
-      ban_minutes:duration,
-      ban_reason:reason
-    }
-  );
+  } =
+    await supabaseClient.rpc(
+      "apply_temporary_ban",
+      {
+        target_user:
+          targetUser,
+
+        ban_minutes:
+          duration,
+
+        ban_reason:
+          reason
+      }
+    );
 
 
   if(error){
 
-    console.error("Temporary ban error:",error);
+    console.error(
+      "apply_temporary_ban:",
+      error
+    );
+
 
     showError(
-      "Could not apply temporary ban: "+
+      "Could not apply temporary ban: " +
       error.message
     );
 
-    buttons.forEach(b=>{
-      b.disabled=false;
-    });
+
+    buttons.forEach(
+      button =>
+        button.disabled = false
+    );
 
     return;
+  }
+
+
+  /*
+
+    The actual ban is already applied.
+
+    We now only change the report action
+    selector visually. We do NOT call
+    apply_temporary_ban() a second time.
+
+  */
+
+  const actionSelect =
+    cardElement.querySelector(
+      ".actionSelect"
+    );
+
+
+  if(actionSelect){
+
+    actionSelect.value =
+      "ban";
+
   }
 
 
   showToast(
-    "Temporary ban applied for "+
-    formatBanDuration(duration)+"."
+    "Temporary ban applied for " +
+    formatBanDuration(duration) +
+    "."
   );
 
 
-  /*
-    Also save the report action as "ban".
-    This does NOT trigger the ban again.
-    The actual ban was already performed above.
-  */
+  buttons.forEach(
+    button =>
+      button.disabled = false
+  );
 
-  const actionSelect=
-    el.querySelector(".actionSelect");
-
-  if(actionSelect){
-    actionSelect.value="ban";
-  }
-
-
-  buttons.forEach(b=>{
-    b.disabled=false;
-  });
-}
-
-
-function formatBanDuration(minutes){
-
-  if(minutes===5){
-    return "5 minutes";
-  }
-
-  if(minutes===30){
-    return "30 minutes";
-  }
-
-  if(minutes===60){
-    return "1 hour";
-  }
-
-  if(minutes===1440){
-    return "24 hours";
-  }
-
-  if(minutes===10080){
-    return "7 days";
-  }
-
-  if(minutes%1440===0){
-    return (minutes/1440)+" days";
-  }
-
-  if(minutes%60===0){
-    return (minutes/60)+" hours";
-  }
-
-  return minutes+" minutes";
 }
 
 
 /* =========================================================
-   CLEAR / REMOVE BAN
+   BAN DURATION
    ========================================================= */
 
-/*
-  IMPORTANT:
+function formatBanDuration(
+  minutes
+){
 
-  You gave us the exact signature for
-  apply_temporary_ban(), but we do NOT yet know whether
-  your database has a separate clear-ban function.
-
-  Therefore we do NOT guess a dangerous RPC name or
-  parameter list here.
-
-  The button explains what is needed instead of silently
-  calling a nonexistent/wrong function.
-*/
-
-async function clearBan(el){
-
-  const reportId=el.dataset.id;
-
-  const report=allReports.find(
-    r=>String(r.id)===String(reportId)
-  );
-
-  if(!report){
-
-    showToast(
-      "Report could not be found.",
-      true
-    );
-
-    return;
+  if(minutes === 5){
+    return "5 minutes";
   }
 
+  if(minutes === 30){
+    return "30 minutes";
+  }
+
+  if(minutes === 60){
+    return "1 hour";
+  }
+
+  if(minutes === 1440){
+    return "24 hours";
+  }
+
+  if(minutes === 10080){
+    return "7 days";
+  }
+
+  if(minutes % 1440 === 0){
+    return (
+      minutes / 1440
+    ) + " days";
+  }
+
+  if(minutes % 60 === 0){
+    return (
+      minutes / 60
+    ) + " hours";
+  }
+
+  return minutes +
+    " minutes";
+
+}
+
+
+/* =========================================================
+   CLEAR BAN
+   ========================================================= */
+
+function clearBan(
+  cardElement
+){
+
+  /*
+    We deliberately do not guess the SQL function.
+
+    We currently know:
+
+    apply_temporary_ban(
+      target_user uuid,
+      ban_minutes integer,
+      ban_reason text
+    )
+
+    We do NOT yet know the exact clear/remove-ban
+    function name or parameters.
+  */
 
   alert(
-    "The Clear / Remove Ban button is ready, but your current database function list has not yet provided a clear-ban RPC.\n\n"+
-    "We know apply_temporary_ban() exists, but we should not guess the name or parameters of the function that removes a ban.\n\n"+
-    "Your temporary-ban function is safely connected."
+    "Clear / Remove Ban is ready in the admin UI, " +
+    "but your database clear-ban function has not " +
+    "been identified yet.\n\n" +
+
+    "I don't want to guess its RPC name or parameters " +
+    "and accidentally modify the wrong moderation record."
   );
+
 }
 
 
@@ -2158,54 +4084,80 @@ async function clearBan(el){
    CONVERSATION
    ========================================================= */
 
-function getOriginalText(m){
+function getOriginalText(message){
 
   return (
-    m.deleted_message_content ??
-    m.original_content ??
-    m.content_before_delete ??
-    m.preserved_content ??
-    m.original_message ??
-    m.message_text ??
-    m.content ??
+    message.deleted_message_content ??
+    message.original_content ??
+    message.content_before_delete ??
+    message.preserved_content ??
+    message.original_message ??
+    message.message_text ??
+    message.content ??
     ""
   );
+
 }
 
 
-function isDeleted(m){
+function isDeleted(message){
 
   return !!(
-    m.is_deleted||
-    m.deleted_at
+    message.is_deleted ||
+    message.deleted_at
   );
+
 }
 
 
-function dateKey(v){
+function dateKey(value){
 
-  const d=new Date(v);
+  const date =
+    new Date(value);
 
-  return isNaN(d.getTime())
-    ? ""
-    : d.toLocaleDateString([],{
-        day:"numeric",
-        month:"short",
-        year:"numeric"
-      });
+
+  if(
+    isNaN(
+      date.getTime()
+    )
+  ){
+
+    return "";
+
+  }
+
+
+  return date.toLocaleDateString(
+    [],
+    {
+      day:"numeric",
+      month:"short",
+      year:"numeric"
+    }
+  );
+
 }
 
 
-function deletedMessage(m){
+function deletedMessage(
+  message
+){
 
-  const original=getOriginalText(m);
+  const original =
+    getOriginalText(
+      message
+    );
 
-  const hasOriginal=
-    String(original||"").trim().length>0;
+
+  const hasOriginal =
+    String(
+      original || ""
+    ).trim().length > 0;
 
 
   return `
-    <div class="message deleted">
+
+    <div class="message">
 
       <div class="message-inner">
 
@@ -2214,7 +4166,9 @@ function deletedMessage(m){
           <div class="deleted-head">
 
             <svg viewBox="0 0 24 24">
-              <path d="M5 7h14M9 7V4h6v3M7 7l1 13h8l1-13"/>
+              <path d="M5 7h14"/>
+              <path d="M9 7V4h6v3"/>
+              <path d="M7 7l1 13h8l1-13"/>
             </svg>
 
             DELETED MESSAGE
@@ -2227,24 +4181,38 @@ function deletedMessage(m){
             ${avatar()}
 
             <div>
+
               <span class="sender-name">
-                ${esc(m.sender_name||"Unknown user")}
+                ${esc(
+                  message.sender_name ||
+                  "Unknown user"
+                )}
               </span>
 
               <span class="sender-id">
-                ${esc(m.totalk_id||"No ToTalk ID")}
+                ${esc(
+                  message.totalk_id ||
+                  "No ToTalk ID"
+                )}
               </span>
+
             </div>
 
           </div>
 
 
-          <div class="deleted-original ${hasOriginal?"":"missing"}">
+          <div
+            class="deleted-original ${
+              hasOriginal
+                ? ""
+                : "missing"
+            }"
+          >
 
             ${esc(
               hasOriginal
-              ? original
-              : "Original text was not preserved in the database."
+                ? original
+                : "Original text was not preserved in the database."
             )}
 
           </div>
@@ -2259,28 +4227,80 @@ function deletedMessage(m){
 
             ${
               hasOriginal
-              ? "Original message preserved for moderation"
-              : "Only deletion metadata is available"
+                ? "Original message preserved for moderation"
+                : "Only deletion metadata is available"
             }
 
           </div>
 
 
+        </div>
+
+      </div>
+
+    </div>
+
+  `;
+
+}
+
+
+function normalMessage(
+  message
+){
+
+  return `
+
+    <div class="message ${
+      message.sender_side === "right"
+        ? "right"
+        : "left"
+    }">
+
+      <div class="message-inner">
+
+        <div class="message-info">
+
+          <span class="sender-name">
+            ${esc(
+              message.sender_name ||
+              "Unknown user"
+            )}
+          </span>
+
+          <span class="sender-id">
+            ${esc(
+              message.totalk_id ||
+              "No ToTalk ID"
+            )}
+          </span>
+
+        </div>
+
+
+        <div class="bubble">
+
+          ${esc(
+            message.message_text ??
+            message.content ??
+            ""
+          )}
+
+        </div>
+
+
+        <div class="message-time">
+
+          ${esc(
+            fmtDate(
+              message.created_at
+            )
+          )}
+
           ${
-            m.deleted_at
-            ? `
-              <div class="deleted-time">
-
-                <svg viewBox="0 0 24 24">
-                  <circle cx="12" cy="12" r="8"/>
-                  <path d="M12 8v5l3 2"/>
-                </svg>
-
-                Deleted ${esc(fmtDate(m.deleted_at))}
-
-              </div>
-            `
-            : ""
+            message.edited_at
+              ? " · Edited"
+              : ""
           }
 
         </div>
@@ -2288,58 +4308,27 @@ function deletedMessage(m){
       </div>
 
     </div>
+
   `;
+
 }
 
 
-function normalMessage(m){
+async function openConversation(
+  conversationId
+){
 
-  return `
-    <div class="message ${m.sender_side==="right"?"right":"left"}">
-
-      <div class="message-inner">
-
-        <div class="message-info">
-
-          <span class="sender-name">
-            ${esc(m.sender_name||"Unknown user")}
-          </span>
-
-          <span class="sender-id">
-            ${esc(m.totalk_id||"No ToTalk ID")}
-          </span>
-
-        </div>
+  conversationModal.classList.add(
+    "show"
+  );
 
 
-        <div class="bubble">
-          ${esc(m.message_text??m.content??"")}
-        </div>
+  conversationIdLabel.textContent =
+    "Conversation ID: " +
+    conversationId;
 
 
-        <div class="message-time">
-
-          ${esc(fmtDate(m.created_at))}
-
-          ${m.edited_at?" · Edited":""}
-
-        </div>
-
-      </div>
-
-    </div>
-  `;
-}
-
-
-async function openConversation(conversationId){
-
-  conversationModal.classList.add("show");
-
-  conversationIdLabel.textContent=
-    "Conversation ID: "+conversationId;
-
-  conversationEl.innerHTML=`
+  conversationEl.innerHTML = `
     <div class="conversation-empty">
       Loading conversation…
     </div>
@@ -2349,97 +4338,136 @@ async function openConversation(conversationId){
   const {
     data,
     error
-  }=await supabaseClient.rpc(
-    "admin_view_conversation",
-    {
-      p_conversation_id:conversationId
-    }
-  );
+  } =
+    await supabaseClient.rpc(
+      "admin_view_conversation",
+      {
+        p_conversation_id:
+          conversationId
+      }
+    );
 
 
   if(error){
 
-    conversationEl.innerHTML=`
+    conversationEl.innerHTML = `
+
       <div class="conversation-empty">
 
         <div>
 
-          <strong style="
-            display:block;
-            color:#fff;
-            margin-bottom:6px
-          ">
-            Could not load conversation
+          <strong
+            style="
+              display:block;
+              color:#fff;
+              margin-bottom:7px;
+            "
+          >
+            Unable to load conversation
           </strong>
 
-          <span>
-            ${esc(error.message)}
-          </span>
+          ${esc(
+            error.message
+          )}
 
         </div>
 
       </div>
+
     `;
 
     return;
   }
 
 
-  const rows=Array.isArray(data)
-    ? data
-    : [];
+  const rows =
+    Array.isArray(data)
+      ? data
+      : [];
 
 
   if(!rows.length){
 
-    conversationEl.innerHTML=`
+    conversationEl.innerHTML = `
+
       <div class="conversation-empty">
-        No messages found in this conversation.
+        No messages were found.
       </div>
+
     `;
 
     return;
   }
 
 
-  let lastDate="";
+  let lastDate = "";
 
 
-  conversationEl.innerHTML=rows.map(m=>{
+  conversationEl.innerHTML =
+    rows.map(
+      message => {
 
-    const k=dateKey(m.created_at);
-
-    let divider="";
-
-
-    if(k&&k!==lastDate){
-
-      lastDate=k;
-
-      divider=`
-        <div class="date-divider">
-          <span class="date-pill">
-            ${esc(k)}
-          </span>
-        </div>
-      `;
-    }
+        const currentDate =
+          dateKey(
+            message.created_at
+          );
 
 
-    return divider+
-      (
-        isDeleted(m)
-        ? deletedMessage(m)
-        : normalMessage(m)
-      );
+        let divider = "";
 
-  }).join("");
+
+        if(
+          currentDate &&
+          currentDate !== lastDate
+        ){
+
+          lastDate =
+            currentDate;
+
+
+          divider = `
+
+            <div class="date-divider">
+
+              <span class="date-pill">
+                ${esc(
+                  currentDate
+                )}
+              </span>
+
+            </div>
+
+          `;
+
+        }
+
+
+        return (
+          divider +
+          (
+            isDeleted(message)
+              ? deletedMessage(
+                  message
+                )
+              : normalMessage(
+                  message
+                )
+          )
+        );
+
+      }
+    )
+    .join("");
+
 }
 
 
 function closeConversation(){
 
-  conversationModal.classList.remove("show");
+  conversationModal.classList.remove(
+    "show"
+  );
+
 }
 
 
@@ -2448,7 +4476,9 @@ function closeConversation(){
    ========================================================= */
 
 document
-  .getElementById("refreshBtn")
+  .getElementById(
+    "refreshBtn"
+  )
   .addEventListener(
     "click",
     loadReports
@@ -2456,147 +4486,223 @@ document
 
 
 document
-  .getElementById("signOutBtn")
+  .getElementById(
+    "signOutBtn"
+  )
   .addEventListener(
     "click",
     async()=>{
-      await supabaseClient.auth.signOut();
+
+      await supabaseClient
+        .auth
+        .signOut();
+
       location.reload();
+
     }
   );
 
 
 document
-  .getElementById("goChatBtn")
+  .getElementById(
+    "goChatBtn"
+  )
   .addEventListener(
     "click",
     ()=>{
-      location.href="chat.html";
+      location.href =
+        "chat.html";
     }
   );
 
 
-/* TABS */
+/* =========================================================
+   TABS
+   ========================================================= */
 
 document
-  .getElementById("tabs")
+  .getElementById(
+    "tabs"
+  )
   .addEventListener(
     "click",
-    e=>{
+    event => {
 
-      const b=e.target.closest(".tab");
+      const button =
+        event.target.closest(
+          ".tab"
+        );
 
-      if(!b)return;
+
+      if(!button){
+        return;
+      }
+
 
       document
-        .querySelectorAll(".tab")
-        .forEach(x=>x.classList.remove("active"));
+        .querySelectorAll(
+          ".tab"
+        )
+        .forEach(
+          item =>
+            item.classList.remove(
+              "active"
+            )
+        );
 
-      b.classList.add("active");
 
-      currentStatus=b.dataset.status;
+      button.classList.add(
+        "active"
+      );
+
+
+      currentStatus =
+        button.dataset.status;
+
 
       render();
+
     }
   );
 
 
-/* REPORT BUTTONS */
+/* =========================================================
+   REPORT EVENTS
+   ========================================================= */
 
 reportsEl.addEventListener(
   "click",
-  e=>{
+  event => {
 
-    const view=e.target.closest(
-      "[data-view-conversation]"
-    );
+    const viewButton =
+      event.target.closest(
+        "[data-view-conversation]"
+      );
 
-    if(view){
+
+    if(viewButton){
 
       openConversation(
-        view.dataset.conversationId
+        viewButton.dataset
+          .conversationId
       );
 
       return;
     }
 
 
-    const save=e.target.closest(
-      "[data-save]"
-    );
+    const saveButton =
+      event.target.closest(
+        "[data-save]"
+      );
 
-    if(save){
 
-      const cardEl=
-        save.closest(".card");
+    if(saveButton){
 
-      if(cardEl){
-        saveReport(cardEl);
+      const cardElement =
+        saveButton.closest(
+          ".report-card"
+        );
+
+
+      if(cardElement){
+
+        saveReport(
+          cardElement
+        );
+
       }
 
       return;
     }
 
 
-    const ban=e.target.closest(
-      "[data-ban]"
-    );
+    const banButton =
+      event.target.closest(
+        "[data-ban]"
+      );
 
-    if(ban){
 
-      const cardEl=
-        ban.closest(".card");
+    if(banButton){
 
-      if(cardEl){
-        temporaryBan(cardEl);
+      const cardElement =
+        banButton.closest(
+          ".report-card"
+        );
+
+
+      if(cardElement){
+
+        temporaryBan(
+          cardElement
+        );
+
       }
 
       return;
     }
 
 
-    const clearBan=e.target.closest(
-      "[data-clear-ban]"
-    );
+    const clearButton =
+      event.target.closest(
+        "[data-clear-ban]"
+      );
 
-    if(clearBan){
 
-      const cardEl=
-        clearBan.closest(".card");
+    if(clearButton){
 
-      if(cardEl){
-        clearBan(cardEl);
+      const cardElement =
+        clearButton.closest(
+          ".report-card"
+        );
+
+
+      if(cardElement){
+
+        clearBan(
+          cardElement
+        );
+
       }
 
-      return;
     }
 
   }
 );
 
 
-/* NOTES COUNTER */
+/* =========================================================
+   NOTE COUNTER
+   ========================================================= */
 
 reportsEl.addEventListener(
   "input",
-  e=>{
+  event => {
 
     if(
-      e.target.classList.contains(
+      event.target.classList.contains(
         "notesInput"
       )
     ){
-      updateCounter(e.target);
+
+      updateCounter(
+        event.target
+      );
+
     }
 
   }
 );
 
 
-/* CLOSE CONVERSATION */
+/* =========================================================
+   MODAL EVENTS
+   ========================================================= */
 
 document
-  .getElementById("closeConversationBtn")
+  .getElementById(
+    "closeConversationBtn"
+  )
   .addEventListener(
     "click",
     closeConversation
@@ -2605,40 +4711,59 @@ document
 
 conversationModal.addEventListener(
   "click",
-  e=>{
-    if(e.target===conversationModal){
+  event => {
+
+    if(
+      event.target ===
+      conversationModal
+    ){
+
       closeConversation();
+
     }
+
   }
 );
 
 
 document.addEventListener(
   "keydown",
-  e=>{
+  event => {
 
     if(
-      e.key==="Escape"&&
-      conversationModal.classList.contains("show")
+      event.key === "Escape" &&
+      conversationModal.classList.contains(
+        "show"
+      )
     ){
+
       closeConversation();
+
     }
 
   }
 );
 
 
-/* AUTH */
+/* =========================================================
+   AUTH
+   ========================================================= */
 
-supabaseClient.auth.onAuthStateChange(
-  event=>{
+supabaseClient
+  .auth
+  .onAuthStateChange(
+    event => {
 
-    if(event==="SIGNED_OUT"){
-      location.reload();
+      if(
+        event === "SIGNED_OUT"
+      ){
+
+        location.reload();
+
+      }
+
     }
-
-  }
-);
+  );
 
 
 /* =========================================================
@@ -2648,13 +4773,19 @@ supabaseClient.auth.onAuthStateChange(
 async function boot(){
 
   const {
-    data:{session}
-  }=await supabaseClient.auth.getSession();
+    data:{
+      session
+    }
+  } =
+    await supabaseClient
+      .auth
+      .getSession();
 
 
   if(!session){
 
-    loginBox.style.display="block";
+    loginBox.style.display =
+      "block";
 
     return;
   }
@@ -2663,17 +4794,23 @@ async function boot(){
   const {
     data,
     error
-  }=await supabaseClient.rpc(
-    "is_totalk_admin"
-  );
+  } =
+    await supabaseClient.rpc(
+      "is_totalk_admin"
+    );
 
 
-  if(error||data!==true){
+  if(
+    error ||
+    data !== true
+  ){
 
-    loginBox.style.display="block";
+    loginBox.style.display =
+      "block";
+
 
     showError(
-      error?.message||
+      error?.message ||
       "This account does not have admin access."
     );
 
@@ -2681,9 +4818,12 @@ async function boot(){
   }
 
 
-  app.style.display="block";
+  app.style.display =
+    "block";
+
 
   await loadReports();
+
 }
 
 
@@ -2693,4 +4833,3 @@ boot();
 
 </body>
 </html>
-```
