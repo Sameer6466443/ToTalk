@@ -6579,8 +6579,48 @@ function closeTotalkWarning(){totalkWarningBackdrop?.classList.remove("open");to
 function showTotalkWarning(report){if(!report||!totalkWarningBackdrop)return;totalkWarningCurrent=report;const note=String(report.admin_notes||"Please review the ToTalk Community Guidelines and keep future conversations respectful and safe.").trim();const d=report.created_at?new Date(report.created_at):null;if(totalkWarningNote)totalkWarningNote.textContent=note;if(totalkWarningDate)totalkWarningDate.textContent=d&&!Number.isNaN(d.getTime())?"Issued "+d.toLocaleString([],{dateStyle:"medium",timeStyle:"short"}):"Official moderation notice";totalkWarningBackdrop.classList.add("open");totalkWarningBackdrop.setAttribute("aria-hidden","false");}
 function warningSeen(r){try{return localStorage.getItem("totalk_seen_warning_"+String(r?.id||""))==="1"}catch(_){return false}}
 function markWarningSeen(r){try{localStorage.setItem("totalk_seen_warning_"+String(r?.id||""),"1")}catch(_){}}
-async function checkForTotalkWarnings(){if(totalkWarningBusy||!currentUser?.id)return;totalkWarningBusy=true;try{const {data,error}=await supabaseClient.from("reports").select("id,reported_user_id,reason,details,admin_notes,action,status,created_at").eq("reported_user_id",currentUser.id).eq("action","warning").order("created_at",{ascending:false}).limit(10);if(error){console.debug("ToTalk warning check:",error.message);return}const warnings=Array.isArray(data)?data:[];if(!warnings.length)return;const newest=warnings[0];if(warningSeen(newest))return;showTotalkWarning(newest)}catch(error){console.debug("ToTalk warning check failed:",error)}finally{totalkWarningBusy=false}}
-function startTotalkWarningNotifications(){checkForTotalkWarnings();clearInterval(totalkWarningTimer);totalkWarningTimer=setInterval(checkForTotalkWarnings,15000)}
+async function checkForTotalkWarnings(){
+  if(totalkWarningBusy || !currentUser?.id) return;
+  totalkWarningBusy=true;
+  try{
+    const {data,error}=await supabaseClient
+      .from("reports")
+      .select("id,reported_user_id,reason,details,admin_notes,action,status,created_at")
+      .eq("reported_user_id",currentUser.id)
+      .eq("action","warning")
+      .order("created_at",{ascending:false})
+      .limit(20);
+
+    if(error){
+      console.warn("ToTalk warning notification could not read reports:",error.message);
+      return;
+    }
+
+    const warnings=Array.isArray(data)?data:[];
+    const unseen=warnings.find(r=>!warningSeen(r));
+    if(unseen){
+      showTotalkWarning(unseen);
+    }
+  }catch(error){
+    console.warn("ToTalk warning check failed:",error);
+  }finally{
+    totalkWarningBusy=false;
+  }
+}
+
+function startTotalkWarningNotifications(){
+  clearInterval(totalkWarningTimer);
+  checkForTotalkWarnings();
+  totalkWarningTimer=setInterval(checkForTotalkWarnings,10000);
+}
+
+/* Re-check whenever the user's Supabase session becomes available. */
+supabaseClient.auth.onAuthStateChange((event,session)=>{
+  if(session?.user?.id){
+    currentUser=session.user;
+    setTimeout(checkForTotalkWarnings,250);
+  }
+});
 totalkWarningOk?.addEventListener("click",()=>{if(totalkWarningCurrent)markWarningSeen(totalkWarningCurrent);closeTotalkWarning();});
 totalkWarningClose?.addEventListener("click",()=>{if(totalkWarningCurrent)markWarningSeen(totalkWarningCurrent);closeTotalkWarning();});
 totalkWarningBackdrop?.addEventListener("click",e=>{if(e.target===totalkWarningBackdrop){if(totalkWarningCurrent)markWarningSeen(totalkWarningCurrent);closeTotalkWarning();}});
