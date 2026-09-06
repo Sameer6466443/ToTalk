@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#05030b">
+<meta name="theme-color" content="#020108">
 <title>ToTalk Admin</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -16,48 +16,33 @@
 }
 
 :root{
-  --bg:#05030b;
-  --bg2:#090512;
-  --card:#0d0818;
-  --card2:#120b20;
+  --black:#020108;
+  --dark:#070313;
+  --panel:#0b0617;
+  --panel2:#10091d;
   --purple:#914cff;
-  --purple2:#b978ff;
-  --purple3:#7134db;
-
-  --white:#faf8ff;
-  --text:#e9e4f2;
-  --muted:#92899f;
-  --dim:#625a70;
-
-  --yellow:#ffe45c;
-  --blue:#69baff;
-  --green:#51e69a;
-  --red:#ff6387;
-  --gray:#aaa3b5;
-
-  --border:rgba(145,76,255,.25);
-  --borderStrong:rgba(145,76,255,.5);
+  --purple2:#b878ff;
+  --purple3:#6f35d9;
+  --green:#52e69a;
+  --yellow:#ffe34f;
+  --red:#ff557d;
+  --blue:#66b8ff;
+  --white:#f8f5ff;
+  --muted:#958da9;
+  --muted2:#70687d;
+  --border:rgba(145,76,255,.32);
 }
 
-html{
-  min-height:100%;
-  background:var(--bg);
-}
-
+html,
 body{
-  min-height:100vh;
+  min-height:100%;
   background:
     radial-gradient(
-      circle at 50% -15%,
-      rgba(145,76,255,.20),
-      transparent 40%
+      circle at 50% -10%,
+      rgba(145,76,255,.18),
+      transparent 38%
     ),
-    linear-gradient(
-      180deg,
-      #05030b 0%,
-      #07030e 50%,
-      #05030b 100%
-    );
+    var(--black);
   color:var(--white);
   font-family:
     Inter,
@@ -67,6 +52,9 @@ body{
     BlinkMacSystemFont,
     "Segoe UI",
     sans-serif;
+}
+
+body{
   padding:18px;
 }
 
@@ -83,55 +71,51 @@ button{
 
 .shell{
   width:100%;
-  max-width:1050px;
+  max-width:1180px;
   margin:0 auto;
 }
 
-/* =========================================================
-   HEADER
-========================================================= */
+/* =========================
+   TOP BAR
+========================= */
 
 .topbar{
   display:flex;
   align-items:center;
   justify-content:space-between;
-  gap:16px;
-  margin-bottom:22px;
+  gap:14px;
+  margin-bottom:20px;
 }
 
 .brand{
   display:flex;
   align-items:center;
-  gap:12px;
+  gap:13px;
   min-width:0;
 }
 
 .logo{
-  width:46px;
-  height:46px;
-  flex:0 0 46px;
-  border-radius:15px;
-
+  width:58px;
+  height:58px;
+  flex:0 0 58px;
+  border:1px solid rgba(145,76,255,.72);
+  border-radius:18px;
   display:grid;
   place-items:center;
-
-  border:1px solid rgba(145,76,255,.55);
-
   background:
     linear-gradient(
       145deg,
-      rgba(145,76,255,.22),
-      rgba(145,76,255,.06)
+      rgba(145,76,255,.18),
+      rgba(145,76,255,.05)
     );
-
   box-shadow:
-    0 0 30px rgba(145,76,255,.14),
-    inset 0 0 20px rgba(145,76,255,.05);
+    0 0 30px rgba(145,76,255,.18),
+    inset 0 0 18px rgba(145,76,255,.06);
 }
 
 .logo svg{
-  width:24px;
-  height:24px;
+  width:29px;
+  height:29px;
   fill:none;
   stroke:var(--purple2);
   stroke-width:1.8;
@@ -139,59 +123,255 @@ button{
   stroke-linejoin:round;
 }
 
-.brand-text{
-  min-width:0;
-}
-
 .brand h1{
-  font-size:20px;
+  font-size:25px;
   line-height:1.1;
-  font-weight:750;
-  letter-spacing:-.3px;
+  letter-spacing:-.5px;
 }
 
 .brand p{
   color:var(--muted);
-  font-size:11px;
+  font-size:12px;
   margin-top:4px;
 }
 
-.header-actions{
+.actions{
   display:flex;
-  align-items:center;
   gap:8px;
 }
 
 .icon-btn{
-  width:43px;
-  height:43px;
-
+  width:58px;
+  height:58px;
+  border-radius:18px;
   display:grid;
   place-items:center;
-
-  border-radius:13px;
-
-  border:1px solid var(--border);
-  background:rgba(145,76,255,.07);
-
-  color:var(--text);
-
-  transition:
-    background .18s ease,
-    border-color .18s ease,
-    transform .18s ease;
+  border:1px solid rgba(145,76,255,.38);
+  background:
+    linear-gradient(
+      145deg,
+      rgba(145,76,255,.13),
+      rgba(145,76,255,.04)
+    );
+  color:var(--white);
+  transition:.18s ease;
 }
 
 .icon-btn:hover{
-  background:rgba(145,76,255,.15);
-  border-color:var(--borderStrong);
-}
-
-.icon-btn:active{
-  transform:scale(.95);
+  background:rgba(145,76,255,.18);
+  border-color:rgba(145,76,255,.7);
+  transform:translateY(-1px);
 }
 
 .icon-btn svg{
+  width:25px;
+  height:25px;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:1.8;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+
+.icon-btn.danger{
+  color:#ff9bb3;
+  border-color:rgba(255,85,125,.38);
+  background:rgba(255,85,125,.06);
+}
+
+.icon-btn.danger:hover{
+  background:rgba(255,85,125,.12);
+  border-color:rgba(255,85,125,.65);
+}
+
+/* =========================
+   ERROR
+========================= */
+
+.banner{
+  display:none;
+  padding:13px 15px;
+  border:1px solid rgba(255,85,125,.4);
+  background:rgba(255,85,125,.08);
+  border-radius:14px;
+  margin-bottom:18px;
+  color:#ffc0cf;
+  font-size:13px;
+}
+
+.banner.show{
+  display:block;
+}
+
+/* =========================
+   STATS
+========================= */
+
+.stats{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:12px;
+  margin-bottom:18px;
+}
+
+.stat{
+  position:relative;
+  overflow:hidden;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(16,9,29,.96),
+      rgba(8,4,15,.96)
+    );
+  border:1px solid var(--border);
+  border-radius:18px;
+  padding:17px;
+  min-height:112px;
+  box-shadow:0 12px 40px rgba(0,0,0,.22);
+}
+
+.stat::after{
+  content:"";
+  position:absolute;
+  width:120px;
+  height:120px;
+  right:-58px;
+  bottom:-65px;
+  border-radius:50%;
+  background:rgba(145,76,255,.08);
+  pointer-events:none;
+}
+
+.stat span{
+  display:block;
+  color:var(--muted);
+  font-size:13px;
+  font-weight:600;
+}
+
+.stat strong{
+  display:block;
+  font-size:34px;
+  line-height:1;
+  margin-top:9px;
+  letter-spacing:-1px;
+}
+
+.stat.pending strong{
+  color:var(--yellow);
+}
+
+.stat.investigating strong{
+  color:var(--blue);
+}
+
+.stat.resolved strong{
+  color:var(--green);
+}
+
+.stat.dismissed strong{
+  color:#aaa2b7;
+}
+
+/* =========================
+   TABS
+========================= */
+
+.toolbar{
+  margin-bottom:15px;
+  overflow:hidden;
+}
+
+.tabs{
+  display:flex;
+  gap:8px;
+  overflow-x:auto;
+  padding-bottom:3px;
+  scrollbar-width:none;
+}
+
+.tabs::-webkit-scrollbar{
+  display:none;
+}
+
+.tab{
+  flex:0 0 auto;
+  border:1px solid rgba(145,76,255,.28);
+  background:rgba(145,76,255,.055);
+  color:var(--muted);
+  border-radius:999px;
+  padding:9px 17px;
+  font-size:13px;
+  font-weight:600;
+  white-space:nowrap;
+  transition:.18s ease;
+}
+
+.tab:hover{
+  color:var(--white);
+  border-color:rgba(145,76,255,.5);
+}
+
+.tab.active{
+  color:var(--white);
+  background:
+    linear-gradient(
+      135deg,
+      rgba(145,76,255,.23),
+      rgba(145,76,255,.11)
+    );
+  border-color:rgba(145,76,255,.72);
+  box-shadow:0 0 20px rgba(145,76,255,.12);
+}
+
+/* =========================
+   REPORTS
+========================= */
+
+.reports{
+  display:grid;
+  gap:14px;
+}
+
+.card{
+  background:
+    linear-gradient(
+      180deg,
+      rgba(15,8,27,.98),
+      rgba(8,4,15,.98)
+    );
+  border:1px solid rgba(145,76,255,.3);
+  border-radius:20px;
+  overflow:hidden;
+  box-shadow:0 15px 55px rgba(0,0,0,.25);
+}
+
+.card-head{
+  display:flex;
+  justify-content:space-between;
+  gap:15px;
+  align-items:flex-start;
+  padding:19px 19px 15px;
+}
+
+.report-title{
+  display:flex;
+  align-items:center;
+  gap:11px;
+}
+
+.report-icon{
+  width:40px;
+  height:40px;
+  border-radius:13px;
+  display:grid;
+  place-items:center;
+  background:rgba(145,76,255,.1);
+  border:1px solid rgba(145,76,255,.25);
+  color:var(--purple2);
+}
+
+.report-icon svg{
   width:19px;
   height:19px;
   fill:none;
@@ -201,391 +381,111 @@ button{
   stroke-linejoin:round;
 }
 
-.icon-btn.danger{
-  color:#ff9eb5;
-  border-color:rgba(255,99,135,.25);
-  background:rgba(255,99,135,.055);
-}
-
-.icon-btn.danger:hover{
-  background:rgba(255,99,135,.11);
-  border-color:rgba(255,99,135,.45);
-}
-
-/* =========================================================
-   ERROR
-========================================================= */
-
-.banner{
-  display:none;
-
-  margin-bottom:16px;
-  padding:12px 14px;
-
-  border-radius:13px;
-
-  border:1px solid rgba(255,99,135,.35);
-  background:rgba(255,99,135,.07);
-
-  color:#ffc1cf;
-  font-size:12px;
-  line-height:1.5;
-}
-
-.banner.show{
-  display:block;
-}
-
-/* =========================================================
-   STATS
-========================================================= */
-
-.stats{
-  display:grid;
-  grid-template-columns:repeat(4,1fr);
-  gap:9px;
-  margin-bottom:18px;
-}
-
-.stat{
-  position:relative;
-  overflow:hidden;
-
-  min-width:0;
-
-  padding:13px 14px;
-
-  border-radius:14px;
-
-  background:
-    linear-gradient(
-      145deg,
-      rgba(17,10,30,.98),
-      rgba(9,5,17,.98)
-    );
-
-  border:1px solid var(--border);
-
-  box-shadow:
-    0 12px 35px rgba(0,0,0,.2);
-}
-
-.stat::after{
-  content:"";
-  position:absolute;
-  right:-25px;
-  bottom:-30px;
-
-  width:75px;
-  height:75px;
-
-  border-radius:50%;
-
-  background:currentColor;
-  opacity:.045;
-}
-
-.stat span{
-  display:block;
-  color:var(--muted);
-  font-size:10px;
-  font-weight:550;
-  letter-spacing:.02em;
-}
-
-.stat strong{
-  display:block;
-  margin-top:4px;
-  font-size:23px;
-  line-height:1;
-}
-
-.stat.pending{
-  color:var(--yellow);
-}
-
-.stat.investigating{
-  color:var(--blue);
-}
-
-.stat.resolved{
-  color:var(--green);
-}
-
-.stat.dismissed{
-  color:var(--gray);
-}
-
-/* =========================================================
-   TOOLBAR
-========================================================= */
-
-.toolbar{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:12px;
-  margin-bottom:13px;
-}
-
-.tabs{
-  display:flex;
-  gap:6px;
-  overflow-x:auto;
-  scrollbar-width:none;
-  padding-bottom:2px;
-  width:100%;
-}
-
-.tabs::-webkit-scrollbar{
-  display:none;
-}
-
-.tab{
-  flex:0 0 auto;
-
-  border:1px solid rgba(145,76,255,.22);
-
-  background:rgba(145,76,255,.045);
-
-  color:var(--muted);
-
-  border-radius:999px;
-
-  padding:8px 12px;
-
-  font-size:11px;
-  font-weight:600;
-
-  transition:.18s ease;
-}
-
-.tab:hover{
-  color:var(--text);
-  background:rgba(145,76,255,.09);
-}
-
-.tab.active{
-  color:var(--white);
-
-  background:
-    linear-gradient(
-      135deg,
-      rgba(145,76,255,.25),
-      rgba(145,76,255,.11)
-    );
-
-  border-color:rgba(145,76,255,.65);
-
-  box-shadow:
-    0 0 20px rgba(145,76,255,.08);
-}
-
-/* =========================================================
-   REPORT LIST
-========================================================= */
-
-.reports{
-  display:grid;
-  gap:11px;
-}
-
-.card{
-  overflow:hidden;
-
-  background:
-    linear-gradient(
-      145deg,
-      rgba(16,9,28,.99),
-      rgba(7,4,14,.99)
-    );
-
-  border:1px solid rgba(145,76,255,.25);
-
-  border-radius:18px;
-
-  box-shadow:
-    0 16px 50px rgba(0,0,0,.28);
-
-  transition:
-    border-color .2s ease,
-    box-shadow .2s ease;
-}
-
-.card:hover{
-  border-color:rgba(145,76,255,.4);
-
-  box-shadow:
-    0 18px 55px rgba(0,0,0,.35),
-    0 0 30px rgba(145,76,255,.035);
-}
-
-/* =========================================================
-   CARD HEADER
-========================================================= */
-
-.card-head{
-  display:flex;
-  align-items:flex-start;
-  justify-content:space-between;
-  gap:12px;
-
-  padding:16px 16px 13px;
-}
-
-.report-title{
-  min-width:0;
-}
-
 .report-number{
-  display:flex;
-  align-items:center;
-  gap:7px;
-
-  font-size:15px;
+  font-size:20px;
   font-weight:750;
-  letter-spacing:-.15px;
-}
-
-.report-icon{
-  width:25px;
-  height:25px;
-
-  display:grid;
-  place-items:center;
-
-  border-radius:8px;
-
-  color:var(--purple2);
-
-  background:rgba(145,76,255,.10);
-  border:1px solid rgba(145,76,255,.18);
-}
-
-.report-icon svg{
-  width:13px;
-  height:13px;
-  fill:none;
-  stroke:currentColor;
-  stroke-width:1.8;
-  stroke-linecap:round;
-  stroke-linejoin:round;
+  letter-spacing:-.3px;
 }
 
 .idline{
+  color:var(--muted);
+  font-size:12px;
   margin-top:4px;
-  color:var(--dim);
-  font-size:10px;
 }
 
 .status{
-  flex:0 0 auto;
-
   display:inline-flex;
   align-items:center;
-  gap:6px;
-
-  padding:6px 9px;
-
+  gap:7px;
   border-radius:999px;
-
-  border:1px solid;
-
-  font-size:10px;
+  padding:8px 12px;
+  font-size:12px;
   font-weight:650;
+  border:1px solid;
+  white-space:nowrap;
 }
 
-.status-dot{
-  width:5px;
-  height:5px;
+.status::before{
+  content:"";
+  width:7px;
+  height:7px;
   border-radius:50%;
   background:currentColor;
-  box-shadow:0 0 8px currentColor;
+  box-shadow:0 0 9px currentColor;
 }
 
 .status.pending{
   color:var(--yellow);
-  border-color:rgba(255,228,92,.30);
-  background:rgba(255,228,92,.055);
+  border-color:rgba(255,227,79,.35);
+  background:rgba(255,227,79,.07);
 }
 
 .status.investigating{
   color:var(--blue);
-  border-color:rgba(105,186,255,.30);
-  background:rgba(105,186,255,.055);
+  border-color:rgba(102,184,255,.35);
+  background:rgba(102,184,255,.07);
 }
 
 .status.resolved{
   color:var(--green);
-  border-color:rgba(81,230,154,.30);
-  background:rgba(81,230,154,.055);
+  border-color:rgba(82,230,154,.35);
+  background:rgba(82,230,154,.07);
 }
 
 .status.dismissed{
-  color:var(--gray);
-  border-color:rgba(170,163,181,.25);
-  background:rgba(170,163,181,.045);
+  color:#aaa2b7;
+  border-color:rgba(170,162,183,.3);
+  background:rgba(170,162,183,.05);
 }
 
-/* =========================================================
+/* =========================
    PEOPLE
-========================================================= */
+========================= */
 
 .people{
   display:grid;
   grid-template-columns:1fr 1fr;
-  gap:8px;
-
-  padding:0 16px;
+  gap:10px;
+  padding:0 19px;
 }
 
 .person{
-  min-width:0;
-
-  padding:12px;
-
-  border-radius:13px;
-
+  border:1px solid rgba(145,76,255,.2);
   background:
     linear-gradient(
       145deg,
-      rgba(145,76,255,.065),
+      rgba(145,76,255,.055),
       rgba(145,76,255,.025)
     );
-
-  border:1px solid rgba(145,76,255,.16);
+  border-radius:15px;
+  padding:15px;
 }
 
-.person-head{
+.person-top{
   display:flex;
   align-items:center;
-  gap:7px;
-
-  margin-bottom:8px;
+  gap:10px;
+  margin-bottom:12px;
 }
 
-.person-avatar{
-  width:26px;
-  height:26px;
-
+.person-icon{
+  width:38px;
+  height:38px;
+  border-radius:12px;
   display:grid;
   place-items:center;
-
-  border-radius:8px;
-
-  background:rgba(145,76,255,.11);
-
+  background:rgba(145,76,255,.1);
   color:var(--purple2);
 }
 
-.person-avatar.reported{
-  color:#ff8eaa;
-  background:rgba(255,99,135,.08);
+.person-icon.reported{
+  color:#ff8fac;
+  background:rgba(255,85,125,.08);
 }
 
-.person-avatar svg{
-  width:14px;
-  height:14px;
+.person-icon svg{
+  width:19px;
+  height:19px;
   fill:none;
   stroke:currentColor;
   stroke-width:1.8;
@@ -593,53 +493,37 @@ button{
   stroke-linejoin:round;
 }
 
-.person-label{
-  color:var(--muted);
-
-  font-size:9px;
-  font-weight:650;
-
-  letter-spacing:.11em;
-  text-transform:uppercase;
-}
-
-.person-name{
+.person label{
   display:block;
-
-  overflow:hidden;
-  text-overflow:ellipsis;
-  white-space:nowrap;
-
-  color:var(--white);
-
-  font-size:13px;
+  font-size:10px;
+  text-transform:uppercase;
+  letter-spacing:.13em;
+  color:var(--muted);
   font-weight:700;
 }
 
-.person-id{
+.person strong{
+  display:block;
+  font-size:16px;
+  line-height:1.25;
+  margin-bottom:8px;
+}
+
+.totalk-id{
   display:flex;
   align-items:center;
-  gap:5px;
-
-  margin-top:5px;
-
-  min-width:0;
+  gap:7px;
+  flex-wrap:wrap;
+  color:var(--muted);
+  font-size:11px;
 }
 
-.person-id-label{
-  color:var(--dim);
-  font-size:9px;
+.totalk-id span{
+  color:var(--muted);
 }
 
-.person-id code{
-  min-width:0;
-
-  overflow:hidden;
-  text-overflow:ellipsis;
-  white-space:nowrap;
-
+.totalk-id code{
   color:var(--purple2);
-
   font-family:
     ui-monospace,
     SFMono-Regular,
@@ -647,553 +531,581 @@ button{
     Monaco,
     Consolas,
     monospace;
-
-  font-size:9px;
+  font-size:12px;
+  letter-spacing:.5px;
+  background:rgba(145,76,255,.07);
+  border:1px solid rgba(145,76,255,.16);
+  padding:4px 7px;
+  border-radius:7px;
 }
 
-/* =========================================================
-   REPORT DETAILS
-========================================================= */
+/* =========================
+   REPORT INFORMATION
+========================= */
 
-.report-body{
-  padding:14px 16px 0;
+.report-info{
+  padding:17px 19px 18px;
 }
 
-.reason-row{
-  display:flex;
-  align-items:flex-start;
-  gap:8px;
+.info-row{
+  display:grid;
+  grid-template-columns:120px 1fr;
+  align-items:center;
+  gap:12px;
+  padding:10px 0;
+  border-bottom:1px solid rgba(145,76,255,.08);
 }
 
-.reason-label{
-  flex:0 0 auto;
+.info-row:last-child{
+  border-bottom:0;
+  padding-bottom:2px;
+}
 
-  color:var(--purple2);
-
-  font-size:10px;
-  font-weight:700;
+.info-label{
+  color:var(--muted);
+  font-size:11px;
+  font-weight:750;
   text-transform:uppercase;
-  letter-spacing:.08em;
+  letter-spacing:.1em;
 }
+
+.info-value{
+  min-width:0;
+  font-size:14px;
+  color:#eee9f5;
+}
+
+/* FIXED REASON DESIGN */
 
 .reason-value{
-  min-width:0;
-
-  color:var(--text);
-
-  font-size:12px;
-  line-height:1.45;
-}
-
-.details{
-  margin-top:8px;
-
-  color:#aaa3b5;
-
-  font-size:11px;
-  line-height:1.55;
-
-  white-space:pre-wrap;
-  word-break:break-word;
-}
-
-.conversation{
-  display:flex;
+  display:inline-flex;
   align-items:center;
   gap:7px;
-
-  margin-top:10px;
-
-  color:var(--dim);
-
-  font-size:9px;
+  padding:6px 10px;
+  border-radius:8px;
+  background:rgba(145,76,255,.09);
+  border:1px solid rgba(145,76,255,.2);
+  color:#ddd1ee;
+  font-size:13px;
+  font-weight:600;
 }
 
-.conversation svg{
-  width:12px;
-  height:12px;
-  flex:0 0 12px;
-
-  fill:none;
-  stroke:currentColor;
-  stroke-width:1.8;
-  stroke-linecap:round;
-  stroke-linejoin:round;
+.reason-value::before{
+  content:"";
+  width:6px;
+  height:6px;
+  border-radius:50%;
+  background:var(--purple2);
+  box-shadow:0 0 8px rgba(184,120,255,.7);
 }
 
-/* =========================================================
-   DECISION AREA
-========================================================= */
+.conversation-value{
+  color:#7e758e;
+  font-size:11px;
+  font-family:
+    ui-monospace,
+    SFMono-Regular,
+    Menlo,
+    Monaco,
+    Consolas,
+    monospace;
+  word-break:break-all;
+}
 
-.decision{
-  margin-top:14px;
+/* =========================
+   DETAILS
+========================= */
 
-  padding:14px 16px 16px;
+.details-box{
+  margin:0 19px 18px;
+  padding:13px 14px;
+  border-radius:13px;
+  background:rgba(145,76,255,.035);
+  border:1px solid rgba(145,76,255,.13);
+}
 
-  border-top:1px solid rgba(145,76,255,.13);
+.details-label{
+  color:var(--muted);
+  font-size:10px;
+  font-weight:750;
+  text-transform:uppercase;
+  letter-spacing:.1em;
+  margin-bottom:7px;
+}
 
+.details-text{
+  color:#bcb4c9;
+  font-size:13px;
+  line-height:1.55;
+  white-space:pre-wrap;
+}
+
+/* =========================
+   MODERATION
+========================= */
+
+.moderation{
+  border-top:1px solid rgba(145,76,255,.16);
   background:
     linear-gradient(
       180deg,
       rgba(145,76,255,.025),
-      transparent
+      rgba(0,0,0,.04)
     );
+  padding:18px 19px 20px;
 }
 
-.decision-title{
+.moderation-head{
   display:flex;
-  align-items:center;
   justify-content:space-between;
-
-  margin-bottom:10px;
+  align-items:center;
+  gap:10px;
+  margin-bottom:16px;
 }
 
-.decision-title strong{
+.moderation-title{
+  font-size:17px;
+  font-weight:750;
+  letter-spacing:-.2px;
+}
+
+.moderation-subtitle{
+  color:var(--muted2);
   font-size:11px;
-  font-weight:700;
-}
-
-.decision-title span{
-  color:var(--dim);
-  font-size:9px;
 }
 
 .controls{
   display:grid;
-
-  grid-template-columns:
-    minmax(0,170px)
-    minmax(0,170px)
-    1fr
-    auto;
-
-  gap:8px;
-
-  align-items:end;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
 }
 
 .field{
   min-width:0;
 }
 
+.field.notes{
+  grid-column:1 / -1;
+}
+
 .field label{
   display:block;
-
-  margin-bottom:5px;
-
   color:var(--muted);
-
-  font-size:8px;
-  font-weight:700;
-
+  font-size:10px;
+  font-weight:750;
   text-transform:uppercase;
-  letter-spacing:.1em;
+  letter-spacing:.11em;
+  margin-bottom:7px;
 }
 
 .field select,
 .field textarea{
   width:100%;
-
-  border:1px solid rgba(145,76,255,.25);
-
+  border:1px solid rgba(145,76,255,.28);
   background:#08040f;
-
   color:var(--white);
-
-  border-radius:10px;
-
+  border-radius:12px;
+  padding:12px 13px;
   outline:none;
-
-  transition:
-    border-color .18s ease,
-    background .18s ease;
+  transition:.18s ease;
 }
 
 .field select{
-  height:40px;
-  padding:0 10px;
-
-  appearance:auto;
-
-  font-size:11px;
-}
-
-.field textarea{
-  min-height:40px;
-  height:40px;
-
-  resize:vertical;
-
-  padding:10px;
-
-  font-size:11px;
-
-  line-height:1.4;
+  height:48px;
 }
 
 .field select:focus,
 .field textarea:focus{
-  border-color:rgba(145,76,255,.65);
-  background:#0a0513;
+  border-color:rgba(145,76,255,.7);
+  box-shadow:0 0 0 3px rgba(145,76,255,.08);
+}
+
+.field textarea{
+  min-height:82px;
+  resize:vertical;
+  line-height:1.45;
+}
+
+.field textarea::placeholder{
+  color:#625a6c;
 }
 
 .save{
-  height:40px;
-
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  gap:7px;
-
-  padding:0 16px;
-
-  border-radius:10px;
-
+  grid-column:1 / -1;
+  width:100%;
+  height:48px;
   border:1px solid #a86bff;
-
+  border-radius:12px;
+  color:white;
+  font-weight:700;
   background:
     linear-gradient(
       135deg,
       #7130d8,
-      #9a4cff
+      #9b4dff
     );
-
-  color:white;
-
-  font-size:11px;
-  font-weight:700;
-
   box-shadow:
-    0 7px 20px rgba(113,48,216,.18);
-
-  transition:
-    transform .18s ease,
-    filter .18s ease;
+    0 8px 25px rgba(145,76,255,.2);
+  transition:.18s ease;
 }
 
 .save:hover{
-  filter:brightness(1.08);
-}
-
-.save:active{
-  transform:scale(.98);
+  transform:translateY(-1px);
+  box-shadow:
+    0 10px 30px rgba(145,76,255,.3);
 }
 
 .save:disabled{
+  opacity:.65;
   cursor:not-allowed;
-  opacity:.6;
+  transform:none;
 }
 
-.save svg{
-  width:14px;
-  height:14px;
-
-  fill:none;
-  stroke:currentColor;
-  stroke-width:1.9;
-  stroke-linecap:round;
-  stroke-linejoin:round;
-}
-
-/* =========================================================
+/* =========================
    EMPTY / LOADING
-========================================================= */
+========================= */
 
 .empty,
 .loading{
-  padding:48px 20px;
-
+  padding:60px 20px;
   text-align:center;
-
-  border:1px dashed rgba(145,76,255,.22);
-
-  border-radius:16px;
-
+  border:1px dashed rgba(145,76,255,.28);
+  border-radius:18px;
   color:var(--muted);
-
-  font-size:12px;
 }
 
 .empty strong{
   display:block;
-
-  margin-bottom:5px;
-
   color:var(--white);
-
-  font-size:13px;
+  margin-bottom:6px;
 }
 
-/* =========================================================
+/* =========================
    TOAST
-========================================================= */
+========================= */
 
 .toast{
   position:fixed;
-
-  left:50%;
-  bottom:22px;
-
-  transform:
-    translate(-50%,15px);
-
-  width:
-    min(calc(100% - 28px),420px);
-
+  right:18px;
+  bottom:18px;
+  z-index:20;
+  max-width:360px;
   padding:12px 15px;
-
-  border-radius:12px;
-
-  border:1px solid rgba(81,230,154,.35);
-
+  border:1px solid rgba(82,230,154,.4);
   background:#0b1712;
-
   color:#d8ffea;
-
-  font-size:11px;
-
-  box-shadow:
-    0 15px 45px rgba(0,0,0,.4);
-
+  border-radius:12px;
+  box-shadow:0 15px 40px rgba(0,0,0,.35);
   opacity:0;
-
+  transform:translateY(8px);
   pointer-events:none;
-
-  transition:.2s ease;
-
-  z-index:1000;
+  transition:.2s;
+  font-size:13px;
 }
 
 .toast.show{
   opacity:1;
-
-  transform:
-    translate(-50%,0);
+  transform:none;
 }
 
-/* =========================================================
+/* =========================
    LOGIN
-========================================================= */
+========================= */
 
 .login{
-  width:
-    min(calc(100% - 30px),420px);
-
-  margin:15vh auto;
-
-  padding:28px 22px;
-
-  text-align:center;
-
+  max-width:440px;
+  margin:12vh auto;
   background:
     linear-gradient(
-      145deg,
-      rgba(16,9,28,.99),
-      rgba(8,4,15,.99)
+      180deg,
+      rgba(15,8,27,.98),
+      rgba(8,4,15,.98)
     );
-
   border:1px solid var(--border);
-
   border-radius:20px;
-
-  box-shadow:
-    0 25px 80px rgba(0,0,0,.45);
-}
-
-.login-icon{
-  width:55px;
-  height:55px;
-
-  margin:0 auto 15px;
-
-  display:grid;
-  place-items:center;
-
-  border-radius:17px;
-
-  color:var(--purple2);
-
-  border:1px solid rgba(145,76,255,.4);
-
-  background:rgba(145,76,255,.10);
-}
-
-.login-icon svg{
-  width:25px;
-  height:25px;
-
-  fill:none;
-  stroke:currentColor;
-  stroke-width:1.7;
-  stroke-linecap:round;
-  stroke-linejoin:round;
+  padding:28px;
+  text-align:center;
+  box-shadow:0 25px 80px rgba(0,0,0,.4);
 }
 
 .login h2{
-  font-size:18px;
+  margin-bottom:8px;
 }
 
 .login p{
-  margin-top:8px;
-
   color:var(--muted);
-
-  font-size:11px;
-  line-height:1.6;
+  line-height:1.5;
+  font-size:13px;
 }
 
-.login .login-btn{
+.login .btn{
   margin-top:18px;
-
-  width:100%;
-  height:42px;
-
-  border:1px solid #a86bff;
-
-  border-radius:11px;
-
-  background:
-    linear-gradient(
-      135deg,
-      #7130d8,
-      #9a4cff
-    );
-
-  color:white;
-
-  font-weight:700;
 }
 
-/* =========================================================
-   RESPONSIVE
-========================================================= */
+.btn{
+  border:1px solid var(--border);
+  background:rgba(145,76,255,.1);
+  color:var(--white);
+  border-radius:11px;
+  padding:10px 14px;
+}
+
+/* =========================
+   DESKTOP
+========================= */
+
+@media(min-width:801px){
+
+  .card-head{
+    padding:20px 21px 16px;
+  }
+
+  .people{
+    padding:0 21px;
+  }
+
+  .report-info{
+    padding-left:21px;
+    padding-right:21px;
+  }
+
+  .details-box{
+    margin-left:21px;
+    margin-right:21px;
+  }
+
+  .moderation{
+    padding-left:21px;
+    padding-right:21px;
+  }
+}
+
+/* =========================
+   TABLET
+========================= */
 
 @media(max-width:800px){
 
   body{
-    padding:13px;
+    padding:14px;
+  }
+
+  .stats{
+    grid-template-columns:1fr 1fr;
+  }
+
+  .people{
+    grid-template-columns:1fr;
   }
 
   .topbar{
-    margin-bottom:16px;
-  }
-
-  .stats{
-    gap:7px;
-    margin-bottom:14px;
-  }
-
-  .stat{
-    padding:11px 12px;
-  }
-
-  .stat strong{
-    font-size:21px;
-  }
-
-  .controls{
-    grid-template-columns:1fr 1fr;
-  }
-
-  .field.notes{
-    grid-column:1/-1;
-  }
-
-  .save{
-    width:100%;
-    grid-column:1/-1;
-  }
-}
-
-@media(max-width:520px){
-
-  .brand h1{
-    font-size:18px;
-  }
-
-  .brand p{
-    font-size:10px;
-  }
-
-  .logo{
-    width:42px;
-    height:42px;
-    flex-basis:42px;
-  }
-
-  .icon-btn{
-    width:40px;
-    height:40px;
-  }
-
-  .stats{
-    grid-template-columns:1fr 1fr;
-  }
-
-  .toolbar{
-    margin-bottom:10px;
-  }
-
-  .people{
-    grid-template-columns:1fr;
-  }
-
-  .card-head{
-    padding:14px 13px 11px;
-  }
-
-  .people{
-    padding:0 13px;
-  }
-
-  .report-body{
-    padding-left:13px;
-    padding-right:13px;
-  }
-
-  .decision{
-    padding-left:13px;
-    padding-right:13px;
-  }
-
-  .controls{
-    grid-template-columns:1fr;
-  }
-
-  .field.notes{
-    grid-column:auto;
-  }
-
-  .save{
-    grid-column:auto;
-  }
-
-  .person{
-    padding:11px;
-  }
-}
-
-@media(max-width:360px){
-
-  body{
-    padding:10px;
+    align-items:center;
   }
 
   .brand p{
     display:none;
   }
 
-  .header-actions{
-    gap:5px;
+  .brand h1{
+    font-size:22px;
+  }
+
+  .logo{
+    width:52px;
+    height:52px;
+    flex-basis:52px;
+    border-radius:17px;
   }
 
   .icon-btn{
-    width:37px;
-    height:37px;
+    width:52px;
+    height:52px;
+    border-radius:17px;
+  }
+
+  .controls{
+    grid-template-columns:1fr;
+  }
+
+  .field.notes{
+    grid-column:auto;
+  }
+
+  .save{
+    grid-column:auto;
+  }
+}
+
+/* =========================
+   PHONE
+========================= */
+
+@media(max-width:520px){
+
+  body{
+    padding:10px;
+  }
+
+  .topbar{
+    margin-bottom:16px;
+  }
+
+  .brand{
+    gap:10px;
+  }
+
+  .brand h1{
+    font-size:20px;
+  }
+
+  .logo{
+    width:49px;
+    height:49px;
+    flex-basis:49px;
+    border-radius:16px;
+  }
+
+  .logo svg{
+    width:25px;
+    height:25px;
+  }
+
+  .actions{
+    gap:6px;
+  }
+
+  .icon-btn{
+    width:49px;
+    height:49px;
+    border-radius:16px;
+  }
+
+  .icon-btn svg{
+    width:23px;
+    height:23px;
+  }
+
+  .stats{
+    gap:9px;
+    margin-bottom:14px;
+  }
+
+  .stat{
+    min-height:105px;
+    padding:14px;
+    border-radius:16px;
+  }
+
+  .stat span{
+    font-size:12px;
+  }
+
+  .stat strong{
+    font-size:30px;
+    margin-top:8px;
   }
 
   .tab{
-    padding:7px 10px;
+    padding:9px 15px;
+  }
+
+  .card{
+    border-radius:18px;
+  }
+
+  .card-head{
+    padding:16px 14px 14px;
+  }
+
+  .report-icon{
+    width:37px;
+    height:37px;
+    border-radius:11px;
+  }
+
+  .report-number{
+    font-size:18px;
+  }
+
+  .status{
+    padding:7px 9px;
+    font-size:11px;
+  }
+
+  .people{
+    padding:0 14px;
+    gap:9px;
+  }
+
+  .person{
+    padding:13px;
+  }
+
+  .person strong{
+    font-size:15px;
+  }
+
+  .report-info{
+    padding:13px 14px 16px;
+  }
+
+  .info-row{
+    grid-template-columns:92px 1fr;
+    gap:8px;
+  }
+
+  .info-label{
+    font-size:9px;
+  }
+
+  .info-value{
+    font-size:13px;
+  }
+
+  .details-box{
+    margin:0 14px 16px;
+  }
+
+  .moderation{
+    padding:16px 14px 17px;
+  }
+
+  .moderation-title{
+    font-size:16px;
+  }
+
+  .moderation-subtitle{
+    font-size:10px;
+  }
+}
+
+/* =========================
+   VERY SMALL PHONE
+========================= */
+
+@media(max-width:380px){
+
+  .brand h1{
+    font-size:18px;
+  }
+
+  .logo,
+  .icon-btn{
+    width:45px;
+    height:45px;
+    flex-basis:45px;
+  }
+
+  .actions{
+    gap:4px;
+  }
+
+  .status{
+    padding:6px 8px;
+  }
+
+  .info-row{
+    grid-template-columns:82px 1fr;
   }
 }
 </style>
@@ -1201,13 +1113,9 @@ button{
 
 <body>
 
-<!-- =======================================================
-     ADMIN APP
-======================================================= -->
-
 <div class="shell" id="app" style="display:none">
 
-  <!-- HEADER -->
+  <!-- TOP BAR -->
   <header class="topbar">
 
     <div class="brand">
@@ -1220,43 +1128,41 @@ button{
         </svg>
       </div>
 
-      <div class="brand-text">
+      <div>
         <h1>ToTalk Admin</h1>
-        <p>Moderation Center</p>
+        <p>Owner moderation dashboard</p>
       </div>
 
     </div>
 
-    <div class="header-actions">
+    <div class="actions">
 
-      <!-- Refresh -->
+      <!-- REFRESH -->
       <button
         class="icon-btn"
         id="refreshBtn"
-        type="button"
-        title="Refresh reports"
-        aria-label="Refresh reports"
+        title="Refresh"
+        aria-label="Refresh"
       >
         <svg viewBox="0 0 24 24">
-          <path d="M20 11a8.1 8.1 0 0 0-14.9-4L3 10"/>
-          <path d="M3 5v5h5"/>
-          <path d="M4 13a8.1 8.1 0 0 0 14.9 4L21 14"/>
-          <path d="M21 19v-5h-5"/>
+          <path d="M20 11a8 8 0 0 0-14.9-4"/>
+          <path d="M5 3v4h4"/>
+          <path d="M4 13a8 8 0 0 0 14.9 4"/>
+          <path d="M19 21v-4h-4"/>
         </svg>
       </button>
 
-      <!-- Sign out -->
+      <!-- SIGN OUT -->
       <button
         class="icon-btn danger"
         id="signOutBtn"
-        type="button"
         title="Sign out"
         aria-label="Sign out"
       >
         <svg viewBox="0 0 24 24">
-          <path d="M10 5H6.5A1.5 1.5 0 0 0 5 6.5v11A1.5 1.5 0 0 0 6.5 19H10"/>
-          <path d="M14 8l4 4-4 4"/>
-          <path d="M18 12H9"/>
+          <path d="M10 17l5-5-5-5"/>
+          <path d="M15 12H3"/>
+          <path d="M13 4h6a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-6"/>
         </svg>
       </button>
 
@@ -1266,16 +1172,10 @@ button{
 
 
   <!-- ERROR -->
-  <div
-    class="banner"
-    id="errorBanner"
-  ></div>
+  <div class="banner" id="errorBanner"></div>
 
 
-  <!-- =====================================================
-       STATS
-  ====================================================== -->
-
+  <!-- STATS -->
   <section class="stats">
 
     <div class="stat pending">
@@ -1301,54 +1201,28 @@ button{
   </section>
 
 
-  <!-- =====================================================
-       FILTER TABS
-  ====================================================== -->
-
+  <!-- TABS -->
   <div class="toolbar">
 
-    <div
-      class="tabs"
-      id="tabs"
-    >
+    <div class="tabs" id="tabs">
 
-      <button
-        class="tab active"
-        data-status="pending"
-        type="button"
-      >
+      <button class="tab active" data-status="pending">
         Pending
       </button>
 
-      <button
-        class="tab"
-        data-status="investigating"
-        type="button"
-      >
+      <button class="tab" data-status="investigating">
         Investigating
       </button>
 
-      <button
-        class="tab"
-        data-status="resolved"
-        type="button"
-      >
+      <button class="tab" data-status="resolved">
         Resolved
       </button>
 
-      <button
-        class="tab"
-        data-status="dismissed"
-        type="button"
-      >
+      <button class="tab" data-status="dismissed">
         Dismissed
       </button>
 
-      <button
-        class="tab"
-        data-status="all"
-        type="button"
-      >
+      <button class="tab" data-status="all">
         All
       </button>
 
@@ -1357,55 +1231,27 @@ button{
   </div>
 
 
-  <!-- =====================================================
-       REPORTS
-  ====================================================== -->
-
-  <main
-    class="reports"
-    id="reports"
-  >
-
+  <!-- REPORTS -->
+  <main class="reports" id="reports">
     <div class="loading">
       Loading reports…
     </div>
-
   </main>
 
 </div>
 
 
-<!-- =======================================================
-     LOGIN
-======================================================= -->
-
-<div
-  class="login"
-  id="loginBox"
-  style="display:none"
->
-
-  <div class="login-icon">
-
-    <svg viewBox="0 0 24 24">
-      <path d="M12 3l7 3v5c0 4.6-2.9 8.4-7 10-4.1-1.6-7-5.4-7-10V6l7-3z"/>
-      <path d="M9 12l2 2 4-4"/>
-    </svg>
-
-  </div>
+<!-- LOGIN -->
+<div class="login" id="loginBox" style="display:none">
 
   <h2>Owner access required</h2>
 
   <p>
-    You must be signed in with a ToTalk account
-    that has owner, admin, or moderator access.
+    You must be signed in with a ToTalk account that has
+    an owner, admin, or moderator role.
   </p>
 
-  <button
-    class="login-btn"
-    id="goChatBtn"
-    type="button"
-  >
+  <button class="btn" id="goChatBtn">
     Open ToTalk
   </button>
 
@@ -1413,11 +1259,7 @@ button{
 
 
 <!-- TOAST -->
-
-<div
-  class="toast"
-  id="toast"
-></div>
+<div class="toast" id="toast"></div>
 
 
 <script>
@@ -1471,7 +1313,6 @@ const toast =
 ========================================================= */
 
 let currentStatus = "pending";
-
 let allReports = [];
 
 
@@ -1479,41 +1320,34 @@ let allReports = [];
    ESCAPE HTML
 ========================================================= */
 
-function esc(value){
-
-  return String(value ?? "")
+const esc = value =>
+  String(value ?? "")
     .replace(
       /[&<>'"]/g,
-      function(char){
-
-        return {
+      character =>
+        ({
           "&":"&amp;",
           "<":"&lt;",
           ">":"&gt;",
           "'":"&#39;",
           '"':"&quot;"
-        }[char];
-
-      }
+        })[character]
     );
-
-}
 
 
 /* =========================================================
-   DATE FORMAT
+   DATE
 ========================================================= */
 
-function fmtDate(value){
+const fmtDate = value => {
 
   if(!value){
     return "—";
   }
 
-  const date =
-    new Date(value);
+  const date = new Date(value);
 
-  if(Number.isNaN(date.getTime())){
+  if(isNaN(date)){
     return String(value);
   }
 
@@ -1524,12 +1358,11 @@ function fmtDate(value){
       timeStyle:"short"
     }
   );
-
-}
+};
 
 
 /* =========================================================
-   SHOW ERROR
+   ERROR
 ========================================================= */
 
 function showError(message){
@@ -1539,9 +1372,8 @@ function showError(message){
 
   errorBanner.classList.toggle(
     "show",
-    Boolean(message)
+    !!message
   );
-
 }
 
 
@@ -1551,198 +1383,157 @@ function showError(message){
 
 function showToast(message){
 
-  toast.textContent =
-    message;
+  toast.textContent = message;
 
-  toast.classList.add(
-    "show"
-  );
+  toast.classList.add("show");
 
-  clearTimeout(
-    showToast.timer
-  );
+  clearTimeout(showToast.t);
 
-  showToast.timer =
+  showToast.t =
     setTimeout(
-      function(){
-        toast.classList.remove(
-          "show"
-        );
-      },
+      () => toast.classList.remove("show"),
       2600
     );
-
 }
 
 
 /* =========================================================
-   SAFE VALUE HELPER
+   TOTAlK ID FORMAT
+=========================================================
+
+   If your RPC already returns a real ToTalk ID such as:
+
+   TT-ABC123
+
+   it will use that.
+
+   If the RPC currently only returns a UUID, we display
+   a clean ToTalk-style identifier instead of the UUID.
+
 ========================================================= */
 
-function firstValue(object, keys){
+function makeToTalkId(value){
 
-  for(const key of keys){
-
-    const value =
-      object?.[key];
-
-    if(
-      value !== undefined &&
-      value !== null &&
-      String(value).trim() !== ""
-    ){
-      return value;
-    }
-
+  if(!value){
+    return "TT-UNKNOWN";
   }
 
-  return null;
+  const raw =
+    String(value).trim();
 
+  /* Already a ToTalk ID */
+  if(/^TT-[A-Za-z0-9]+$/i.test(raw)){
+    return raw.toUpperCase();
+  }
+
+  /* UUID / existing user ID */
+  const cleaned =
+    raw.replace(/[^a-zA-Z0-9]/g,"");
+
+  if(!cleaned){
+    return "TT-UNKNOWN";
+  }
+
+  return (
+    "TT-" +
+    cleaned
+      .substring(0,6)
+      .toUpperCase()
+  );
 }
 
 
 /* =========================================================
-   GET REPORTER ID
+   GET USER ID FROM REPORT
 ========================================================= */
 
 function getReporterId(report){
 
-  return firstValue(
-    report,
-    [
-      "reporter_id",
-      "reporter_user_id",
-      "reporter_totalk_id",
-      "reporter_uid",
-      "from_user_id",
-      "from_id"
-    ]
+  return (
+    report.reporter_totalk_id ||
+    report.reporter_to_talk_id ||
+    report.reporter_id ||
+    report.reporter_user_id ||
+    report.reporter_uuid ||
+    null
   );
-
 }
 
-
-/* =========================================================
-   GET REPORTED USER ID
-========================================================= */
 
 function getReportedUserId(report){
 
-  return firstValue(
-    report,
-    [
-      "reported_user_id",
-      "reported_id",
-      "reported_totalk_id",
-      "reported_uid",
-      "target_user_id",
-      "target_id"
-    ]
+  return (
+    report.reported_totalk_id ||
+    report.reported_to_talk_id ||
+    report.reported_id ||
+    report.reported_user_id ||
+    report.reported_uuid ||
+    null
   );
-
 }
-
-
-/* =========================================================
-   ICONS
-========================================================= */
-
-const icons = {
-
-  user:`
-    <svg viewBox="0 0 24 24">
-      <circle cx="12" cy="8" r="3.2"/>
-      <path d="M5.5 20c.8-4 3-6 6.5-6s5.7 2 6.5 6"/>
-    </svg>
-  `,
-
-  flag:`
-    <svg viewBox="0 0 24 24">
-      <path d="M6 21V4"/>
-      <path d="M6 5c4-3 7 3 12 0v9c-5 3-8-3-12 0"/>
-    </svg>
-  `,
-
-  report:`
-    <svg viewBox="0 0 24 24">
-      <path d="M6 4h12v13H9l-3 3V4z"/>
-      <path d="M9 8h6"/>
-      <path d="M9 11h6"/>
-    </svg>
-  `,
-
-  chat:`
-    <svg viewBox="0 0 24 24">
-      <path d="M5 5h14v10H9l-4 4V5z"/>
-      <path d="M8 9h8"/>
-      <path d="M8 12h5"/>
-    </svg>
-  `,
-
-  save:`
-    <svg viewBox="0 0 24 24">
-      <path d="M5 4h11l3 3v13H5z"/>
-      <path d="M8 4v6h8V4"/>
-      <path d="M8 20v-6h8v6"/>
-    </svg>
-  `
-
-};
 
 
 /* =========================================================
    PERSON CARD
 ========================================================= */
 
-function personCard(
-  label,
+function person(
+  type,
   name,
   id,
-  reported
+  reported = false
 ){
 
-  const icon =
-    reported
-      ? icons.flag
-      : icons.user;
-
-  const safeName =
+  const finalName =
     name || "Unknown user";
 
-  const safeId =
-    id || "ID unavailable";
+  const finalId =
+    makeToTalkId(id);
 
   return `
 
     <div class="person">
 
-      <div class="person-head">
+      <div class="person-top">
 
-        <div class="
-          person-avatar
-          ${reported ? "reported" : ""}
-        ">
-          ${icon}
+        <div class="person-icon ${reported ? "reported" : ""}">
+
+          ${
+            reported
+            ?
+            `
+            <svg viewBox="0 0 24 24">
+              <path d="M5 20V4"/>
+              <path d="M5 5h10l-2 3 2 3H5"/>
+            </svg>
+            `
+            :
+            `
+            <svg viewBox="0 0 24 24">
+              <circle cx="12" cy="8" r="3"/>
+              <path d="M5 20c.8-3.3 3.1-5 7-5s6.2 1.7 7 5"/>
+            </svg>
+            `
+          }
+
         </div>
 
-        <span class="person-label">
-          ${esc(label)}
-        </span>
+        <label>
+          ${esc(type)}
+        </label>
 
       </div>
 
-      <strong class="person-name">
-        ${esc(safeName)}
+      <strong>
+        ${esc(finalName)}
       </strong>
 
-      <div class="person-id">
+      <div class="totalk-id">
 
-        <span class="person-id-label">
-          ToTalk ID
-        </span>
+        <span>ToTalk ID</span>
 
         <code>
-          ${esc(safeId)}
+          ${esc(finalId)}
         </code>
 
       </div>
@@ -1750,7 +1541,32 @@ function personCard(
     </div>
 
   `;
+}
 
+
+/* =========================================================
+   STATUS LABEL
+========================================================= */
+
+function statusName(status){
+
+  const valid =
+    [
+      "pending",
+      "investigating",
+      "resolved",
+      "dismissed"
+    ];
+
+  const safe =
+    valid.includes(status)
+      ? status
+      : "pending";
+
+  return (
+    safe.charAt(0).toUpperCase() +
+    safe.slice(1)
+  );
 }
 
 
@@ -1760,80 +1576,22 @@ function personCard(
 
 function card(report){
 
-  const allowedStatuses = [
-    "pending",
-    "investigating",
-    "resolved",
-    "dismissed"
-  ];
-
   const status =
-    allowedStatuses.includes(
-      report.status
-    )
+    [
+      "pending",
+      "investigating",
+      "resolved",
+      "dismissed"
+    ].includes(report.status)
       ? report.status
       : "pending";
-
-
-  const statusText =
-    status.charAt(0).toUpperCase()
-    + status.slice(1);
-
-
-  const reporterName =
-    firstValue(
-      report,
-      [
-        "reporter_name",
-        "reporter_display_name",
-        "from_name"
-      ]
-    );
-
-
-  const reportedName =
-    firstValue(
-      report,
-      [
-        "reported_name",
-        "reported_user_name",
-        "reported_display_name",
-        "target_name"
-      ]
-    );
 
 
   const reporterId =
     getReporterId(report);
 
-
-  const reportedId =
+  const reportedUserId =
     getReportedUserId(report);
-
-
-  const reason =
-    report.reason ||
-    "Not specified";
-
-
-  const details =
-    report.details ||
-    "";
-
-
-  const conversationId =
-    report.conversation_id ||
-    "";
-
-
-  const action =
-    report.action ||
-    "";
-
-
-  const adminNotes =
-    report.admin_notes ||
-    "";
 
 
   return `
@@ -1849,36 +1607,33 @@ function card(report){
 
         <div class="report-title">
 
-          <div class="report-number">
+          <div class="report-icon">
 
-            <span class="report-icon">
-              ${icons.report}
-            </span>
-
-            <span>
-              Report #${esc(report.id)}
-            </span>
+            <svg viewBox="0 0 24 24">
+              <path d="M6 4h12v12H10l-4 4z"/>
+              <path d="M9 8h6"/>
+              <path d="M9 11h4"/>
+            </svg>
 
           </div>
 
-          <div class="idline">
-            Submitted ${esc(
-              fmtDate(report.created_at)
-            )}
+          <div>
+
+            <div class="report-number">
+              Report #${esc(report.id)}
+            </div>
+
+            <div class="idline">
+              Submitted ${esc(fmtDate(report.created_at))}
+            </div>
+
           </div>
 
         </div>
 
 
-        <span class="
-          status
-          ${status}
-        ">
-
-          <span class="status-dot"></span>
-
-          ${esc(statusText)}
-
+        <span class="status ${status}">
+          ${esc(statusName(status))}
         </span>
 
       </div>
@@ -1888,81 +1643,99 @@ function card(report){
 
       <div class="people">
 
-        ${personCard(
-          "Reporter",
-          reporterName,
+        ${person(
+          "REPORTER",
+          report.reporter_name,
           reporterId,
           false
         )}
 
-        ${personCard(
-          "Reported user",
-          reportedName,
-          reportedId,
+        ${person(
+          "REPORTED USER",
+          report.reported_name,
+          reportedUserId,
           true
         )}
 
       </div>
 
 
-      <!-- REPORT CONTENT -->
+      <!-- REPORT INFORMATION -->
 
-      <div class="report-body">
+      <div class="report-info">
 
-        <div class="reason-row">
+        <!-- REASON -->
 
-          <span class="reason-label">
+        <div class="info-row">
+
+          <div class="info-label">
             Reason
-          </span>
+          </div>
 
-          <span class="reason-value">
-            ${esc(reason)}
-          </span>
+          <div class="info-value">
+
+            <span class="reason-value">
+              ${esc(report.reason || "Not specified")}
+            </span>
+
+          </div>
 
         </div>
 
 
-        ${
-          details
-            ? `
-              <div class="details">
-                ${esc(details)}
-              </div>
-            `
-            : ""
-        }
+        <!-- CONVERSATION -->
 
+        <div class="info-row">
 
-        ${
-          conversationId
-            ? `
-              <div class="conversation">
-                ${icons.chat}
-                <span>
-                  Conversation:
-                  ${esc(conversationId)}
-                </span>
-              </div>
-            `
-            : ""
-        }
+          <div class="info-label">
+            Conversation
+          </div>
+
+          <div class="info-value conversation-value">
+            ${esc(report.conversation_id || "—")}
+          </div>
+
+        </div>
 
       </div>
 
 
-      <!-- DECISION -->
+      <!-- DETAILS -->
 
-      <div class="decision">
+      ${
+        report.details
+        ?
+        `
+        <div class="details-box">
 
-        <div class="decision-title">
+          <div class="details-label">
+            Report details
+          </div>
 
-          <strong>
+          <div class="details-text">
+            ${esc(report.details)}
+          </div>
+
+        </div>
+        `
+        :
+        ""
+      }
+
+
+      <!-- MODERATION -->
+
+      <div class="moderation">
+
+        <div class="moderation-head">
+
+          <div class="moderation-title">
             Moderation decision
-          </strong>
+          </div>
 
-          <span>
+          <div class="moderation-subtitle">
             Private admin controls
-          </span>
+          </div>
 
         </div>
 
@@ -2037,10 +1810,7 @@ function card(report){
 
           <!-- NOTES -->
 
-          <div class="
-            field
-            notes
-          ">
+          <div class="field notes">
 
             <label>
               Admin note
@@ -2049,7 +1819,7 @@ function card(report){
             <textarea
               class="notesInput"
               placeholder="Add a private moderation note…"
-            >${esc(adminNotes)}</textarea>
+            ></textarea>
 
           </div>
 
@@ -2059,15 +1829,8 @@ function card(report){
           <button
             class="save"
             data-save="1"
-            type="button"
           >
-
-            ${icons.save}
-
-            <span>
-              Save
-            </span>
-
+            Save decision
           </button>
 
         </div>
@@ -2077,126 +1840,6 @@ function card(report){
     </article>
 
   `;
-
-}
-
-
-/* =========================================================
-   RENDER
-========================================================= */
-
-function render(){
-
-  const rows =
-    currentStatus === "all"
-      ? allReports
-      : allReports.filter(
-          function(report){
-            return report.status ===
-              currentStatus;
-          }
-        );
-
-
-  if(!rows.length){
-
-    const label =
-      currentStatus === "all"
-        ? "reports"
-        : currentStatus + " reports";
-
-
-    reportsEl.innerHTML = `
-
-      <div class="empty">
-
-        <strong>
-          No ${esc(label)}.
-        </strong>
-
-        Everything is clear here.
-
-      </div>
-
-    `;
-
-    return;
-  }
-
-
-  reportsEl.innerHTML =
-    rows
-      .map(card)
-      .join("");
-
-
-  rows.forEach(
-    function(report){
-
-      const element =
-        reportsEl.querySelector(
-          `[data-id="${CSS.escape(
-            String(report.id)
-          )}"]`
-        );
-
-
-      if(!element){
-        return;
-      }
-
-
-      const statusSelect =
-        element.querySelector(
-          ".statusSelect"
-        );
-
-
-      const actionSelect =
-        element.querySelector(
-          ".actionSelect"
-        );
-
-
-      const notesInput =
-        element.querySelector(
-          ".notesInput"
-        );
-
-
-      if(statusSelect){
-
-        statusSelect.value =
-          [
-            "pending",
-            "investigating",
-            "resolved",
-            "dismissed"
-          ].includes(report.status)
-            ? report.status
-            : "pending";
-
-      }
-
-
-      if(actionSelect){
-
-        actionSelect.value =
-          report.action || "";
-
-      }
-
-
-      if(notesInput){
-
-        notesInput.value =
-          report.admin_notes || "";
-
-      }
-
-    }
-  );
-
 }
 
 
@@ -2207,34 +1850,24 @@ function render(){
 function setCounts(rows){
 
   const counts = {
-
     pending:0,
-
     investigating:0,
-
     resolved:0,
-
     dismissed:0
-
   };
 
 
-  rows.forEach(
-    function(report){
+  rows.forEach(report => {
 
-      if(
-        Object.prototype.hasOwnProperty.call(
-          counts,
-          report.status
-        )
-      ){
+    if(
+      counts[report.status] !== undefined
+    ){
 
-        counts[report.status]++;
-
-      }
+      counts[report.status]++;
 
     }
-  );
+
+  });
 
 
   document.getElementById(
@@ -2259,7 +1892,90 @@ function setCounts(rows){
     "countDismissed"
   ).textContent =
     counts.dismissed;
+}
 
+
+/* =========================================================
+   RENDER
+========================================================= */
+
+function render(){
+
+  const rows =
+    currentStatus === "all"
+      ? allReports
+      : allReports.filter(
+          report =>
+            report.status === currentStatus
+        );
+
+
+  if(!rows.length){
+
+    reportsEl.innerHTML = `
+
+      <div class="empty">
+
+        <strong>
+          ${
+            currentStatus === "all"
+              ? "No reports."
+              : `No ${currentStatus} reports.`
+          }
+        </strong>
+
+        You're all caught up here.
+
+      </div>
+
+    `;
+
+    return;
+  }
+
+
+  reportsEl.innerHTML =
+    rows.map(card).join("");
+
+
+  rows.forEach(report => {
+
+    const element =
+      reportsEl.querySelector(
+        `[data-id="${CSS.escape(String(report.id))}"]`
+      );
+
+
+    if(!element){
+      return;
+    }
+
+
+    element.querySelector(
+      ".statusSelect"
+    ).value =
+      [
+        "pending",
+        "investigating",
+        "resolved",
+        "dismissed"
+      ].includes(report.status)
+        ? report.status
+        : "pending";
+
+
+    element.querySelector(
+      ".actionSelect"
+    ).value =
+      report.action || "";
+
+
+    element.querySelector(
+      ".notesInput"
+    ).value =
+      report.admin_notes || "";
+
+  });
 }
 
 
@@ -2292,15 +2008,11 @@ async function loadReports(){
 
   if(error){
 
-    console.error(
-      "admin_list_reports error:",
-      error
-    );
-
+    console.error(error);
 
     showError(
-      "Could not load reports: "
-      + error.message
+      "Could not load reports: " +
+      error.message
     );
 
 
@@ -2329,19 +2041,9 @@ async function loadReports(){
       : [];
 
 
-  console.log(
-    "Reports returned by RPC:",
-    allReports
-  );
-
-
-  setCounts(
-    allReports
-  );
-
+  setCounts(allReports);
 
   render();
-
 }
 
 
@@ -2349,79 +2051,40 @@ async function loadReports(){
    SAVE REPORT
 ========================================================= */
 
-async function saveReport(cardElement){
+async function saveReport(element){
 
   const id =
-    cardElement.dataset.id;
+    element.dataset.id;
 
 
   const status =
-    cardElement.querySelector(
+    element.querySelector(
       ".statusSelect"
     ).value;
 
 
   const action =
-    cardElement.querySelector(
+    element.querySelector(
       ".actionSelect"
     ).value || null;
 
 
   const notes =
-    cardElement.querySelector(
+    element.querySelector(
       ".notesInput"
     ).value.trim() || null;
 
 
   const button =
-    cardElement.querySelector(
+    element.querySelector(
       "[data-save]"
     );
 
 
-  /*
-    Ban/Suspend are currently NOT enforcing
-    anything on the user account.
-
-    We only save the moderation decision.
-  */
-
-  if(
-    action === "ban" ||
-    action === "suspend"
-  ){
-
-    const actionName =
-      action === "ban"
-        ? "Ban"
-        : "Suspend";
-
-
-    const confirmed =
-      window.confirm(
-        `${actionName} is not enforcing an account restriction yet.\n\n`
-        +
-        `This will only save "${actionName}" as the moderation action.\n\n`
-        +
-        `Continue?`
-      );
-
-
-    if(!confirmed){
-      return;
-    }
-
-  }
-
-
   button.disabled = true;
 
-  button.innerHTML = `
-    <span>
-      Saving…
-    </span>
-  `;
-
+  button.textContent =
+    "Saving…";
 
   showError("");
 
@@ -2434,11 +2097,8 @@ async function saveReport(cardElement){
       "admin_update_report",
       {
         p_report_id:Number(id),
-
         p_status:status,
-
         p_action:action,
-
         p_admin_notes:notes
       }
     );
@@ -2449,18 +2109,13 @@ async function saveReport(cardElement){
     data !== true
   ){
 
-    console.error(
-      "admin_update_report error:",
-      error,
-      data
-    );
-
+    console.error(error);
 
     showError(
-      "Could not update report #"
-      + id
-      + ": "
-      + (
+      "Could not update report #" +
+      id +
+      ": " +
+      (
         error?.message ||
         "Update was not accepted."
       )
@@ -2469,26 +2124,21 @@ async function saveReport(cardElement){
 
     button.disabled = false;
 
-    button.innerHTML = `
-      ${icons.save}
-      <span>
-        Save
-      </span>
-    `;
+    button.textContent =
+      "Save decision";
 
     return;
   }
 
 
   showToast(
-    "Report #"
-    + id
-    + " updated"
+    "Report #" +
+    id +
+    " updated"
   );
 
 
   await loadReports();
-
 }
 
 
@@ -2498,81 +2148,52 @@ async function saveReport(cardElement){
 
 async function boot(){
 
-  try{
-
-    const {
-      data:{
-        session
-      }
-    } =
-      await supabaseClient
-        .auth
-        .getSession();
-
-
-    if(!session){
-
-      loginBox.style.display =
-        "block";
-
-      return;
+  const {
+    data:{
+      session
     }
+  } =
+    await supabaseClient.auth.getSession();
 
 
-    const {
-      data,
-      error
-    } =
-      await supabaseClient.rpc(
-        "is_totalk_admin"
-      );
+  if(!session){
 
-
-    if(
-      error ||
-      data !== true
-    ){
-
-      loginBox.style.display =
-        "block";
-
-
-      showError(
-        error?.message ||
-        "This account does not have admin access."
-      );
-
-
-      return;
-    }
-
-
-    app.style.display =
+    loginBox.style.display =
       "block";
 
+    return;
+  }
 
-    await loadReports();
 
-
-  }catch(error){
-
-    console.error(
-      "Boot error:",
-      error
+  const result =
+    await supabaseClient.rpc(
+      "is_totalk_admin"
     );
 
+
+  if(
+    result.error ||
+    result.data !== true
+  ){
 
     loginBox.style.display =
       "block";
 
 
     showError(
-      error?.message ||
-      "Could not initialize admin dashboard."
+      result.error?.message ||
+      "This account does not have admin access."
     );
 
+    return;
   }
 
+
+  app.style.display =
+    "block";
+
+
+  await loadReports();
 }
 
 
@@ -2584,22 +2205,7 @@ document
   .getElementById("refreshBtn")
   .addEventListener(
     "click",
-    async function(){
-
-      const button =
-        this;
-
-      button.disabled =
-        true;
-
-
-      await loadReports();
-
-
-      button.disabled =
-        false;
-
-    }
+    loadReports
   );
 
 
@@ -2611,23 +2217,9 @@ document
   .getElementById("signOutBtn")
   .addEventListener(
     "click",
-    async function(){
+    async () => {
 
-      const confirmed =
-        window.confirm(
-          "Sign out of ToTalk Admin?"
-        );
-
-
-      if(!confirmed){
-        return;
-      }
-
-
-      await supabaseClient
-        .auth
-        .signOut();
-
+      await supabaseClient.auth.signOut();
 
       location.reload();
 
@@ -2643,7 +2235,7 @@ document
   .getElementById("goChatBtn")
   .addEventListener(
     "click",
-    function(){
+    () => {
 
       location.href =
         "chat.html";
@@ -2660,7 +2252,7 @@ document
   .getElementById("tabs")
   .addEventListener(
     "click",
-    function(event){
+    event => {
 
       const button =
         event.target.closest(
@@ -2674,17 +2266,12 @@ document
 
 
       document
-        .querySelectorAll(
-          ".tab"
-        )
+        .querySelectorAll(".tab")
         .forEach(
-          function(tab){
-
-            tab.classList.remove(
+          item =>
+            item.classList.remove(
               "active"
-            );
-
-          }
+            )
         );
 
 
@@ -2704,12 +2291,12 @@ document
 
 
 /* =========================================================
-   SAVE EVENT
+   SAVE CLICK
 ========================================================= */
 
 reportsEl.addEventListener(
   "click",
-  function(event){
+  event => {
 
     const button =
       event.target.closest(
@@ -2723,16 +2310,12 @@ reportsEl.addEventListener(
 
 
     const cardElement =
-      button.closest(
-        ".card"
-      );
+      button.closest(".card");
 
 
     if(cardElement){
 
-      saveReport(
-        cardElement
-      );
+      saveReport(cardElement);
 
     }
 
@@ -2741,28 +2324,22 @@ reportsEl.addEventListener(
 
 
 /* =========================================================
-   AUTH STATE
+   AUTH LISTENER
 ========================================================= */
 
-supabaseClient
-  .auth
-  .onAuthStateChange(
-    function(
-      event,
-      session
+supabaseClient.auth.onAuthStateChange(
+  (event, session) => {
+
+    if(
+      event === "SIGNED_OUT"
     ){
 
-      if(
-        event ===
-        "SIGNED_OUT"
-      ){
-
-        location.reload();
-
-      }
+      location.reload();
 
     }
-  );
+
+  }
+);
 
 
 /* =========================================================
