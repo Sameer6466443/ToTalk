@@ -5482,45 +5482,15 @@ async function sendMessage(){
     }
 
     const sendError =
-      [
-        error?.message ? "Message: " + error.message : "",
-        error?.code ? "Code: " + error.code : "",
-        error?.details ? "Details: " + error.details : "",
-        error?.hint ? "Hint: " + error.hint : ""
-      ].filter(Boolean).join("\n") || "Unknown Supabase error";
+      error?.message ||
+      error?.details ||
+      error?.hint ||
+      "Unknown error";
 
-    showStatus("Message was not saved. Check the error box.");
-
-    /* Show the REAL database error on screen so the next fix is exact. */
-    const oldErrorBox = document.getElementById("messageSendErrorBox");
-    oldErrorBox?.remove();
-
-    const errorBox = document.createElement("div");
-    errorBox.id = "messageSendErrorBox";
-    errorBox.style.cssText = [
-      "position:fixed",
-      "left:50%",
-      "bottom:90px",
-      "transform:translateX(-50%)",
-      "z-index:999999",
-      "width:min(92vw,620px)",
-      "padding:18px",
-      "border:1px solid rgba(255,90,150,.55)",
-      "border-radius:16px",
-      "background:rgba(12,5,22,.98)",
-      "box-shadow:0 20px 60px rgba(0,0,0,.6)",
-      "color:#fff",
-      "font-family:inherit"
-    ].join(";");
-    errorBox.innerHTML = `
-      <div style="font-size:16px;font-weight:900;margin-bottom:8px;color:#ff9bc4;">Message send error</div>
-      <pre style="white-space:pre-wrap;word-break:break-word;margin:0 0 12px;color:#eee;font:13px/1.55 monospace;">${escapeHtml(sendError)}</pre>
-      <button type="button" id="closeMessageSendError" style="border:1px solid rgba(166,116,255,.45);background:rgba(125,76,255,.16);color:#fff;border-radius:10px;padding:9px 14px;font-weight:800;cursor:pointer;">Close</button>
-    `;
-    document.body.appendChild(errorBox);
-    document.getElementById("closeMessageSendError")?.addEventListener("click",()=>errorBox.remove());
-
-    console.error("FULL SUPABASE MESSAGE SEND ERROR:", error);
+    showStatus(
+      "Message was not saved: " +
+      sendError
+    );
 
     /* Restore text so the user does not lose what they typed. */
     messageInput.value = text;
@@ -6613,13 +6583,7 @@ async function checkForTotalkWarnings(){
   if(totalkWarningBusy || !currentUser?.id) return;
   totalkWarningBusy=true;
   try{
-    const {data,error}=await supabaseClient
-      .from("reports")
-      .select("id,reported_user_id,reason,details,admin_notes,action,status,created_at")
-      .eq("reported_user_id",currentUser.id)
-      .eq("action","warning")
-      .order("created_at",{ascending:false})
-      .limit(20);
+    const {data,error}=await supabaseClient.rpc("get_my_warnings");
 
     if(error){
       console.warn("ToTalk warning notification could not read reports:",error.message);
