@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#020108">
+<title>ToTalk Admin</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--black:#020108;--dark:#070313;--panel:#0a0616;--panel2:#10091d;--purple:#914cff;--purple2:#b878ff;--green:#52e69a;--yellow:#ffe34f;--red:#ff557d;--blue:#66b8ff;--white:#f8f5ff;--muted:#958da9;--border:rgba(145,76,255,.35)}
+html,body{min-height:100%;background:radial-gradient(circle at 50% -10%,rgba(145,76,255,.18),transparent 38%),var(--black);color:var(--white);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+body{padding:24px}
+button,input,textarea,select{font:inherit}
+button{cursor:pointer}
+.shell{max-width:1200px;margin:auto}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:22px}
+.brand{display:flex;align-items:center;gap:12px}.logo{width:44px;height:44px;border:1px solid rgba(145,76,255,.7);border-radius:14px;display:grid;place-items:center;background:rgba(145,76,255,.12);box-shadow:0 0 28px rgba(145,76,255,.2)}.logo svg{width:25px;height:25px;fill:none;stroke:var(--purple2);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}.brand h1{font-size:22px;letter-spacing:.2px}.brand p{font-size:12px;color:var(--muted);margin-top:2px}
+.actions{display:flex;gap:10px}.btn{border:1px solid var(--border);background:rgba(145,76,255,.1);color:var(--white);border-radius:11px;padding:10px 14px}.btn:hover{background:rgba(145,76,255,.18)}.btn.primary{background:linear-gradient(135deg,#7130d8,#9b4dff);border-color:#a86bff}.btn.danger{border-color:rgba(255,85,125,.4);color:#ff9bb3;background:rgba(255,85,125,.07)}
+.banner{display:none;padding:14px 16px;border:1px solid rgba(255,85,125,.4);background:rgba(255,85,125,.08);border-radius:14px;margin-bottom:18px;color:#ffc0cf}.banner.show{display:block}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}.stat{background:linear-gradient(180deg,rgba(16,9,29,.96),rgba(9,5,18,.96));border:1px solid var(--border);border-radius:15px;padding:16px;box-shadow:0 12px 40px rgba(0,0,0,.22)}.stat span{display:block;color:var(--muted);font-size:12px}.stat strong{display:block;font-size:25px;margin-top:5px}.stat.pending strong{color:var(--yellow)}.stat.investigating strong{color:var(--blue)}.stat.resolved strong{color:var(--green)}.stat.dismissed strong{color:#aaa2b7}
+.toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}.tabs{display:flex;gap:7px;flex-wrap:wrap}.tab{border:1px solid rgba(145,76,255,.28);background:rgba(145,76,255,.06);color:var(--muted);border-radius:999px;padding:8px 12px}.tab.active{color:var(--white);background:rgba(145,76,255,.2);border-color:rgba(145,76,255,.65);box-shadow:0 0 18px rgba(145,76,255,.12)}
+.reports{display:grid;gap:12px}.card{background:linear-gradient(180deg,rgba(15,8,27,.98),rgba(8,4,15,.98));border:1px solid rgba(145,76,255,.3);border-radius:17px;padding:17px;box-shadow:0 12px 50px rgba(0,0,0,.25)}.card-head{display:flex;justify-content:space-between;gap:15px;align-items:flex-start}.idline{font-size:11px;color:#756d84;margin-top:5px}.status{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:6px 9px;font-size:11px;border:1px solid}.status.pending{color:var(--yellow);border-color:rgba(255,227,79,.35);background:rgba(255,227,79,.07)}.status.investigating{color:var(--blue);border-color:rgba(102,184,255,.35);background:rgba(102,184,255,.07)}.status.resolved{color:var(--green);border-color:rgba(82,230,154,.35);background:rgba(82,230,154,.07)}.status.dismissed{color:#aaa2b7;border-color:rgba(170,162,183,.3);background:rgba(170,162,183,.05)}
+.people{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:15px 0}.person{border:1px solid rgba(145,76,255,.18);background:rgba(145,76,255,.045);border-radius:13px;padding:12px}.person label{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);margin-bottom:5px}.person strong{font-size:14px}.person code{font-size:11px;color:var(--purple2);display:block;margin-top:3px}
+.reason{font-size:13px;color:#ddd7e7}.reason b{color:var(--purple2)}.details{margin-top:9px;color:#aaa2b7;font-size:13px;line-height:1.55;white-space:pre-wrap}.meta{font-size:11px;color:#716a7c;margin-top:10px}
+.controls{margin-top:15px;padding-top:15px;border-top:1px solid rgba(145,76,255,.16);display:grid;grid-template-columns:180px 180px 1fr auto;gap:9px;align-items:end}.field label{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:6px}.field select,.field textarea{width:100%;border:1px solid rgba(145,76,255,.3);background:#08040f;color:var(--white);border-radius:10px;padding:9px 10px;outline:none}.field textarea{min-height:40px;resize:vertical}.save{height:40px}
+.empty,.loading{padding:55px 20px;text-align:center;border:1px dashed rgba(145,76,255,.28);border-radius:17px;color:var(--muted)}.empty strong{display:block;color:var(--white);margin-bottom:5px}
+.toast{position:fixed;right:20px;bottom:20px;max-width:360px;padding:12px 15px;border:1px solid rgba(82,230,154,.4);background:#0b1712;color:#d8ffea;border-radius:12px;box-shadow:0 15px 40px rgba(0,0,0,.35);opacity:0;transform:translateY(8px);pointer-events:none;transition:.2s}.toast.show{opacity:1;transform:none}
+.login{max-width:480px;margin:12vh auto;background:linear-gradient(180deg,rgba(15,8,27,.98),rgba(8,4,15,.98));border:1px solid var(--border);border-radius:20px;padding:28px;text-align:center;box-shadow:0 25px 80px rgba(0,0,0,.4)}.login h2{margin-bottom:8px}.login p{color:var(--muted);line-height:1.5;font-size:13px}.login .btn{margin-top:18px}
+@media(max-width:800px){body{padding:14px}.stats{grid-template-columns:1fr 1fr}.people{grid-template-columns:1fr}.controls{grid-template-columns:1fr 1fr}.controls .field.notes{grid-column:1/-1}.controls .save{grid-column:1/-1;width:100%}.topbar{align-items:flex-start}.toolbar{align-items:flex-start;flex-direction:column}}
+@media(max-width:480px){.stats{grid-template-columns:1fr 1fr}.controls{grid-template-columns:1fr}.controls .field.notes{grid-column:auto}.controls .save{grid-column:auto}.actions{width:100%}.actions .btn{flex:1}}
+</style>
+</head>
+<body>
+<div class="shell" id="app" style="display:none">
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo"><svg viewBox="0 0 24 24"><path d="M5 5.5h14v9H11l-4 4v-4H5z"/><path d="M8 9.5h8M8 12h5"/></svg></div>
+      <div><h1>ToTalk Admin</h1><p>Owner moderation dashboard</p></div>
+    </div>
+    <div class="actions"><button class="btn" id="refreshBtn">Refresh</button><button class="btn danger" id="signOutBtn">Sign out</button></div>
+  </header>
+  <div class="banner" id="errorBanner"></div>
+  <section class="stats">
+    <div class="stat pending"><span>Pending</span><strong id="countPending">0</strong></div>
+    <div class="stat investigating"><span>Investigating</span><strong id="countInvestigating">0</strong></div>
+    <div class="stat resolved"><span>Resolved</span><strong id="countResolved">0</strong></div>
+    <div class="stat dismissed"><span>Dismissed</span><strong id="countDismissed">0</strong></div>
+  </section>
+  <div class="toolbar"><div class="tabs" id="tabs"><button class="tab active" data-status="pending">Pending</button><button class="tab" data-status="investigating">Investigating</button><button class="tab" data-status="resolved">Resolved</button><button class="tab" data-status="dismissed">Dismissed</button><button class="tab" data-status="all">All</button></div></div>
+  <main class="reports" id="reports"><div class="loading">Loading reports…</div></main>
+</div>
+<div class="login" id="loginBox" style="display:none"><h2>Owner access required</h2><p>You must be signed in with a ToTalk account that has an owner, admin, or moderator role.</p><button class="btn primary" id="goChatBtn">Open ToTalk</button></div>
+<div class="toast" id="toast"></div>
+<script>
+const SUPABASE_URL="https://qiynczbrhpxwuabwuyiy.supabase.co";
+const SUPABASE_KEY="sb_publishable_eUPz4c_nYckgINEK-AIWqw_JAXIHozd";
+const supabaseClient=supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+const app=document.getElementById('app'),loginBox=document.getElementById('loginBox'),reportsEl=document.getElementById('reports'),errorBanner=document.getElementById('errorBanner'),toast=document.getElementById('toast');
+let currentStatus='pending',allReports=[];
+const esc=v=>String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+const fmtDate=v=>{if(!v)return '—';const d=new Date(v);return isNaN(d)?String(v):d.toLocaleString([], {dateStyle:'medium',timeStyle:'short'});};
+function showError(msg){errorBanner.textContent=msg||'';errorBanner.classList.toggle('show',!!msg)}
+function showToast(msg){toast.textContent=msg;toast.classList.add('show');clearTimeout(showToast.t);showToast.t=setTimeout(()=>toast.classList.remove('show'),2600)}
+function setCounts(rows){const c={pending:0,investigating:0,resolved:0,dismissed:0};rows.forEach(r=>{if(c[r.status]!==undefined)c[r.status]++});for(const k in c)document.getElementById('count'+k[0].toUpperCase()+k.slice(1)).textContent=c[k]}
+function person(name,id){return `<div class="person"><label>${name}</label><strong>${esc(name||'Unknown user')}</strong><code>${esc(id||'No ToTalk ID')}</code></div>`}
+function card(r){const status=['pending','investigating','resolved','dismissed'].includes(r.status)?r.status:'pending';return `<article class="card" data-id="${esc(r.id)}"><div class="card-head"><div><strong>Report #${esc(r.id)}</strong><div class="idline">Submitted ${esc(fmtDate(r.created_at))}</div></div><span class="status ${status}">${esc(status[0].toUpperCase()+status.slice(1))}</span></div><div class="people">${person('Reporter',r.reporter_name)}${person('Reported user',r.reported_name)}</div><div class="reason"><b>Reason:</b> ${esc(r.reason||'Not specified')}</div>${r.details?`<div class="details"><b>Details:</b> ${esc(r.details)}</div>`:''}<div class="meta">Conversation: ${esc(r.conversation_id||'—')}</div><div class="controls"><div class="field"><label>Status</label><select class="statusSelect"><option value="pending">Pending</option><option value="investigating">Investigating</option><option value="resolved">Resolved</option><option value="dismissed">Dismissed</option></select></div><div class="field"><label>Action</label><select class="actionSelect"><option value="">No action</option><option value="warning">Warning</option><option value="restrict">Restrict</option><option value="suspend">Suspend</option><option value="ban">Ban</option></select></div><div class="field notes"><label>Admin notes</label><textarea class="notesInput" placeholder="Private moderation note…"></textarea></div><button class="btn primary save" data-save="1">Save</button></div></article>`}
+function render(){const rows=currentStatus==='all'?allReports:allReports.filter(r=>r.status===currentStatus);if(!rows.length){reportsEl.innerHTML=`<div class="empty"><strong>No ${currentStatus==='all'?'reports':currentStatus+' reports'}.</strong>You're all caught up here.</div>`;return}reportsEl.innerHTML=rows.map(card).join('');rows.forEach(r=>{const el=reportsEl.querySelector(`[data-id="${CSS.escape(String(r.id))}"]`);if(!el)return;el.querySelector('.statusSelect').value=['pending','investigating','resolved','dismissed'].includes(r.status)?r.status:'pending';el.querySelector('.actionSelect').value=r.action||'';el.querySelector('.notesInput').value=r.admin_notes||''})}
+async function loadReports(){showError('');reportsEl.innerHTML='<div class="loading">Loading reports…</div>';const {data,error}=await supabaseClient.rpc('admin_list_reports',{p_status:null});if(error){console.error(error);showError('Could not load reports: '+error.message);reportsEl.innerHTML='<div class="empty"><strong>Could not load reports.</strong>Check your admin permissions and Supabase function setup.</div>';return}allReports=Array.isArray(data)?data:[];setCounts(allReports);render()}
+async function saveReport(el){const id=el.dataset.id;const status=el.querySelector('.statusSelect').value;const action=el.querySelector('.actionSelect').value||null;const notes=el.querySelector('.notesInput').value.trim()||null;const btn=el.querySelector('[data-save]');btn.disabled=true;btn.textContent='Saving…';showError('');const {data,error}=await supabaseClient.rpc('admin_update_report',{p_report_id:Number(id),p_status:status,p_action:action,p_admin_notes:notes});if(error||data!==true){console.error(error);showError('Could not update report #'+id+': '+(error?.message||'Update was not accepted.'));btn.disabled=false;btn.textContent='Save';return}showToast('Report #'+id+' updated');await loadReports()}
+async function boot(){const {data:{session}}=await supabaseClient.auth.getSession();if(!session){loginBox.style.display='block';return}const {data,isAdminError}=await (async()=>{const x=await supabaseClient.rpc('is_totalk_admin');return {data:x.data,isAdminError:x.error}})();if(isAdminError||data!==true){loginBox.style.display='block';showError(isAdminError?.message||'This account does not have admin access.');return}app.style.display='block';await loadReports()}
+document.getElementById('refreshBtn').addEventListener('click',loadReports);
+document.getElementById('signOutBtn').addEventListener('click',async()=>{await supabaseClient.auth.signOut();location.reload()});
+document.getElementById('goChatBtn').addEventListener('click',()=>location.href='chat.html');
+document.getElementById('tabs').addEventListener('click',e=>{const b=e.target.closest('.tab');if(!b)return;document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));b.classList.add('active');currentStatus=b.dataset.status;render()});
+reportsEl.addEventListener('click',e=>{const b=e.target.closest('[data-save]');if(!b)return;const card=b.closest('.card');if(card)saveReport(card)});
+supabaseClient.auth.onAuthStateChange((event,session)=>{if(event==='SIGNED_OUT')location.reload()});
+boot();
+</script>
+</body>
+</html>
