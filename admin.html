@@ -1,9 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#020108">
+
+<meta
+  name="viewport"
+  content="width=device-width,initial-scale=1,viewport-fit=cover"
+>
+
+<meta
+  name="theme-color"
+  content="#020108"
+>
 
 <title>ToTalk Admin</title>
 
@@ -19,22 +28,28 @@
 
 :root{
   --black:#020108;
+  --dark:#070313;
   --panel:#0a0616;
   --panel2:#10091d;
+
   --purple:#914cff;
   --purple2:#b878ff;
+
   --green:#52e69a;
   --yellow:#ffe34f;
   --red:#ff557d;
   --blue:#66b8ff;
+
   --white:#f8f5ff;
   --muted:#958da9;
+
   --border:rgba(145,76,255,.35);
 }
 
 html,
 body{
   min-height:100%;
+
   background:
     radial-gradient(
       circle at 50% -10%,
@@ -76,9 +91,9 @@ button{
 }
 
 
-/* =========================
+/* =====================================================
    TOP BAR
-========================= */
+===================================================== */
 
 .topbar{
   display:flex;
@@ -117,13 +132,13 @@ button{
   fill:none;
   stroke:var(--purple2);
   stroke-width:1.8;
-
   stroke-linecap:round;
   stroke-linejoin:round;
 }
 
 .brand h1{
   font-size:22px;
+  letter-spacing:.2px;
 }
 
 .brand p{
@@ -176,10 +191,14 @@ button{
   border-color:rgba(255,85,125,.35);
 }
 
+.icon-btn.danger:hover{
+  background:rgba(255,85,125,.1);
+}
 
-/* =========================
+
+/* =====================================================
    ERROR
-========================= */
+===================================================== */
 
 .banner{
   display:none;
@@ -202,15 +221,13 @@ button{
 }
 
 
-/* =========================
+/* =====================================================
    STATS
-========================= */
+===================================================== */
 
 .stats{
   display:grid;
-
-  grid-template-columns:
-    repeat(4,1fr);
+  grid-template-columns:repeat(4,1fr);
 
   gap:12px;
 
@@ -237,17 +254,13 @@ button{
 
 .stat span{
   display:block;
-
   color:var(--muted);
-
   font-size:12px;
 }
 
 .stat strong{
   display:block;
-
   font-size:25px;
-
   margin-top:5px;
 }
 
@@ -268,9 +281,9 @@ button{
 }
 
 
-/* =========================
+/* =====================================================
    TOOLBAR
-========================= */
+===================================================== */
 
 .toolbar{
   display:flex;
@@ -313,9 +326,9 @@ button{
 }
 
 
-/* =========================
+/* =====================================================
    REPORTS
-========================= */
+===================================================== */
 
 .reports{
   display:grid;
@@ -361,6 +374,8 @@ button{
 
   align-items:center;
 
+  gap:6px;
+
   border-radius:999px;
 
   padding:6px 9px;
@@ -373,53 +388,44 @@ button{
 .status.pending{
   color:var(--yellow);
 
-  border-color:
-    rgba(255,227,79,.35);
+  border-color:rgba(255,227,79,.35);
 
-  background:
-    rgba(255,227,79,.07);
+  background:rgba(255,227,79,.07);
 }
 
 .status.investigating{
   color:var(--blue);
 
-  border-color:
-    rgba(102,184,255,.35);
+  border-color:rgba(102,184,255,.35);
 
-  background:
-    rgba(102,184,255,.07);
+  background:rgba(102,184,255,.07);
 }
 
 .status.resolved{
   color:var(--green);
 
-  border-color:
-    rgba(82,230,154,.35);
+  border-color:rgba(82,230,154,.35);
 
-  background:
-    rgba(82,230,154,.07);
+  background:rgba(82,230,154,.07);
 }
 
 .status.dismissed{
   color:#aaa2b7;
 
-  border-color:
-    rgba(170,162,183,.3);
+  border-color:rgba(170,162,183,.3);
 
-  background:
-    rgba(170,162,183,.05);
+  background:rgba(170,162,183,.05);
 }
 
 
-/* =========================
+/* =====================================================
    PEOPLE
-========================= */
+===================================================== */
 
 .people{
   display:grid;
 
-  grid-template-columns:
-    1fr 1fr;
+  grid-template-columns:1fr 1fr;
 
   gap:10px;
 
@@ -427,11 +433,9 @@ button{
 }
 
 .person{
-  border:
-    1px solid rgba(145,76,255,.18);
+  border:1px solid rgba(145,76,255,.18);
 
-  background:
-    rgba(145,76,255,.045);
+  background:rgba(145,76,255,.045);
 
   border-radius:13px;
 
@@ -468,9 +472,9 @@ button{
 }
 
 
-/* =========================
+/* =====================================================
    REPORT TEXT
-========================= */
+===================================================== */
 
 .reason{
   font-size:13px;
@@ -502,22 +506,98 @@ button{
 }
 
 
-/* =========================
+/* =====================================================
+   BUTTONS
+===================================================== */
+
+.btn{
+  border:1px solid var(--border);
+
+  background:rgba(145,76,255,.1);
+
+  color:var(--white);
+
+  border-radius:11px;
+
+  padding:10px 14px;
+
+  transition:.18s;
+}
+
+.btn:hover{
+  background:rgba(145,76,255,.18);
+}
+
+.btn.primary{
+  background:
+    linear-gradient(
+      135deg,
+      #7130d8,
+      #9b4dff
+    );
+
+  border-color:#a86bff;
+}
+
+.btn.view{
+  display:flex;
+
+  align-items:center;
+
+  justify-content:center;
+
+  gap:8px;
+
+  margin-top:13px;
+
+  width:100%;
+
+  min-height:42px;
+
+  font-size:13px;
+
+  font-weight:600;
+}
+
+.btn.view:hover{
+  box-shadow:
+    0 8px 25px rgba(145,76,255,.18);
+}
+
+.btn.view svg{
+  width:17px;
+  height:17px;
+
+  fill:none;
+
+  stroke:currentColor;
+
+  stroke-width:1.8;
+
+  stroke-linecap:round;
+
+  stroke-linejoin:round;
+}
+
+
+/* =====================================================
    CONTROLS
-========================= */
+===================================================== */
 
 .controls{
   margin-top:15px;
 
   padding-top:15px;
 
-  border-top:
-    1px solid rgba(145,76,255,.16);
+  border-top:1px solid rgba(145,76,255,.16);
 
   display:grid;
 
   grid-template-columns:
-    180px 180px 1fr auto;
+    180px
+    180px
+    1fr
+    auto;
 
   gap:9px;
 
@@ -542,8 +622,7 @@ button{
 .field textarea{
   width:100%;
 
-  border:
-    1px solid rgba(145,76,255,.3);
+  border:1px solid rgba(145,76,255,.3);
 
   background:#08040f;
 
@@ -556,8 +635,17 @@ button{
   outline:none;
 }
 
+.field select:focus,
+.field textarea:focus{
+  border-color:rgba(145,76,255,.75);
+
+  box-shadow:
+    0 0 0 3px rgba(145,76,255,.08);
+}
+
 .field textarea{
   min-height:40px;
+
   resize:vertical;
 }
 
@@ -565,70 +653,10 @@ button{
   height:40px;
 }
 
-.btn{
-  border:
-    1px solid var(--border);
 
-  background:
-    rgba(145,76,255,.1);
-
-  color:var(--white);
-
-  border-radius:11px;
-
-  padding:10px 14px;
-
-  transition:.18s;
-}
-
-.btn:hover{
-  background:
-    rgba(145,76,255,.18);
-}
-
-.btn.primary{
-  background:
-    linear-gradient(
-      135deg,
-      #7130d8,
-      #9b4dff
-    );
-
-  border-color:#a86bff;
-}
-
-.btn.view{
-  display:flex;
-
-  align-items:center;
-
-  justify-content:center;
-
-  gap:7px;
-
-  margin-top:13px;
-
-  width:100%;
-}
-
-.btn.view svg{
-  width:16px;
-  height:16px;
-
-  fill:none;
-
-  stroke:currentColor;
-
-  stroke-width:1.8;
-
-  stroke-linecap:round;
-  stroke-linejoin:round;
-}
-
-
-/* =========================
-   EMPTY
-========================= */
+/* =====================================================
+   EMPTY / LOADING
+===================================================== */
 
 .empty,
 .loading{
@@ -636,8 +664,7 @@ button{
 
   text-align:center;
 
-  border:
-    1px dashed rgba(145,76,255,.28);
+  border:1px dashed rgba(145,76,255,.28);
 
   border-radius:17px;
 
@@ -653,9 +680,9 @@ button{
 }
 
 
-/* =========================
+/* =====================================================
    TOAST
-========================= */
+===================================================== */
 
 .toast{
   position:fixed;
@@ -667,8 +694,7 @@ button{
 
   padding:12px 15px;
 
-  border:
-    1px solid rgba(82,230,154,.4);
+  border:1px solid rgba(82,230,154,.4);
 
   background:#0b1712;
 
@@ -696,9 +722,9 @@ button{
 }
 
 
-/* =========================
+/* =====================================================
    LOGIN
-========================= */
+===================================================== */
 
 .login{
   max-width:480px;
@@ -712,8 +738,7 @@ button{
       rgba(8,4,15,.98)
     );
 
-  border:
-    1px solid var(--border);
+  border:1px solid var(--border);
 
   border-radius:20px;
 
@@ -756,12 +781,12 @@ button{
   display:none;
 
   background:
-    rgba(0,0,0,.72);
+    rgba(0,0,0,.78);
 
   backdrop-filter:
-    blur(10px);
+    blur(14px);
 
-  padding:12px;
+  padding:20px;
 }
 
 .modal.show{
@@ -775,7 +800,7 @@ button{
 .modal-box{
   width:min(900px,100%);
 
-  height:min(90vh,900px);
+  height:min(760px,90vh);
 
   display:flex;
 
@@ -788,25 +813,23 @@ button{
       #07030e
     );
 
-  border:
-    1px solid rgba(145,76,255,.4);
+  border:1px solid rgba(145,76,255,.42);
 
-  border-radius:20px;
+  border-radius:22px;
 
   box-shadow:
-    0 30px 100px rgba(0,0,0,.6);
+    0 30px 100px rgba(0,0,0,.65),
+    0 0 50px rgba(91,38,170,.08);
 
   overflow:hidden;
 }
 
 
-/* =========================
+/* =====================================================
    MODAL HEADER
-========================= */
+===================================================== */
 
 .modal-head{
-  flex:none;
-
   display:flex;
 
   align-items:center;
@@ -817,8 +840,14 @@ button{
 
   padding:17px 18px;
 
-  border-bottom:
-    1px solid rgba(145,76,255,.18);
+  border-bottom:1px solid rgba(145,76,255,.18);
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(145,76,255,.07),
+      transparent
+    );
 }
 
 .modal-title{
@@ -828,7 +857,7 @@ button{
 .modal-title strong{
   display:block;
 
-  font-size:16px;
+  font-size:17px;
 }
 
 .modal-title span{
@@ -855,17 +884,25 @@ button{
 
   border-radius:11px;
 
-  border:
-    1px solid rgba(145,76,255,.3);
+  border:1px solid rgba(145,76,255,.3);
 
-  background:
-    rgba(145,76,255,.08);
+  background:rgba(145,76,255,.08);
 
   color:var(--white);
 
   display:grid;
 
   place-items:center;
+
+  transition:.18s;
+}
+
+.close-btn:hover{
+  background:rgba(145,76,255,.2);
+
+  border-color:rgba(145,76,255,.55);
+
+  transform:scale(1.03);
 }
 
 .close-btn svg{
@@ -883,22 +920,33 @@ button{
 
 
 /* =====================================================
-   FIXED CONVERSATION
+   CONVERSATION
 ===================================================== */
 
 .conversation{
+  overflow:auto;
+
   flex:1;
 
-  min-height:0;
+  padding:22px 20px 30px;
 
-  overflow-y:auto;
-
-  overflow-x:hidden;
-
-  padding:
-    18px 16px 30px;
+  min-height:280px;
 
   scroll-behavior:smooth;
+}
+
+.conversation::-webkit-scrollbar{
+  width:7px;
+}
+
+.conversation::-webkit-scrollbar-track{
+  background:transparent;
+}
+
+.conversation::-webkit-scrollbar-thumb{
+  background:rgba(145,76,255,.28);
+
+  border-radius:999px;
 }
 
 .conversation-loading,
@@ -915,48 +963,109 @@ button{
 }
 
 
-/* =========================
+/* =====================================================
    MESSAGE
-========================= */
+===================================================== */
 
 .message{
-  width:100%;
-
   display:flex;
 
-  margin-bottom:16px;
+  width:100%;
+
+  margin-bottom:18px;
+
+  animation:
+    messageIn .18s ease-out;
 }
 
-.message-inner{
-  width:auto;
+@keyframes messageIn{
 
-  max-width:min(620px,82%);
+  from{
+    opacity:0;
+    transform:translateY(4px);
+  }
+
+  to{
+    opacity:1;
+    transform:none;
+  }
+
+}
+
+.message.left{
+  justify-content:flex-start;
+}
+
+.message.right{
+  justify-content:flex-end;
+}
+
+
+/*
+ IMPORTANT:
+ The old design allowed the message container
+ to become unnecessarily large.
+
+ This version keeps the container compact.
+*/
+
+.message-inner{
+  width:max-content;
+
+  max-width:min(680px,88%);
 
   min-width:0;
 }
 
 
-/*
- IMPORTANT FIX:
-
- The old version allowed the bubble/container
- to become visually huge.
-
- This version makes the bubble only as large
- as the actual text.
-*/
+/* =====================================================
+   MESSAGE HEADER
+===================================================== */
 
 .message-info{
   display:flex;
 
   align-items:center;
 
-  flex-wrap:wrap;
-
   gap:7px;
 
-  margin:
-    0 0 5px 2px;
+  margin-bottom:6px;
+
+  min-height:22px;
+}
+
+.message.right .message-info{
+  justify-content:flex-end;
+}
+
+.sender-avatar{
+  width:23px;
+  height:23px;
+
+  flex:none;
+
+  display:grid;
+
+  place-items:center;
+
+  border-radius:50%;
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(145,76,255,.35),
+      rgba(184,120,255,.15)
+    );
+
+  border:1px solid rgba(145,76,255,.4);
+
+  color:var(--purple2);
+
+  font-size:10px;
+
+  font-weight:800;
+
+  text-transform:uppercase;
 }
 
 .sender-name{
@@ -965,6 +1074,8 @@ button{
   font-weight:700;
 
   color:var(--white);
+
+  white-space:nowrap;
 }
 
 .sender-id{
@@ -972,47 +1083,49 @@ button{
 
   color:var(--purple2);
 
-  background:
-    rgba(145,76,255,.08);
+  background:rgba(145,76,255,.08);
 
-  border:
-    1px solid rgba(145,76,255,.16);
+  border:1px solid rgba(145,76,255,.18);
 
-  padding:2px 6px;
+  padding:3px 7px;
 
   border-radius:999px;
+
+  white-space:nowrap;
 }
 
 
-/* =========================
-   CHAT BUBBLE
-========================= */
+/* =====================================================
+   BUBBLE
+===================================================== */
 
 .bubble{
-  display:block;
+  display:inline-block;
 
-  width:max-content;
+  width:auto;
 
-  max-width:100%;
-
-  height:auto;
+  min-width:0;
 
   min-height:0;
 
-  border:
-    1px solid rgba(145,76,255,.2);
+  height:auto;
+
+  border:1px solid rgba(145,76,255,.22);
 
   background:
-    rgba(145,76,255,.07);
+    linear-gradient(
+      135deg,
+      rgba(145,76,255,.095),
+      rgba(145,76,255,.045)
+    );
 
   border-radius:14px;
 
-  padding:
-    10px 13px;
+  padding:9px 12px;
 
   color:#e8e3ee;
 
-  font-size:14px;
+  font-size:13px;
 
   line-height:1.45;
 
@@ -1021,19 +1134,55 @@ button{
   overflow-wrap:anywhere;
 
   word-break:break-word;
+
+  box-shadow:
+    0 5px 18px rgba(0,0,0,.12);
+}
+
+.message.right .bubble{
+  background:
+    linear-gradient(
+      135deg,
+      rgba(145,76,255,.2),
+      rgba(145,76,255,.11)
+    );
+
+  border-color:rgba(145,76,255,.34);
 }
 
 
-/* DELETED MESSAGE */
+/* =====================================================
+   MESSAGE TIME
+===================================================== */
+
+.message-time{
+  font-size:9px;
+
+  color:#716a7c;
+
+  margin-top:5px;
+
+  line-height:1.2;
+}
+
+.message.right .message-time{
+  text-align:right;
+}
+
+
+/* =====================================================
+   DELETED MESSAGE
+===================================================== */
 
 .message.deleted .bubble{
-  color:#eee8f2;
+  color:#aaa2b7;
+
+  font-style:italic;
+
+  border-color:rgba(255,85,125,.22);
 
   background:
-    rgba(255,85,125,.06);
-
-  border-color:
-    rgba(255,85,125,.30);
+    rgba(255,85,125,.045);
 }
 
 .deleted-label{
@@ -1065,19 +1214,10 @@ button{
   stroke-linejoin:round;
 }
 
-.message-time{
-  font-size:10px;
 
-  color:#716a7c;
-
-  margin:
-    5px 2px 0;
-}
-
-
-/* =========================
+/* =====================================================
    MOBILE
-========================= */
+===================================================== */
 
 @media(max-width:800px){
 
@@ -1086,29 +1226,23 @@ button{
   }
 
   .stats{
-    grid-template-columns:
-      1fr 1fr;
+    grid-template-columns:1fr 1fr;
   }
 
   .people{
-    grid-template-columns:
-      1fr;
+    grid-template-columns:1fr;
   }
 
   .controls{
-    grid-template-columns:
-      1fr 1fr;
+    grid-template-columns:1fr 1fr;
   }
 
   .controls .field.notes{
-    grid-column:
-      1/-1;
+    grid-column:1/-1;
   }
 
   .controls .save{
-    grid-column:
-      1/-1;
-
+    grid-column:1/-1;
     width:100%;
   }
 
@@ -1118,7 +1252,6 @@ button{
 
   .toolbar{
     align-items:flex-start;
-
     flex-direction:column;
   }
 
@@ -1127,30 +1260,36 @@ button{
   }
 
   .modal-box{
-    height:94vh;
+    width:100%;
+    height:95vh;
+    max-height:95vh;
 
-    max-height:94vh;
-
-    border-radius:17px;
+    border-radius:18px;
   }
 
   .conversation{
-    padding:
-      16px 12px 25px;
+    padding:18px 13px 25px;
   }
 
   .message-inner{
-    max-width:90%;
+    max-width:92%;
   }
 
 }
 
 
+/* =====================================================
+   SMALL MOBILE
+===================================================== */
+
 @media(max-width:480px){
 
+  .stats{
+    grid-template-columns:1fr 1fr;
+  }
+
   .controls{
-    grid-template-columns:
-      1fr;
+    grid-template-columns:1fr;
   }
 
   .controls .field.notes{
@@ -1182,27 +1321,23 @@ button{
     max-width:94%;
   }
 
+  .sender-id{
+    font-size:9px;
+  }
+
   .bubble{
-    font-size:14px;
-
-    padding:
-      9px 12px;
-
-    border-radius:13px;
+    font-size:13px;
+    padding:8px 11px;
   }
 
 }
 
 </style>
-</head>
 
+</head>
 
 <body>
 
-
-<!-- =====================================================
-     ADMIN APP
-===================================================== -->
 
 <div
   class="shell"
@@ -1210,6 +1345,10 @@ button{
   style="display:none"
 >
 
+
+<!-- =====================================================
+     TOP BAR
+===================================================== -->
 
 <header class="topbar">
 
@@ -1219,28 +1358,19 @@ button{
 
       <svg viewBox="0 0 24 24">
 
-        <path
-          d="M5 5.5h14v9H11l-4 4v-4H5z"
-        />
+        <path d="M5 5.5h14v9H11l-4 4v-4H5z"/>
 
-        <path
-          d="M8 9.5h8M8 12h5"
-        />
+        <path d="M8 9.5h8M8 12h5"/>
 
       </svg>
 
     </div>
 
-
     <div>
 
-      <h1>
-        ToTalk Admin
-      </h1>
+      <h1>ToTalk Admin</h1>
 
-      <p>
-        Owner moderation dashboard
-      </p>
+      <p>Owner moderation dashboard</p>
 
     </div>
 
@@ -1258,21 +1388,13 @@ button{
 
       <svg viewBox="0 0 24 24">
 
-        <path
-          d="M20 11a8 8 0 0 0-14.9-4"
-        />
+        <path d="M20 11a8 8 0 0 0-14.9-4"/>
 
-        <path
-          d="M5 3v4h4"
-        />
+        <path d="M5 3v4h4"/>
 
-        <path
-          d="M4 13a8 8 0 0 0 14.9 4"
-        />
+        <path d="M4 13a8 8 0 0 0 14.9 4"/>
 
-        <path
-          d="M19 21v-4h-4"
-        />
+        <path d="M19 21v-4h-4"/>
 
       </svg>
 
@@ -1288,17 +1410,11 @@ button{
 
       <svg viewBox="0 0 24 24">
 
-        <path
-          d="M10 17l5-5-5-5"
-        />
+        <path d="M10 17l5-5-5-5"/>
 
-        <path
-          d="M15 12H3"
-        />
+        <path d="M15 12H3"/>
 
-        <path
-          d="M21 3v18"
-        />
+        <path d="M21 3v18"/>
 
       </svg>
 
@@ -1315,13 +1431,15 @@ button{
 ></div>
 
 
+<!-- =====================================================
+     STATS
+===================================================== -->
+
 <section class="stats">
 
   <div class="stat pending">
 
-    <span>
-      Pending
-    </span>
+    <span>Pending</span>
 
     <strong id="countPending">
       0
@@ -1332,9 +1450,7 @@ button{
 
   <div class="stat investigating">
 
-    <span>
-      Investigating
-    </span>
+    <span>Investigating</span>
 
     <strong id="countInvestigating">
       0
@@ -1345,9 +1461,7 @@ button{
 
   <div class="stat resolved">
 
-    <span>
-      Resolved
-    </span>
+    <span>Resolved</span>
 
     <strong id="countResolved">
       0
@@ -1358,9 +1472,7 @@ button{
 
   <div class="stat dismissed">
 
-    <span>
-      Dismissed
-    </span>
+    <span>Dismissed</span>
 
     <strong id="countDismissed">
       0
@@ -1370,6 +1482,10 @@ button{
 
 </section>
 
+
+<!-- =====================================================
+     FILTER TABS
+===================================================== -->
 
 <div class="toolbar">
 
@@ -1429,9 +1545,7 @@ button{
 
 </main>
 
-
 </div>
-
 
 
 <!-- =====================================================
@@ -1461,7 +1575,6 @@ button{
   </button>
 
 </div>
-
 
 
 <!-- =====================================================
@@ -1499,13 +1612,9 @@ button{
 
         <svg viewBox="0 0 24 24">
 
-          <path
-            d="M6 6l12 12"
-          />
+          <path d="M6 6l12 12"/>
 
-          <path
-            d="M18 6L6 18"
-          />
+          <path d="M18 6L6 18"/>
 
         </svg>
 
@@ -1520,16 +1629,16 @@ button{
     >
 
       <div class="conversation-loading">
+
         Loading conversation…
+
       </div>
 
     </div>
 
-
   </div>
 
 </div>
-
 
 
 <!-- =====================================================
@@ -1540,7 +1649,6 @@ button{
   class="toast"
   id="toast"
 ></div>
-
 
 
 <script>
@@ -1555,7 +1663,6 @@ const SUPABASE_URL =
 
 const SUPABASE_KEY =
   "sb_publishable_eUPz4c_nYckgINEK-AIWqw_JAXIHozd";
-
 
 const supabaseClient =
   supabase.createClient(
@@ -1613,8 +1720,7 @@ const conversationIdLabel =
 let currentStatus =
   "pending";
 
-let allReports =
-  [];
+let allReports = [];
 
 
 /* =====================================================
@@ -1653,9 +1759,7 @@ function fmtDate(value){
     new Date(value);
 
   if(
-    isNaN(
-      date.getTime()
-    )
+    isNaN(date.getTime())
   ){
     return String(value);
   }
@@ -1731,16 +1835,13 @@ function setCounts(rows){
     dismissed:0
   };
 
-
   rows.forEach(
     row => {
 
       if(
         counts[row.status] !== undefined
       ){
-
         counts[row.status]++;
-
       }
 
     }
@@ -1752,18 +1853,15 @@ function setCounts(rows){
   ).textContent =
     counts.pending;
 
-
   document.getElementById(
     "countInvestigating"
   ).textContent =
     counts.investigating;
 
-
   document.getElementById(
     "countResolved"
   ).textContent =
     counts.resolved;
-
 
   document.getElementById(
     "countDismissed"
@@ -1792,17 +1890,11 @@ function person(
       </label>
 
       <strong>
-        ${esc(
-          name ||
-          "Unknown user"
-        )}
+        ${esc(name || "Unknown user")}
       </strong>
 
       <code>
-        ${esc(
-          id ||
-          "No ToTalk ID"
-        )}
+        ${esc(id || "No ToTalk ID")}
       </code>
 
     </div>
@@ -1835,20 +1927,15 @@ function card(report){
 
     <article
       class="card"
-      data-id="${esc(
-        report.id
-      )}"
+      data-id="${esc(report.id)}"
     >
-
 
       <div class="card-head">
 
         <div>
 
           <strong>
-            Report #${esc(
-              report.id
-            )}
+            Report #${esc(report.id)}
           </strong>
 
           <div class="idline">
@@ -1900,9 +1987,7 @@ function card(report){
 
       <div class="reason">
 
-        <b>
-          Reason:
-        </b>
+        <b>Reason:</b>
 
         ${esc(
           report.reason ||
@@ -1918,9 +2003,7 @@ function card(report){
 
             <div class="details">
 
-              <b>
-                Details:
-              </b>
+              <b>Details:</b>
 
               ${esc(
                 report.details
@@ -1958,14 +2041,16 @@ function card(report){
 
               <svg viewBox="0 0 24 24">
 
-                <path
-                  d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12z"
+                <rect
+                  x="4"
+                  y="4"
+                  width="16"
+                  height="16"
+                  rx="4"
                 />
 
-                <circle
-                  cx="12"
-                  cy="12"
-                  r="2.5"
+                <path
+                  d="M8 10h8M8 14h5"
                 />
 
               </svg>
@@ -2069,9 +2154,7 @@ function card(report){
           Save
         </button>
 
-
       </div>
-
 
     </article>
 
@@ -2096,9 +2179,7 @@ function render(){
         );
 
 
-  if(
-    !rows.length
-  ){
+  if(!rows.length){
 
     reportsEl.innerHTML = `
 
@@ -2127,9 +2208,9 @@ function render(){
 
 
   reportsEl.innerHTML =
-    rows
-      .map(card)
-      .join("");
+    rows.map(
+      card
+    ).join("");
 
 
   rows.forEach(
@@ -2190,7 +2271,6 @@ async function loadReports(){
 
   showError("");
 
-
   reportsEl.innerHTML = `
 
     <div class="loading">
@@ -2216,7 +2296,6 @@ async function loadReports(){
   if(error){
 
     console.error(error);
-
 
     showError(
       "Could not load reports: " +
@@ -2304,7 +2383,6 @@ async function saveReport(
   button.textContent =
     "Saving…";
 
-
   showError("");
 
 
@@ -2317,11 +2395,8 @@ async function saveReport(
         "admin_update_report",
         {
           p_report_id:Number(id),
-
           p_status:status,
-
           p_action:action,
-
           p_admin_notes:notes
         }
       );
@@ -2332,10 +2407,7 @@ async function saveReport(
     data !== true
   ){
 
-    console.error(
-      error
-    );
-
+    console.error(error);
 
     showError(
       "Could not update report #" +
@@ -2379,9 +2451,7 @@ async function openConversation(
   conversationId
 ){
 
-  if(
-    !conversationId
-  ){
+  if(!conversationId){
     return;
   }
 
@@ -2472,9 +2542,7 @@ async function openConversation(
       : [];
 
 
-  if(
-    !rows.length
-  ){
+  if(!rows.length){
 
     conversationEl.innerHTML = `
 
@@ -2492,199 +2560,154 @@ async function openConversation(
   }
 
 
-  /*
-   * IMPORTANT:
-   *
-   * We DO NOT replace deleted messages
-   * with "[Message deleted by user]".
-   *
-   * The original message_text returned
-   * by the admin RPC is displayed.
-   *
-   * deleted_at only changes the visual
-   * appearance and adds the moderation label.
-   */
-
-
   conversationEl.innerHTML =
-    rows
-      .map(
-        message => {
+    rows.map(
+      message => {
 
 
-          const deleted =
-            !!message.is_deleted ||
-            !!message.deleted_at;
+        const deleted =
+          !!message.is_deleted ||
+          !!message.deleted_at;
 
 
-          /*
-           * THIS IS THE IMPORTANT FIX.
-           *
-           * Before:
-           *
-           * deleted ? "[Message deleted by user]" : text
-           *
-           * Now:
-           *
-           * Always show the preserved
-           * message_text.
-           */
-
-          const messageText =
-            message.message_text ??
-            "";
+        const messageText =
+          deleted
+            ? "[Message deleted by user]"
+            : (
+                message.message_text ||
+                ""
+              );
 
 
-          const senderName =
-            message.sender_name ||
-            "Unknown user";
+        const senderName =
+          message.sender_name ||
+          "Unknown user";
 
 
-          const totalkId =
-            message.totalk_id ||
-            "No ToTalk ID";
+        const totalkId =
+          message.totalk_id ||
+          "No ToTalk ID";
 
 
-          return `
+        /*
+         * First letter avatar.
+         */
 
-            <div
-              class="
-                message
-                ${
-                  deleted
-                    ? "deleted"
-                    : ""
-                }
-              "
-            >
-
-              <div
-                class="message-inner"
-              >
+        const avatarLetter =
+          senderName
+            .trim()
+            .charAt(0)
+            .toUpperCase() ||
+          "?";
 
 
-                <div
-                  class="message-info"
+        return `
+
+          <div
+            class="
+              message
+              ${
+                deleted
+                  ? "deleted"
+                  : ""
+              }
+            "
+          >
+
+            <div class="message-inner">
+
+
+              <div class="message-info">
+
+                <span
+                  class="sender-avatar"
                 >
-
-                  <span
-                    class="sender-name"
-                  >
-
-                    ${esc(
-                      senderName
-                    )}
-
-                  </span>
+                  ${esc(
+                    avatarLetter
+                  )}
+                </span>
 
 
-                  <span
-                    class="sender-id"
-                  >
-
-                    ${esc(
-                      totalkId
-                    )}
-
-                  </span>
-
-                </div>
-
-
-                <!--
-                  ORIGINAL MESSAGE CONTENT
-                  IS SHOWN HERE
-                -->
-
-                <div
-                  class="bubble"
-                >
+                <span class="sender-name">
 
                   ${esc(
-                    messageText
+                    senderName
                   )}
 
-                </div>
+                </span>
 
 
-                ${
-                  deleted
-                    ? `
-
-                      <div
-                        class="deleted-label"
-                      >
-
-                        <svg
-                          viewBox="0 0 24 24"
-                        >
-
-                          <path
-                            d="M4 7h16"
-                          />
-
-                          <path
-                            d="M9 7V4h6v3"
-                          />
-
-                          <path
-                            d="M7 7l1 13h8l1-13"
-                          />
-
-                        </svg>
-
-                        Deleted message
-                        preserved for moderation
-
-                      </div>
-
-                    `
-                    : ""
-                }
-
-
-                <div
-                  class="message-time"
-                >
+                <span class="sender-id">
 
                   ${esc(
-                    fmtDate(
-                      message.created_at
-                    )
+                    totalkId
                   )}
 
-                  ${
-                    message.edited_at &&
-                    !deleted
-                      ? " · Edited"
-                      : ""
-                  }
+                </span>
 
-                </div>
+              </div>
 
+
+              <div class="bubble">
+
+                ${esc(
+                  messageText
+                )}
+
+              </div>
+
+
+              ${
+                deleted
+                  ? `
+
+                    <div class="deleted-label">
+
+                      <svg viewBox="0 0 24 24">
+
+                        <path d="M4 7h16"/>
+
+                        <path d="M9 7V4h6v3"/>
+
+                        <path d="M7 7l1 13h8l1-13"/>
+
+                      </svg>
+
+                      Deleted message preserved
+                      for moderation
+
+                    </div>
+
+                  `
+                  : ""
+              }
+
+
+              <div class="message-time">
+
+                ${esc(
+                  fmtDate(
+                    message.created_at
+                  )
+                )}
+
+                ${
+                  message.edited_at &&
+                  !deleted
+                    ? " · Edited"
+                    : ""
+                }
 
               </div>
 
             </div>
 
-          `;
+          </div>
 
-        }
-      )
-      .join("");
+        `;
 
-
-  /*
-   * Open the conversation at the newest
-   * messages.
-   */
-
-  requestAnimationFrame(
-    ()=>{
-      conversationEl.scrollTop =
-        conversationEl.scrollHeight;
-    }
-  );
+      }
+    ).join("");
 
 }
 
@@ -2927,7 +2950,7 @@ reportsEl.addEventListener(
 
 
 /* =====================================================
-   CLOSE BUTTON
+   CLOSE MODAL
 ===================================================== */
 
 document
@@ -2939,10 +2962,6 @@ document
     closeConversation
   );
 
-
-/* =====================================================
-   CLICK OUTSIDE MODAL
-===================================================== */
 
 conversationModal.addEventListener(
   "click",
@@ -2962,7 +2981,7 @@ conversationModal.addEventListener(
 
 
 /* =====================================================
-   ESCAPE KEY
+   ESCAPE
 ===================================================== */
 
 document.addEventListener(
