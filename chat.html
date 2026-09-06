@@ -3840,6 +3840,13 @@ function addMessage(
     return;
   }
 
+  /* Soft-deleted messages remain in the database for moderation,
+     but must never be rendered in the normal user chat. */
+  if(data.deleted_at){
+    messageCache.set(data.id, data);
+    return;
+  }
+
   if(
     document.querySelector(
       `[data-message-id="${data.id}"]`
@@ -4835,49 +4842,55 @@ async function deleteMessage(
     return;
   }
 
+  if(!data?.id || !currentUser?.id){
+    showStatus("Message could not be deleted.");
+    return;
+  }
+
   try{
 
-    const {
-      error
-    } =
+    /*
+     * IMPORTANT:
+     * Do NOT permanently DELETE the row.
+     * The RPC marks it as deleted instead, so Admin
+     * moderation can still inspect the message later.
+     */
+    const {data:deleted,error} =
       await supabaseClient
-        .from("messages")
-        .delete()
-        .eq(
-          "id",
-          data.id
-        )
-        .eq(
-          "sender_id",
-          currentUser.id
-        );
+        .rpc("delete_message_soft",{
+          p_message_id:data.id
+        });
 
     if(error){
       throw error;
     }
 
-    const row =
-      bubble.parentElement;
+    if(deleted !== true){
+      throw new Error("Message deletion was not accepted.");
+    }
 
-    row.classList.add(
-      "deleting"
-    );
+    const deletedAt = new Date().toISOString();
 
-    setTimeout(
-      ()=>{
+    /* Keep the moderation record in the local cache. */
+    const cached = messageCache.get(data.id) || data;
+    cached.deleted_at = deletedAt;
+    cached.deleted_by = currentUser.id;
+    messageCache.set(data.id,cached);
+
+    const row = bubble?.closest(".message-row") || bubble?.parentElement;
+
+    if(row){
+      row.classList.add("deleting");
+
+      setTimeout(()=>{
 
         row.remove();
-
-        messageCache.delete(
-          data.id
-        );
 
         if(
           !messages.querySelector(
             ".message-row"
           )
         ){
-
           messages.innerHTML = `
             <div
               class="welcome-message"
@@ -4892,17 +4905,17 @@ async function deleteMessage(
               </p>
             </div>
           `;
-
         }
 
-      },
-      190
-    );
+      },190);
+    }
+
+    showStatus("Message deleted.");
 
   }catch(error){
 
     console.error(
-      "Delete error:",
+      "Soft delete error:",
       error
     );
 
@@ -4927,7 +4940,7 @@ async function loadMessages(){
 
   const {data,error} = await supabaseClient
     .from("messages")
-    .select("id,sender_id,content,created_at,edited_at,reply_to_id,conversation_id")
+    .select("id,sender_id,content,created_at,edited_at,reply_to_id,conversation_id,deleted_at,deleted_by")
     .eq("conversation_id",currentConversationId)
     .order("created_at",{ascending:true});
 
@@ -4950,9 +4963,13 @@ async function loadMessages(){
     return;
   }
 
+  /* Keep deleted records in cache for replies/moderation state,
+     but render only messages that are not soft-deleted. */
   data.forEach(message=>messageCache.set(message.id,message));
 
-  data.forEach(message=>addMessage(message,false));
+  data
+    .filter(message=>!message.deleted_at)
+    .forEach(message=>addMessage(message,false));
 
   requestAnimationFrame(()=>{
     messages.scrollTop = messages.scrollHeight;
@@ -5187,8 +5204,9 @@ async function loadConversationList(){
 
   const {data:latestMessages,error:latestError} = await supabaseClient
     .from("messages")
-    .select("conversation_id,sender_id,content,created_at")
+    .select("conversation_id,sender_id,content,created_at,deleted_at")
     .in("conversation_id",conversationIds)
+    .is("deleted_at",null)
     .order("created_at",{ascending:false})
     .limit(500);
 
@@ -5238,7 +5256,8 @@ async function loadConversationList(){
         .from("messages")
         .select("conversation_id",{count:"exact",head:true})
         .eq("conversation_id",conversationId)
-        .neq("sender_id",currentUser.id);
+        .neq("sender_id",currentUser.id)
+        .is("deleted_at",null);
 
       if(effectiveReadAt > 0){
         query = query.gt("created_at",new Date(effectiveReadAt).toISOString());
@@ -5871,6 +5890,23 @@ function startRealtime(){
 
         console.log("Realtime UPDATE:", data);
         messageCache.set(data.id, data);
+
+        /* Soft-delete update: hide it from the normal chat,
+           but keep it in messageCache for moderation state. */
+        if(data.deleted_at){
+          const deletedRow = document.querySelector(
+            `[data-message-id="${CSS.escape(data.id)}"]`
+          );
+
+          if(deletedRow){
+            deletedRow.classList.add("deleting");
+            setTimeout(()=>{
+              deletedRow.remove();
+            },190);
+          }
+
+          return;
+        }
 
         const row = document.querySelector(
           `[data-message-id="${data.id}"]`
