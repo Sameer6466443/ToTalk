@@ -2435,15 +2435,16 @@ header{
 .conversation-option:hover{background:rgba(145,76,255,.18);border-color:rgba(166,103,255,.45);}
 .conversation-option.danger{color:#ffb4c5;}
 .conversation-option.cancel{justify-content:center;color:#bdaed0;background:transparent;}
-.conversation-item.is-muted .conversation-name:after{content:'  🔕';font-size:11px;}
 .conversation-item.is-unread .conversation-name{color:#fff!important;}
 .conversation-item.is-unread .conversation-preview{color:#e1d6f2;font-weight:800;}
-.conversation-pin{font-size:13px;margin-left:5px;}
+.conversation-pin{display:inline-flex;align-items:center;justify-content:center;width:17px;height:17px;margin-left:7px;vertical-align:-3px;color:#c995ff;}
+.conversation-muted-icon{display:inline-flex;align-items:center;justify-content:center;width:17px;height:17px;margin-left:7px;vertical-align:-3px;color:#8fb8ff;}
+.conversation-pin svg,.conversation-muted-icon svg{width:15px;height:15px;display:block;}
 
-/* Smooth conversation option icons */
+/* Custom vector icons — no emoji icons */
 .conversation-option{gap:12px;}
-.option-icon{width:24px;height:24px;flex:0 0 24px;display:grid;place-items:center;border:1px solid rgba(184,136,255,.28);border-radius:8px;background:rgba(145,76,255,.10);color:#d7baff;font:500 17px/1 system-ui,sans-serif;box-shadow:inset 0 0 12px rgba(145,76,255,.08);}
-.report-icon{font-size:15px;}
+.option-icon{width:24px;height:24px;flex:0 0 24px;display:grid;place-items:center;border:1px solid rgba(184,136,255,.28);border-radius:8px;background:rgba(145,76,255,.10);color:#d7baff;box-shadow:inset 0 0 12px rgba(145,76,255,.08);}
+.option-icon svg{width:17px;height:17px;display:block;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
 /* Report dialog */
 .report-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.66);backdrop-filter:blur(9px);display:none;align-items:flex-end;justify-content:center;z-index:10000;padding:16px;}
 .report-backdrop.open{display:flex;}
@@ -2812,11 +2813,11 @@ header{
 <div class="conversation-options-backdrop" id="conversationOptionsBackdrop" aria-hidden="true">
   <div class="conversation-options-sheet" role="dialog" aria-modal="true" aria-labelledby="conversationOptionsTitle">
     <div class="conversation-options-title" id="conversationOptionsTitle">Conversation options</div>
-    <button class="conversation-option" type="button" data-conversation-action="pin"><span class="option-icon" aria-hidden="true">⌖</span><span>Pin conversation</span></button>
-    <button class="conversation-option" type="button" data-conversation-action="mute"><span class="option-icon" aria-hidden="true">◖</span><span>Mute notifications</span></button>
-    <button class="conversation-option" type="button" data-conversation-action="unread"><span class="option-icon" aria-hidden="true">✉</span><span>Mark as unread</span></button>
-    <button class="conversation-option" type="button" data-conversation-action="report"><span class="option-icon report-icon" aria-hidden="true">⚑</span><span>Report</span></button>
-    <button class="conversation-option danger" type="button" data-conversation-action="delete"><span class="option-icon" aria-hidden="true">⌫</span><span>Delete conversation</span></button>
+    <button class="conversation-option" type="button" data-conversation-action="pin"><span class="option-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 3h8l1 5-3 3v5l-3 2-3-2v-5L5 8l1-5Z"/><path d="M12 18v3"/></svg></span><span>Pin conversation</span></button>
+    <button class="conversation-option" type="button" data-conversation-action="mute"><span class="option-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 10h3l4-4v12l-4-4H5z"/><path d="m16 9 4 4m0-4-4 4"/></svg></span><span>Mute notifications</span></button>
+    <button class="conversation-option" type="button" data-conversation-action="unread"><span class="option-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3.5" y="5.5" width="17" height="13" rx="2"/><path d="m5 8 7 5 7-5"/></svg></span><span>Mark as unread</span></button>
+    <button class="conversation-option" type="button" data-conversation-action="report"><span class="option-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 21V4"/><path d="M7 5h10l-2 4 2 4H7"/></svg></span><span>Report</span></button>
+    <button class="conversation-option danger" type="button" data-conversation-action="delete"><span class="option-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 7h16"/><path d="M9 7V4h6v3"/><path d="m7 7 1 13h8l1-13"/><path d="M10 11v5m4-5v5"/></svg></span><span>Delete conversation</span></button>
     <button class="conversation-option cancel" type="button" data-conversation-action="cancel">Cancel</button>
   </div>
 </div>
@@ -3378,6 +3379,14 @@ function openConversationOptions(row,partner){
   const prefs=readConversationPrefs(); const id=row.id; const itemPrefs=prefs[id]||{};
   const labels={pin:itemPrefs.pinned?"Unpin conversation":"Pin conversation",mute:itemPrefs.muted?"Unmute notifications":"Mute notifications",unread:"Mark as unread",report:"Report",delete:"Delete conversation"};
   optionsBackdrop?.querySelectorAll("[data-conversation-action]").forEach(btn=>{const a=btn.dataset.conversationAction;if(labels[a]) btn.querySelector("span:last-child").textContent=labels[a];});
+  const pinBtn=optionsBackdrop?.querySelector('[data-conversation-action="pin"] .option-icon');
+  const muteBtn=optionsBackdrop?.querySelector('[data-conversation-action="mute"] .option-icon');
+  if(pinBtn) pinBtn.innerHTML=itemPrefs.pinned
+    ? '<svg viewBox="0 0 24 24"><path d="M8 3h8l1 5-3 3v5l-3 2-3-2v-5L5 8l1-5Z"/><path d="M12 18v3"/></svg>'
+    : '<svg viewBox="0 0 24 24"><path d="M8 3h8l1 5-3 3v5l-3 2-3-2v-5L5 8l1-5Z"/><path d="M12 18v3"/></svg>' ;
+  if(muteBtn) muteBtn.innerHTML=itemPrefs.muted
+    ? '<svg viewBox="0 0 24 24"><path d="M5 10h3l4-4v12l-4-4H5z"/><path d="m16 9 4 4m0-4-4 4"/></svg>'
+    : '<svg viewBox="0 0 24 24"><path d="M5 10h3l4-4v12l-4-4H5z"/><path d="M16 9.5a3.5 3.5 0 0 1 0 5"/></svg>' ;
   optionsBackdrop?.classList.add("open");optionsBackdrop?.setAttribute("aria-hidden","false");
 }
 
@@ -5211,7 +5220,7 @@ async function loadConversationList(){
       </span>
       <span class="conversation-copy">
         <span class="conversation-top">
-          <span class="conversation-name">${escapeHtml(name)}${pref.pinned ? `<span class="conversation-pin">📌</span>` : ""}</span>
+          <span class="conversation-name">${escapeHtml(name)}${pref.pinned ? `<span class="conversation-pin" aria-label="Pinned"><svg viewBox="0 0 24 24"><path d="M8 3h8l1 5-3 3v5l-3 2-3-2v-5L5 8l1-5Z"/><path d="M12 18v3"/></svg></span>` : ""}${pref.muted ? `<span class="conversation-muted-icon" aria-label="Notifications muted"><svg viewBox="0 0 24 24"><path d="M5 10h3l4-4v12l-4-4H5z"/><path d="m16 9 4 4m0-4-4 4"/></svg></span>` : ""}</span>
           <span class="conversation-time">${latest ? escapeHtml(formatTime(latest.created_at)) : ""}</span>
         </span>
         <span class="conversation-preview">${escapeHtml(latest?.content || "No messages yet")}</span>
