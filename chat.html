@@ -6665,9 +6665,18 @@ const totalkWarningClose=document.getElementById("totalkWarningClose");
 const totalkWarningOk=document.getElementById("totalkWarningOk");
 let totalkWarningTimer=null,totalkWarningBusy=false,totalkWarningCurrent=null;
 function closeTotalkWarning(){totalkWarningBackdrop?.classList.remove("open");totalkWarningBackdrop?.setAttribute("aria-hidden","true");}
-function showTotalkWarning(report){if(!report||!totalkWarningBackdrop)return;totalkWarningCurrent=report;const note=String(report.admin_notes||"Please review the ToTalk Community Guidelines and keep future conversations respectful and safe.").trim();const d=report.created_at?new Date(report.created_at):null;if(totalkWarningNote)totalkWarningNote.textContent=note;if(totalkWarningDate)totalkWarningDate.textContent=d&&!Number.isNaN(d.getTime())?"Issued "+d.toLocaleString([],{dateStyle:"medium",timeStyle:"short"}):"Official moderation notice";totalkWarningBackdrop.classList.add("open");totalkWarningBackdrop.setAttribute("aria-hidden","false");}
+function showTotalkWarning(report){if(!report||!totalkWarningBackdrop)return;totalkWarningCurrent=report;const note=String(report.admin_notes||"Please review the ToTalk Community Guidelines and keep future conversations respectful and safe.").trim();const d=report.created_at?new Date(report.created_at):null;if(totalkWarningNote)totalkWarningNote.textContent=note;if(totalkWarningDate)totalkWarningDate.textContent=d&&!Number.isNaN(d.getTime())?"Issued "+d.toLocaleString([],{dateStyle:"medium",timeStyle:"short"}):"Official moderation notice";markWarningSeen(report);void markWarningSeenOnServer(report);totalkWarningBackdrop.classList.add("open");totalkWarningBackdrop.setAttribute("aria-hidden","false");}
 function warningSeen(r){try{return localStorage.getItem("totalk_seen_warning_"+String(r?.id||""))==="1"}catch(_){return false}}
 function markWarningSeen(r){try{localStorage.setItem("totalk_seen_warning_"+String(r?.id||""),"1")}catch(_){}}
+async function markWarningSeenOnServer(r){
+  try{
+    if(!r?.id || !currentUser?.id) return;
+    const {error}=await supabaseClient.rpc("mark_my_warning_seen",{p_report_id:Number(r.id)});
+    if(error) console.warn("ToTalk warning seen status could not be saved:",error.message);
+  }catch(error){
+    console.warn("ToTalk warning seen status failed:",error);
+  }
+}
 async function checkForTotalkWarnings(){
   if(totalkWarningBusy || !currentUser?.id) return;
   totalkWarningBusy=true;
