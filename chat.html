@@ -5556,7 +5556,13 @@ async function loadConversationList(){
 }
 
 async function markConversationAsRead(conversationId){
-  if(!currentUser?.id || !conversationId) return false;
+  if(
+    !currentUser?.id ||
+    !conversationId ||
+    document.visibilityState !== "visible"
+  ){
+    return false;
+  }
 
   const readTime = new Date().toISOString();
 
@@ -5595,12 +5601,6 @@ async function openConversation(row,partner){
   openPrefs[row.id] = openPrefs[row.id] || {};
   openPrefs[row.id].unread = false;
   writeConversationPrefs(openPrefs);
-
-  /* Mark read locally immediately so a background list refresh cannot resurrect the badge
-     while the Supabase last_read_at update is still in flight. */
-  const readOverrides = readConversationReadOverrides();
-  readOverrides[row.id] = Date.now();
-  writeConversationReadOverrides(readOverrides);
 
   document.querySelectorAll(".conversation-item").forEach(item=>{
     item.classList.toggle("active",item.dataset.conversationId === row.id);
@@ -6505,7 +6505,10 @@ document.addEventListener("visibilitychange", ()=>{
       console.error("Visibility chat-list refresh error:", error);
     });
     if(currentConversationId){
-      void refreshSeenStatus();
+      void markConversationAsRead(currentConversationId).then(()=>{
+        void refreshSeenStatus();
+        void pollOpenConversationMessages();
+      });
     }
   }
 });
