@@ -6398,6 +6398,40 @@ function startRealtime(){
    PRESENCE
 ===================================================== */
 
+let presenceHeartbeatTimer = null;
+let presenceTracked = false;
+
+function isPresenceActive(){
+  /*
+   * A user is online only while ToTalk is the visible page.
+   * Merely leaving the tab open in the background must NOT keep the user
+   * marked online.  Supabase will also remove the presence automatically
+   * if the connection disappears.
+   */
+  return !!currentUser && document.visibilityState === "visible";
+}
+
+async function setPresenceTracking(shouldTrack){
+  if(!presenceChannel || !currentUser) return;
+
+  try{
+    if(shouldTrack){
+      await presenceChannel.track({
+        user_id: currentUser.id,
+        online_at: new Date().toISOString()
+      });
+      presenceTracked = true;
+    }else if(presenceTracked){
+      await presenceChannel.untrack();
+      presenceTracked = false;
+    }
+  }catch(error){
+    console.warn("Presence tracking update failed:",error);
+  }
+
+  updatePresence();
+}
+
 function startPresence(){
 
   if(!currentUser){
@@ -6409,9 +6443,7 @@ function startPresence(){
   }
 
   /*
-   * Use a presence key tied to the authenticated user.  This makes the
-   * presence state deterministic and avoids duplicate/ambiguous entries
-   * when the same account reconnects.
+   * One deterministic presence key per authenticated account.
    */
   presenceChannel =
     supabaseClient
@@ -6429,57 +6461,36 @@ function startPresence(){
   presenceChannel
     .on(
       "presence",
-      {
-        event:"sync"
-      },
-      ()=>{
-        updatePresence();
-      }
+      { event:"sync" },
+      ()=>{ updatePresence(); }
     )
     .on(
       "presence",
-      {
-        event:"join"
-      },
-      ()=>{
-        updatePresence();
-      }
+      { event:"join" },
+      ()=>{ updatePresence(); }
     )
     .on(
       "presence",
-      {
-        event:"leave"
-      },
-      ()=>{
-        updatePresence();
-      }
+      { event:"leave" },
+      ()=>{ updatePresence(); }
     )
     .subscribe(
       async status=>{
-
-        if(
-          status ===
-          "SUBSCRIBED"
-        ){
-
-          await presenceChannel.track({
-
-            user_id:
-              currentUser.id,
-
-            online_at:
-              new Date().toISOString()
-
-          });
-
-          /* Render the state immediately after this client joins. */
-          updatePresence();
-
+        if(status === "SUBSCRIBED"){
+          /* Do not announce the account as online when this tab is hidden. */
+          await setPresenceTracking(isPresenceActive());
         }
-
       }
     );
 
+  /* Keep the presence announcement fresh while the page is active. */
+  if(presenceHeartbeatTimer){
+    clearInterval(presenceHeartbeatTimer);
+  }
+  presenceHeartbeatTimer = setInterval(()=>{
+    if(!presenceChannel || !currentUser) return;
+    void setPresenceTracking(isPresenceActive());
+  },30000);
 }
 
 function updateChatPresenceUI(){
@@ -6770,7 +6781,20 @@ window.addEventListener("focus", ()=>{
   }
 });
 
+window.addEventListener("pagehide", ()=>{
+  if(presenceChannel && presenceTracked){
+    /* Best-effort immediate leave for closing/navigation. */
+    void presenceChannel.untrack();
+    presenceTracked = false;
+  }
+});
+
 document.addEventListener("visibilitychange", ()=>{
+  if(currentUser && presenceChannel){
+    /* Hidden tab = offline; visible ToTalk page = online. */
+    void setPresenceTracking(isPresenceActive());
+  }
+
   if(document.visibilityState === "visible" && currentUser){
     void loadConversationList().catch(error=>{
       console.error("Visibility chat-list refresh error:", error);
@@ -6879,7 +6903,20 @@ logoutBtn.addEventListener(
 
       }
 
+      if(presenceHeartbeatTimer){
+
+        clearInterval(presenceHeartbeatTimer);
+        presenceHeartbeatTimer = null;
+
+      }
+
       if(presenceChannel){
+
+        try{
+          await presenceChannel.untrack();
+        }catch(_error){}
+
+        presenceTracked = false;
 
         await supabaseClient
           .removeChannel(
