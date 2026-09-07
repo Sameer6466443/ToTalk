@@ -4952,12 +4952,18 @@ async function deleteMessage(
 
   try{
 
+    /*
+     * Delete from Supabase first.
+     * Use an exact row count so a blocked/failed DELETE cannot look like
+     * it succeeded only on this phone.
+     */
     const {
-      error
+      error,
+      count
     } =
       await supabaseClient
         .from("messages")
-        .delete()
+        .delete({count:"exact"})
         .eq(
           "id",
           data.id
@@ -4969,6 +4975,10 @@ async function deleteMessage(
 
     if(error){
       throw error;
+    }
+
+    if(count !== null && count !== undefined && Number(count) < 1){
+      throw new Error("Message was not deleted from the database.");
     }
 
     const row =
@@ -5008,6 +5018,11 @@ async function deleteMessage(
             </div>
           `;
 
+        }
+
+        /* One final database reconciliation after the UI removal. */
+        if(currentConversationId){
+          void pollOpenConversationMessages();
         }
 
       },
@@ -5118,15 +5133,32 @@ async function pollOpenConversationMessages(){
       return;
     }
 
+    if(currentConversationId !== conversationId){
+      return;
+    }
+
+    /* The database is the source of truth. Detect deleted rows even when
+       Supabase does not deliver a DELETE websocket event to the other phone. */
+    const liveIds = new Set((data || []).map(item=>String(item.id)));
+
+    document.querySelectorAll(".message-row[data-message-id]").forEach(row=>{
+      const id = String(row.dataset.messageId || "");
+      if(!id || id.startsWith("local-")) return;
+      if(!liveIds.has(id)){
+        row.remove();
+        messageCache.delete(id);
+      }
+    });
+
+    Array.from(messageCache.keys()).forEach(id=>{
+      if(String(id).startsWith("local-")) return;
+      if(!liveIds.has(String(id))) messageCache.delete(id);
+    });
+
     let addedIncoming = false;
 
     for(const item of (data || [])){
-
       messageCache.set(item.id,item);
-
-      if(currentConversationId !== conversationId){
-        return;
-      }
 
       const existing = document.querySelector(
         `[data-message-id="${item.id}"]`
@@ -5143,6 +5175,15 @@ async function pollOpenConversationMessages(){
       if(item.sender_id !== currentUser.id){
         addedIncoming = true;
       }
+    }
+
+    if(!liveIds.size && !messages.querySelector(".message-row")){
+      messages.innerHTML = `
+        <div class="welcome-message" id="welcomeMessage">
+          <h3>Private conversation</h3>
+          <p>Say hello to ${escapeHtml(currentConversationPartner?.name || "your new connection")}.</p>
+        </div>
+      `;
     }
 
     if(addedIncoming){
@@ -6333,11 +6374,30 @@ function startRealtime(){
         const id = payload?.old?.id;
         if(!id) return;
         const oldConversationId = payload?.old?.conversation_id;
-        if(!currentConversationId || oldConversationId !== currentConversationId) return;
+        if(!currentConversationId) return;
+
+        /* Some DELETE payloads omit conversation_id unless replica identity
+           is configured. The message id is unique, so remove it when it is
+           visibly present in the currently open chat. */
+        const visibleRow = document.querySelector(
+          `[data-message-id="${CSS.escape(String(id))}"]`
+        );
+
+        if(oldConversationId && oldConversationId !== currentConversationId) return;
+        if(!visibleRow && oldConversationId !== currentConversationId) return;
 
         console.log("Realtime DELETE:", id);
-        document.querySelector(`[data-message-id="${id}"]`)?.remove();
+        visibleRow?.remove();
         messageCache.delete(id);
+
+        if(!messages.querySelector(".message-row")){
+          messages.innerHTML = `
+            <div class="welcome-message" id="welcomeMessage">
+              <h3>Private conversation</h3>
+              <p>Say hello to ${escapeHtml(currentConversationPartner?.name || "your new connection")}.</p>
+            </div>
+          `;
+        }
       }
     )
     .on(
