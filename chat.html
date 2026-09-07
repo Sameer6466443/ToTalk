@@ -3319,6 +3319,7 @@ function closeMobileConversation(){
   }
 
   /* Return to the chat list immediately — no await here. */
+  stopSeenStatusWatcher();
   chatLayout.classList.remove("mobile-chat-open");
   searchPanel?.classList.remove("open");
   currentConversationId = null;
@@ -3379,8 +3380,10 @@ let currentConversationPartner = null;
 let conversations = [];
 
 let realtimeChannel = null;
-let chatFallbackTimer = null;
+
+/* Read-receipt watcher: checks the other participant's last_read_at while a chat is open. */
 let seenStatusTimer = null;
+let seenStatusRequestInFlight = false;
 
 let presenceChannel = null;
 let onlineUserIds = new Set();
@@ -4113,8 +4116,14 @@ function addMessage(
     status.dataset.status =
       "true";
 
+    /* A message is Seen only after the other participant
+       has opened this conversation and updated last_read_at. */
     status.textContent =
-      "Sent";
+      data._seen ? "Seen" : "Sent";
+
+    if(data._seen){
+      status.classList.add("seen");
+    }
 
     bubble.appendChild(
       status
@@ -5021,6 +5030,165 @@ async function deleteMessage(
 }
 
 /* =====================================================
+   READ RECEIPTS — SENT / SEEN
+===================================================== */
+
+function applySeenStatus(partnerLastReadAt){
+
+  const readTime = Date.parse(partnerLastReadAt || "") || 0;
+  if(!readTime) return;
+
+  document
+    .querySelectorAll(".message-row.mine[data-message-id]")
+    .forEach(row=>{
+
+      const messageId = row.dataset.messageId;
+      const data = messageCache.get(messageId);
+      const status = row.querySelector(".message-status");
+
+      if(!data || !status) return;
+
+      const messageTime = Date.parse(data.created_at || "") || 0;
+      const seen = messageTime > 0 && messageTime <= readTime;
+
+      status.textContent = seen ? "Seen" : "Sent";
+      status.classList.toggle("seen",seen);
+      data._seen = seen;
+    });
+}
+
+async function refreshSeenStatus(){
+
+  if(
+    !currentUser?.id ||
+    !currentConversationId ||
+    seenStatusRequestInFlight
+  ){
+    return;
+  }
+
+  seenStatusRequestInFlight = true;
+
+  try{
+
+    const {data,error} = await supabaseClient.rpc(
+      "get_partner_last_read_at",
+      {
+        p_conversation_id: currentConversationId
+      }
+    );
+
+    if(error){
+      console.warn("Seen status RPC error:",error);
+      return;
+    }
+
+    applySeenStatus(data || null);
+
+  }finally{
+    seenStatusRequestInFlight = false;
+  }
+}
+
+async function pollOpenConversationMessages(){
+
+  if(
+    !currentUser?.id ||
+    !currentConversationId ||
+    document.visibilityState !== "visible"
+  ){
+    return;
+  }
+
+  const conversationId = currentConversationId;
+
+  try{
+
+    const {data,error} = await supabaseClient
+      .from("messages")
+      .select(
+        "id,sender_id,content,created_at,edited_at,reply_to_id,conversation_id"
+      )
+      .eq("conversation_id",conversationId)
+      .order("created_at",{ascending:true})
+      .limit(200);
+
+    if(error){
+      console.warn("Open-chat fallback poll error:",error);
+      return;
+    }
+
+    let addedIncoming = false;
+
+    for(const item of (data || [])){
+
+      messageCache.set(item.id,item);
+
+      if(currentConversationId !== conversationId){
+        return;
+      }
+
+      const existing = document.querySelector(
+        `[data-message-id="${item.id}"]`
+      );
+
+      if(existing){
+        const text = existing.querySelector(".message-text");
+        if(text) text.textContent = item.content || "";
+        continue;
+      }
+
+      addMessage(item,true);
+
+      if(item.sender_id !== currentUser.id){
+        addedIncoming = true;
+      }
+    }
+
+    if(addedIncoming){
+      await markConversationAsRead(conversationId);
+    }
+
+    await refreshSeenStatus();
+
+  }catch(error){
+    console.warn("Open-chat fallback poll failed:",error);
+  }
+}
+
+function startSeenStatusWatcher(){
+
+  stopSeenStatusWatcher();
+
+  if(!currentConversationId) return;
+
+  void refreshSeenStatus();
+  void pollOpenConversationMessages();
+
+  seenStatusTimer = window.setInterval(()=>{
+
+    if(
+      document.visibilityState === "visible" &&
+      currentConversationId
+    ){
+      void refreshSeenStatus();
+      void pollOpenConversationMessages();
+    }
+
+  },1500);
+}
+
+function stopSeenStatusWatcher(){
+
+  if(seenStatusTimer){
+    clearInterval(seenStatusTimer);
+    seenStatusTimer = null;
+  }
+
+  seenStatusRequestInFlight = false;
+}
+
+/* =====================================================
    LOAD MESSAGES
 ===================================================== */
 
@@ -5065,6 +5233,9 @@ async function loadMessages(){
   });
 
   await loadAllReactions();
+
+  /* If the recipient has already opened the chat, show Seen immediately. */
+  await refreshSeenStatus();
 }
 
 function escapeHtml(value){
@@ -5384,111 +5555,6 @@ async function loadConversationList(){
   }
 }
 
-async function refreshSeenStatuses(conversationId = currentConversationId){
-  if(!currentUser?.id || !conversationId) return;
-
-  try{
-    const {data,error} = await supabaseClient.rpc("get_partner_last_read_at",{
-      p_conversation_id:conversationId
-    });
-
-    if(error){
-      console.warn("Seen status lookup error:",error);
-      return;
-    }
-
-    const partnerReadAt = data ? Date.parse(data) : 0;
-    if(!partnerReadAt) return;
-
-    document.querySelectorAll("[data-message-id]").forEach(row=>{
-      const dataForMessage = messageCache.get(row.dataset.messageId);
-      if(!dataForMessage || dataForMessage.sender_id !== currentUser.id) return;
-
-      const createdAt = Date.parse(dataForMessage.created_at || "") || 0;
-      const status = row.querySelector(".message-status");
-      if(status && createdAt && createdAt <= partnerReadAt){
-        status.textContent = "Seen";
-        status.classList.remove("send-failed");
-      }
-    });
-  }catch(error){
-    console.warn("Seen status refresh error:",error);
-  }
-}
-
-async function pollCurrentConversationMessages(){
-  if(!currentUser?.id || !currentConversationId) return;
-
-  try{
-    const {data,error} = await supabaseClient
-      .from("messages")
-      .select("id,sender_id,content,created_at,edited_at,reply_to_id,conversation_id")
-      .eq("conversation_id",currentConversationId)
-      .order("created_at",{ascending:true})
-      .limit(200);
-
-    if(error){
-      console.warn("Chat fallback message poll error:",error);
-      return;
-    }
-
-    const nearBottom = messages
-      ? messages.scrollHeight - messages.scrollTop - messages.clientHeight < 180
-      : true;
-
-    let addedIncoming = false;
-
-    for(const item of (data || [])){
-      messageCache.set(item.id,item);
-
-      const exists = document.querySelector(`[data-message-id="${item.id}"]`);
-      if(exists){
-        const rowData = messageCache.get(item.id);
-        const text = exists.querySelector(".message-text");
-        if(text && rowData) text.textContent = rowData.content || "";
-        continue;
-      }
-
-      addMessage(item,true);
-      if(item.sender_id !== currentUser.id){
-        addedIncoming = true;
-      }
-    }
-
-    if(addedIncoming){
-      await markConversationAsRead(currentConversationId);
-    }
-
-    if(nearBottom && messages){
-      requestAnimationFrame(()=>{
-        messages.scrollTo({top:messages.scrollHeight,behavior:"smooth"});
-      });
-    }
-
-    await refreshSeenStatuses(currentConversationId);
-  }catch(error){
-    console.warn("Chat fallback poll failed:",error);
-  }
-}
-
-function startChatFallbackPolling(){
-  if(chatFallbackTimer) clearInterval(chatFallbackTimer);
-
-  chatFallbackTimer = setInterval(()=>{
-    if(!currentUser?.id || !currentConversationId) return;
-    void pollCurrentConversationMessages();
-  },1500);
-
-  void pollCurrentConversationMessages();
-}
-
-function stopChatFallbackPolling(){
-  if(chatFallbackTimer){
-    clearInterval(chatFallbackTimer);
-    chatFallbackTimer = null;
-  }
-}
-
 async function markConversationAsRead(conversationId){
   if(!currentUser?.id || !conversationId) return false;
 
@@ -5544,8 +5610,10 @@ async function openConversation(row,partner){
 
     /* Persist the read state in Supabase for this user. */
     await markConversationAsRead(row.id);
-    void pollCurrentConversationMessages();
-    void refreshSeenStatuses(row.id);
+
+    /* Watch the other participant's read position so our messages can
+       change from Sent to Seen while this conversation stays open. */
+    startSeenStatusWatcher();
 
     if(isMobileLayout()) openMobileConversation();
   }catch(error){
@@ -5891,87 +5959,106 @@ function startRealtime(){
       payload=>{
         const data = payload?.new;
         if(!data?.id) return;
-        /*
-         * If the user is on the Chats page or inside another conversation,
-         * still refresh the conversation list so incoming messages appear
-         * there immediately with the latest preview and unread count.
-         */
-        /* Always refresh Chats for every incoming message, even when the
-           user is on the Chats page, another conversation, or returning
-           after being away from the website. */
-        void loadConversationList().catch(error=>{
-          console.error("Incoming message chat-list refresh error:", error);
-        });
 
-        /* If this conversation is currently open, also show the message
-           immediately inside the open chat without requiring a refresh. */
-        if(!currentConversationId || data.conversation_id !== currentConversationId){
+        const isCurrentConversation =
+          !!currentConversationId &&
+          data.conversation_id === currentConversationId;
+
+        /*
+         * Active chat FIRST.
+         * Do not rebuild the mobile chat list before rendering the
+         * incoming message, because rebuilding can interfere with the
+         * currently-open chat state.
+         */
+        if(isCurrentConversation){
+
+          console.log("Realtime INSERT:", data);
+
+          void markConversationAsRead(data.conversation_id);
+          messageCache.set(data.id, data);
+
+          /*
+           * Reconcile our optimistic local message when the sender's
+           * Realtime INSERT arrives before the HTTP INSERT finishes.
+           */
+          if(currentUser && data.sender_id === currentUser.id){
+
+            const localRows = document.querySelectorAll(
+              '[data-message-id^="local-"]'
+            );
+
+            for(const row of localRows){
+
+              const localText =
+                row.querySelector(".message-text")?.textContent || "";
+
+              const localMessage =
+                messageCache.get(row.dataset.messageId);
+
+              if(
+                localText === (data.content || "") &&
+                localMessage?.sender_id === data.sender_id &&
+                (localMessage?.reply_to_id || null) ===
+                  (data.reply_to_id || null)
+              ){
+
+                row.dataset.messageId = data.id;
+                row.dataset.messageContent = data.content || "";
+
+                messageCache.delete(localMessage.id);
+                messageCache.set(data.id, data);
+
+                const status =
+                  row.querySelector(".message-status");
+
+                if(status){
+                  status.textContent = "Sent";
+                  status.classList.remove("seen");
+                }
+
+                void refreshSeenStatus();
+                return;
+              }
+            }
+          }
+
+          const exists = document.querySelector(
+            `[data-message-id="${data.id}"]`
+          );
+
+          if(!exists){
+
+            const nearBottom =
+              messages.scrollHeight -
+              messages.scrollTop -
+              messages.clientHeight < 180;
+
+            addMessage(data,true);
+
+            if(nearBottom){
+              requestAnimationFrame(()=>{
+                messages.scrollTo({
+                  top:messages.scrollHeight,
+                  behavior:"smooth"
+                });
+              });
+            }
+          }
+
+          void refreshSeenStatus();
           return;
         }
 
-        console.log("Realtime INSERT:", data);
-
-        /* A message arriving in the conversation currently on screen is
-           immediately marked read in Supabase for the current user. */
-        if(data.conversation_id === currentConversationId){
-          void markConversationAsRead(data.conversation_id);
-        }
-
-        messageCache.set(data.id, data);
-
         /*
-         * IMPORTANT: our own INSERT can arrive through Realtime before
-         * the HTTP insert request finishes. Reconcile that event with
-         * the optimistic local row instead of creating a second bubble.
+         * The message belongs to another conversation.
+         * Update the sidebar preview/unread count.
          */
-        if(currentUser && data.sender_id === currentUser.id){
-          const localRows = document.querySelectorAll(
-            '[data-message-id^="local-"]'
+        void loadConversationList().catch(error=>{
+          console.error(
+            "Incoming message chat-list refresh error:",
+            error
           );
-
-          for(const row of localRows){
-            const localText =
-              row.querySelector(".message-text")?.textContent || "";
-
-            const localMessage = messageCache.get(row.dataset.messageId);
-
-            if(
-              localText === (data.content || "") &&
-              localMessage?.sender_id === data.sender_id &&
-              (localMessage?.reply_to_id || null) === (data.reply_to_id || null)
-            ){
-              row.dataset.messageId = data.id;
-  row.dataset.messageContent = data.content || "";
-              messageCache.delete(localMessage.id);
-              messageCache.set(data.id, data);
-
-              const status = row.querySelector(".message-status");
-              if(status) status.textContent = "Sent";
-
-              return;
-            }
-          }
-        }
-
-        const exists = document.querySelector(
-          `[data-message-id="${data.id}"]`
-        );
-
-        if(exists) return;
-
-        const nearBottom =
-          messages.scrollHeight - messages.scrollTop - messages.clientHeight < 180;
-
-        addMessage(data, true);
-
-        if(nearBottom){
-          requestAnimationFrame(()=>{
-            messages.scrollTo({
-              top:messages.scrollHeight,
-              behavior:"smooth"
-            });
-          });
-        }
+        });
       }
     )
     .on(
@@ -6399,6 +6486,9 @@ window.addEventListener("focus", ()=>{
     void loadConversationList().catch(error=>{
       console.error("Focus chat-list refresh error:", error);
     });
+    if(currentConversationId){
+      void refreshSeenStatus();
+    }
   }
 });
 
@@ -6407,6 +6497,9 @@ document.addEventListener("visibilitychange", ()=>{
     void loadConversationList().catch(error=>{
       console.error("Visibility chat-list refresh error:", error);
     });
+    if(currentConversationId){
+      void refreshSeenStatus();
+    }
   }
 });
 
@@ -6878,7 +6971,6 @@ async function startApp(){
 
     /* Realtime stays connected, but only the active conversation is rendered. */
     startRealtime();
-    startChatFallbackPolling();
 
     startPresence();
 
@@ -6993,5 +7085,3 @@ startApp();
 
 </body>
 </html>
-
-<script>window.addEventListener("beforeunload",stopChatFallbackPolling);</script>
