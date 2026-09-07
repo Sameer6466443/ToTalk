@@ -3798,14 +3798,25 @@ async function loadMyRestrictionStatus(){
   }
 }
 
+/*
+ * IMPORTANT: a Supabase RLS error does NOT by itself prove that the
+ * current account is restricted.  A policy can reject a message for many
+ * reasons (conversation membership, sender mismatch, policy configuration,
+ * etc.).  Restriction state is determined only by user_restrictions above.
+ */
 function isMessageInsertPermissionError(error){
   const code = String(error?.code || "");
-  const text = [error?.message,error?.details,error?.hint].filter(Boolean).join(" ").toLowerCase();
+  const text = [error?.message,error?.details,error?.hint]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
   return code === "42501" || /row-level security|violates row level security|permission denied|not allowed by.*policy|new row violates/.test(text);
 }
 
 function showRestrictionNotice(){
-  currentUserRestricted = true;
+  /* Only call this when loadMyRestrictionStatus() actually found a
+     restriction row for currentUser. Never infer it from an INSERT error. */
+  if(!currentUserRestricted) return;
   applyRestrictionUI();
 }
 
@@ -5687,10 +5698,11 @@ async function sendMessage(){
 
     console.error("Send message error:", error);
 
-    /* A denied message INSERT is the database-level restriction signal. */
-    if(isMessageInsertPermissionError(error)){
-      showRestrictionNotice();
-    }
+    /*
+     * IMPORTANT: do NOT convert a generic RLS/permission error into
+     * "account restricted".  Only the explicit user_restrictions lookup
+     * may set currentUserRestricted=true.
+     */
 
     /* Failed messages stay visible briefly with a useful state. */
     if(optimisticStatus){
@@ -5705,6 +5717,9 @@ async function sendMessage(){
       "Unknown error";
 
     if(isMessageInsertPermissionError(error)){
+      showStatus(
+        "Message was blocked by a Supabase policy. Your account was not automatically marked as restricted."
+      );
       console.warn("Message blocked by Supabase policy:",sendError);
     }else{
       showStatus(
