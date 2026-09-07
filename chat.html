@@ -3319,7 +3319,6 @@ function closeMobileConversation(){
   }
 
   /* Return to the chat list immediately — no await here. */
-  stopSeenStatusWatcher();
   chatLayout.classList.remove("mobile-chat-open");
   searchPanel?.classList.remove("open");
   currentConversationId = null;
@@ -3380,10 +3379,7 @@ let currentConversationPartner = null;
 let conversations = [];
 
 let realtimeChannel = null;
-
-/* Read-receipt watcher: checks the other participant's last_read_at while a chat is open. */
 let seenStatusTimer = null;
-let seenStatusRequestInFlight = false;
 
 let presenceChannel = null;
 let onlineUserIds = new Set();
@@ -4116,14 +4112,8 @@ function addMessage(
     status.dataset.status =
       "true";
 
-    /* A message is Seen only after the other participant
-       has opened this conversation and updated last_read_at. */
     status.textContent =
-      data._seen ? "Seen" : "Sent";
-
-    if(data._seen){
-      status.classList.add("seen");
-    }
+      "Sent";
 
     bubble.appendChild(
       status
@@ -5030,94 +5020,6 @@ async function deleteMessage(
 }
 
 /* =====================================================
-   READ RECEIPTS — SENT / SEEN
-===================================================== */
-
-function applySeenStatus(partnerLastReadAt){
-
-  const readTime = Date.parse(partnerLastReadAt || "") || 0;
-  if(!readTime) return;
-
-  document
-    .querySelectorAll(".message-row.mine[data-message-id]")
-    .forEach(row=>{
-
-      const messageId = row.dataset.messageId;
-      const data = messageCache.get(messageId);
-      const status = row.querySelector(".message-status");
-
-      if(!data || !status) return;
-
-      const messageTime = Date.parse(data.created_at || "") || 0;
-      const seen = messageTime > 0 && messageTime <= readTime;
-
-      status.textContent = seen ? "Seen" : "Sent";
-      status.classList.toggle("seen",seen);
-      data._seen = seen;
-    });
-}
-
-async function refreshSeenStatus(){
-
-  if(
-    !currentUser?.id ||
-    !currentConversationId ||
-    !currentConversationPartner?.user_id ||
-    seenStatusRequestInFlight
-  ){
-    return;
-  }
-
-  seenStatusRequestInFlight = true;
-
-  try{
-
-    const {data,error} = await supabaseClient
-      .from("conversation_participants")
-      .select("user_id,last_read_at")
-      .eq("conversation_id",currentConversationId)
-      .eq("user_id",currentConversationPartner.user_id)
-      .maybeSingle();
-
-    if(error){
-      console.warn("Seen status refresh error:",error);
-      return;
-    }
-
-    applySeenStatus(data?.last_read_at || null);
-
-  }finally{
-    seenStatusRequestInFlight = false;
-  }
-}
-
-function startSeenStatusWatcher(){
-
-  stopSeenStatusWatcher();
-
-  if(!currentConversationId) return;
-
-  /* Run immediately, then poll so the sender sees Seen without refreshing. */
-  void refreshSeenStatus();
-
-  seenStatusTimer = window.setInterval(()=>{
-    if(document.visibilityState === "visible" && currentConversationId){
-      void refreshSeenStatus();
-    }
-  },1500);
-}
-
-function stopSeenStatusWatcher(){
-
-  if(seenStatusTimer){
-    clearInterval(seenStatusTimer);
-    seenStatusTimer = null;
-  }
-
-  seenStatusRequestInFlight = false;
-}
-
-/* =====================================================
    LOAD MESSAGES
 ===================================================== */
 
@@ -5162,9 +5064,6 @@ async function loadMessages(){
   });
 
   await loadAllReactions();
-
-  /* If the recipient has already opened the chat, show Seen immediately. */
-  await refreshSeenStatus();
 }
 
 function escapeHtml(value){
@@ -5484,6 +5383,61 @@ async function loadConversationList(){
   }
 }
 
+async function refreshSeenStatuses(conversationId = currentConversationId){
+  if(!currentUser?.id || !conversationId) return;
+
+  try{
+    const {data:partnerRows,error} = await supabaseClient
+      .from("conversation_participants")
+      .select("user_id,last_read_at")
+      .eq("conversation_id",conversationId)
+      .neq("user_id",currentUser.id)
+      .limit(1);
+
+    if(error){
+      console.warn("Seen status lookup error:",error);
+      return;
+    }
+
+    const partnerReadAt = partnerRows?.[0]?.last_read_at
+      ? Date.parse(partnerRows[0].last_read_at)
+      : 0;
+
+    if(!partnerReadAt) return;
+
+    document.querySelectorAll("[data-message-id]").forEach(row=>{
+      const messageId = row.dataset.messageId;
+      const data = messageCache.get(messageId);
+      if(!data || data.sender_id !== currentUser.id) return;
+
+      const createdAt = Date.parse(data.created_at || "") || 0;
+      const status = row.querySelector(".message-status");
+      if(status && createdAt && createdAt <= partnerReadAt){
+        status.textContent = "Seen";
+      }
+    });
+  }catch(error){
+    console.warn("Seen status refresh error:",error);
+  }
+}
+
+function startSeenStatusPolling(conversationId){
+  if(seenStatusTimer) clearInterval(seenStatusTimer);
+  seenStatusTimer = setInterval(()=>{
+    if(currentConversationId === conversationId){
+      void refreshSeenStatuses(conversationId);
+    }
+  },2000);
+  void refreshSeenStatuses(conversationId);
+}
+
+function stopSeenStatusPolling(){
+  if(seenStatusTimer){
+    clearInterval(seenStatusTimer);
+    seenStatusTimer = null;
+  }
+}
+
 async function markConversationAsRead(conversationId){
   if(!currentUser?.id || !conversationId) return false;
 
@@ -5539,10 +5493,7 @@ async function openConversation(row,partner){
 
     /* Persist the read state in Supabase for this user. */
     await markConversationAsRead(row.id);
-
-    /* Watch the other participant's read position so our messages can
-       change from Sent to Seen while this conversation stays open. */
-    startSeenStatusWatcher();
+    startSeenStatusPolling(row.id);
 
     if(isMobileLayout()) openMobileConversation();
   }catch(error){
@@ -5943,10 +5894,7 @@ function startRealtime(){
               messageCache.set(data.id, data);
 
               const status = row.querySelector(".message-status");
-              if(status){
-                status.textContent = "Sent";
-                status.classList.remove("seen");
-              }
+              if(status) status.textContent = "Sent";
 
               return;
             }
@@ -6017,6 +5965,19 @@ function startRealtime(){
         console.log("Realtime DELETE:", id);
         document.querySelector(`[data-message-id="${id}"]`)?.remove();
         messageCache.delete(id);
+      }
+    )
+    .on(
+      "postgres_changes",
+      {event:"UPDATE",schema:"public",table:"conversation_participants"},
+      payload=>{
+        const data = payload?.new;
+        if(!data?.conversation_id || !data?.last_read_at) return;
+        if(!currentConversationId || data.conversation_id !== currentConversationId) return;
+        if(currentUser?.id && data.user_id === currentUser.id) return;
+
+        console.log("Realtime participant read update:", data);
+        void refreshSeenStatuses(data.conversation_id);
       }
     )
     .on(
@@ -6399,9 +6360,6 @@ window.addEventListener("focus", ()=>{
     void loadConversationList().catch(error=>{
       console.error("Focus chat-list refresh error:", error);
     });
-    if(currentConversationId){
-      void refreshSeenStatus();
-    }
   }
 });
 
@@ -6410,9 +6368,6 @@ document.addEventListener("visibilitychange", ()=>{
     void loadConversationList().catch(error=>{
       console.error("Visibility chat-list refresh error:", error);
     });
-    if(currentConversationId){
-      void refreshSeenStatus();
-    }
   }
 });
 
@@ -6987,6 +6942,8 @@ supabaseClient.auth.onAuthStateChange((event,session)=>{
     setTimeout(checkForTotalkWarnings,250);
   }
 });
+window.addEventListener("beforeunload",stopSeenStatusPolling);
+
 totalkWarningOk?.addEventListener("click",()=>{if(totalkWarningCurrent)markWarningSeen(totalkWarningCurrent);closeTotalkWarning();});
 totalkWarningClose?.addEventListener("click",()=>{if(totalkWarningCurrent)markWarningSeen(totalkWarningCurrent);closeTotalkWarning();});
 totalkWarningBackdrop?.addEventListener("click",e=>{if(e.target===totalkWarningBackdrop){if(totalkWarningCurrent)markWarningSeen(totalkWarningCurrent);closeTotalkWarning();}});
@@ -6994,142 +6951,6 @@ document.addEventListener("keydown",e=>{if(e.key==="Escape"&&totalkWarningBackdr
 
 startApp();
 
-</script>
-
-
-<script>
-/* ===== ToTalk: REALTIME SENT -> SEEN FIX ===== */
-(function () {
-  if (window.__totalkRealtimeSeenFixInstalled) return;
-  window.__totalkRealtimeSeenFixInstalled = true;
-
-  let seenChannel = null;
-  let seenPollTimer = null;
-
-  function getSupabaseClient() {
-    return window.supabaseClient || window.supabase || null;
-  }
-
-  async function refreshSeenNow() {
-    try {
-      if (typeof window.refreshSeenStatus === "function") {
-        await window.refreshSeenStatus();
-        return;
-      }
-
-      const sb = getSupabaseClient();
-      const conversationId =
-        window.currentConversationId ||
-        window.currentChatId ||
-        window.activeConversationId;
-
-      const currentUser =
-        window.currentUser ||
-        (sb && sb.auth ? (await sb.auth.getUser()).data.user : null);
-
-      if (!sb || !conversationId || !currentUser) return;
-
-      const { data: participant } = await sb
-        .from("conversation_participants")
-        .select("last_read_at")
-        .eq("conversation_id", conversationId)
-        .neq("user_id", currentUser.id)
-        .maybeSingle();
-
-      if (!participant || !participant.last_read_at) return;
-
-      // Use the page's own renderer if it exists.
-      if (typeof window.renderSeenStatus === "function") {
-        window.renderSeenStatus(participant.last_read_at);
-      }
-    } catch (e) {
-      console.warn("Realtime Seen refresh failed:", e);
-    }
-  }
-
-  function subscribeSeenRealtime() {
-    try {
-      const sb = getSupabaseClient();
-      const conversationId =
-        window.currentConversationId ||
-        window.currentChatId ||
-        window.activeConversationId;
-
-      if (!sb || !conversationId || typeof sb.channel !== "function") return;
-
-      if (seenChannel) {
-        try { sb.removeChannel(seenChannel); } catch (_) {}
-        seenChannel = null;
-      }
-
-      seenChannel = sb
-        .channel("totalk-seen-" + conversationId)
-        .on(
-          "postgres_changes",
-          {
-            event: "UPDATE",
-            schema: "public",
-            table: "conversation_participants",
-            filter: "conversation_id=eq." + conversationId
-          },
-          function () {
-            refreshSeenNow();
-          }
-        )
-        .on(
-          "postgres_changes",
-          {
-            event: "INSERT",
-            schema: "public",
-            table: "conversation_participants",
-            filter: "conversation_id=eq." + conversationId
-          },
-          function () {
-            refreshSeenNow();
-          }
-        )
-        .subscribe(function (status) {
-          if (status === "SUBSCRIBED") refreshSeenNow();
-        });
-    } catch (e) {
-      console.warn("Could not subscribe to Seen realtime:", e);
-    }
-  }
-
-  function startSeenFix() {
-    subscribeSeenRealtime();
-
-    // Safety fallback. This is intentionally short and only refreshes Seen status.
-    clearInterval(seenPollTimer);
-    seenPollTimer = setInterval(refreshSeenNow, 1000);
-  }
-
-  // Re-run when a conversation is opened/changed.
-  const originalSet = window.setActiveConversation;
-  if (typeof originalSet === "function") {
-    window.setActiveConversation = async function () {
-      const result = await originalSet.apply(this, arguments);
-      setTimeout(startSeenFix, 100);
-      return result;
-    };
-  }
-
-  // Also expose a safe manual hook for existing chat-open code.
-  window.startTotalkSeenRealtime = startSeenFix;
-
-  // Start now and retry briefly because the page initializes Supabase/chat state.
-  startSeenFix();
-  setTimeout(startSeenFix, 500);
-  setTimeout(startSeenFix, 1500);
-  setTimeout(startSeenFix, 3000);
-
-  window.addEventListener("beforeunload", function () {
-    clearInterval(seenPollTimer);
-    if (seenChannel) {
-      try { getSupabaseClient().removeChannel(seenChannel); } catch (_) {}
-    }
-  });
-})();
 </script>
 
 </body>
