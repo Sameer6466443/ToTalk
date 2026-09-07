@@ -3783,10 +3783,18 @@ async function loadMyRestrictionStatus(){
       currentUserRestricted = row.is_active !== false;
     }else if(Object.prototype.hasOwnProperty.call(row,"active")){
       currentUserRestricted = row.active !== false;
+    }else if(Object.prototype.hasOwnProperty.call(row,"restricted")){
+      currentUserRestricted = row.restricted === true;
+    }else if(Object.prototype.hasOwnProperty.call(row,"is_restricted")){
+      currentUserRestricted = row.is_restricted === true;
+    }else if(Object.prototype.hasOwnProperty.call(row,"status")){
+      const status = String(row.status || "").toLowerCase().trim();
+      currentUserRestricted = ["restricted","active","enabled"].includes(status);
     }else if(Object.prototype.hasOwnProperty.call(row,"revoked_at")){
       currentUserRestricted = !row.revoked_at;
     }else{
-      currentUserRestricted = true;
+      /* A row alone is NOT enough to call an account restricted. */
+      currentUserRestricted = false;
     }
     restrictionCheckCompleted = true;
     applyRestrictionUI();
