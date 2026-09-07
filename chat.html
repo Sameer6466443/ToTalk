@@ -6996,5 +6996,141 @@ startApp();
 
 </script>
 
+
+<script>
+/* ===== ToTalk: REALTIME SENT -> SEEN FIX ===== */
+(function () {
+  if (window.__totalkRealtimeSeenFixInstalled) return;
+  window.__totalkRealtimeSeenFixInstalled = true;
+
+  let seenChannel = null;
+  let seenPollTimer = null;
+
+  function getSupabaseClient() {
+    return window.supabaseClient || window.supabase || null;
+  }
+
+  async function refreshSeenNow() {
+    try {
+      if (typeof window.refreshSeenStatus === "function") {
+        await window.refreshSeenStatus();
+        return;
+      }
+
+      const sb = getSupabaseClient();
+      const conversationId =
+        window.currentConversationId ||
+        window.currentChatId ||
+        window.activeConversationId;
+
+      const currentUser =
+        window.currentUser ||
+        (sb && sb.auth ? (await sb.auth.getUser()).data.user : null);
+
+      if (!sb || !conversationId || !currentUser) return;
+
+      const { data: participant } = await sb
+        .from("conversation_participants")
+        .select("last_read_at")
+        .eq("conversation_id", conversationId)
+        .neq("user_id", currentUser.id)
+        .maybeSingle();
+
+      if (!participant || !participant.last_read_at) return;
+
+      // Use the page's own renderer if it exists.
+      if (typeof window.renderSeenStatus === "function") {
+        window.renderSeenStatus(participant.last_read_at);
+      }
+    } catch (e) {
+      console.warn("Realtime Seen refresh failed:", e);
+    }
+  }
+
+  function subscribeSeenRealtime() {
+    try {
+      const sb = getSupabaseClient();
+      const conversationId =
+        window.currentConversationId ||
+        window.currentChatId ||
+        window.activeConversationId;
+
+      if (!sb || !conversationId || typeof sb.channel !== "function") return;
+
+      if (seenChannel) {
+        try { sb.removeChannel(seenChannel); } catch (_) {}
+        seenChannel = null;
+      }
+
+      seenChannel = sb
+        .channel("totalk-seen-" + conversationId)
+        .on(
+          "postgres_changes",
+          {
+            event: "UPDATE",
+            schema: "public",
+            table: "conversation_participants",
+            filter: "conversation_id=eq." + conversationId
+          },
+          function () {
+            refreshSeenNow();
+          }
+        )
+        .on(
+          "postgres_changes",
+          {
+            event: "INSERT",
+            schema: "public",
+            table: "conversation_participants",
+            filter: "conversation_id=eq." + conversationId
+          },
+          function () {
+            refreshSeenNow();
+          }
+        )
+        .subscribe(function (status) {
+          if (status === "SUBSCRIBED") refreshSeenNow();
+        });
+    } catch (e) {
+      console.warn("Could not subscribe to Seen realtime:", e);
+    }
+  }
+
+  function startSeenFix() {
+    subscribeSeenRealtime();
+
+    // Safety fallback. This is intentionally short and only refreshes Seen status.
+    clearInterval(seenPollTimer);
+    seenPollTimer = setInterval(refreshSeenNow, 1000);
+  }
+
+  // Re-run when a conversation is opened/changed.
+  const originalSet = window.setActiveConversation;
+  if (typeof originalSet === "function") {
+    window.setActiveConversation = async function () {
+      const result = await originalSet.apply(this, arguments);
+      setTimeout(startSeenFix, 100);
+      return result;
+    };
+  }
+
+  // Also expose a safe manual hook for existing chat-open code.
+  window.startTotalkSeenRealtime = startSeenFix;
+
+  // Start now and retry briefly because the page initializes Supabase/chat state.
+  startSeenFix();
+  setTimeout(startSeenFix, 500);
+  setTimeout(startSeenFix, 1500);
+  setTimeout(startSeenFix, 3000);
+
+  window.addEventListener("beforeunload", function () {
+    clearInterval(seenPollTimer);
+    if (seenChannel) {
+      try { getSupabaseClient().removeChannel(seenChannel); } catch (_) {}
+    }
+  });
+})();
+</script>
+
 </body>
 </html>
