@@ -1516,6 +1516,16 @@ header{
 }
 
 /* =====================================================
+   RESTRICTION BANNER
+===================================================== */
+.restriction-banner{position:absolute;left:18px;right:18px;bottom:94px;z-index:20;display:none;flex-direction:column;gap:4px;padding:10px 13px;border:1px solid rgba(255,92,132,.45);border-radius:12px;background:rgba(35,7,20,.96);color:#f7dce5;box-shadow:0 8px 24px rgba(0,0,0,.35);pointer-events:none;}
+.restriction-banner.show{display:flex;}
+.restriction-banner strong{font-size:12px;}
+.restriction-banner span{font-size:11px;color:#cdb9c1;}
+.chat-box.restricted .input-area textarea{opacity:.55;cursor:not-allowed;}
+.chat-box.restricted .input-area button{opacity:.45;cursor:not-allowed;}
+
+/* =====================================================
    STATUS
 ===================================================== */
 
@@ -3124,6 +3134,13 @@ header{
 
     </div>
 
+    <!-- RESTRICTION NOTICE -->
+
+    <div id="restrictionBanner" class="restriction-banner" role="status" aria-live="polite" aria-hidden="true">
+      <strong>Messaging restricted</strong>
+      <span>Your account is restricted, so you cannot send messages.</span>
+    </div>
+
     <!-- INPUT -->
 
     <div class="input-area">
@@ -3199,6 +3216,9 @@ const messageInput =
 
 const sendButton =
   document.getElementById("sendButton");
+
+const restrictionBanner =
+  document.getElementById("restrictionBanner");
 
 const logoutBtn =
   document.getElementById("logoutBtn");
@@ -3364,6 +3384,8 @@ let presenceChannel = null;
 let onlineUserIds = new Set();
 
 let replyTarget = null;
+let currentUserRestricted = false;
+let restrictionCheckCompleted = false;
 
 const conversationPrefsKey = ()=>`totalk_conversation_prefs_${currentUser?.id || "guest"}`;
 function readConversationPrefs(){try{return JSON.parse(localStorage.getItem(conversationPrefsKey())||"{}")}catch{return {}}}
@@ -3727,6 +3749,66 @@ function updateUserUI(){
   document.title = "ToTalk";
 }
 
+function applyRestrictionUI(){
+  const box = document.querySelector(".chat-box");
+  const restricted = !!currentUserRestricted;
+  box?.classList.toggle("restricted",restricted);
+  restrictionBanner?.classList.toggle("show",restricted);
+  restrictionBanner?.setAttribute("aria-hidden",restricted ? "false" : "true");
+  if(messageInput){
+    messageInput.disabled = restricted || !currentConversationPartner;
+    messageInput.placeholder = restricted ? "Messaging is restricted..." : (currentConversationPartner ? "Write a message..." : "Select a conversation first...");
+  }
+  if(sendButton) sendButton.disabled = restricted || !currentConversationPartner;
+}
+
+async function loadMyRestrictionStatus(){
+  if(!currentUser){
+    currentUserRestricted = false;
+    restrictionCheckCompleted = false;
+    applyRestrictionUI();
+    return false;
+  }
+  try{
+    const {data,error} = await supabaseClient.from("user_restrictions").select("*").eq("user_id",currentUser.id).limit(1);
+    if(error){
+      console.warn("Restriction status could not be read:",error);
+      restrictionCheckCompleted = false;
+      return currentUserRestricted;
+    }
+    const row = Array.isArray(data) ? data[0] : data;
+    if(!row){
+      currentUserRestricted = false;
+    }else if(Object.prototype.hasOwnProperty.call(row,"is_active")){
+      currentUserRestricted = row.is_active !== false;
+    }else if(Object.prototype.hasOwnProperty.call(row,"active")){
+      currentUserRestricted = row.active !== false;
+    }else if(Object.prototype.hasOwnProperty.call(row,"revoked_at")){
+      currentUserRestricted = !row.revoked_at;
+    }else{
+      currentUserRestricted = true;
+    }
+    restrictionCheckCompleted = true;
+    applyRestrictionUI();
+    return currentUserRestricted;
+  }catch(error){
+    console.warn("Restriction status check failed:",error);
+    restrictionCheckCompleted = false;
+    return currentUserRestricted;
+  }
+}
+
+function isMessageInsertPermissionError(error){
+  const code = String(error?.code || "");
+  const text = [error?.message,error?.details,error?.hint].filter(Boolean).join(" ").toLowerCase();
+  return code === "42501" || /row-level security|violates row level security|permission denied|not allowed by.*policy|new row violates/.test(text);
+}
+
+function showRestrictionNotice(){
+  currentUserRestricted = true;
+  applyRestrictionUI();
+}
+
 function setEmptyChatState(){
   currentConversationId = null;
   currentConversationPartner = null;
@@ -3749,6 +3831,7 @@ function setEmptyChatState(){
     messageInput.disabled = true;
   }
   if(sendButton) sendButton.disabled = true;
+  applyRestrictionUI();
 }
 
 function chatBoxEmpty(value){
@@ -3764,12 +3847,8 @@ function renderActivePartner(){
   if(chatTitle) chatTitle.textContent = name;
   if(chatAvatar) chatAvatar.textContent = first;
   if(chatPresence) chatPresence.textContent = "Offline";
-  if(messageInput){
-    messageInput.disabled = false;
-    messageInput.placeholder = "Write a message...";
-  }
-  if(sendButton) sendButton.disabled = false;
   chatBoxEmpty(false);
+  applyRestrictionUI();
 }
 
 /* =====================================================
@@ -5498,6 +5577,11 @@ async function sendMessage(){
     return;
   }
 
+  if(currentUserRestricted){
+    showRestrictionNotice();
+    return;
+  }
+
   const replyId = replyTarget?.id || null;
   const tempId = "local-" + Date.now() + "-" + Math.random().toString(36).slice(2);
 
@@ -5603,6 +5687,11 @@ async function sendMessage(){
 
     console.error("Send message error:", error);
 
+    /* A denied message INSERT is the database-level restriction signal. */
+    if(isMessageInsertPermissionError(error)){
+      showRestrictionNotice();
+    }
+
     /* Failed messages stay visible briefly with a useful state. */
     if(optimisticStatus){
       optimisticStatus.textContent = "Not sent";
@@ -5615,18 +5704,23 @@ async function sendMessage(){
       error?.hint ||
       "Unknown error";
 
-    showStatus(
-      "Message was not saved: " +
-      sendError
-    );
+    if(isMessageInsertPermissionError(error)){
+      console.warn("Message blocked by Supabase policy:",sendError);
+    }else{
+      showStatus(
+        "Message was not saved: " +
+        sendError
+      );
+    }
 
     /* Restore text so the user does not lose what they typed. */
     messageInput.value = text;
 
   }finally{
-    sendButton.disabled = false;
+    sendButton.disabled = currentUserRestricted || !currentConversationPartner;
     sendButton.classList.remove("sending");
     messageSendInFlight = false;
+    applyRestrictionUI();
   }
 
 }
@@ -6452,6 +6546,9 @@ async function startApp(){
 
     currentUser =
       user;
+
+    /* Check restriction status. Supabase RLS remains the final authority. */
+    await loadMyRestrictionStatus();
 
     /* Start moderator warning notifications for this account. */
     startTotalkWarningNotifications();
