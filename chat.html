@@ -3379,6 +3379,7 @@ let currentConversationPartner = null;
 let conversations = [];
 
 let realtimeChannel = null;
+let chatFallbackTimer = null;
 let seenStatusTimer = null;
 
 let presenceChannel = null;
@@ -5387,41 +5388,27 @@ async function refreshSeenStatuses(conversationId = currentConversationId){
   if(!currentUser?.id || !conversationId) return;
 
   try{
-    /*
-     * Do not read the other participant's row directly.
-     * Many Supabase projects intentionally restrict SELECT on
-     * conversation_participants so a user can only see their own row.
-     * That makes a normal .select(...).neq(user_id, auth.uid()) return
-     * no partner row even though the UPDATE policy is correct.
-     *
-     * The ToTalk RPC below safely returns only the partner's last_read_at
-     * for a conversation in which the caller is a participant.
-     */
-    const {data:partnerReadAtValue,error} = await supabaseClient
-      .rpc("get_partner_last_read_at",{
-        p_conversation_id:conversationId
-      });
+    const {data,error} = await supabaseClient.rpc("get_partner_last_read_at",{
+      p_conversation_id:conversationId
+    });
 
     if(error){
       console.warn("Seen status lookup error:",error);
       return;
     }
 
-    const partnerReadAt = partnerReadAtValue
-      ? Date.parse(partnerReadAtValue)
-      : 0;
-
+    const partnerReadAt = data ? Date.parse(data) : 0;
     if(!partnerReadAt) return;
 
     document.querySelectorAll("[data-message-id]").forEach(row=>{
-      const messageId = row.dataset.messageId;
-      const data = messageCache.get(messageId);
-      if(!data || data.sender_id !== currentUser.id) return;
+      const dataForMessage = messageCache.get(row.dataset.messageId);
+      if(!dataForMessage || dataForMessage.sender_id !== currentUser.id) return;
 
-      const createdAt = Date.parse(data.created_at || "") || 0;
+      const createdAt = Date.parse(dataForMessage.created_at || "") || 0;
       const status = row.querySelector(".message-status");
       if(status && createdAt && createdAt <= partnerReadAt){
         status.textContent = "Seen";
+        status.classList.remove("send-failed");
       }
     });
   }catch(error){
@@ -5429,20 +5416,76 @@ async function refreshSeenStatuses(conversationId = currentConversationId){
   }
 }
 
-function startSeenStatusPolling(conversationId){
-  if(seenStatusTimer) clearInterval(seenStatusTimer);
-  seenStatusTimer = setInterval(()=>{
-    if(currentConversationId === conversationId){
-      void refreshSeenStatuses(conversationId);
+async function pollCurrentConversationMessages(){
+  if(!currentUser?.id || !currentConversationId) return;
+
+  try{
+    const {data,error} = await supabaseClient
+      .from("messages")
+      .select("id,sender_id,content,created_at,edited_at,reply_to_id,conversation_id")
+      .eq("conversation_id",currentConversationId)
+      .order("created_at",{ascending:true})
+      .limit(200);
+
+    if(error){
+      console.warn("Chat fallback message poll error:",error);
+      return;
     }
-  },2000);
-  void refreshSeenStatuses(conversationId);
+
+    const nearBottom = messages
+      ? messages.scrollHeight - messages.scrollTop - messages.clientHeight < 180
+      : true;
+
+    let addedIncoming = false;
+
+    for(const item of (data || [])){
+      messageCache.set(item.id,item);
+
+      const exists = document.querySelector(`[data-message-id="${item.id}"]`);
+      if(exists){
+        const rowData = messageCache.get(item.id);
+        const text = exists.querySelector(".message-text");
+        if(text && rowData) text.textContent = rowData.content || "";
+        continue;
+      }
+
+      addMessage(item,true);
+      if(item.sender_id !== currentUser.id){
+        addedIncoming = true;
+      }
+    }
+
+    if(addedIncoming){
+      await markConversationAsRead(currentConversationId);
+    }
+
+    if(nearBottom && messages){
+      requestAnimationFrame(()=>{
+        messages.scrollTo({top:messages.scrollHeight,behavior:"smooth"});
+      });
+    }
+
+    await refreshSeenStatuses(currentConversationId);
+  }catch(error){
+    console.warn("Chat fallback poll failed:",error);
+  }
 }
 
-function stopSeenStatusPolling(){
-  if(seenStatusTimer){
-    clearInterval(seenStatusTimer);
-    seenStatusTimer = null;
+function startChatFallbackPolling(){
+  if(chatFallbackTimer) clearInterval(chatFallbackTimer);
+
+  chatFallbackTimer = setInterval(()=>{
+    if(!currentUser?.id || !currentConversationId) return;
+    void pollCurrentConversationMessages();
+  },1500);
+
+  void pollCurrentConversationMessages();
+}
+
+function stopChatFallbackPolling(){
+  if(chatFallbackTimer){
+    clearInterval(chatFallbackTimer);
+    chatFallbackTimer = null;
   }
 }
 
@@ -5501,7 +5544,8 @@ async function openConversation(row,partner){
 
     /* Persist the read state in Supabase for this user. */
     await markConversationAsRead(row.id);
-    startSeenStatusPolling(row.id);
+    void pollCurrentConversationMessages();
+    void refreshSeenStatuses(row.id);
 
     if(isMobileLayout()) openMobileConversation();
   }catch(error){
@@ -5973,19 +6017,6 @@ function startRealtime(){
         console.log("Realtime DELETE:", id);
         document.querySelector(`[data-message-id="${id}"]`)?.remove();
         messageCache.delete(id);
-      }
-    )
-    .on(
-      "postgres_changes",
-      {event:"UPDATE",schema:"public",table:"conversation_participants"},
-      payload=>{
-        const data = payload?.new;
-        if(!data?.conversation_id || !data?.last_read_at) return;
-        if(!currentConversationId || data.conversation_id !== currentConversationId) return;
-        if(currentUser?.id && data.user_id === currentUser.id) return;
-
-        console.log("Realtime participant read update:", data);
-        void refreshSeenStatuses(data.conversation_id);
       }
     )
     .on(
@@ -6847,6 +6878,7 @@ async function startApp(){
 
     /* Realtime stays connected, but only the active conversation is rendered. */
     startRealtime();
+    startChatFallbackPolling();
 
     startPresence();
 
@@ -6950,8 +6982,6 @@ supabaseClient.auth.onAuthStateChange((event,session)=>{
     setTimeout(checkForTotalkWarnings,250);
   }
 });
-window.addEventListener("beforeunload",stopSeenStatusPolling);
-
 totalkWarningOk?.addEventListener("click",()=>{if(totalkWarningCurrent)markWarningSeen(totalkWarningCurrent);closeTotalkWarning();});
 totalkWarningClose?.addEventListener("click",()=>{if(totalkWarningCurrent)markWarningSeen(totalkWarningCurrent);closeTotalkWarning();});
 totalkWarningBackdrop?.addEventListener("click",e=>{if(e.target===totalkWarningBackdrop){if(totalkWarningCurrent)markWarningSeen(totalkWarningCurrent);closeTotalkWarning();}});
@@ -6963,3 +6993,5 @@ startApp();
 
 </body>
 </html>
+
+<script>window.addEventListener("beforeunload",stopChatFallbackPolling);</script>
