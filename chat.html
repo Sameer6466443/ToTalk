@@ -5559,18 +5559,25 @@ async function markConversationAsRead(conversationId){
   if(!currentUser?.id || !conversationId) return false;
 
   const readTime = new Date().toISOString();
+
   const readOverrides = readConversationReadOverrides();
   readOverrides[conversationId] = Date.parse(readTime);
   writeConversationReadOverrides(readOverrides);
 
-  const {error} = await supabaseClient
-    .from("conversation_participants")
-    .update({last_read_at:readTime})
-    .eq("conversation_id",conversationId)
-    .eq("user_id",currentUser.id);
+  /*
+   * Use the security-definer RPC so the read receipt is written even
+   * when the client's conversation_participants UPDATE policy/RLS
+   * prevents a direct browser update.
+   */
+  const {error} = await supabaseClient.rpc(
+    "mark_conversation_read",
+    {
+      p_conversation_id: conversationId
+    }
+  );
 
   if(error){
-    console.error("Mark conversation as read error:",error);
+    console.error("Mark conversation as read RPC error:",error);
     return false;
   }
 
