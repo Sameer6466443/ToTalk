@@ -5933,8 +5933,187 @@ async function sendMessage(){
 }
 
 /* =====================================================
-   REALTIME
+   REALTIME CHAT-LIST PREVIEW
+   Update the Users/Chats list directly from the incoming
+   message instead of waiting for the full multi-query
+   loadConversationList() refresh.
 ===================================================== */
+
+function updateRealtimeConversationItem(data){
+
+  if(
+    !data?.conversation_id ||
+    !conversationList ||
+    !currentUser?.id ||
+    data.sender_id === currentUser.id
+  ){
+    return false;
+  }
+
+  const item = conversationList.querySelector(
+    `[data-conversation-id="${CSS.escape(data.conversation_id)}"]`
+  );
+
+  if(!item) return false;
+
+  const preview = item.querySelector(".conversation-preview");
+  const time = item.querySelector(".conversation-time");
+
+  if(preview){
+    preview.textContent = data.content || "No messages yet";
+  }
+
+  if(time){
+    time.textContent = formatTime(data.created_at);
+  }
+
+  item.classList.add("is-unread");
+
+  let badge = item.querySelector(".unread-badge");
+
+  if(!badge){
+    badge = document.createElement("span");
+    badge.className = "unread-badge";
+    item.appendChild(badge);
+  }
+
+  const oldCount = Number(
+    String(badge.textContent || "0").replace("+","")
+  ) || 0;
+
+  const nextCount = Math.min(100, oldCount + 1);
+  badge.textContent = nextCount > 99 ? "99+" : String(nextCount);
+
+  /* Put the newly active conversation first, below the heading. */
+  const heading = conversationList.querySelector(".history-heading");
+  if(heading && item.parentElement === conversationList){
+    conversationList.insertBefore(item, heading.nextSibling);
+  }
+
+  return true;
+}
+
+async function addRealtimeConversationToList(data){
+
+  if(
+    !data?.conversation_id ||
+    !currentUser?.id ||
+    data.sender_id === currentUser.id ||
+    !conversationList
+  ){
+    return;
+  }
+
+  /* Another callback may already have added it. */
+  if(updateRealtimeConversationItem(data)){
+    return;
+  }
+
+  try{
+
+    const {data:participants,error:participantsError} =
+      await supabaseClient
+        .from("conversation_participants")
+        .select("conversation_id,user_id")
+        .eq("conversation_id",data.conversation_id);
+
+    if(participantsError) throw participantsError;
+
+    const partnerId = (participants || [])
+      .map(row=>row.user_id)
+      .find(id=>id && id !== currentUser.id);
+
+    if(!partnerId) return;
+
+    const {data:partner,error:partnerError} =
+      await supabaseClient
+        .from("profiles")
+        .select("user_id,name,totalk_id,profile_completed")
+        .eq("user_id",partnerId)
+        .maybeSingle();
+
+    if(partnerError) throw partnerError;
+    if(!partner) return;
+
+    const row = {
+      id:data.conversation_id,
+      created_at:data.created_at,
+      updated_at:data.created_at
+    };
+
+    conversations = [
+      row,
+      ...conversations.filter(item=>item.id !== row.id)
+    ];
+
+    const prefs = readConversationPrefs();
+    const pref = prefs[row.id] || {};
+    const name = partner.name || "ToTalk User";
+    const first = name.trim().charAt(0).toUpperCase() || "T";
+
+    const item = document.createElement("button");
+    item.type = "button";
+    item.className =
+      "conversation-item is-unread" +
+      (pref.muted ? " is-muted" : "") +
+      (row.id === currentConversationId ? " active" : "");
+    item.dataset.conversationId = row.id;
+
+    const isOnline = onlineUserIds.has(partner.user_id);
+
+    item.innerHTML = `
+      <span class="conversation-avatar-wrap">
+        <span class="mini-avatar">${escapeHtml(first)}</span>
+        <span class="presence-avatar-icon ${isOnline ? "online" : "offline"}" aria-label="${isOnline ? "Online" : "Offline"}">${isOnline ? "🌙" : "☀️"}</span>
+      </span>
+      <span class="conversation-copy">
+        <span class="conversation-top">
+          <span class="conversation-name">${escapeHtml(name)}</span>
+          <span class="conversation-time">${escapeHtml(formatTime(data.created_at))}</span>
+        </span>
+        <span class="conversation-preview">${escapeHtml(data.content || "No messages yet")}</span>
+      </span>
+      <span class="unread-badge">1</span>
+    `;
+
+    item.addEventListener("click",()=>openConversation(row,partner));
+    item.addEventListener("contextmenu",event=>{
+      event.preventDefault();
+      openConversationOptions(row,partner);
+    });
+
+    let pressTimer=null;
+    item.addEventListener("pointerdown",()=>{
+      pressTimer=setTimeout(
+        ()=>openConversationOptions(row,partner),
+        550
+      );
+    });
+    ["pointerup","pointerleave","pointercancel"].forEach(type=>{
+      item.addEventListener(type,()=>clearTimeout(pressTimer));
+    });
+
+    const heading = conversationList.querySelector(".history-heading");
+
+    if(heading && heading.parentElement === conversationList){
+      conversationList.insertBefore(item,heading.nextSibling);
+    }else{
+      conversationList.prepend(item);
+    }
+
+  }catch(error){
+
+    /*
+     * If the lightweight update cannot build a new conversation,
+     * do the normal refresh as a silent fallback.
+     */
+    console.warn("Realtime new-chat list update failed:",error);
+    void loadConversationList().catch(listError=>{
+      console.error("Realtime fallback chat-list refresh error:",listError);
+    });
+
+  }
+}
 
 function startRealtime(){
 
@@ -6058,14 +6237,10 @@ function startRealtime(){
 
         /*
          * The message belongs to another conversation.
-         * Update the sidebar preview/unread count.
+         * Update the Users/Chats list directly from this realtime
+         * payload instead of waiting for the full list query chain.
          */
-        void loadConversationList().catch(error=>{
-          console.error(
-            "Incoming message chat-list refresh error:",
-            error
-          );
-        });
+        void addRealtimeConversationToList(data);
       }
     )
     .on(
