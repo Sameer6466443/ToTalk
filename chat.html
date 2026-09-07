@@ -6400,161 +6400,66 @@ function startRealtime(){
 
 let presenceHeartbeatTimer = null;
 let presenceTracked = false;
+const presenceTabId = globalThis.crypto?.randomUUID?.() || (Date.now().toString(36)+Math.random().toString(36).slice(2));
 
 function isPresenceActive(){
-  /*
-   * A user is online only while ToTalk is the visible page.
-   * Merely leaving the tab open in the background must NOT keep the user
-   * marked online.  Supabase will also remove the presence automatically
-   * if the connection disappears.
-   */
   return !!currentUser && document.visibilityState === "visible";
 }
 
 async function setPresenceTracking(shouldTrack){
   if(!presenceChannel || !currentUser) return;
-
   try{
     if(shouldTrack){
-      await presenceChannel.track({
-        user_id: currentUser.id,
-        online_at: new Date().toISOString()
-      });
-      presenceTracked = true;
+      await presenceChannel.track({user_id:String(currentUser.id),tab_id:presenceTabId,online_at:new Date().toISOString()});
+      presenceTracked=true;
     }else if(presenceTracked){
       await presenceChannel.untrack();
-      presenceTracked = false;
+      presenceTracked=false;
     }
-  }catch(error){
-    console.warn("Presence tracking update failed:",error);
-  }
-
+  }catch(error){ console.warn("Presence tracking update failed:",error); }
   updatePresence();
 }
 
 function startPresence(){
-
-  if(!currentUser){
-    return;
-  }
-
-  if(presenceChannel){
-    return;
-  }
-
-  /*
-   * One deterministic presence key per authenticated account.
-   */
-  presenceChannel =
-    supabaseClient
-      .channel(
-        "totalk-presence",
-        {
-          config:{
-            presence:{
-              key:currentUser.id
-            }
-          }
-        }
-      );
-
+  if(!currentUser || presenceChannel) return;
+  presenceChannel=supabaseClient.channel("totalk-presence",{config:{presence:{key:presenceTabId}}});
   presenceChannel
-    .on(
-      "presence",
-      { event:"sync" },
-      ()=>{ updatePresence(); }
-    )
-    .on(
-      "presence",
-      { event:"join" },
-      ()=>{ updatePresence(); }
-    )
-    .on(
-      "presence",
-      { event:"leave" },
-      ()=>{ updatePresence(); }
-    )
-    .subscribe(
-      async status=>{
-        if(status === "SUBSCRIBED"){
-          /* Do not announce the account as online when this tab is hidden. */
-          await setPresenceTracking(isPresenceActive());
-        }
-      }
-    );
-
-  /* Keep the presence announcement fresh while the page is active. */
-  if(presenceHeartbeatTimer){
-    clearInterval(presenceHeartbeatTimer);
-  }
-  presenceHeartbeatTimer = setInterval(()=>{
-    if(!presenceChannel || !currentUser) return;
-    void setPresenceTracking(isPresenceActive());
-  },5000);
+    .on("presence",{event:"sync"},updatePresence)
+    .on("presence",{event:"join"},updatePresence)
+    .on("presence",{event:"leave"},updatePresence)
+    .subscribe(async status=>{ if(status==="SUBSCRIBED") await setPresenceTracking(isPresenceActive()); });
+  if(presenceHeartbeatTimer) clearInterval(presenceHeartbeatTimer);
+  presenceHeartbeatTimer=setInterval(()=>{ if(presenceChannel&&currentUser) void setPresenceTracking(isPresenceActive()); },3000);
 }
 
 function updateChatPresenceUI(){
-  const partnerOnline = !!(
-    currentConversationPartner?.user_id &&
-    onlineUserIds.has(currentConversationPartner.user_id)
-  );
-
-  if(chatPresence){
-    chatPresence.textContent = partnerOnline ? "Online" : "Offline";
-  }
-
-  const chatPresenceIcon = document.getElementById("chatPresenceIcon");
-  if(chatPresenceIcon){
-    chatPresenceIcon.textContent = partnerOnline ? "🌙" : "☀️";
-    chatPresenceIcon.setAttribute(
-      "aria-label",
-      partnerOnline ? "Online" : "Offline"
-    );
-  }
+  const partnerOnline=!!(currentConversationPartner?.user_id && onlineUserIds.has(String(currentConversationPartner.user_id)));
+  if(chatPresence) chatPresence.textContent=partnerOnline?"Online":"Offline";
+  const icon=document.getElementById("chatPresenceIcon");
+  if(icon){ icon.textContent=partnerOnline?"🌙":"☀️"; icon.setAttribute("aria-label",partnerOnline?"Online":"Offline"); }
 }
 
 function updateConversationPresenceIcons(){
   document.querySelectorAll(".conversation-item[data-conversation-id]").forEach(item=>{
-    const icon = item.querySelector(".presence-avatar-icon");
-    const conversationId = item.dataset.conversationId;
-    if(!icon || !conversationId) return;
-
-    const row = conversations.find(entry=>String(entry.id) === String(conversationId));
-    if(!row) return;
-
-    /* The partner is the participant in this conversation who is not us. */
-    const partnerId = row.__partnerUserId || row.partner_user_id;
-    if(!partnerId) return;
-
-    const isOnline = onlineUserIds.has(partnerId);
-    icon.classList.toggle("online",isOnline);
-    icon.classList.toggle("offline",!isOnline);
-    icon.textContent = isOnline ? "🌙" : "☀️";
-    icon.setAttribute("aria-label",isOnline ? "Online" : "Offline");
+    const icon=item.querySelector(".presence-avatar-icon");
+    const row=conversations.find(entry=>String(entry.id)===String(item.dataset.conversationId));
+    const partnerId=row?.__partnerUserId||row?.partner_user_id;
+    if(!icon||!partnerId) return;
+    const online=onlineUserIds.has(String(partnerId));
+    icon.classList.toggle("online",online); icon.classList.toggle("offline",!online);
+    icon.textContent=online?"🌙":"☀️"; icon.setAttribute("aria-label",online?"Online":"Offline");
   });
 }
 
 function updatePresence(){
-
-  onlineUserIds = new Set();
-
+  onlineUserIds=new Set();
   if(presenceChannel){
-    const state = presenceChannel.presenceState();
-    Object.values(state || {}).forEach(entries=>{
-      (entries || []).forEach(entry=>{
-        if(entry?.user_id) onlineUserIds.add(String(entry.user_id));
-      });
-    });
+    const state=presenceChannel.presenceState()||{};
+    Object.values(state).forEach(entries=>(entries||[]).forEach(entry=>{ if(entry?.user_id && entry?.tab_id) onlineUserIds.add(String(entry.user_id)); }));
   }
-
   updateChatPresenceUI();
   updateConversationPresenceIcons();
-
-  /* Refresh the list so newly-online/offline users are correct even after
-     a reconnect.  This is intentionally silent. */
-  loadConversationList().catch(()=>{});
 }
-
 
 /* =====================================================
    MESSAGE SEARCH
