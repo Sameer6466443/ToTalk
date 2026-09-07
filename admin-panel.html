@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#020108">
+<title>ToTalk • Admin</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --black:#020108;
+  --dark:#070313;
+  --panel:#090517;
+  --panel2:#0d071b;
+  --purple:#914cff;
+  --purple2:#aa69ff;
+  --purple3:#6324ca;
+  --white:#f8f5ff;
+  --muted:#928ba8;
+  --green:#52e69a;
+  --red:#ff5c79;
+  --border:rgba(145,76,255,.40);
+}
+html,body{min-height:100%;background:#020108}
+body{
+  font-family:Arial,Helvetica,sans-serif;color:var(--white);
+  background:
+    radial-gradient(ellipse at 70% 25%,rgba(111,36,191,.20),transparent 32%),
+    radial-gradient(ellipse at 15% 85%,rgba(81,29,160,.15),transparent 30%),
+    linear-gradient(135deg,#020108,#070313 50%,#020108);
+  overflow-x:hidden;
+}
+body:before{
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.58;
+  background-image:
+    radial-gradient(circle,rgba(255,255,255,.78) 1px,transparent 1.5px),
+    radial-gradient(circle,rgba(210,190,255,.65) 1px,transparent 1.5px),
+    radial-gradient(circle,rgba(255,255,255,.50) 1px,transparent 1.5px);
+  background-size:115px 115px,175px 175px,245px 245px;
+  background-position:15px 25px,70px 90px,130px 45px;
+}
+body:after{
+  content:"";position:fixed;width:310px;height:310px;border-radius:50%;
+  right:-95px;top:55px;pointer-events:none;z-index:0;
+  background:
+    radial-gradient(circle at 35% 30%,rgba(255,255,255,.28),transparent 3%),
+    radial-gradient(circle at 65% 58%,rgba(0,0,0,.25),transparent 7%),
+    radial-gradient(circle at 48% 72%,rgba(0,0,0,.18),transparent 9%),
+    radial-gradient(circle at 50% 50%,#e9e5f4 0%,#aaa4bb 55%,#514b61 78%,#211b2d 100%);
+  box-shadow:0 0 70px rgba(174,135,255,.22),inset -35px -20px 55px rgba(0,0,0,.55);
+  opacity:.20;
+}
+button,input,textarea{font:inherit;-webkit-tap-highlight-color:transparent}
+button{cursor:pointer}
+.app{position:relative;z-index:1;width:min(1180px,94%);margin:0 auto;padding:28px 0 50px}
+.topbar{
+  min-height:78px;padding:16px 18px;display:flex;align-items:center;justify-content:space-between;
+  gap:15px;border:1px solid var(--border);border-radius:22px;
+  background:linear-gradient(145deg,rgba(13,7,27,.90),rgba(7,3,19,.78));
+  box-shadow:0 18px 55px rgba(0,0,0,.40),0 0 35px rgba(110,50,190,.08);
+  backdrop-filter:blur(16px);
+}
+.brand{display:flex;align-items:center;gap:13px}
+.logo{
+  width:45px;height:45px;border-radius:50%;display:grid;place-items:center;font-size:22px;
+  background:radial-gradient(circle at 35% 30%,#d9caff 0 5%,#9b67ff 24%,#5c24b7 63%,#16082c 100%);
+  box-shadow:0 0 25px rgba(145,76,255,.35),inset -7px -5px 12px rgba(0,0,0,.35);
+}
+.brand h1{font-size:20px;letter-spacing:.2px}
+.brand p{font-size:12px;color:var(--muted);margin-top:3px}
+.back{
+  border:1px solid rgba(145,76,255,.35);background:rgba(145,76,255,.10);color:var(--white);
+  padding:11px 15px;border-radius:12px;font-weight:700;
+}
+.back:hover{background:rgba(145,76,255,.20)}
+.notice{margin:16px 0;display:none;padding:12px 15px;border-radius:13px;border:1px solid rgba(255,92,121,.28);background:rgba(255,92,121,.09);color:#ffb2c0}
+.success{border-color:rgba(82,230,154,.28);background:rgba(82,230,154,.08);color:#9bf4c6}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:16px 0}
+.stat{
+  position:relative;overflow:hidden;padding:18px;border-radius:18px;
+  border:1px solid rgba(145,76,255,.28);
+  background:linear-gradient(145deg,rgba(13,7,27,.86),rgba(9,5,23,.72));
+  box-shadow:0 12px 35px rgba(0,0,0,.25);
+}
+.stat:after{
+  content:"";position:absolute;width:100px;height:100px;border-radius:50%;right:-40px;top:-45px;
+  background:rgba(145,76,255,.10);filter:blur(4px)
+}
+.stat-label{color:var(--muted);font-size:12px}
+.stat-number{font-size:30px;font-weight:800;margin-top:5px}
+.panel{
+  padding:20px;border-radius:22px;border:1px solid var(--border);
+  background:linear-gradient(145deg,rgba(13,7,27,.91),rgba(7,3,19,.82));
+  box-shadow:0 20px 60px rgba(0,0,0,.35);backdrop-filter:blur(15px)
+}
+.panel-head{display:flex;align-items:end;justify-content:space-between;gap:15px;margin-bottom:16px}
+.panel h2{font-size:18px}
+.panel-sub{color:var(--muted);font-size:12px;margin-top:5px}
+.search{
+  width:100%;padding:13px 15px;border-radius:13px;border:1px solid rgba(145,76,255,.28);
+  outline:none;background:rgba(2,1,8,.60);color:var(--white);margin-bottom:15px;
+}
+.search:focus{border-color:rgba(170,105,255,.75);box-shadow:0 0 0 3px rgba(145,76,255,.08)}
+.search::placeholder{color:#746d88}
+.table-wrap{overflow:auto;border:1px solid rgba(145,76,255,.18);border-radius:15px}
+table{width:100%;min-width:760px;border-collapse:collapse}
+th,td{padding:14px 12px;text-align:left;border-bottom:1px solid rgba(255,255,255,.055)}
+tr:last-child td{border-bottom:0}
+th{font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:#8e82a7;background:rgba(255,255,255,.025)}
+td{font-size:13px}
+.name{font-weight:700}
+.ttid{color:#c9b5ef}
+.uuid{color:#746d88;font-size:11px}
+.badge{display:inline-flex;padding:5px 9px;border-radius:99px;font-size:11px;font-weight:800}
+.active{color:#75efad;background:rgba(82,230,154,.09);border:1px solid rgba(82,230,154,.18)}
+.restricted{color:#ff91a5;background:rgba(255,92,121,.09);border:1px solid rgba(255,92,121,.18)}
+.action{padding:8px 11px;border-radius:10px;border:1px solid transparent;color:white;font-size:12px;font-weight:800}
+.restrict{background:rgba(255,92,121,.12);border-color:rgba(255,92,121,.25)}
+.restrict:hover{background:rgba(255,92,121,.22)}
+.unrestrict{background:rgba(82,230,154,.10);border-color:rgba(82,230,154,.22);color:#8df0b9}
+.unrestrict:hover{background:rgba(82,230,154,.18)}
+.loading{text-align:center;padding:38px;color:var(--muted)}
+.empty{text-align:center;padding:38px;color:var(--muted)}
+.modal{
+  position:fixed;inset:0;z-index:50;display:none;align-items:center;justify-content:center;
+  padding:20px;background:rgba(0,0,0,.76);backdrop-filter:blur(8px)
+}
+.modal-box{
+  width:min(500px,100%);padding:22px;border:1px solid var(--border);border-radius:22px;
+  background:linear-gradient(145deg,#100820,#070313);
+  box-shadow:0 25px 90px rgba(0,0,0,.65),0 0 50px rgba(105,43,190,.12)
+}
+.modal-title{display:flex;align-items:center;gap:11px;margin-bottom:8px}
+.modal-title .moon{font-size:24px}
+.modal p{color:var(--muted);font-size:13px;line-height:1.5}
+textarea{
+  width:100%;min-height:120px;margin:15px 0;padding:13px;border-radius:13px;resize:vertical;
+  border:1px solid rgba(145,76,255,.28);background:rgba(2,1,8,.65);color:white;outline:none
+}
+textarea:focus{border-color:rgba(170,105,255,.75)}
+.modal-actions{display:flex;justify-content:flex-end;gap:10px}
+.cancel{padding:10px 14px;border-radius:11px;border:1px solid rgba(255,255,255,.10);background:rgba(255,255,255,.06);color:white}
+.confirm{padding:10px 14px;border-radius:11px;border:1px solid rgba(255,92,121,.25);background:rgba(255,92,121,.15);color:#ffb0bc;font-weight:800}
+@media(max-width:720px){
+  .app{width:94%;padding-top:14px}.stats{grid-template-columns:1fr}.topbar{align-items:flex-start}
+  .panel-head{align-items:flex-start;flex-direction:column}
+}
+</style>
+</head>
+
+<body>
+<div class="app">
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo">🌙</div>
+      <div>
+        <h1>ToTalk Admin</h1>
+        <p>Galaxy moderation center</p>
+      </div>
+    </div>
+    <button class="back" id="backBtn">← ToTalk</button>
+  </header>
+
+  <div id="notice" class="notice"></div>
+
+  <section class="stats">
+    <div class="stat"><div class="stat-label">TOTAL USERS</div><div class="stat-number" id="totalUsers">0</div></div>
+    <div class="stat"><div class="stat-label">RESTRICTED</div><div class="stat-number" id="restrictedUsers">0</div></div>
+    <div class="stat"><div class="stat-label">ACTIVE</div><div class="stat-number" id="activeUsers">0</div></div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head">
+      <div>
+        <h2>✦ User Management</h2>
+        <div class="panel-sub">Manage ToTalk accounts from one place.</div>
+      </div>
+    </div>
+
+    <input id="searchInput" class="search" placeholder="Search name or ToTalk ID..." autocomplete="off">
+
+    <div id="loading" class="loading">Loading the galaxy...</div>
+
+    <div class="table-wrap" id="tableWrap" style="display:none">
+      <table>
+        <thead>
+          <tr>
+            <th>User</th><th>ToTalk ID</th><th>Account</th><th>Status</th><th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="usersBody"></tbody>
+      </table>
+    </div>
+  </section>
+</div>
+
+<div class="modal" id="restrictModal">
+  <div class="modal-box">
+    <div class="modal-title"><span class="moon">🌙</span><h2>Restrict User</h2></div>
+    <p id="restrictText">Choose a reason for this restriction.</p>
+    <textarea id="restrictionReason" placeholder="Reason for restriction..."></textarea>
+    <div class="modal-actions">
+      <button class="cancel" id="cancelRestrict">Cancel</button>
+      <button class="confirm" id="confirmRestrict">Restrict User</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL="https://qiynczbrhpxwuabwuyiy.supabase.co";
+const SUPABASE_KEY="sb_publishable_eUPz4c_nYckgINEK-AIWqw_JAXIHozd";
+const ADMIN_TOTALK_ID="TT-YU59JB";
+
+const supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+
+let currentUser=null;
+let users=[];
+let restrictions=[];
+let selectedUser=null;
+
+const $=id=>document.getElementById(id);
+
+function notice(text,success=false){
+  const el=$("notice");
+  el.textContent=text;
+  el.className="notice"+(success?" success":"");
+  el.style.display="block";
+  if(success)setTimeout(()=>el.style.display="none",3000);
+}
+
+function isRestricted(id){return restrictions.some(r=>r.user_id===id)}
+
+async function checkAdmin(){
+  const {data:{user},error}=await supabaseClient.auth.getUser();
+  if(error||!user){$("loading").textContent="Please log in first.";notice("You must be logged in.");return false}
+  currentUser=user;
+
+  const {data,isAdminError}=await supabaseClient.rpc("is_totalk_admin");
+  if(isAdminError){notice("Admin verification failed: "+isAdminError.message);$("loading").textContent="Verification failed.";return false}
+  if(data!==true){notice("Access denied. This account is not a ToTalk admin.");$("loading").textContent="Admin access denied.";return false}
+  return true;
+}
+
+async function loadUsers(){
+  $("loading").style.display="block";
+  $("tableWrap").style.display="none";
+
+  const {data,error}=await supabaseClient
+    .from("profiles")
+    .select("user_id,name,totalk_id,profile_completed")
+    .eq("profile_completed",true)
+    .order("name");
+
+  if(error){notice("Could not load users: "+error.message);$("loading").textContent="Could not load users.";return}
+  users=data||[];
+  await loadRestrictions();
+  renderUsers();
+  $("loading").style.display="none";
+  $("tableWrap").style.display="block";
+}
+
+async function loadRestrictions(){
+  const {data,error}=await supabaseClient
+    .from("user_restrictions")
+    .select("user_id,restricted_at,restricted_by,reason");
+  if(error){notice("Could not load restrictions: "+error.message);restrictions=[];return}
+  restrictions=data||[];
+}
+
+function renderUsers(){
+  const q=$("searchInput").value.trim().toLowerCase();
+  const list=users.filter(u=>{
+    if((u.totalk_id||"").toUpperCase()===ADMIN_TOTALK_ID)return false;
+    return (u.name||"").toLowerCase().includes(q)||(u.totalk_id||"").toLowerCase().includes(q);
+  });
+
+  $("usersBody").innerHTML="";
+  if(!list.length){
+    $("usersBody").innerHTML='<tr><td colspan="5" class="empty">No users found.</td></tr>';
+  }
+
+  list.forEach(user=>{
+    const restricted=isRestricted(user.user_id);
+    const tr=document.createElement("tr");
+
+    const userTd=document.createElement("td");
+    userTd.innerHTML='<div class="name"></div>';
+    userTd.querySelector(".name").textContent=user.name||"Unnamed";
+
+    const idTd=document.createElement("td");
+    idTd.className="ttid";
+    idTd.textContent=user.totalk_id||"—";
+
+    const uuidTd=document.createElement("td");
+    uuidTd.className="uuid";
+    uuidTd.textContent=user.user_id;
+
+    const statusTd=document.createElement("td");
+    const badge=document.createElement("span");
+    badge.className="badge "+(restricted?"restricted":"active");
+    badge.textContent=restricted?"Restricted":"Active";
+    statusTd.appendChild(badge);
+
+    const actionTd=document.createElement("td");
+    const btn=document.createElement("button");
+    btn.className="action "+(restricted?"unrestrict":"restrict");
+    btn.textContent=restricted?"Unrestrict":"Restrict";
+    btn.onclick=()=>restricted?unrestrictUser(user):openRestrict(user);
+    actionTd.appendChild(btn);
+
+    tr.append(userTd,idTd,uuidTd,statusTd,actionTd);
+    $("usersBody").appendChild(tr);
+  });
+
+  updateStats();
+}
+
+function updateStats(){
+  const nonAdmin=users.filter(u=>(u.totalk_id||"").toUpperCase()!==ADMIN_TOTALK_ID);
+  const restricted=restrictions.filter(r=>nonAdmin.some(u=>u.user_id===r.user_id)).length;
+  $("totalUsers").textContent=nonAdmin.length;
+  $("restrictedUsers").textContent=restricted;
+  $("activeUsers").textContent=Math.max(0,nonAdmin.length-restricted);
+}
+
+function openRestrict(user){
+  selectedUser=user;
+  $("restrictText").textContent="Restrict "+(user.name||"this user")+" ("+(user.totalk_id||"no ID")+")? This will prevent the account from sending messages.";
+  $("restrictionReason").value="";
+  $("restrictModal").style.display="flex";
+  $("restrictionReason").focus();
+}
+
+function closeModal(){
+  $("restrictModal").style.display="none";
+  selectedUser=null;
+}
+
+async function restrictUser(){
+  if(!selectedUser)return;
+  const reason=$("restrictionReason").value.trim();
+  if(!reason){alert("Please enter a reason.");return}
+
+  const {error}=await supabaseClient.from("user_restrictions").upsert({
+    user_id:selectedUser.user_id,
+    restricted_at:new Date().toISOString(),
+    restricted_by:currentUser.id,
+    reason
+  },{onConflict:"user_id"});
+
+  if(error){notice("Could not restrict user: "+error.message);return}
+  closeModal();
+  notice("User restricted successfully.",true);
+  await loadUsers();
+}
+
+async function unrestrictUser(user){
+  if(!confirm("Remove the restriction from "+(user.name||"this user")+"?"))return;
+
+  const {error}=await supabaseClient.from("user_restrictions").delete().eq("user_id",user.user_id);
+  if(error){notice("Could not remove restriction: "+error.message);return}
+  notice("Restriction removed.",true);
+  await loadUsers();
+}
+
+$("searchInput").addEventListener("input",renderUsers);
+$("cancelRestrict").addEventListener("click",closeModal);
+$("confirmRestrict").addEventListener("click",restrictUser);
+$("restrictModal").addEventListener("click",e=>{if(e.target===$("restrictModal"))closeModal()});
+$("backBtn").addEventListener("click",()=>window.location.href="./admin.html");
+
+(async()=>{
+  if(await checkAdmin())await loadUsers();
+})();
+</script>
+</body>
+</html>
