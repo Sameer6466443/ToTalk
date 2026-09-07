@@ -5387,20 +5387,28 @@ async function refreshSeenStatuses(conversationId = currentConversationId){
   if(!currentUser?.id || !conversationId) return;
 
   try{
-    const {data:partnerRows,error} = await supabaseClient
-      .from("conversation_participants")
-      .select("user_id,last_read_at")
-      .eq("conversation_id",conversationId)
-      .neq("user_id",currentUser.id)
-      .limit(1);
+    /*
+     * Do not read the other participant's row directly.
+     * Many Supabase projects intentionally restrict SELECT on
+     * conversation_participants so a user can only see their own row.
+     * That makes a normal .select(...).neq(user_id, auth.uid()) return
+     * no partner row even though the UPDATE policy is correct.
+     *
+     * The ToTalk RPC below safely returns only the partner's last_read_at
+     * for a conversation in which the caller is a participant.
+     */
+    const {data:partnerReadAtValue,error} = await supabaseClient
+      .rpc("get_partner_last_read_at",{
+        p_conversation_id:conversationId
+      });
 
     if(error){
       console.warn("Seen status lookup error:",error);
       return;
     }
 
-    const partnerReadAt = partnerRows?.[0]?.last_read_at
-      ? Date.parse(partnerRows[0].last_read_at)
+    const partnerReadAt = partnerReadAtValue
+      ? Date.parse(partnerReadAtValue)
       : 0;
 
     if(!partnerReadAt) return;
