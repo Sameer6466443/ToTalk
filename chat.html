@@ -5427,29 +5427,38 @@ async function loadConversationList(){
     );
   }
 
-  /* Latest message for each conversation. */
+  /*
+   * Load the newest messages from the database.  Use the message id as a
+   * deterministic tie-breaker as well as created_at.  This is important on
+   * fast sends where two messages can have the same timestamp precision.
+   */
   const latestMap = new Map();
 
   const {data:latestMessages,error:latestError} = await supabaseClient
     .from("messages")
-    .select("conversation_id,sender_id,content,created_at")
+    .select("id,conversation_id,sender_id,content,created_at")
     .in("conversation_id",conversationIds)
     .order("created_at",{ascending:false})
-    .limit(500);
+    .order("id",{ascending:false})
+    .limit(1000);
 
-  if(!latestError){
-    for(const item of (latestMessages || [])){
-      if(!latestMap.has(item.conversation_id)){
-        latestMap.set(item.conversation_id,item);
-      }
+  if(latestError) throw latestError;
+
+  for(const item of (latestMessages || [])){
+    if(!latestMap.has(item.conversation_id)){
+      latestMap.set(item.conversation_id,item);
     }
   }
 
   /*
-   * Unread messages are based on the current user's persistent
-   * last_read_at value stored in Supabase on conversation_participants.
-   * localStorage is still used for UI preferences such as pin/mute/archive,
-   * but it is NOT the source of truth for read state.
+   * IMPORTANT: unread state is restored from the database on every list
+   * load.  The current user's last_read_at is stored on
+   * conversation_participants.  localStorage may contain an older local
+   * read timestamp, so only the newer of the two timestamps is used.
+   *
+   * We deliberately do NOT use prefs.unread as a source of truth.  That
+   * value is a UI preference from older versions and can incorrectly hide
+   * a real unread message after a refresh.
    */
   const prefs = readConversationPrefs();
   const readOverrides = readConversationReadOverrides();
@@ -5470,7 +5479,7 @@ async function loadConversationList(){
     const readAt = Math.max(serverReadAt, localReadAt);
     const messageTime = Date.parse(item.created_at || "") || 0;
 
-    if(messageTime > readAt && prefs[item.conversation_id]?.unread !== true){
+    if(messageTime > readAt){
       unreadMap.set(
         item.conversation_id,
         (unreadMap.get(item.conversation_id) || 0) + 1
@@ -5499,11 +5508,13 @@ async function loadConversationList(){
     const item = document.createElement("button");
     item.type = "button";
     const pref = prefs[row.id] || {};
+    const unreadCount = unreadMap.get(row.id) || 0;
+
     item.className =
       "conversation-item" +
       (row.id === currentConversationId ? " active" : "") +
       (pref.muted ? " is-muted" : "") +
-      (pref.unread ? " is-unread" : "");
+      (unreadCount > 0 ? " is-unread" : "");
     item.dataset.conversationId = row.id;
 
     const name = partner.name || "ToTalk User";
@@ -5512,7 +5523,6 @@ async function loadConversationList(){
     const latest = latestMap.get(row.id);
 
     const isOnline = onlineUserIds.has(partner.user_id);
-    const unreadCount = unreadMap.get(row.id) || 0;
 
     item.innerHTML = `
       <span class="conversation-avatar-wrap">
@@ -5968,6 +5978,16 @@ function updateRealtimeConversationItem(data){
   }
 
   item.classList.add("is-unread");
+
+  /* Keep the realtime unread state in the same local preference object
+     until the database-backed list reloads.  This is only a UI continuity
+     marker; last_read_at remains the source of truth. */
+  try{
+    const prefs = readConversationPrefs();
+    prefs[data.conversation_id] = prefs[data.conversation_id] || {};
+    prefs[data.conversation_id].unread = true;
+    writeConversationPrefs(prefs);
+  }catch(_error){}
 
   let badge = item.querySelector(".unread-badge");
 
