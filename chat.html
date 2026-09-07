@@ -6490,7 +6490,7 @@ function startPresence(){
   presenceHeartbeatTimer = setInterval(()=>{
     if(!presenceChannel || !currentUser) return;
     void setPresenceTracking(isPresenceActive());
-  },30000);
+  },5000);
 }
 
 function updateChatPresenceUI(){
