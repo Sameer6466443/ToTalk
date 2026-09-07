@@ -6396,46 +6396,68 @@ function startRealtime(){
 ===================================================== */
 
 let presenceChannel = null;
-let presenceHeartbeatTimer = null;
 let presenceTracked = false;
+let presenceLastActive = null;
 let onlineUserIds = new Set();
 
-/* Every browser tab gets a different Presence key. */
+/* Each browser tab gets its own presence key. */
 const presenceTabId =
   globalThis.crypto?.randomUUID?.() ||
   (Date.now().toString(36) + Math.random().toString(36).slice(2));
 
 /*
- * ONLINE means the user is actually using the ToTalk tab:
- * - ToTalk must be the visible tab
- * - the browser window must have focus
- *
- * If the user switches to another website/tab, this becomes false.
+ * Online means ToTalk is the currently visible tab.
+ * Switching to another website/tab makes this tab offline.
  */
 function isPresenceActive(){
-  return !!currentUser &&
-    document.visibilityState === "visible" &&
-    document.hasFocus();
+  return !!currentUser && document.visibilityState === "visible";
 }
 
-async function setPresenceTracking(shouldTrack){
+async function setPresenceTracking(shouldTrack, force=false){
   if(!presenceChannel || !currentUser) return;
 
+  const active=!!shouldTrack;
+
+  /* Do not spam Supabase Presence. track()/untrack() are state changes,
+     not heartbeats. Supabase rate-limits frequent Presence updates. */
+  if(!force && presenceLastActive === active){
+    updatePresence();
+    return;
+  }
+
   try{
-    if(shouldTrack){
-      await presenceChannel.track({
+    if(active){
+      const result=await presenceChannel.track({
         user_id:String(currentUser.id),
         tab_id:String(presenceTabId),
         active:true,
         online_at:new Date().toISOString()
       });
+
+      if(result !== "ok" && result !== undefined){
+        console.warn("ToTalk Presence track result:",result);
+      }
+
       presenceTracked=true;
-    }else if(presenceTracked){
-      await presenceChannel.untrack();
+      presenceLastActive=true;
+    }else{
+      if(presenceTracked){
+        const result=await presenceChannel.untrack();
+        if(result !== "ok" && result !== undefined){
+          console.warn("ToTalk Presence untrack result:",result);
+        }
+      }
+
       presenceTracked=false;
+      presenceLastActive=false;
     }
   }catch(error){
     console.warn("ToTalk presence update failed:",error);
+
+    if(active){
+      presenceTracked=false;
+      presenceLastActive=null;
+    }
   }
 
   updatePresence();
@@ -6444,9 +6466,8 @@ async function setPresenceTracking(shouldTrack){
 function startPresence(){
   if(!currentUser || presenceChannel) return;
 
-  /* Use a new channel name so old presence implementations cannot mix in. */
   presenceChannel=supabaseClient.channel(
-    "totalk-presence-v3",
+    "totalk-presence-v4",
     {
       config:{
         presence:{
@@ -6460,23 +6481,23 @@ function startPresence(){
     .on("presence",{event:"sync"},()=>updatePresence())
     .on("presence",{event:"join"},()=>updatePresence())
     .on("presence",{event:"leave"},()=>updatePresence())
-    .subscribe(async status=>{
-      console.log("ToTalk Presence status:",status);
+    .subscribe(async(status,error)=>{
+      console.log("ToTalk Presence status:",status,error || "");
+
       if(status === "SUBSCRIBED"){
-        await setPresenceTracking(isPresenceActive());
+        /* A reconnect creates a fresh server-side presence state, so force
+           one track even if the browser's active state did not change. */
+        presenceTracked=false;
+        presenceLastActive=null;
+        await setPresenceTracking(isPresenceActive(),true);
+      }else if(status === "CHANNEL_ERROR" || status === "TIMED_OUT"){
+        presenceTracked=false;
+        presenceLastActive=null;
+        onlineUserIds=new Set();
+        updateChatPresenceUI();
+        updateConversationPresenceIcons();
       }
     });
-
-  if(presenceHeartbeatTimer){
-    clearInterval(presenceHeartbeatTimer);
-  }
-
-  /* 1 second keeps the status extremely responsive while the tab is active. */
-  presenceHeartbeatTimer=setInterval(()=>{
-    if(presenceChannel && currentUser){
-      void setPresenceTracking(isPresenceActive());
-    }
-  },1000);
 }
 
 function updateChatPresenceUI(){
@@ -6876,13 +6897,6 @@ logoutBtn.addEventListener(
 
         realtimeChannel =
           null;
-
-      }
-
-      if(presenceHeartbeatTimer){
-
-        clearInterval(presenceHeartbeatTimer);
-        presenceHeartbeatTimer = null;
 
       }
 
