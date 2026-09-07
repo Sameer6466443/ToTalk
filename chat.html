@@ -5495,7 +5495,33 @@ async function loadConversationList(){
   conversationList.appendChild(historyHeading);
 
   safeRows = safeRows.filter(row=>!prefs[row.id]?.deleted);
-  safeRows.sort((a,b)=>Number(!!prefs[b.id]?.pinned)-Number(!!prefs[a.id]?.pinned));
+
+  /*
+   * Always show the conversation with the newest message first.
+   * This keeps the order correct after a refresh as well as when a
+   * conversation receives several unread messages.  Pinned conversations
+   * still stay above unpinned conversations.
+   */
+  safeRows.sort((a,b)=>{
+    const aPinned = Number(!!prefs[a.id]?.pinned);
+    const bPinned = Number(!!prefs[b.id]?.pinned);
+
+    if(aPinned !== bPinned){
+      return bPinned - aPinned;
+    }
+
+    const aLatest = latestMap.get(a.id);
+    const bLatest = latestMap.get(b.id);
+
+    const aTime = Date.parse(aLatest?.created_at || a.updated_at || a.created_at || "") || 0;
+    const bTime = Date.parse(bLatest?.created_at || b.updated_at || b.created_at || "") || 0;
+
+    if(aTime !== bTime){
+      return bTime - aTime;
+    }
+
+    return String(b.id || "").localeCompare(String(a.id || ""));
+  });
 
   safeRows.forEach(row=>{
     const partnerId = partnerMap.get(row.id);
