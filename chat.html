@@ -4942,20 +4942,18 @@ async function deleteMessage(
   bubble
 ){
 
-  if(
-    !confirm(
-      "Delete this message?"
-    )
-  ){
-    return;
-  }
-
+  /*
+   * Delete immediately when the user presses Delete.
+   * There is intentionally NO confirmation dialog here.
+   */
   try{
 
+    const conversationId =
+      data?.conversation_id || currentConversationId || null;
+
     /*
-     * Delete from Supabase first.
-     * Use an exact row count so a blocked/failed DELETE cannot look like
-     * it succeeded only on this phone.
+     * Delete the real database row first. This is the source of truth, so
+     * the deletion is also available to the other phone through Realtime.
      */
     const {
       error,
@@ -4964,14 +4962,8 @@ async function deleteMessage(
       await supabaseClient
         .from("messages")
         .delete({count:"exact"})
-        .eq(
-          "id",
-          data.id
-        )
-        .eq(
-          "sender_id",
-          currentUser.id
-        );
+        .eq("id",data.id)
+        .eq("sender_id",currentUser.id);
 
     if(error){
       throw error;
@@ -4981,60 +4973,43 @@ async function deleteMessage(
       throw new Error("Message was not deleted from the database.");
     }
 
-    const row =
-      bubble.parentElement;
+    /* Remove it from this phone immediately. */
+    const row = bubble?.closest?.(".message-row") ||
+      document.querySelector(
+        `[data-message-id="${CSS.escape(String(data.id))}"]`
+      );
 
-    row.classList.add(
-      "deleting"
-    );
+    if(row){
+      row.classList.add("deleting");
+      window.setTimeout(()=>row.remove(),120);
+    }
 
-    setTimeout(
-      ()=>{
+    messageCache.delete(data.id);
 
-        row.remove();
+    /*
+     * IMPORTANT: if the deleted message was the latest message, the chat
+     * list must show the previous latest message instead of the deleted
+     * text. This also runs on the other phone when Realtime reports DELETE.
+     */
+    if(conversationId){
+      void refreshConversationPreviewAfterMessageDelete(conversationId);
+    }
 
-        messageCache.delete(
-          data.id
-        );
-
-        if(
-          !messages.querySelector(
-            ".message-row"
-          )
-        ){
-
-          messages.innerHTML = `
-            <div
-              class="welcome-message"
-              id="welcomeMessage"
-            >
-              <h3>
-                Welcome to ToTalk
-              </h3>
-              <p>
-                Your conversation space is ready.
-                Write a message below to begin.
-              </p>
-            </div>
-          `;
-
-        }
-
-        /* One final database reconciliation after the UI removal. */
-        if(currentConversationId){
-          void pollOpenConversationMessages();
-        }
-
-      },
-      190
-    );
+    /* If this was the last message, show the empty-chat state. */
+    window.setTimeout(()=>{
+      if(!messages.querySelector(".message-row")){
+        messages.innerHTML = `
+          <div class="welcome-message" id="welcomeMessage">
+            <h3>Private conversation</h3>
+            <p>Say hello to ${escapeHtml(currentConversationPartner?.name || "your new connection")}.</p>
+          </div>
+        `;
+      }
+    },130);
 
   }catch(error){
 
-    console.error(
-      "Delete error:",
-      error
-    );
+    console.error("Delete error:",error);
 
     showStatus(
       "Message could not be deleted."
@@ -6013,6 +5988,133 @@ async function sendMessage(){
 }
 
 /* =====================================================
+   CHAT-LIST PREVIEW AFTER MESSAGE DELETE
+   Replaces the deleted latest message with the actual newest remaining
+   message, so every phone shows the correct conversation preview.
+===================================================== */
+
+async function refreshConversationPreviewAfterMessageDelete(conversationId){
+
+  if(!conversationId || !conversationList) return;
+
+  try{
+    const {data:latestRows,error} = await supabaseClient
+      .from("messages")
+      .select("id,sender_id,content,created_at,edited_at,conversation_id")
+      .eq("conversation_id",conversationId)
+      .order("created_at",{ascending:false})
+      .limit(1);
+
+    if(error) throw error;
+
+    const latest = latestRows?.[0] || null;
+    const item = conversationList.querySelector(
+      `[data-conversation-id="${CSS.escape(String(conversationId))}"]`
+    );
+
+    /* Keep the local conversation cache in sync too. */
+    const conversation = conversations.find(c=>c.id === conversationId);
+    if(conversation && latest?.created_at){
+      conversation.updated_at = latest.created_at;
+    }
+
+    if(!item) return;
+
+    const preview = item.querySelector(".conversation-preview");
+    const time = item.querySelector(".conversation-time");
+
+    if(preview){
+      preview.textContent = latest?.content || "No messages yet";
+    }
+
+    if(time){
+      time.textContent = latest ? formatTime(latest.created_at) : "";
+    }
+
+    /*
+     * The deleted message may have been the unread message. Rebuild the
+     * unread state from the database instead of leaving a stale badge.
+     */
+    if(latest && latest.sender_id !== currentUser.id){
+      const participant = await supabaseClient
+        .from("conversation_participants")
+        .select("last_read_at")
+        .eq("conversation_id",conversationId)
+        .eq("user_id",currentUser.id)
+        .maybeSingle();
+
+      const readAt = Date.parse(participant?.data?.last_read_at || "") || 0;
+      const latestTime = Date.parse(latest.created_at || "") || 0;
+
+      if(latestTime > readAt){
+        item.classList.add("is-unread");
+      }else{
+        item.classList.remove("is-unread");
+        item.querySelector(".unread-badge")?.remove();
+      }
+    }else if(!latest || latest.sender_id === currentUser.id){
+      /* Do not invent an unread state after deleting a message. */
+      if(currentConversationId === conversationId){
+        item.classList.remove("is-unread");
+        item.querySelector(".unread-badge")?.remove();
+      }
+    }
+
+    /*
+     * Reposition the conversation using its NEW latest-message timestamp.
+     * Pinned chats remain above unpinned chats.
+     */
+    const prefs = readConversationPrefs();
+    const pinned = !!prefs[conversationId]?.pinned;
+    const allItems = [...conversationList.querySelectorAll(".conversation-item")];
+
+    const targetTime = Date.parse(latest?.created_at || conversation?.created_at || "") || 0;
+
+    let inserted = false;
+    for(const other of allItems){
+      if(other === item) continue;
+
+      const otherId = other.dataset.conversationId;
+      const otherPinned = !!prefs[otherId]?.pinned;
+      if(pinned !== otherPinned){
+        if(pinned && !otherPinned){
+          conversationList.insertBefore(item,other);
+          inserted = true;
+          break;
+        }
+        continue;
+      }
+
+      const otherTimeText = other.querySelector(".conversation-time")?.textContent || "";
+      const otherConversation = conversations.find(c=>c.id === otherId);
+      const otherTime = Date.parse(otherConversation?.updated_at || otherConversation?.created_at || "") || 0;
+
+      if(targetTime > otherTime){
+        conversationList.insertBefore(item,other);
+        inserted = true;
+        break;
+      }
+    }
+
+    if(!inserted){
+      conversationList.appendChild(item);
+    }
+
+  }catch(error){
+    console.warn("Conversation preview refresh after delete failed:",error);
+
+    /*
+     * If the preview could not be reconciled immediately, a normal list
+     * refresh is the safe fallback. It reads the database again and never
+     * restores a deleted message.
+     */
+    void loadConversationList().catch(listError=>{
+      console.warn("Chat-list refresh after delete failed:",listError);
+    });
+  }
+}
+
+/* =====================================================
    REALTIME CHAT-LIST PREVIEW
    Update the Users/Chats list directly from the incoming
    message instead of waiting for the full multi-query
@@ -6373,24 +6475,45 @@ function startRealtime(){
       payload=>{
         const id = payload?.old?.id;
         if(!id) return;
-        const oldConversationId = payload?.old?.conversation_id;
-        if(!currentConversationId) return;
 
-        /* Some DELETE payloads omit conversation_id unless replica identity
-           is configured. The message id is unique, so remove it when it is
-           visibly present in the currently open chat. */
+        /*
+         * Keep the conversation id before removing the cached message.
+         * Some Supabase DELETE payloads can omit non-primary-key columns
+         * unless REPLICA IDENTITY FULL is enabled.
+         */
+        const cachedMessage = messageCache.get(String(id)) || messageCache.get(id);
+        const oldConversationId =
+          payload?.old?.conversation_id ||
+          cachedMessage?.conversation_id ||
+          null;
+
         const visibleRow = document.querySelector(
           `[data-message-id="${CSS.escape(String(id))}"]`
         );
 
-        if(oldConversationId && oldConversationId !== currentConversationId) return;
-        if(!visibleRow && oldConversationId !== currentConversationId) return;
+        console.log("Realtime DELETE:",id,"conversation:",oldConversationId);
 
-        console.log("Realtime DELETE:", id);
-        visibleRow?.remove();
+        if(visibleRow){
+          visibleRow.remove();
+        }
+
         messageCache.delete(id);
+        messageCache.delete(String(id));
 
-        if(!messages.querySelector(".message-row")){
+        /*
+         * Always repair the sidebar preview. This is what changes a stale
+         * preview such as "Heyy" to the previous latest message on both
+         * phones.
+         */
+        if(oldConversationId){
+          void refreshConversationPreviewAfterMessageDelete(oldConversationId);
+        }
+
+        if(
+          oldConversationId &&
+          currentConversationId === oldConversationId &&
+          !messages.querySelector(".message-row")
+        ){
           messages.innerHTML = `
             <div class="welcome-message" id="welcomeMessage">
               <h3>Private conversation</h3>
