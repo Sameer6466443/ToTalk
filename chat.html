@@ -3870,9 +3870,12 @@ function renderActivePartner(){
   const first = name.trim().charAt(0).toUpperCase() || "T";
   if(chatTitle) chatTitle.textContent = name;
   if(chatAvatar) chatAvatar.textContent = first;
-  if(chatPresence) chatPresence.textContent = "Offline";
   chatBoxEmpty(false);
   applyRestrictionUI();
+
+  /* Never assume the other person is offline when opening a chat.
+     Read the current Presence state immediately. */
+  updateChatPresenceUI();
 }
 
 /* =====================================================
@@ -5548,6 +5551,9 @@ async function loadConversationList(){
       name.trim().charAt(0).toUpperCase() || "T";
     const latest = latestMap.get(row.id);
 
+    /* Keep the partner id on the row so presence changes can update
+       the icon without guessing from the conversation id. */
+    row.__partnerUserId = partner.user_id;
     const isOnline = onlineUserIds.has(partner.user_id);
 
     item.innerHTML = `
@@ -6105,6 +6111,9 @@ async function addRealtimeConversationToList(data){
       (row.id === currentConversationId ? " active" : "");
     item.dataset.conversationId = row.id;
 
+    /* Keep the partner id on the row so presence changes can update
+       the icon without guessing from the conversation id. */
+    row.__partnerUserId = partner.user_id;
     const isOnline = onlineUserIds.has(partner.user_id);
 
     item.innerHTML = `
@@ -6399,10 +6408,22 @@ function startPresence(){
     return;
   }
 
+  /*
+   * Use a presence key tied to the authenticated user.  This makes the
+   * presence state deterministic and avoids duplicate/ambiguous entries
+   * when the same account reconnects.
+   */
   presenceChannel =
     supabaseClient
       .channel(
-        "totalk-presence"
+        "totalk-presence",
+        {
+          config:{
+            presence:{
+              key:currentUser.id
+            }
+          }
+        }
       );
 
   presenceChannel
@@ -6451,11 +6472,55 @@ function startPresence(){
 
           });
 
+          /* Render the state immediately after this client joins. */
+          updatePresence();
+
         }
 
       }
     );
 
+}
+
+function updateChatPresenceUI(){
+  const partnerOnline = !!(
+    currentConversationPartner?.user_id &&
+    onlineUserIds.has(currentConversationPartner.user_id)
+  );
+
+  if(chatPresence){
+    chatPresence.textContent = partnerOnline ? "Online" : "Offline";
+  }
+
+  const chatPresenceIcon = document.getElementById("chatPresenceIcon");
+  if(chatPresenceIcon){
+    chatPresenceIcon.textContent = partnerOnline ? "🌙" : "☀️";
+    chatPresenceIcon.setAttribute(
+      "aria-label",
+      partnerOnline ? "Online" : "Offline"
+    );
+  }
+}
+
+function updateConversationPresenceIcons(){
+  document.querySelectorAll(".conversation-item[data-conversation-id]").forEach(item=>{
+    const icon = item.querySelector(".presence-avatar-icon");
+    const conversationId = item.dataset.conversationId;
+    if(!icon || !conversationId) return;
+
+    const row = conversations.find(entry=>String(entry.id) === String(conversationId));
+    if(!row) return;
+
+    /* The partner is the participant in this conversation who is not us. */
+    const partnerId = row.__partnerUserId || row.partner_user_id;
+    if(!partnerId) return;
+
+    const isOnline = onlineUserIds.has(partnerId);
+    icon.classList.toggle("online",isOnline);
+    icon.classList.toggle("offline",!isOnline);
+    icon.textContent = isOnline ? "🌙" : "☀️";
+    icon.setAttribute("aria-label",isOnline ? "Online" : "Offline");
+  });
 }
 
 function updatePresence(){
@@ -6466,31 +6531,16 @@ function updatePresence(){
     const state = presenceChannel.presenceState();
     Object.values(state || {}).forEach(entries=>{
       (entries || []).forEach(entry=>{
-        if(entry?.user_id) onlineUserIds.add(entry.user_id);
+        if(entry?.user_id) onlineUserIds.add(String(entry.user_id));
       });
     });
   }
 
-  const sidePresence = document.getElementById("sidePresence");
-  const chatPresence = document.getElementById("chatPresence");
+  updateChatPresenceUI();
+  updateConversationPresenceIcons();
 
-  const partnerOnline = currentConversationPartner
-    ? onlineUserIds.has(currentConversationPartner.user_id)
-    : false;
-
-  if(sidePresence){
-    sidePresence.textContent = partnerOnline ? "Online" : "Offline";
-  }
-
-  if(chatPresence){
-    chatPresence.textContent = partnerOnline ? "Online" : "Offline";
-  }
-
-  const chatPresenceIcon = document.getElementById("chatPresenceIcon");
-  if(chatPresenceIcon){
-    chatPresenceIcon.textContent = partnerOnline ? "🌙" : "☀️";
-  }
-
+  /* Refresh the list so newly-online/offline users are correct even after
+     a reconnect.  This is intentionally silent. */
   loadConversationList().catch(()=>{});
 }
 
