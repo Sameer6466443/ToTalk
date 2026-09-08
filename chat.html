@@ -2437,14 +2437,14 @@ header{
 }
 
 /* Typing indicator — ToTalk dots only */
-.typing-indicator{display:none;align-items:center;justify-content:flex-start;margin:0 18px 8px;min-height:30px;pointer-events:none;opacity:0;transform:translateY(4px);transition:opacity .16s ease,transform .16s ease;}
+.typing-indicator{display:none;align-items:center;justify-content:flex-start;margin:0 18px 8px;min-height:30px;height:30px;padding:0;pointer-events:none;opacity:0;transform:translateY(3px);transition:opacity .16s ease,transform .16s ease;}
 .typing-indicator.show{display:flex;opacity:1;transform:translateY(0);}
-.typing-indicator-bubble{display:flex;align-items:center;justify-content:center;gap:7px;min-width:64px;height:34px;padding:0 14px;border:1px solid rgba(151,88,255,.45);border-radius:18px 18px 18px 7px;background:linear-gradient(135deg,rgba(74,34,142,.58),rgba(28,14,58,.82));box-shadow:0 5px 18px rgba(74,32,150,.28),inset 0 0 12px rgba(151,108,255,.08);}
-.typing-dot{width:7px;height:7px;border-radius:50%;background:#a86cff;box-shadow:0 0 9px rgba(168,108,255,.72);animation:totalkTypingDot 1.05s infinite ease-in-out;}
+.typing-indicator-bubble{display:flex;align-items:center;justify-content:flex-start;gap:8px;width:auto;min-width:0;height:30px;padding:0;background:transparent;border:0;box-shadow:none;}
+.typing-dot{width:8px;height:8px;border-radius:50%;background:#a86cff;box-shadow:0 0 5px #a86cff,0 0 12px rgba(168,108,255,.85);animation:totalkTypingDot 1.05s infinite ease-in-out;}
 .typing-dot:nth-child(2){animation-delay:.14s;}
 .typing-dot:nth-child(3){animation-delay:.28s;}
-@keyframes totalkTypingDot{0%,60%,100%{transform:translateY(0) scale(.82);opacity:.45;}30%{transform:translateY(-3px) scale(1);opacity:1;}}
-@media(max-width:520px){.typing-indicator{margin:0 14px 7px}.typing-indicator-bubble{min-width:60px;height:32px;padding:0 12px;gap:6px}.typing-dot{width:6px;height:6px;}}
+@keyframes totalkTypingDot{0%,60%,100%{transform:translateY(0) scale(.78);opacity:.42;}30%{transform:translateY(-4px) scale(1.08);opacity:1;}}
+@media(max-width:520px){.typing-indicator{margin:0 14px 7px}.typing-indicator-bubble{gap:8px}.typing-dot{width:7px;height:7px;}}
 
 /* Conversation options sheet */
 .conversation-options-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.62);backdrop-filter:blur(8px);display:none;align-items:flex-end;justify-content:center;z-index:9999;padding:16px;}
@@ -4055,10 +4055,8 @@ function hideTypingIndicator(){
   }
 }
 
-function showTypingIndicator(userName){
+function showTypingIndicator(){
   if(!typingIndicator || !currentConversationId) return;
-  const safeName = String(userName || currentConversationPartner?.name || "Someone").trim() || "Someone";
-  if(typingIndicatorLabel) typingIndicatorLabel.textContent = safeName + " is typing";
   typingIndicator.classList.add("show");
   typingIndicator.setAttribute("aria-hidden","false");
 }
@@ -4122,7 +4120,7 @@ function startTypingRealtime(){
     if(data.typing===true){
       remoteTypingUserId = senderId;
       remoteTypingConversationId = conversationId;
-      showTypingIndicator(data.user_name || currentConversationPartner?.name || "Someone");
+      showTypingIndicator();
       if(remoteTypingStopTimer) clearTimeout(remoteTypingStopTimer);
       remoteTypingStopTimer = setTimeout(hideTypingIndicator,1800);
     }else{
