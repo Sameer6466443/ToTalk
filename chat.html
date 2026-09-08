@@ -2444,6 +2444,10 @@ header{
 .conversation-option{width:100%;display:flex;align-items:center;gap:12px;border:1px solid rgba(255,255,255,.08);border-radius:14px;background:rgba(255,255,255,.045);color:#fff;padding:13px 14px;margin:7px 0;text-align:left;font:800 13px system-ui,sans-serif;cursor:pointer;}
 .conversation-option:hover{background:rgba(145,76,255,.18);border-color:rgba(166,103,255,.45);}
 .conversation-option.danger{color:#ffb4c5;}
+ .conversation-option.block-action{color:#ffb4c5;}
+.block-banner{display:none;align-items:center;justify-content:center;gap:7px;padding:10px 14px;margin:0 14px 10px;border:1px solid rgba(255,120,160,.28);border-radius:12px;background:rgba(255,80,130,.07);color:#ffb7cc;font:700 12px system-ui,sans-serif;text-align:center;}
+.block-banner.show{display:flex;}
+.chat-box.blocked-chat .input-area{opacity:.72;}
 .conversation-option.cancel{justify-content:center;color:#bdaed0;background:transparent;}
 .conversation-item.is-unread .conversation-name{color:#fff!important;}
 .conversation-item.is-unread .conversation-preview{color:#e1d6f2;font-weight:800;}
@@ -2828,6 +2832,7 @@ header{
     <button class="conversation-option" type="button" data-conversation-action="mute"><span class="option-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 10h3l4-4v12l-4-4H5z"/><path d="M16.5 9.5l3.5 5"/><path d="M20 9.5l-3.5 5"/></svg></span><span>Mute notifications</span></button>
     <button class="conversation-option" type="button" data-conversation-action="unread"><span class="option-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3.5" y="5.5" width="17" height="13" rx="2"/><path d="m5 8 7 5 7-5"/></svg></span><span>Mark as unread</span></button>
     <button class="conversation-option" type="button" data-conversation-action="report"><span class="option-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 21V4"/><path d="M7 5h10l-2 4 2 4H7"/></svg></span><span>Report</span></button>
+    <button class="conversation-option block-action" type="button" data-conversation-action="block"><span class="option-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3.5 20 7v5.2c0 4.2-3.1 7.1-8 8.3-4.9-1.2-8-4.1-8-8.3V7l8-3.5Z"/><path d="m8.5 8.5 7 7"/><path d="m15.5 8.5-7 7"/></svg></span><span>Block user</span></button>
     <button class="conversation-option danger" type="button" data-conversation-action="delete"><span class="option-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 7h16"/><path d="M9 7V4h6v3"/><path d="m7 7 1 13h8l1-13"/><path d="M10 11v5m4-5v5"/></svg></span><span>Remove conversation</span></button>
     <button class="conversation-option cancel" type="button" data-conversation-action="cancel">Cancel</button>
   </div>
@@ -3140,6 +3145,9 @@ header{
       <strong>Messaging restricted</strong>
       <span>Your account is restricted, so you cannot send messages.</span>
     </div>
+    <div id="blockBanner" class="block-banner" role="status" aria-live="polite" aria-hidden="true">
+      <span id="blockBannerText">Messaging is blocked for this conversation.</span>
+    </div>
 
     <!-- INPUT -->
 
@@ -3219,6 +3227,12 @@ const sendButton =
 
 const restrictionBanner =
   document.getElementById("restrictionBanner");
+
+const blockBanner =
+  document.getElementById("blockBanner");
+
+const blockBannerText =
+  document.getElementById("blockBannerText");
 
 const logoutBtn =
   document.getElementById("logoutBtn");
@@ -3380,6 +3394,7 @@ let currentConversationPartner = null;
 let conversations = [];
 
 let realtimeChannel = null;
+let deleteSyncChannel = null;
 
 /* Read-receipt watcher: checks the other participant's last_read_at while a chat is open. */
 let seenStatusTimer = null;
@@ -3388,6 +3403,7 @@ let seenStatusRequestInFlight = false;
 let replyTarget = null;
 let currentUserRestricted = false;
 let restrictionCheckCompleted = false;
+let currentBlockState = {blockedByMe:false,blockedMe:false};
 
 const conversationPrefsKey = ()=>`totalk_conversation_prefs_${currentUser?.id || "guest"}`;
 function readConversationPrefs(){try{return JSON.parse(localStorage.getItem(conversationPrefsKey())||"{}")}catch{return {}}}
@@ -3402,8 +3418,11 @@ function openConversationOptions(row,partner){
   conversationOptionsTarget={row,partner};
   if(optionsTitle) optionsTitle.textContent=partner?.name || "Conversation options";
   const prefs=readConversationPrefs(); const id=row.id; const itemPrefs=prefs[id]||{};
-  const labels={pin:itemPrefs.pinned?"Unpin conversation":"Pin conversation",mute:itemPrefs.muted?"Unmute notifications":"Mute notifications",unread:"Mark as unread",report:"Report",delete:"Remove conversation"};
+  const blocked=partner?.user_id && currentUser?.id && currentBlockState.blockedByMe;
+  const labels={pin:itemPrefs.pinned?"Unpin conversation":"Pin conversation",mute:itemPrefs.muted?"Unmute notifications":"Mute notifications",unread:"Mark as unread",report:"Report",block:blocked?"Unblock user":"Block user",delete:"Remove conversation"};
   optionsBackdrop?.querySelectorAll("[data-conversation-action]").forEach(btn=>{const a=btn.dataset.conversationAction;if(labels[a]) btn.querySelector("span:last-child").textContent=labels[a];});
+  const blockBtn=optionsBackdrop?.querySelector('[data-conversation-action="block"]');
+  if(blockBtn) blockBtn.classList.toggle("danger",!blocked);
   const pinBtn=optionsBackdrop?.querySelector('[data-conversation-action="pin"] .option-icon');
   const muteBtn=optionsBackdrop?.querySelector('[data-conversation-action="mute"] .option-icon');
   if(pinBtn) pinBtn.innerHTML=itemPrefs.pinned
@@ -3459,6 +3478,83 @@ reportCancel?.addEventListener("click",closeReportDialog);
 reportSubmit?.addEventListener("click",submitReport);
 reportBackdrop?.addEventListener("click",e=>{if(e.target===reportBackdrop) closeReportDialog();});
 
+async function loadBlockState(partnerId){
+  currentBlockState={blockedByMe:false,blockedMe:false};
+  if(!currentUser?.id || !partnerId || String(partnerId)===String(currentUser.id)){
+    applyRestrictionUI();
+    return currentBlockState;
+  }
+
+  try{
+    const {data,error}=await supabaseClient
+      .from("blocked_users")
+      .select("blocker_id,blocked_id")
+      .in("blocker_id",[currentUser.id,partnerId])
+      .in("blocked_id",[currentUser.id,partnerId]);
+
+    if(error) throw error;
+
+    for(const row of (data || [])){
+      if(String(row.blocker_id)===String(currentUser.id) && String(row.blocked_id)===String(partnerId)){
+        currentBlockState.blockedByMe=true;
+      }
+      if(String(row.blocker_id)===String(partnerId) && String(row.blocked_id)===String(currentUser.id)){
+        currentBlockState.blockedMe=true;
+      }
+    }
+  }catch(error){
+    console.warn("Block status could not be read:",error);
+  }
+
+  applyRestrictionUI();
+  return currentBlockState;
+}
+
+async function blockUser(partnerId){
+  if(!currentUser?.id || !partnerId) return false;
+  try{
+    const {error}=await supabaseClient
+      .from("blocked_users")
+      .upsert({blocker_id:currentUser.id,blocked_id:partnerId},{onConflict:"blocker_id,blocked_id",ignoreDuplicates:true});
+    if(error) throw error;
+
+    currentBlockState.blockedByMe=true;
+    currentBlockState.blockedMe=false;
+    applyRestrictionUI();
+    showStatus("User blocked. They can no longer send messages to you.");
+    return true;
+  }catch(error){
+    console.error("Block user error:",error);
+    showStatus("User could not be blocked. Create the blocked_users table first.");
+    return false;
+  }
+}
+
+async function unblockUser(partnerId){
+  if(!currentUser?.id || !partnerId) return false;
+  try{
+    const {error}=await supabaseClient
+      .from("blocked_users")
+      .delete()
+      .eq("blocker_id",currentUser.id)
+      .eq("blocked_id",partnerId);
+    if(error) throw error;
+
+    currentBlockState.blockedByMe=false;
+    applyRestrictionUI();
+    showStatus("User unblocked.");
+    return true;
+  }catch(error){
+    console.error("Unblock user error:",error);
+    showStatus("User could not be unblocked.");
+    return false;
+  }
+}
+
+function isConversationBlocked(){
+  return !!(currentBlockState.blockedByMe || currentBlockState.blockedMe);
+}
+
 function updateConversationItemInstant(id,mutator){
   const item=conversationList?.querySelector(`[data-conversation-id="${CSS.escape(id)}"]`);
   if(item) mutator(item);
@@ -3472,6 +3568,18 @@ function applyConversationAction(action){
   if(action==="pin") item.pinned=!item.pinned;
   if(action==="mute") item.muted=!item.muted;
   if(action==="unread") item.unread=true;
+  if(action==="block"){
+    const partnerId=conversationOptionsTarget.partner?.user_id;
+    if(!partnerId || !currentUser?.id) return;
+    if(currentBlockState.blockedByMe){
+      void unblockUser(partnerId);
+    }else{
+      if(!confirm(`Block ${conversationOptionsTarget.partner?.name || "this user"}? They will not be able to send messages to you.`)) return;
+      void blockUser(partnerId);
+    }
+    closeConversationOptions();
+    return;
+  }
   if(action==="delete"){if(!confirm("Remove this conversation from your chat list?")) return;item.deleted=true;}
   prefs[id]=item;writeConversationPrefs(prefs);
 
@@ -3754,14 +3862,36 @@ function updateUserUI(){
 function applyRestrictionUI(){
   const box = document.querySelector(".chat-box");
   const restricted = !!currentUserRestricted;
+  const blocked = isConversationBlocked();
+  const disabled = restricted || blocked || !currentConversationPartner;
+
   box?.classList.toggle("restricted",restricted);
+  box?.classList.toggle("blocked-chat",blocked);
+
   restrictionBanner?.classList.toggle("show",restricted);
   restrictionBanner?.setAttribute("aria-hidden",restricted ? "false" : "true");
-  if(messageInput){
-    messageInput.disabled = restricted || !currentConversationPartner;
-    messageInput.placeholder = restricted ? "Messaging is restricted..." : (currentConversationPartner ? "Write a message..." : "Select a conversation first...");
+
+  blockBanner?.classList.toggle("show",blocked);
+  blockBanner?.setAttribute("aria-hidden",blocked ? "false" : "true");
+  if(blockBannerText){
+    blockBannerText.textContent = currentBlockState.blockedByMe
+      ? "You blocked this user. You cannot send messages to them."
+      : currentBlockState.blockedMe
+        ? "This user has blocked you. You cannot send messages to them."
+        : "Messaging is blocked for this conversation.";
   }
-  if(sendButton) sendButton.disabled = restricted || !currentConversationPartner;
+
+  if(messageInput){
+    messageInput.disabled = disabled;
+    messageInput.placeholder = restricted
+      ? "Messaging is restricted..."
+      : currentBlockState.blockedByMe
+        ? "You blocked this user..."
+        : currentBlockState.blockedMe
+          ? "This user has blocked you..."
+          : (currentConversationPartner ? "Write a message..." : "Select a conversation first...");
+  }
+  if(sendButton) sendButton.disabled = disabled;
 }
 
 async function loadMyRestrictionStatus(){
@@ -3833,6 +3963,7 @@ function showRestrictionNotice(){
 function setEmptyChatState(){
   currentConversationId = null;
   currentConversationPartner = null;
+  currentBlockState = {blockedByMe:false,blockedMe:false};
   chatBoxEmpty(true);
 
   if(chatTitle) chatTitle.textContent = "Select a conversation";
@@ -4987,6 +5118,13 @@ async function deleteMessage(
     messageCache.delete(data.id);
 
     /*
+     * Tell every other logged-in ToTalk tab/device exactly which
+     * conversation lost this message. This is intentionally sent only
+     * after the database DELETE succeeds.
+     */
+    void broadcastMessageDeleted(data.id,conversationId);
+
+    /*
      * IMPORTANT: if the deleted message was the latest message, the chat
      * list must show the previous latest message instead of the deleted
      * text. This also runs on the other phone when Realtime reports DELETE.
@@ -5651,6 +5789,9 @@ async function openConversation(row,partner){
   currentConversationId = row.id;
   currentConversationPartner = partner;
 
+  /* Load the real block state before enabling the composer. */
+  await loadBlockState(partner.user_id);
+
   /* Opening a conversation marks everything currently in it as read. */
   const openPrefs = readConversationPrefs();
   openPrefs[row.id] = openPrefs[row.id] || {};
@@ -5692,6 +5833,14 @@ async function startConversationWithUser(partner){
   showLoading("ToTalk",`Opening ${partner.name || "conversation"}…`);
 
   try{
+    const blockState = await loadBlockState(partner.user_id);
+    if(blockState.blockedByMe || blockState.blockedMe){
+      showStatus(blockState.blockedByMe
+        ? "You blocked this user. Unblock them before starting a chat."
+        : "This user has blocked you, so you cannot start a chat.");
+      return;
+    }
+
     const row = await getOrCreateConversation(partner.user_id);
 
     /*
@@ -5837,6 +5986,14 @@ async function sendMessage(){
 
   if(currentUserRestricted){
     showRestrictionNotice();
+    return;
+  }
+
+  if(isConversationBlocked()){
+    applyRestrictionUI();
+    showStatus(currentBlockState.blockedByMe
+      ? "You blocked this user."
+      : "This user has blocked you.");
     return;
   }
 
@@ -6111,6 +6268,107 @@ async function refreshConversationPreviewAfterMessageDelete(conversationId){
     void loadConversationList().catch(listError=>{
       console.warn("Chat-list refresh after delete failed:",listError);
     });
+  }
+}
+
+/* =====================================================
+   MESSAGE DELETE SYNC
+   -----------------------------------------------------
+   PostgreSQL DELETE payloads are not guaranteed to contain
+   conversation_id unless the table uses REPLICA IDENTITY FULL.
+   Therefore message deletion is also broadcast with the exact
+   message + conversation ids after the database delete succeeds.
+   This keeps another phone's open chat AND its sidebar preview
+   synchronized without requiring a page refresh.
+===================================================== */
+
+function startDeleteSync(){
+
+  if(!currentUser || deleteSyncChannel) return;
+
+  const channel = supabaseClient.channel("totalk-delete-sync-v1",{
+    config:{
+      broadcast:{self:false}
+    }
+  });
+
+  channel.on("broadcast",{event:"message_deleted"},payload=>{
+
+    const data = payload?.payload || payload || {};
+    const messageId = data?.message_id;
+    const conversationId = data?.conversation_id;
+
+    if(!messageId) return;
+
+    const id = String(messageId);
+
+    console.log("ToTalk DELETE SYNC:",id,conversationId || "");
+
+    const row = document.querySelector(
+      `[data-message-id="${CSS.escape(id)}"]`
+    );
+
+    if(row){
+      row.remove();
+    }
+
+    messageCache.delete(messageId);
+    messageCache.delete(id);
+
+    if(conversationId){
+      void refreshConversationPreviewAfterMessageDelete(String(conversationId));
+    }
+
+    if(
+      conversationId &&
+      String(currentConversationId || "") === String(conversationId) &&
+      !messages.querySelector(".message-row")
+    ){
+      messages.innerHTML = `
+        <div class="welcome-message" id="welcomeMessage">
+          <h3>Private conversation</h3>
+          <p>Say hello to ${escapeHtml(currentConversationPartner?.name || "your new connection")}.</p>
+        </div>
+      `;
+    }
+  });
+
+  deleteSyncChannel = channel;
+
+  channel.subscribe(status=>{
+    console.log("ToTalk Delete Sync status:",status);
+
+    if(status === "SUBSCRIBED") return;
+
+    if(status === "CHANNEL_ERROR" || status === "TIMED_OUT"){
+      if(deleteSyncChannel === channel){
+        deleteSyncChannel = null;
+        setTimeout(()=>{
+          if(currentUser && !deleteSyncChannel){
+            startDeleteSync();
+          }
+        },1500);
+      }
+    }
+  });
+}
+
+async function broadcastMessageDeleted(messageId,conversationId){
+
+  if(!deleteSyncChannel || !messageId || !conversationId) return;
+
+  try{
+    await deleteSyncChannel.send({
+      type:"broadcast",
+      event:"message_deleted",
+      payload:{
+        message_id:String(messageId),
+        conversation_id:String(conversationId),
+        deleted_at:new Date().toISOString()
+      }
+    });
+  }catch(error){
+    console.warn("ToTalk delete sync broadcast failed:",error);
   }
 }
 
@@ -7083,6 +7341,19 @@ logoutBtn.addEventListener(
 
       }
 
+      if(deleteSyncChannel){
+
+        await supabaseClient
+          .removeChannel(
+            deleteSyncChannel
+          );
+
+        deleteSyncChannel = null;
+
+      }
+
+      currentBlockState = {blockedByMe:false,blockedMe:false};
+
       if(presenceChannel){
 
         try{
@@ -7462,6 +7733,8 @@ async function startApp(){
 
     /* Realtime stays connected, but only the active conversation is rendered. */
     startRealtime();
+
+    startDeleteSync();
 
     startPresence();
 
