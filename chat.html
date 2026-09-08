@@ -3429,156 +3429,69 @@ let remoteTypingUserId = null;
 let remoteTypingConversationId = null;
 let remoteTypingStopTimer = null;
 
-const typingTabId =
-  globalThis.crypto?.randomUUID?.() ||
-  (Date.now().toString(36) + Math.random().toString(36).slice(2));
-
 function hideTypingIndicator(){
   remoteTypingUserId = null;
   remoteTypingConversationId = null;
-  if(remoteTypingStopTimer){
-    clearTimeout(remoteTypingStopTimer);
-    remoteTypingStopTimer = null;
-  }
-  if(typingIndicator){
-    typingIndicator.classList.remove("show");
-    typingIndicator.setAttribute("aria-hidden","true");
-  }
+  if(remoteTypingStopTimer){ clearTimeout(remoteTypingStopTimer); remoteTypingStopTimer=null; }
+  typingIndicator?.classList.remove("show");
+  typingIndicator?.setAttribute("aria-hidden","true");
 }
-
 function showTypingIndicator(){
   if(!typingIndicator || !currentConversationId) return;
   typingIndicator.classList.add("show");
   typingIndicator.setAttribute("aria-hidden","false");
 }
-
-function refreshRemoteTypingFromPresence(){
-  if(!typingChannel || !currentUser || !currentConversationId) return;
-
-  const state = typingChannel.presenceState() || {};
-  const me = String(currentUser.id);
-  const conversationId = String(currentConversationId);
-  let foundUser = null;
-
-  Object.values(state).forEach(entries=>{
-    (entries || []).forEach(entry=>{
-      if(!entry || entry.typing !== true) return;
-      if(String(entry.user_id || "") === me) return;
-      if(String(entry.conversation_id || "") !== conversationId) return;
-      foundUser = String(entry.user_id || "");
-    });
-  });
-
-  if(foundUser){
-    remoteTypingUserId = foundUser;
-    remoteTypingConversationId = conversationId;
+function receiveTypingState(payload){
+  const d=payload?.payload || payload || {};
+  if(!d || !currentUser || !currentConversationId) return;
+  if(String(d.user_id||"")===String(currentUser.id)) return;
+  if(String(d.conversation_id||"")!==String(currentConversationId)) return;
+  if(String(d.recipient_user_id||"")!==String(currentUser.id)) return;
+  if(d.typing===true){
+    remoteTypingUserId=String(d.user_id);
+    remoteTypingConversationId=String(d.conversation_id);
     showTypingIndicator();
     if(remoteTypingStopTimer) clearTimeout(remoteTypingStopTimer);
-    remoteTypingStopTimer = setTimeout(()=>{
-      refreshRemoteTypingFromPresence();
-      if(remoteTypingUserId && remoteTypingConversationId===conversationId){
-        hideTypingIndicator();
-      }
-    },2200);
-  }else if(remoteTypingConversationId === conversationId){
+    remoteTypingStopTimer=setTimeout(()=>hideTypingIndicator(),2200);
+  }else{
     hideTypingIndicator();
   }
 }
-
 async function sendTypingState(isTyping){
   if(!typingChannel || !typingChannelReady || !currentUser || !currentConversationId) return;
-  const recipientId = currentConversationPartner?.user_id;
+  const recipientId=currentConversationPartner?.user_id;
   if(!recipientId) return;
-
   try{
-    if(isTyping){
-      const result = await typingChannel.track({
+    await typingChannel.send({
+      type:"broadcast",
+      event:"totalk_typing",
+      payload:{
         user_id:String(currentUser.id),
         recipient_user_id:String(recipientId),
         conversation_id:String(currentConversationId),
-        tab_id:String(typingTabId),
-        typing:true,
-        typing_at:new Date().toISOString()
-      });
-      if(result !== "ok" && result !== undefined){
-        console.warn("ToTalk typing track result:",result);
+        typing:!!isTyping,
+        sent_at:Date.now()
       }
-    }else{
-      const result = await typingChannel.untrack();
-      if(result !== "ok" && result !== undefined){
-        console.warn("ToTalk typing untrack result:",result);
-      }
-    }
-  }catch(error){
-    console.warn("ToTalk typing presence update failed:",error);
-  }
+    });
+  }catch(error){ console.warn("ToTalk typing send failed:",error); }
 }
-
 function stopLocalTyping(broadcast=true){
-  if(typingStopTimer){
-    clearTimeout(typingStopTimer);
-    typingStopTimer = null;
-  }
+  if(typingStopTimer){clearTimeout(typingStopTimer);typingStopTimer=null;}
   if(!typingIsActive) return;
-  typingIsActive = false;
+  typingIsActive=false;
   if(broadcast) void sendTypingState(false);
 }
-
 function startLocalTyping(){
   if(!typingChannel || !typingChannelReady || !currentUser || !currentConversationId) return;
   if(currentUserRestricted || isConversationBlocked() || messageInput?.disabled) return;
-
-  if(!typingIsActive){
-    typingIsActive = true;
-    void sendTypingState(true);
-  }
-
+  if(!typingIsActive){ typingIsActive=true; void sendTypingState(true); }
   if(typingStopTimer) clearTimeout(typingStopTimer);
-  typingStopTimer = setTimeout(()=>stopLocalTyping(true),1300);
+  typingStopTimer=setTimeout(()=>stopLocalTyping(true),1300);
 }
-
 function startTypingRealtime(){
-  if(!currentUser || typingChannel) return;
-  typingChannelReady = false;
-
-  const channel = supabaseClient.channel("totalk-typing-presence-v1",{
-    config:{
-      presence:{key:String(typingTabId)}
-    }
-  });
-
-  channel
-    .on("presence",{event:"sync"},()=>refreshRemoteTypingFromPresence())
-    .on("presence",{event:"join"},()=>refreshRemoteTypingFromPresence())
-    .on("presence",{event:"leave"},()=>refreshRemoteTypingFromPresence());
-
-  typingChannel = channel;
-
-  channel.subscribe(async status=>{
-    if(status === "SUBSCRIBED"){
-      typingChannelReady = true;
-      if(typingIsActive) await sendTypingState(true);
-      refreshRemoteTypingFromPresence();
-      return;
-    }
-
-    if(status === "CHANNEL_ERROR" || status === "TIMED_OUT"){
-      typingChannelReady = false;
-      if(typingChannel===channel) typingChannel=null;
-      hideTypingIndicator();
-      setTimeout(()=>{
-        if(currentUser && !typingChannel) startTypingRealtime();
-      },1500);
-    }
-  });
-}
-
-function handleTypingInput(){
-  if(!messageInput || !messageInput.value.trim() || !currentConversationId){
-    stopLocalTyping(true);
-    return;
-  }
-  startLocalTyping();
+  if(!currentUser || !realtimeChannel) return;
+  typingChannel=realtimeChannel;
+  typingChannelReady=true;
 }
 
 function applyRestrictionUI(){
@@ -5508,6 +5421,8 @@ async function markConversationAsRead(conversationId){
 }
 
 async function openConversation(row,partner){
+  stopLocalTyping(true);
+  hideTypingIndicator();
   if(!row?.id || !partner) return;
 
   stopLocalTyping(true);
@@ -6319,6 +6234,8 @@ function startRealtime(){
       presence:{key:currentUser.id}
     }
   });
+
+  channel.on("broadcast",{event:"totalk_typing"},payload=>receiveTypingState(payload));
 
   channel
     .on(
