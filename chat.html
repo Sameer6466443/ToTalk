@@ -2436,6 +2436,17 @@ header{
   }
 }
 
+/* Typing indicator — Classic Dots (ToTalk style) */
+.typing-indicator{display:none;align-items:center;gap:9px;margin:0 14px 9px;min-height:30px;color:#cfc4e6;font:700 11px system-ui,sans-serif;pointer-events:none;opacity:0;transform:translateY(3px);transition:opacity .16s ease,transform .16s ease;}
+.typing-indicator.show{display:flex;opacity:1;transform:translateY(0);}
+.typing-indicator-bubble{display:flex;align-items:center;gap:4px;padding:8px 11px;border:1px solid rgba(145,76,255,.25);border-radius:14px 14px 14px 5px;background:rgba(91,52,180,.14);box-shadow:0 6px 22px rgba(0,0,0,.14);}
+.typing-indicator-label{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px;}
+.typing-dot{width:5px;height:5px;border-radius:50%;background:#a56cff;box-shadow:0 0 8px rgba(165,108,255,.45);animation:totalkTypingDot 1.05s infinite ease-in-out;}
+.typing-dot:nth-child(2){animation-delay:.14s;}
+.typing-dot:nth-child(3){animation-delay:.28s;}
+@keyframes totalkTypingDot{0%,60%,100%{transform:translateY(0);opacity:.45;}30%{transform:translateY(-3px);opacity:1;}}
+@media(max-width:520px){.typing-indicator{margin:0 12px 8px}.typing-indicator-label{max-width:150px;}}
+
 /* Conversation options sheet */
 .conversation-options-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.62);backdrop-filter:blur(8px);display:none;align-items:flex-end;justify-content:center;z-index:9999;padding:16px;}
 .conversation-options-backdrop.open{display:flex;}
@@ -3149,6 +3160,16 @@ header{
       <span id="blockBannerText">Messaging is blocked for this conversation.</span>
     </div>
 
+    <!-- TYPING INDICATOR -->
+    <div id="typingIndicator" class="typing-indicator" role="status" aria-live="polite" aria-hidden="true">
+      <div class="typing-indicator-bubble">
+        <span class="typing-indicator-label">Sameer is typing</span>
+        <span class="typing-dot"></span>
+        <span class="typing-dot"></span>
+        <span class="typing-dot"></span>
+      </div>
+    </div>
+
     <!-- INPUT -->
 
     <div class="input-area">
@@ -3233,6 +3254,12 @@ const blockBanner =
 
 const blockBannerText =
   document.getElementById("blockBannerText");
+
+const typingIndicator =
+  document.getElementById("typingIndicator");
+
+const typingIndicatorLabel =
+  typingIndicator?.querySelector(".typing-indicator-label");
 
 const logoutBtn =
   document.getElementById("logoutBtn");
@@ -3334,6 +3361,8 @@ function closeMobileConversation(){
 
   /* Return to the chat list immediately — no await here. */
   stopSeenStatusWatcher();
+  stopLocalTyping(true);
+  hideTypingIndicator();
   chatLayout.classList.remove("mobile-chat-open");
   searchPanel?.classList.remove("open");
   currentConversationId = null;
@@ -3395,6 +3424,12 @@ let conversations = [];
 
 let realtimeChannel = null;
 let deleteSyncChannel = null;
+let typingChannel = null;
+let typingStopTimer = null;
+let typingIsActive = false;
+let remoteTypingUserId = null;
+let remoteTypingConversationId = null;
+let remoteTypingStopTimer = null;
 
 /* Read-receipt watcher: checks the other participant's last_read_at while a chat is open. */
 let seenStatusTimer = null;
@@ -4009,6 +4044,116 @@ function updateUserUI(){
   document.title = "ToTalk";
 }
 
+function hideTypingIndicator(){
+  remoteTypingUserId = null;
+  remoteTypingConversationId = null;
+  if(remoteTypingStopTimer){
+    clearTimeout(remoteTypingStopTimer);
+    remoteTypingStopTimer = null;
+  }
+  if(typingIndicator){
+    typingIndicator.classList.remove("show");
+    typingIndicator.setAttribute("aria-hidden","true");
+  }
+}
+
+function showTypingIndicator(userName){
+  if(!typingIndicator || !currentConversationId) return;
+  const safeName = String(userName || currentConversationPartner?.name || "Someone").trim() || "Someone";
+  if(typingIndicatorLabel) typingIndicatorLabel.textContent = safeName + " is typing";
+  typingIndicator.classList.add("show");
+  typingIndicator.setAttribute("aria-hidden","false");
+}
+
+function stopLocalTyping(broadcast=true){
+  if(typingStopTimer){
+    clearTimeout(typingStopTimer);
+    typingStopTimer = null;
+  }
+  if(!typingIsActive) return;
+  typingIsActive = false;
+  if(broadcast && typingChannel && currentUser && currentConversationId){
+    void typingChannel.send({
+      type:"broadcast",
+      event:"typing",
+      payload:{
+        conversation_id:String(currentConversationId),
+        user_id:String(currentUser.id),
+        user_name:String(currentProfile?.name || currentUser?.user_metadata?.name || "Someone"),
+        typing:false
+      }
+    }).catch(error=>console.warn("ToTalk typing stop failed:",error));
+  }
+}
+
+function startLocalTyping(){
+  if(!typingChannel || !currentUser || !currentConversationId) return;
+  if(currentUserRestricted || isConversationBlocked() || messageInput?.disabled) return;
+
+  if(!typingIsActive){
+    typingIsActive = true;
+    void typingChannel.send({
+      type:"broadcast",
+      event:"typing",
+      payload:{
+        conversation_id:String(currentConversationId),
+        user_id:String(currentUser.id),
+        user_name:String(currentProfile?.name || currentUser?.user_metadata?.name || "Someone"),
+        typing:true
+      }
+    }).catch(error=>console.warn("ToTalk typing start failed:",error));
+  }
+
+  if(typingStopTimer) clearTimeout(typingStopTimer);
+  typingStopTimer = setTimeout(()=>stopLocalTyping(true),1100);
+}
+
+function startTypingRealtime(){
+  if(!currentUser || typingChannel) return;
+
+  const channel = supabaseClient.channel("totalk-typing-v1",{
+    config:{broadcast:{self:false}}
+  });
+
+  channel.on("broadcast",{event:"typing"},message=>{
+    const data = message?.payload || message || {};
+    const senderId = String(data.user_id || "");
+    const conversationId = String(data.conversation_id || "");
+    const me = String(currentUser?.id || "");
+
+    if(!senderId || senderId===me || !conversationId) return;
+    if(!currentConversationId || conversationId!==String(currentConversationId)) return;
+
+    if(data.typing===true){
+      remoteTypingUserId = senderId;
+      remoteTypingConversationId = conversationId;
+      showTypingIndicator(data.user_name || currentConversationPartner?.name || "Someone");
+      if(remoteTypingStopTimer) clearTimeout(remoteTypingStopTimer);
+      remoteTypingStopTimer = setTimeout(hideTypingIndicator,1800);
+    }else{
+      if(remoteTypingUserId===senderId && remoteTypingConversationId===conversationId){
+        hideTypingIndicator();
+      }
+    }
+  });
+
+  typingChannel = channel;
+  channel.subscribe(status=>{
+    if(status==="CHANNEL_ERROR" || status==="TIMED_OUT"){
+      if(typingChannel===channel) typingChannel=null;
+      setTimeout(()=>{if(currentUser && !typingChannel) startTypingRealtime();},1500);
+    }
+  });
+}
+
+function handleTypingInput(){
+  if(!messageInput || !messageInput.value.trim() || !currentConversationId){
+    stopLocalTyping(true);
+    return;
+  }
+  startLocalTyping();
+}
+
 function applyRestrictionUI(){
   const box = document.querySelector(".chat-box");
   const restricted = !!currentUserRestricted;
@@ -4111,6 +4256,8 @@ function showRestrictionNotice(){
 }
 
 function setEmptyChatState(){
+  stopLocalTyping(false);
+  hideTypingIndicator();
   currentConversationId = null;
   currentConversationPartner = null;
   currentBlockState = {blockedByMe:false,blockedMe:false};
@@ -5936,6 +6083,8 @@ async function markConversationAsRead(conversationId){
 async function openConversation(row,partner){
   if(!row?.id || !partner) return;
 
+  stopLocalTyping(true);
+  hideTypingIndicator();
   currentConversationId = row.id;
   currentConversationPartner = partner;
 
@@ -6128,6 +6277,8 @@ async function sendMessage(){
 
   const text = messageInput.value.trim();
   if(!text) return;
+
+  stopLocalTyping(true);
 
   if(!currentUser){
     showStatus("Your login session is not ready.");
@@ -7423,6 +7574,16 @@ document.addEventListener(
 sendButton.addEventListener(
   "click",
   sendMessage
+);
+
+messageInput.addEventListener(
+  "input",
+  handleTypingInput
+);
+
+messageInput.addEventListener(
+  "blur",
+  ()=>stopLocalTyping(true)
 );
 
 messageInput.addEventListener(
