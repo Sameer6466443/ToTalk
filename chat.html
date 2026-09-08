@@ -2125,8 +2125,12 @@ header{
     border-radius:11px;
   }
 
+  /* Keep the chat canvas at the stable phone viewport height.
+     Android Chrome's dynamic viewport can shrink the whole app when
+     the keyboard opens, making the chat look compressed. */
   .chat-layout{
-    height:calc(100dvh - 62px);
+    height:calc(100vh - 62px);
+    min-height:calc(100vh - 62px);
 
     padding:7px;
 
@@ -2288,6 +2292,34 @@ header{
 
   .loading-subtitle{
     font-size:12px;
+  }
+}
+
+/* =====================================================
+   MOBILE KEYBOARD LAYOUT
+===================================================== */
+@media(max-width:800px){
+  /* Do not let the virtual keyboard turn the entire chat canvas into
+     a tiny half-height panel. The browser may scroll the focused field
+     into view, while the chat canvas keeps its normal phone height. */
+  html,body{
+    min-height:100%;
+  }
+
+  .chat-layout.mobile-chat-open{
+    overflow:hidden;
+  }
+
+  .chat-layout.mobile-chat-open .chat-box{
+    min-height:calc(100vh - 76px);
+  }
+
+  .chat-layout.mobile-chat-open #messages{
+    overscroll-behavior-y:contain;
+  }
+
+  .chat-layout.mobile-chat-open .input-area{
+    bottom:7px;
   }
 }
 
