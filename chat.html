@@ -3429,618 +3429,9 @@ let remoteTypingUserId = null;
 let remoteTypingConversationId = null;
 let remoteTypingStopTimer = null;
 
-/* Read-receipt watcher: checks the other participant's last_read_at while a chat is open. */
-let seenStatusTimer = null;
-let seenStatusRequestInFlight = false;
-
-let replyTarget = null;
-let currentUserRestricted = false;
-let restrictionCheckCompleted = false;
-let currentBlockState = {blockedByMe:false,blockedMe:false};
-let blockStateRequestToken = 0;
-let blockOperationInProgress = false;
-
-const conversationPrefsKey = ()=>`totalk_conversation_prefs_${currentUser?.id || "guest"}`;
-function readConversationPrefs(){try{return JSON.parse(localStorage.getItem(conversationPrefsKey())||"{}")}catch{return {}}}
-function writeConversationPrefs(value){localStorage.setItem(conversationPrefsKey(),JSON.stringify(value));}
-function readConversationReadOverrides(){try{return JSON.parse(localStorage.getItem(`totalk_read_overrides_${currentUser?.id || "guest"}`)||"{}")}catch{return {}}}
-function writeConversationReadOverrides(value){localStorage.setItem(`totalk_read_overrides_${currentUser?.id || "guest"}`,JSON.stringify(value));}
-let conversationOptionsTarget = null;
-const optionsBackdrop = document.getElementById("conversationOptionsBackdrop");
-const optionsTitle = document.getElementById("conversationOptionsTitle");
-function closeConversationOptions(){optionsBackdrop?.classList.remove("open");optionsBackdrop?.setAttribute("aria-hidden","true");conversationOptionsTarget=null;}
-function paintConversationOptions(row,partner){
-  if(!optionsBackdrop) return;
-  const prefs=readConversationPrefs();
-  const id=row?.id;
-  const itemPrefs=prefs[id]||{};
-  const blocked=!!(partner?.user_id && currentUser?.id && currentBlockState.blockedByMe);
-  const labels={
-    pin:itemPrefs.pinned?"Unpin conversation":"Pin conversation",
-    mute:itemPrefs.muted?"Unmute notifications":"Mute notifications",
-    unread:"Mark as unread",
-    report:"Report",
-    block:blocked?"Unblock user":"Block user",
-    delete:"Remove conversation"
-  };
-  optionsBackdrop.querySelectorAll("[data-conversation-action]").forEach(btn=>{
-    const a=btn.dataset.conversationAction;
-    const text=btn.querySelector("span:last-child");
-    if(text && labels[a]) text.textContent=labels[a];
-  });
-  const blockBtn=optionsBackdrop.querySelector('[data-conversation-action="block"]');
-  if(blockBtn){
-    blockBtn.classList.toggle("danger",!blocked);
-    blockBtn.disabled=false;
-    blockBtn.style.pointerEvents="auto";
-  }
-  const pinBtn=optionsBackdrop.querySelector('[data-conversation-action="pin"] .option-icon');
-  const muteBtn=optionsBackdrop.querySelector('[data-conversation-action="mute"] .option-icon');
-  if(pinBtn) pinBtn.innerHTML='<svg viewBox="0 0 24 24"><path d="M9 4.5h6l.8 4.2 2.7 2.6H5.5l2.7-2.6L9 4.5Z"/><path d="M12 11.3V20"/><path d="M9.3 20h5.4"/></svg>';
-  if(muteBtn) muteBtn.innerHTML=itemPrefs.muted
-    ? '<svg viewBox="0 0 24 24"><path d="M5 10h3l4-4v12l-4-4H5z"/><path d="M16.5 9.5l3.5 5"/><path d="M20 9.5l-3.5 5"/></svg>'
-    : '<svg viewBox="0 0 24 24"><path d="M5 10h3l4-4v12l-4-4H5z"/><path d="M16.2 9.7a3.8 3.8 0 0 1 0 4.6"/></svg>';
-}
-
-function openConversationOptions(row,partner){
-  conversationOptionsTarget={row,partner};
-  if(optionsTitle) optionsTitle.textContent=partner?.name || "Conversation options";
-
-  /* Open immediately. Never wait for Supabase before showing the menu.
-     This removes the 2-second delay on phones with slower connections. */
-  paintConversationOptions(row,partner);
-  optionsBackdrop?.classList.add("open");
-  optionsBackdrop?.setAttribute("aria-hidden","false");
-
-  /* Refresh the real block state in the background and repaint only if the
-     same conversation is still selected. */
-  if(partner?.user_id && currentUser?.id){
-    void loadBlockState(partner.user_id).then(()=>{
-      if(!blockOperationInProgress && conversationOptionsTarget?.row?.id===row?.id){
-        paintConversationOptions(row,partner);
-      }
-    });
-  }
-}
-
-const reportBackdrop=document.getElementById("reportBackdrop");
-const reportDetails=document.getElementById("reportDetails");
-const reportSubmit=document.getElementById("reportSubmit");
-const reportCancel=document.getElementById("reportCancel");
-let selectedReportReason="";
-function closeReportDialog(){reportBackdrop?.classList.remove("open");reportBackdrop?.setAttribute("aria-hidden","true");selectedReportReason="";reportBackdrop?.querySelectorAll(".report-reason").forEach(b=>b.classList.remove("selected"));if(reportDetails) reportDetails.value="";if(reportSubmit) reportSubmit.disabled=true;}
-function openReportDialog(){
-  if(!conversationOptionsTarget) return;
-  const target=conversationOptionsTarget;
-  const name=target.partner?.name || "this account";
-  const title=document.getElementById("reportTitle");
-  if(title) title.textContent=`Report ${name}`;
-  reportBackdrop?.classList.add("open");reportBackdrop?.setAttribute("aria-hidden","false");
-  /* Keep the selected conversation available while the report modal is open. */
-  conversationOptionsTarget=target;
-  optionsBackdrop?.classList.remove("open");
-  optionsBackdrop?.setAttribute("aria-hidden","true");
-}
-async function submitReport(){
-  if(!currentUser?.id || !conversationOptionsTarget || !selectedReportReason) return;
-  const row=conversationOptionsTarget.row; const partner=conversationOptionsTarget.partner;
-  if(reportSubmit) {reportSubmit.disabled=true;reportSubmit.textContent="Sending…";}
-  try{
-    const {error}=await supabaseClient.from("reports").insert({
-      reporter_id:currentUser.id,
-      reported_user_id:partner.user_id,
-      conversation_id:row.id,
-      reason:selectedReportReason,
-      details:String(reportDetails?.value || "").trim() || null
-    });
-    if(error) throw error;
-    closeReportDialog();
-    showStatus("Report submitted. Thank you for helping keep ToTalk safe.");
-  }catch(error){
-    console.error("Report submission error:",error);
-    if(reportSubmit){reportSubmit.disabled=false;reportSubmit.textContent="Submit report";}
-    showStatus("Report could not be submitted. Please try again.");
-  }
-}
-reportBackdrop?.querySelectorAll(".report-reason").forEach(btn=>btn.addEventListener("click",()=>{selectedReportReason=btn.dataset.reportReason||"";reportBackdrop.querySelectorAll(".report-reason").forEach(b=>b.classList.toggle("selected",b===btn));if(reportSubmit){reportSubmit.disabled=!selectedReportReason;}}));
-reportCancel?.addEventListener("click",closeReportDialog);
-reportSubmit?.addEventListener("click",submitReport);
-reportBackdrop?.addEventListener("click",e=>{if(e.target===reportBackdrop) closeReportDialog();});
-
-async function loadBlockState(partnerId){
-  const requestToken=++blockStateRequestToken;
-  const previousState={...currentBlockState};
-
-  if(!currentUser?.id || !partnerId || String(partnerId)===String(currentUser.id)){
-    currentBlockState={blockedByMe:false,blockedMe:false};
-    applyRestrictionUI();
-    return currentBlockState;
-  }
-
-  try{
-    const me=String(currentUser.id);
-    const partner=String(partnerId);
-
-    const {data,error}=await supabaseClient
-      .from("blocked_users")
-      .select("blocker_id,blocked_id")
-      .or(`and(blocker_id.eq.${me},blocked_id.eq.${partner}),and(blocker_id.eq.${partner},blocked_id.eq.${me})`);
-
-    if(error) throw error;
-
-    /* Never clear a known block before the fresh database result arrives.
-       This prevents the menu from changing Unblock -> Block while the
-       background request is loading. */
-    if(requestToken!==blockStateRequestToken) return currentBlockState;
-
-    const next={blockedByMe:false,blockedMe:false};
-    for(const row of (data || [])){
-      if(String(row.blocker_id)===me && String(row.blocked_id)===partner){
-        next.blockedByMe=true;
-      }
-      if(String(row.blocker_id)===partner && String(row.blocked_id)===me){
-        next.blockedMe=true;
-      }
-    }
-
-    currentBlockState=next;
-    applyRestrictionUI();
-    return currentBlockState;
-  }catch(error){
-    /* If reading fails, keep the state we already know instead of resetting
-       a successfully-created block back to "Block user". */
-    if(requestToken===blockStateRequestToken){
-      currentBlockState=previousState;
-      applyRestrictionUI();
-      console.warn("Block status could not be read:",error);
-    }
-    return currentBlockState;
-  }
-}
-
-async function blockUser(partnerId){
-  if(!currentUser?.id || !partnerId) return false;
-
-  const blockerId=String(currentUser.id);
-  const blockedId=String(partnerId);
-  if(blockerId===blockedId) return false;
-
-  const blockBtn=optionsBackdrop?.querySelector('[data-conversation-action="block"]');
-  blockOperationInProgress=true;
-  ++blockStateRequestToken;
-
-  if(blockBtn){
-    blockBtn.disabled=true;
-    blockBtn.style.pointerEvents="none";
-    const text=blockBtn.querySelector("span:last-child");
-    if(text) text.textContent="Blocking…";
-  }
-
-  try{
-    /* Use the security-definer RPC so RLS cannot reject a legitimate
-       block because the browser session and profile row are handled
-       differently. The function still verifies auth.uid() server-side. */
-    const {error}=await supabaseClient.rpc("totalk_block_user",{
-      p_blocked_id:blockedId
-    });
-
-    if(error) throw error;
-
-    /* The database write succeeded. Do NOT wait for another SELECT or
-       realtime broadcast here — those background operations were the reason
-       the old button could remain stuck on "Blocking…". */
-    currentBlockState={blockedByMe:true,blockedMe:false};
-    applyRestrictionUI();
-    paintConversationOptions(conversationOptionsTarget?.row,conversationOptionsTarget?.partner);
-    closeConversationOptions();
-    showStatus("User blocked. Messaging is disabled.");
-
-    blockOperationInProgress=false;
-    void broadcastBlockChange(blockerId,blockedId,"blocked");
-    return true;
-  }catch(error){
-    console.error("Block user error:",error);
-    blockOperationInProgress=false;
-    if(blockBtn){
-      blockBtn.disabled=false;
-      blockBtn.style.pointerEvents="auto";
-      const text=blockBtn.querySelector("span:last-child");
-      if(text) text.textContent="Block user";
-    }
-    showStatus("User could not be blocked: " + (error?.message || "Please try again."));
-    return false;
-  }
-}
-async function unblockUser(partnerId){
-  if(!currentUser?.id || !partnerId) return false;
-
-  try{
-    const blockerId=String(currentUser.id);
-    const blockedId=String(partnerId);
-    ++blockStateRequestToken;
-
-    /* Use the matching security-definer RPC for unblock as well. */
-    const {error}=await supabaseClient.rpc("totalk_unblock_user",{
-      p_blocked_id:blockedId
-    });
-
-    if(error) throw error;
-
-    currentBlockState={blockedByMe:false,blockedMe:false};
-    applyRestrictionUI();
-    paintConversationOptions(conversationOptionsTarget?.row,conversationOptionsTarget?.partner);
-    closeConversationOptions();
-    showStatus("User unblocked. Messaging is enabled again.");
-    void broadcastBlockChange(blockerId,blockedId,"unblocked");
-    return true;
-  }catch(error){
-    console.error("Unblock user error:",error);
-    showStatus("User could not be unblocked: " + (error?.message || "Please try again."));
-    return false;
-  }
-}
-let blockSyncChannel = null;
-
-async function broadcastBlockChange(blockerId,blockedId,action){
-  if(!blockSyncChannel) return;
-  try{
-    await blockSyncChannel.send({
-      type:"broadcast",
-      event:"block_changed",
-      payload:{
-        blocker_id:String(blockerId),
-        blocked_id:String(blockedId),
-        action:String(action)
-      }
-    });
-  }catch(error){
-    console.warn("ToTalk block sync broadcast failed:",error);
-  }
-}
-
-function startBlockSync(){
-  if(!currentUser || blockSyncChannel) return;
-
-  const channel=supabaseClient.channel("totalk-block-sync-v1",{
-    config:{broadcast:{self:false}}
-  });
-
-  channel.on("broadcast",{event:"block_changed"},async message=>{
-    const data=message?.payload || message || {};
-    const blockerId=String(data.blocker_id || "");
-    const blockedId=String(data.blocked_id || "");
-    const me=String(currentUser?.id || "");
-
-    if(!blockerId || !blockedId || !me) return;
-    if(blockerId!==me && blockedId!==me) return;
-
-    if(currentConversationPartner?.user_id &&
-       String(currentConversationPartner.user_id)===
-       (blockerId===me ? blockedId : blockerId)){
-      await loadBlockState(currentConversationPartner.user_id);
-    }
-  });
-
-  blockSyncChannel=channel;
-  channel.subscribe(status=>{
-    if(status==="CHANNEL_ERROR" || status==="TIMED_OUT"){
-      if(blockSyncChannel===channel) blockSyncChannel=null;
-      setTimeout(()=>{if(currentUser && !blockSyncChannel) startBlockSync();},1500);
-    }
-  });
-}
-
-function isConversationBlocked(){
-  return !!(currentBlockState.blockedByMe || currentBlockState.blockedMe);
-}
-
-function updateConversationItemInstant(id,mutator){
-  const item=conversationList?.querySelector(`[data-conversation-id="${CSS.escape(id)}"]`);
-  if(item) mutator(item);
-  return item;
-}
-async function applyConversationAction(action){
-  if(!conversationOptionsTarget) return;
-  const id=conversationOptionsTarget.row.id; const prefs=readConversationPrefs(); const item=prefs[id]||{};
-  if(action==="cancel"){closeConversationOptions();return;}
-  if(action==="report"){openReportDialog();return;}
-  if(action==="pin") item.pinned=!item.pinned;
-  if(action==="mute") item.muted=!item.muted;
-  if(action==="unread") item.unread=true;
-  if(action==="block"){
-    const target=conversationOptionsTarget;
-    const partnerId=target?.partner?.user_id;
-    if(!partnerId || !currentUser?.id) return;
-
-    const ok=currentBlockState.blockedByMe
-      ? await unblockUser(partnerId)
-      : await blockUser(partnerId);
-
-    if(!ok) return;
-
-    /* Repaint while the target is still available, then close the sheet. */
-    paintConversationOptions(target.row,target.partner);
-    closeConversationOptions();
-    return;
-  }
-  if(action==="delete"){if(!confirm("Remove this conversation from your chat list?")) return;item.deleted=true;}
-  prefs[id]=item;writeConversationPrefs(prefs);
-
-  /* Update the screen FIRST. No network request is awaited here. */
-  const el=updateConversationItemInstant(id,node=>{
-    if(action==="pin"){
-      node.classList.toggle("is-pinned",!!item.pinned);
-      const name=node.querySelector(".conversation-name");
-      const oldPin=name?.querySelector(".conversation-pin");
-      if(oldPin) oldPin.remove();
-      if(item.pinned && name){
-        const badge=document.createElement("span");
-        badge.className="conversation-pin"; badge.setAttribute("aria-label","Pinned");
-        badge.innerHTML='<svg viewBox="0 0 24 24"><path d="M9 4.5h6l.8 4.2 2.7 2.6H5.5l2.7-2.6L9 4.5Z"/><path d="M12 11.3V20"/><path d="M9.3 20h5.4"/></svg>';
-        name.appendChild(badge);
-      }
-    }
-    if(action==="mute"){
-      node.classList.toggle("is-muted",!!item.muted);
-      const name=node.querySelector(".conversation-name");
-      const oldMute=name?.querySelector(".conversation-muted-icon");
-      if(oldMute) oldMute.remove();
-      if(item.muted && name){
-        const badge=document.createElement("span");
-        badge.className="conversation-muted-icon"; badge.setAttribute("aria-label","Notifications muted");
-        badge.innerHTML='<svg viewBox="0 0 24 24"><path d="M5 10h3l4-4v12l-4-4H5z"/><path d="M16.5 9.5l3.5 5"/><path d="M20 9.5l-3.5 5"/></svg>';
-        name.appendChild(badge);
-      }
-    }
-    if(action==="unread") node.classList.add("is-unread");
-    if(action==="delete") node.remove();
-  });
-
-  /* Pinning is reflected immediately by moving the card to the top of the list. */
-  if(action==="pin" && el && item.pinned){
-    const firstChat=conversationList?.querySelector(".conversation-item");
-    if(firstChat && firstChat!==el) conversationList.insertBefore(el,firstChat);
-  }
-  closeConversationOptions();
-  /* Do not wait 3 seconds for a refresh. Preferences are local and reload naturally next time. */
-}
-optionsBackdrop?.addEventListener("click",e=>{if(e.target===optionsBackdrop) closeConversationOptions();});
-optionsBackdrop?.querySelectorAll("[data-conversation-action]").forEach(btn=>btn.addEventListener("click",()=>applyConversationAction(btn.dataset.conversationAction)));
-
-
-const messageCache =
-  new Map();
-
-const REACTIONS = [
-  "👍",
-  "❤️",
-  "😂",
-  "😮",
-  "😢",
-  "😡"
-];
-
-/* =====================================================
-   LOADING
-===================================================== */
-
-function setLoadingText(
-  title,
-  subtitle
-){
-
-  loadingTitle.textContent =
-    title;
-
-  loadingSubtitle.textContent =
-    subtitle;
-
-}
-
-function finishLoading(){
-
-  loading.classList.add("hide");
-
-  setTimeout(
-    ()=>{
-      loading.style.display =
-        "none";
-    },
-    450
-  );
-
-}
-
-function showLoading(
-  title,
-  subtitle
-){
-
-  loading.style.display =
-    "flex";
-
-  loading.classList.remove(
-    "hide"
-  );
-
-  setLoadingText(
-    title,
-    subtitle
-  );
-
-}
-
-/* =====================================================
-   STATUS
-===================================================== */
-
-function showStatus(text){
-
-  /* NEVER show realtime connection notices in the UI. */
-  const cleanText = String(text || "");
-  if(/realtime/i.test(cleanText)){
-    statusBox.classList.remove("show");
-    statusBox.classList.add("realtime-hidden");
-    statusBox.textContent = "";
-    return;
-  }
-
-  statusBox.classList.remove("realtime-hidden");
-
-  /* Realtime connection state is intentionally silent.
-     It must never appear as a popup/toast to the user. */
-  const silentRealtimeStatus =
-    /realtime\s+(connected|reconnecting|connection error|timed out)/i.test(
-      String(text || "")
-    );
-
-  if(silentRealtimeStatus){
-    statusBox.classList.remove("show");
-    return;
-  }
-
-  statusBox.textContent =
-    text;
-
-  statusBox.classList.add(
-    "show"
-  );
-
-  clearTimeout(
-    showStatus.timer
-  );
-
-  showStatus.timer =
-    setTimeout(
-      ()=>{
-        statusBox.classList.remove(
-          "show"
-        );
-      },
-      3000
-    );
-
-}
-
-/* =====================================================
-   AUTH
-===================================================== */
-
-async function getLoggedInUser(){
-
-  const {
-    data,
-    error
-  } =
-    await supabaseClient
-      .auth
-      .getSession();
-
-  if(error){
-
-    console.error(
-      "Session error:",
-      error
-    );
-
-    return null;
-
-  }
-
-  return (
-    data?.session?.user ||
-    null
-  );
-
-}
-
-/* =====================================================
-   PROFILE
-===================================================== */
-
-async function checkProfile(){
-
-  if(!currentUser){
-    return null;
-  }
-
-  const {
-    data,
-    error
-  } =
-    await supabaseClient
-      .from("profiles")
-      .select(
-        "id,user_id,name,gender,age,totalk_id,profile_completed,location,location_visibility"
-      )
-      .eq(
-        "user_id",
-        currentUser.id
-      )
-      .maybeSingle();
-
-  if(error){
-
-    console.error(
-      "Profile check error:",
-      error
-    );
-
-    throw error;
-
-  }
-
-  return data || null;
-
-}
-
-/* =====================================================
-   PROFILE REDIRECT
-===================================================== */
-
-function goToProfileMaker(){
-
-  showLoading(
-    "Connecting…",
-    "Create your ToTalk identity"
-  );
-
-  setTimeout(
-    ()=>{
-      window.location.replace(
-        "./profile-maker.html"
-      );
-    },
-    500
-  );
-
-}
-
-/* =====================================================
-   USER UI
-===================================================== */
-
-function updateUserUI(){
-
-  const name =
-    currentProfile?.name ||
-    currentUser?.user_metadata?.full_name ||
-    currentUser?.user_metadata?.name ||
-    currentUser?.email?.split("@")[0] ||
-    "ToTalk User";
-
-  const first = name.trim().charAt(0).toUpperCase() || "T";
-
-  if(userName) userName.textContent = name;
-  if(sideName) sideName.textContent = name;
-  if(sideAvatar) sideAvatar.textContent = first;
-
-  const sideTitle = document.getElementById("sideTitle");
-  if(sideTitle) sideTitle.textContent = "Chats";
-
-  setEmptyChatState();
-  document.title = "ToTalk";
-}
+const typingTabId =
+  globalThis.crypto?.randomUUID?.() ||
+  (Date.now().toString(36) + Math.random().toString(36).slice(2));
 
 function hideTypingIndicator(){
   remoteTypingUserId = null;
@@ -4061,25 +3452,65 @@ function showTypingIndicator(){
   typingIndicator.setAttribute("aria-hidden","false");
 }
 
+function refreshRemoteTypingFromPresence(){
+  if(!typingChannel || !currentUser || !currentConversationId) return;
+
+  const state = typingChannel.presenceState() || {};
+  const me = String(currentUser.id);
+  const conversationId = String(currentConversationId);
+  let foundUser = null;
+
+  Object.values(state).forEach(entries=>{
+    (entries || []).forEach(entry=>{
+      if(!entry || entry.typing !== true) return;
+      if(String(entry.user_id || "") === me) return;
+      if(String(entry.conversation_id || "") !== conversationId) return;
+      foundUser = String(entry.user_id || "");
+    });
+  });
+
+  if(foundUser){
+    remoteTypingUserId = foundUser;
+    remoteTypingConversationId = conversationId;
+    showTypingIndicator();
+    if(remoteTypingStopTimer) clearTimeout(remoteTypingStopTimer);
+    remoteTypingStopTimer = setTimeout(()=>{
+      refreshRemoteTypingFromPresence();
+      if(remoteTypingUserId && remoteTypingConversationId===conversationId){
+        hideTypingIndicator();
+      }
+    },2200);
+  }else if(remoteTypingConversationId === conversationId){
+    hideTypingIndicator();
+  }
+}
+
 async function sendTypingState(isTyping){
   if(!typingChannel || !typingChannelReady || !currentUser || !currentConversationId) return;
-
   const recipientId = currentConversationPartner?.user_id;
   if(!recipientId) return;
 
   try{
-    await typingChannel.send({
-      type:"broadcast",
-      event:"typing",
-      payload:{
-        conversation_id:String(currentConversationId),
-        sender_user_id:String(currentUser.id),
+    if(isTyping){
+      const result = await typingChannel.track({
+        user_id:String(currentUser.id),
         recipient_user_id:String(recipientId),
-        typing:!!isTyping
+        conversation_id:String(currentConversationId),
+        tab_id:String(typingTabId),
+        typing:true,
+        typing_at:new Date().toISOString()
+      });
+      if(result !== "ok" && result !== undefined){
+        console.warn("ToTalk typing track result:",result);
       }
-    });
+    }else{
+      const result = await typingChannel.untrack();
+      if(result !== "ok" && result !== undefined){
+        console.warn("ToTalk typing untrack result:",result);
+      }
+    }
   }catch(error){
-    console.warn("ToTalk typing broadcast failed:",error);
+    console.warn("ToTalk typing presence update failed:",error);
   }
 }
 
@@ -4090,13 +3521,11 @@ function stopLocalTyping(broadcast=true){
   }
   if(!typingIsActive) return;
   typingIsActive = false;
-  if(broadcast){
-    void sendTypingState(false);
-  }
+  if(broadcast) void sendTypingState(false);
 }
 
 function startLocalTyping(){
-  if(!typingChannel || !currentUser || !currentConversationId) return;
+  if(!typingChannel || !typingChannelReady || !currentUser || !currentConversationId) return;
   if(currentUserRestricted || isConversationBlocked() || messageInput?.disabled) return;
 
   if(!typingIsActive){
@@ -4105,50 +3534,38 @@ function startLocalTyping(){
   }
 
   if(typingStopTimer) clearTimeout(typingStopTimer);
-  typingStopTimer = setTimeout(()=>stopLocalTyping(true),1200);
+  typingStopTimer = setTimeout(()=>stopLocalTyping(true),1300);
 }
 
 function startTypingRealtime(){
   if(!currentUser || typingChannel) return;
   typingChannelReady = false;
 
-  const channel = supabaseClient.channel("totalk-typing-global-v2",{
-    config:{broadcast:{self:false}}
-  });
-
-  channel.on("broadcast",{event:"typing"},message=>{
-    const data = message?.payload || message || {};
-    const senderId = String(data.sender_user_id || data.user_id || "");
-    const recipientId = String(data.recipient_user_id || "");
-    const conversationId = String(data.conversation_id || "");
-    const me = String(currentUser?.id || "");
-
-    if(!senderId || senderId===me || !conversationId) return;
-    if(recipientId && recipientId!==me) return;
-    if(!currentConversationId || conversationId!==String(currentConversationId)) return;
-
-    if(data.typing===true){
-      remoteTypingUserId = senderId;
-      remoteTypingConversationId = conversationId;
-      showTypingIndicator();
-      if(remoteTypingStopTimer) clearTimeout(remoteTypingStopTimer);
-      remoteTypingStopTimer = setTimeout(hideTypingIndicator,2000);
-    }else if(remoteTypingUserId===senderId && remoteTypingConversationId===conversationId){
-      hideTypingIndicator();
+  const channel = supabaseClient.channel("totalk-typing-presence-v1",{
+    config:{
+      presence:{key:String(typingTabId)}
     }
   });
 
+  channel
+    .on("presence",{event:"sync"},()=>refreshRemoteTypingFromPresence())
+    .on("presence",{event:"join"},()=>refreshRemoteTypingFromPresence())
+    .on("presence",{event:"leave"},()=>refreshRemoteTypingFromPresence());
+
   typingChannel = channel;
 
-  channel.subscribe(status=>{
+  channel.subscribe(async status=>{
     if(status === "SUBSCRIBED"){
       typingChannelReady = true;
+      if(typingIsActive) await sendTypingState(true);
+      refreshRemoteTypingFromPresence();
       return;
     }
 
     if(status === "CHANNEL_ERROR" || status === "TIMED_OUT"){
       typingChannelReady = false;
       if(typingChannel===channel) typingChannel=null;
+      hideTypingIndicator();
       setTimeout(()=>{
         if(currentUser && !typingChannel) startTypingRealtime();
       },1500);
