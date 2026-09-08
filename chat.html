@@ -3516,41 +3516,53 @@ reportBackdrop?.addEventListener("click",e=>{if(e.target===reportBackdrop) close
 
 async function loadBlockState(partnerId){
   const requestToken=++blockStateRequestToken;
-  currentBlockState={blockedByMe:false,blockedMe:false};
+  const previousState={...currentBlockState};
+
   if(!currentUser?.id || !partnerId || String(partnerId)===String(currentUser.id)){
+    currentBlockState={blockedByMe:false,blockedMe:false};
     applyRestrictionUI();
     return currentBlockState;
   }
 
   try{
+    const me=String(currentUser.id);
+    const partner=String(partnerId);
+
     const {data,error}=await supabaseClient
       .from("blocked_users")
       .select("blocker_id,blocked_id")
-      .in("blocker_id",[currentUser.id,partnerId])
-      .in("blocked_id",[currentUser.id,partnerId]);
+      .or(`and(blocker_id.eq.${me},blocked_id.eq.${partner}),and(blocker_id.eq.${partner},blocked_id.eq.${me})`);
 
     if(error) throw error;
 
-    /* Ignore an older/background request that finished after a newer
-       block/unblock operation. */
+    /* Never clear a known block before the fresh database result arrives.
+       This prevents the menu from changing Unblock -> Block while the
+       background request is loading. */
     if(requestToken!==blockStateRequestToken) return currentBlockState;
 
+    const next={blockedByMe:false,blockedMe:false};
     for(const row of (data || [])){
-      if(String(row.blocker_id)===String(currentUser.id) && String(row.blocked_id)===String(partnerId)){
-        currentBlockState.blockedByMe=true;
+      if(String(row.blocker_id)===me && String(row.blocked_id)===partner){
+        next.blockedByMe=true;
       }
-      if(String(row.blocker_id)===String(partnerId) && String(row.blocked_id)===String(currentUser.id)){
-        currentBlockState.blockedMe=true;
+      if(String(row.blocker_id)===partner && String(row.blocked_id)===me){
+        next.blockedMe=true;
       }
     }
+
+    currentBlockState=next;
+    applyRestrictionUI();
+    return currentBlockState;
   }catch(error){
+    /* If reading fails, keep the state we already know instead of resetting
+       a successfully-created block back to "Block user". */
     if(requestToken===blockStateRequestToken){
+      currentBlockState=previousState;
+      applyRestrictionUI();
       console.warn("Block status could not be read:",error);
     }
+    return currentBlockState;
   }
-
-  if(requestToken===blockStateRequestToken) applyRestrictionUI();
-  return currentBlockState;
 }
 
 async function blockUser(partnerId){
