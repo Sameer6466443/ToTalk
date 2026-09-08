@@ -3414,31 +3414,58 @@ let conversationOptionsTarget = null;
 const optionsBackdrop = document.getElementById("conversationOptionsBackdrop");
 const optionsTitle = document.getElementById("conversationOptionsTitle");
 function closeConversationOptions(){optionsBackdrop?.classList.remove("open");optionsBackdrop?.setAttribute("aria-hidden","true");conversationOptionsTarget=null;}
-async function openConversationOptions(row,partner){
+function paintConversationOptions(row,partner){
+  if(!optionsBackdrop) return;
+  const prefs=readConversationPrefs();
+  const id=row?.id;
+  const itemPrefs=prefs[id]||{};
+  const blocked=!!(partner?.user_id && currentUser?.id && currentBlockState.blockedByMe);
+  const labels={
+    pin:itemPrefs.pinned?"Unpin conversation":"Pin conversation",
+    mute:itemPrefs.muted?"Unmute notifications":"Mute notifications",
+    unread:"Mark as unread",
+    report:"Report",
+    block:blocked?"Unblock user":"Block user",
+    delete:"Remove conversation"
+  };
+  optionsBackdrop.querySelectorAll("[data-conversation-action]").forEach(btn=>{
+    const a=btn.dataset.conversationAction;
+    const text=btn.querySelector("span:last-child");
+    if(text && labels[a]) text.textContent=labels[a];
+  });
+  const blockBtn=optionsBackdrop.querySelector('[data-conversation-action="block"]');
+  if(blockBtn){
+    blockBtn.classList.toggle("danger",!blocked);
+    blockBtn.disabled=false;
+    blockBtn.style.pointerEvents="auto";
+  }
+  const pinBtn=optionsBackdrop.querySelector('[data-conversation-action="pin"] .option-icon');
+  const muteBtn=optionsBackdrop.querySelector('[data-conversation-action="mute"] .option-icon');
+  if(pinBtn) pinBtn.innerHTML='<svg viewBox="0 0 24 24"><path d="M9 4.5h6l.8 4.2 2.7 2.6H5.5l2.7-2.6L9 4.5Z"/><path d="M12 11.3V20"/><path d="M9.3 20h5.4"/></svg>';
+  if(muteBtn) muteBtn.innerHTML=itemPrefs.muted
+    ? '<svg viewBox="0 0 24 24"><path d="M5 10h3l4-4v12l-4-4H5z"/><path d="M16.5 9.5l3.5 5"/><path d="M20 9.5l-3.5 5"/></svg>'
+    : '<svg viewBox="0 0 24 24"><path d="M5 10h3l4-4v12l-4-4H5z"/><path d="M16.2 9.7a3.8 3.8 0 0 1 0 4.6"/></svg>';
+}
+
+function openConversationOptions(row,partner){
   conversationOptionsTarget={row,partner};
   if(optionsTitle) optionsTitle.textContent=partner?.name || "Conversation options";
 
-  /* Always refresh the block state before opening the menu so the Block/Unblock
-     option is present and accurate on every device. */
-  if(partner?.user_id && currentUser?.id){
-    await loadBlockState(partner.user_id);
-  }
+  /* Open immediately. Never wait for Supabase before showing the menu.
+     This removes the 2-second delay on phones with slower connections. */
+  paintConversationOptions(row,partner);
+  optionsBackdrop?.classList.add("open");
+  optionsBackdrop?.setAttribute("aria-hidden","false");
 
-  const prefs=readConversationPrefs(); const id=row.id; const itemPrefs=prefs[id]||{};
-  const blocked=partner?.user_id && currentUser?.id && currentBlockState.blockedByMe;
-  const labels={pin:itemPrefs.pinned?"Unpin conversation":"Pin conversation",mute:itemPrefs.muted?"Unmute notifications":"Mute notifications",unread:"Mark as unread",report:"Report",block:blocked?"Unblock user":"Block user",delete:"Remove conversation"};
-  optionsBackdrop?.querySelectorAll("[data-conversation-action]").forEach(btn=>{const a=btn.dataset.conversationAction;if(labels[a]) btn.querySelector("span:last-child").textContent=labels[a];});
-  const blockBtn=optionsBackdrop?.querySelector('[data-conversation-action="block"]');
-  if(blockBtn) blockBtn.classList.toggle("danger",!blocked);
-  const pinBtn=optionsBackdrop?.querySelector('[data-conversation-action="pin"] .option-icon');
-  const muteBtn=optionsBackdrop?.querySelector('[data-conversation-action="mute"] .option-icon');
-  if(pinBtn) pinBtn.innerHTML=itemPrefs.pinned
-    ? '<svg viewBox="0 0 24 24"><path d="M9 4.5h6l.8 4.2 2.7 2.6H5.5l2.7-2.6L9 4.5Z"/><path d="M12 11.3V20"/><path d="M9.3 20h5.4"/></svg>'
-    : '<svg viewBox="0 0 24 24"><path d="M9 4.5h6l.8 4.2 2.7 2.6H5.5l2.7-2.6L9 4.5Z"/><path d="M12 11.3V20"/><path d="M9.3 20h5.4"/></svg>' ;
-  if(muteBtn) muteBtn.innerHTML=itemPrefs.muted
-    ? '<svg viewBox="0 0 24 24"><path d="M5 10h3l4-4v12l-4-4H5z"/><path d="M16.5 9.5l3.5 5"/><path d="M20 9.5l-3.5 5"/></svg>'
-    : '<svg viewBox="0 0 24 24"><path d="M5 10h3l4-4v12l-4-4H5z"/><path d="M16.2 9.7a3.8 3.8 0 0 1 0 4.6"/></svg>' ;
-  optionsBackdrop?.classList.add("open");optionsBackdrop?.setAttribute("aria-hidden","false");
+  /* Refresh the real block state in the background and repaint only if the
+     same conversation is still selected. */
+  if(partner?.user_id && currentUser?.id){
+    void loadBlockState(partner.user_id).then(()=>{
+      if(conversationOptionsTarget?.row?.id===row?.id){
+        paintConversationOptions(row,partner);
+      }
+    });
+  }
 }
 
 const reportBackdrop=document.getElementById("reportBackdrop");
@@ -3522,21 +3549,25 @@ async function blockUser(partnerId){
   try{
     const blockerId=String(currentUser.id);
     const blockedId=String(partnerId);
+    if(blockerId===blockedId) return false;
 
+    /* Upsert makes the action reliable even if the block already exists. */
     const {error}=await supabaseClient
       .from("blocked_users")
-      .insert({blocker_id:blockerId,blocked_id:blockedId});
+      .upsert(
+        {blocker_id:blockerId,blocked_id:blockedId},
+        {onConflict:"blocker_id,blocked_id"}
+      );
 
-    /* A duplicate means the block already exists, which is fine. */
-    if(error && !/duplicate|unique/i.test(error.message || "")) throw error;
+    if(error) throw error;
 
-    /* Re-read the database. Never assume the block succeeded locally. */
-    const state=await loadBlockState(blockedId);
-    if(!state.blockedByMe){
-      throw new Error("Block row was not saved in Supabase.");
-    }
+    /* Update the current device immediately. */
+    currentBlockState.blockedByMe=true;
+    currentBlockState.blockedMe=false;
+    applyRestrictionUI();
+    paintConversationOptions(conversationOptionsTarget?.row,conversationOptionsTarget?.partner);
 
-    await broadcastBlockChange(blockerId,blockedId,"blocked");
+    void broadcastBlockChange(blockerId,blockedId,"blocked");
     showStatus("User blocked. Messaging is now disabled.");
     return true;
   }catch(error){
@@ -3656,12 +3687,7 @@ async function applyConversationAction(action){
     }
     if(!ok) return;
 
-    /* Re-opened menu will read this exact state from Supabase. */
-    const blockButton=optionsBackdrop?.querySelector('[data-conversation-action="block"]');
-    const label=blockButton?.querySelector("span:last-child");
-    if(label) label.textContent=currentBlockState.blockedByMe ? "Unblock user" : "Block user";
-    if(blockButton) blockButton.classList.toggle("danger",!currentBlockState.blockedByMe);
-
+    paintConversationOptions(conversationOptionsTarget.row,conversationOptionsTarget.partner);
     closeConversationOptions();
     return;
   }
