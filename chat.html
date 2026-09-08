@@ -3572,14 +3572,14 @@ async function blockUser(partnerId){
   }
 
   try{
-    const {error}=await supabaseClient
-      .from("blocked_users")
-      .insert({
-        blocker_id:blockerId,
-        blocked_id:blockedId
-      });
+    /* Use the security-definer RPC so RLS cannot reject a legitimate
+       block because the browser session and profile row are handled
+       differently. The function still verifies auth.uid() server-side. */
+    const {error}=await supabaseClient.rpc("totalk_block_user",{
+      p_blocked_id:blockedId
+    });
 
-    if(error && error.code!=="23505") throw error;
+    if(error) throw error;
 
     /* The database write succeeded. Do NOT wait for another SELECT or
        realtime broadcast here — those background operations were the reason
@@ -3614,11 +3614,10 @@ async function unblockUser(partnerId){
     const blockedId=String(partnerId);
     ++blockStateRequestToken;
 
-    const {error}=await supabaseClient
-      .from("blocked_users")
-      .delete()
-      .eq("blocker_id",blockerId)
-      .eq("blocked_id",blockedId);
+    /* Use the matching security-definer RPC for unblock as well. */
+    const {error}=await supabaseClient.rpc("totalk_unblock_user",{
+      p_blocked_id:blockedId
+    });
 
     if(error) throw error;
 
