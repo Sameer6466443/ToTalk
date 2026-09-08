@@ -3425,6 +3425,7 @@ let conversations = [];
 let realtimeChannel = null;
 let deleteSyncChannel = null;
 let typingChannel = null;
+let typingChannelReady = false;
 let typingStopTimer = null;
 let typingIsActive = false;
 let remoteTypingUserId = null;
@@ -4065,6 +4066,20 @@ function showTypingIndicator(userName){
   typingIndicator.setAttribute("aria-hidden","false");
 }
 
+function sendTypingState(isTyping){
+  if(!typingChannel || !typingChannelReady || !currentUser || !currentConversationId) return;
+  void typingChannel.send({
+    type:"broadcast",
+    event:"typing",
+    payload:{
+      conversation_id:String(currentConversationId),
+      user_id:String(currentUser.id),
+      user_name:String(currentProfile?.name || currentUser?.user_metadata?.name || "Someone"),
+      typing:!!isTyping
+    }
+  }).catch(error=>console.warn("ToTalk typing broadcast failed:",error));
+}
+
 function stopLocalTyping(broadcast=true){
   if(typingStopTimer){
     clearTimeout(typingStopTimer);
@@ -4072,17 +4087,8 @@ function stopLocalTyping(broadcast=true){
   }
   if(!typingIsActive) return;
   typingIsActive = false;
-  if(broadcast && typingChannel && currentUser && currentConversationId){
-    void typingChannel.send({
-      type:"broadcast",
-      event:"typing",
-      payload:{
-        conversation_id:String(currentConversationId),
-        user_id:String(currentUser.id),
-        user_name:String(currentProfile?.name || currentUser?.user_metadata?.name || "Someone"),
-        typing:false
-      }
-    }).catch(error=>console.warn("ToTalk typing stop failed:",error));
+  if(broadcast){
+    sendTypingState(false);
   }
 }
 
@@ -4092,16 +4098,7 @@ function startLocalTyping(){
 
   if(!typingIsActive){
     typingIsActive = true;
-    void typingChannel.send({
-      type:"broadcast",
-      event:"typing",
-      payload:{
-        conversation_id:String(currentConversationId),
-        user_id:String(currentUser.id),
-        user_name:String(currentProfile?.name || currentUser?.user_metadata?.name || "Someone"),
-        typing:true
-      }
-    }).catch(error=>console.warn("ToTalk typing start failed:",error));
+    sendTypingState(true);
   }
 
   if(typingStopTimer) clearTimeout(typingStopTimer);
@@ -4110,6 +4107,7 @@ function startLocalTyping(){
 
 function startTypingRealtime(){
   if(!currentUser || typingChannel) return;
+  typingChannelReady = false;
 
   const channel = supabaseClient.channel("totalk-typing-v1",{
     config:{broadcast:{self:false}}
@@ -4139,7 +4137,12 @@ function startTypingRealtime(){
 
   typingChannel = channel;
   channel.subscribe(status=>{
+    if(status==="SUBSCRIBED"){
+      typingChannelReady = true;
+      return;
+    }
     if(status==="CHANNEL_ERROR" || status==="TIMED_OUT"){
+      typingChannelReady = false;
       if(typingChannel===channel) typingChannel=null;
       setTimeout(()=>{if(currentUser && !typingChannel) startTypingRealtime();},1500);
     }
@@ -6085,6 +6088,7 @@ async function openConversation(row,partner){
 
   stopLocalTyping(true);
   hideTypingIndicator();
+  hideTypingIndicator();
   currentConversationId = row.id;
   currentConversationPartner = partner;
 
@@ -7664,6 +7668,13 @@ logoutBtn.addEventListener(
 
       }
 
+      if(typingChannel){
+        try{ stopLocalTyping(false); }catch(_error){}
+        await supabaseClient.removeChannel(typingChannel);
+        typingChannel = null;
+        typingChannelReady = false;
+      }
+
       currentBlockState = {blockedByMe:false,blockedMe:false};
 
       if(presenceChannel){
@@ -8047,6 +8058,9 @@ async function startApp(){
     startRealtime();
 
     startDeleteSync();
+
+    /* Start the shared typing channel so other phones can see typing state. */
+    startTypingRealtime();
 
     startPresence();
 
