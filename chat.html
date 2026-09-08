@@ -3414,9 +3414,16 @@ let conversationOptionsTarget = null;
 const optionsBackdrop = document.getElementById("conversationOptionsBackdrop");
 const optionsTitle = document.getElementById("conversationOptionsTitle");
 function closeConversationOptions(){optionsBackdrop?.classList.remove("open");optionsBackdrop?.setAttribute("aria-hidden","true");conversationOptionsTarget=null;}
-function openConversationOptions(row,partner){
+async function openConversationOptions(row,partner){
   conversationOptionsTarget={row,partner};
   if(optionsTitle) optionsTitle.textContent=partner?.name || "Conversation options";
+
+  /* Always refresh the block state before opening the menu so the Block/Unblock
+     option is present and accurate on every device. */
+  if(partner?.user_id && currentUser?.id){
+    await loadBlockState(partner.user_id);
+  }
+
   const prefs=readConversationPrefs(); const id=row.id; const itemPrefs=prefs[id]||{};
   const blocked=partner?.user_id && currentUser?.id && currentBlockState.blockedByMe;
   const labels={pin:itemPrefs.pinned?"Unpin conversation":"Pin conversation",mute:itemPrefs.muted?"Unmute notifications":"Mute notifications",unread:"Mark as unread",report:"Report",block:blocked?"Unblock user":"Block user",delete:"Remove conversation"};
@@ -3560,7 +3567,7 @@ function updateConversationItemInstant(id,mutator){
   if(item) mutator(item);
   return item;
 }
-function applyConversationAction(action){
+async function applyConversationAction(action){
   if(!conversationOptionsTarget) return;
   const id=conversationOptionsTarget.row.id; const prefs=readConversationPrefs(); const item=prefs[id]||{};
   if(action==="cancel"){closeConversationOptions();return;}
@@ -3571,12 +3578,16 @@ function applyConversationAction(action){
   if(action==="block"){
     const partnerId=conversationOptionsTarget.partner?.user_id;
     if(!partnerId || !currentUser?.id) return;
+
+    /* Block/unblock is persisted in Supabase and the composer is updated
+       immediately on the current device. */
     if(currentBlockState.blockedByMe){
-      void unblockUser(partnerId);
+      await unblockUser(partnerId);
     }else{
-      if(!confirm(`Block ${conversationOptionsTarget.partner?.name || "this user"}? They will not be able to send messages to you.`)) return;
-      void blockUser(partnerId);
+      const ok=await blockUser(partnerId);
+      if(!ok) return;
     }
+
     closeConversationOptions();
     return;
   }
