@@ -2436,16 +2436,15 @@ header{
   }
 }
 
-/* Typing indicator — Classic Dots (ToTalk style) */
-.typing-indicator{display:none;align-items:center;gap:9px;margin:0 14px 9px;min-height:30px;color:#cfc4e6;font:700 11px system-ui,sans-serif;pointer-events:none;opacity:0;transform:translateY(3px);transition:opacity .16s ease,transform .16s ease;}
+/* Typing indicator — ToTalk dots only */
+.typing-indicator{display:none;align-items:center;justify-content:flex-start;margin:0 18px 8px;min-height:30px;pointer-events:none;opacity:0;transform:translateY(4px);transition:opacity .16s ease,transform .16s ease;}
 .typing-indicator.show{display:flex;opacity:1;transform:translateY(0);}
-.typing-indicator-bubble{display:flex;align-items:center;gap:4px;padding:8px 11px;border:1px solid rgba(145,76,255,.25);border-radius:14px 14px 14px 5px;background:rgba(91,52,180,.14);box-shadow:0 6px 22px rgba(0,0,0,.14);}
-.typing-indicator-label{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px;}
-.typing-dot{width:5px;height:5px;border-radius:50%;background:#a56cff;box-shadow:0 0 8px rgba(165,108,255,.45);animation:totalkTypingDot 1.05s infinite ease-in-out;}
+.typing-indicator-bubble{display:flex;align-items:center;justify-content:center;gap:7px;min-width:64px;height:34px;padding:0 14px;border:1px solid rgba(151,88,255,.45);border-radius:18px 18px 18px 7px;background:linear-gradient(135deg,rgba(74,34,142,.58),rgba(28,14,58,.82));box-shadow:0 5px 18px rgba(74,32,150,.28),inset 0 0 12px rgba(151,108,255,.08);}
+.typing-dot{width:7px;height:7px;border-radius:50%;background:#a86cff;box-shadow:0 0 9px rgba(168,108,255,.72);animation:totalkTypingDot 1.05s infinite ease-in-out;}
 .typing-dot:nth-child(2){animation-delay:.14s;}
 .typing-dot:nth-child(3){animation-delay:.28s;}
-@keyframes totalkTypingDot{0%,60%,100%{transform:translateY(0);opacity:.45;}30%{transform:translateY(-3px);opacity:1;}}
-@media(max-width:520px){.typing-indicator{margin:0 12px 8px}.typing-indicator-label{max-width:150px;}}
+@keyframes totalkTypingDot{0%,60%,100%{transform:translateY(0) scale(.82);opacity:.45;}30%{transform:translateY(-3px) scale(1);opacity:1;}}
+@media(max-width:520px){.typing-indicator{margin:0 14px 7px}.typing-indicator-bubble{min-width:60px;height:32px;padding:0 12px;gap:6px}.typing-dot{width:6px;height:6px;}}
 
 /* Conversation options sheet */
 .conversation-options-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.62);backdrop-filter:blur(8px);display:none;align-items:flex-end;justify-content:center;z-index:9999;padding:16px;}
@@ -3162,8 +3161,7 @@ header{
 
     <!-- TYPING INDICATOR -->
     <div id="typingIndicator" class="typing-indicator" role="status" aria-live="polite" aria-hidden="true">
-      <div class="typing-indicator-bubble">
-        <span class="typing-indicator-label">Sameer is typing</span>
+      <div class="typing-indicator-bubble" aria-label="Typing">
         <span class="typing-dot"></span>
         <span class="typing-dot"></span>
         <span class="typing-dot"></span>
@@ -3258,8 +3256,7 @@ const blockBannerText =
 const typingIndicator =
   document.getElementById("typingIndicator");
 
-const typingIndicatorLabel =
-  typingIndicator?.querySelector(".typing-indicator-label");
+
 
 const logoutBtn =
   document.getElementById("logoutBtn");
