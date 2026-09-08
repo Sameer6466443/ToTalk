@@ -3546,33 +3546,54 @@ async function loadBlockState(partnerId){
 
 async function blockUser(partnerId){
   if(!currentUser?.id || !partnerId) return false;
-  try{
-    const blockerId=String(currentUser.id);
-    const blockedId=String(partnerId);
-    if(blockerId===blockedId) return false;
 
-    /* Upsert makes the action reliable even if the block already exists. */
+  const blockerId=String(currentUser.id);
+  const blockedId=String(partnerId);
+  if(blockerId===blockedId) return false;
+
+  const blockBtn=optionsBackdrop?.querySelector('[data-conversation-action="block"]');
+  if(blockBtn){
+    blockBtn.disabled=true;
+    blockBtn.style.pointerEvents="none";
+    const text=blockBtn.querySelector("span:last-child");
+    if(text) text.textContent="Blocking…";
+  }
+
+  try{
+    /* Use INSERT instead of UPSERT. This avoids an UPDATE-policy requirement
+       and makes the first block work reliably with the RLS policies. */
     const {error}=await supabaseClient
       .from("blocked_users")
-      .upsert(
-        {blocker_id:blockerId,blocked_id:blockedId},
-        {onConflict:"blocker_id,blocked_id"}
-      );
+      .insert({
+        blocker_id:blockerId,
+        blocked_id:blockedId
+      });
 
-    if(error) throw error;
+    if(error){
+      /* If the row already exists, treat it as successfully blocked. */
+      if(error.code !== "23505") throw error;
+    }
 
-    /* Update the current device immediately. */
+    currentBlockState={blockedByMe:true,blockedMe:false};
+    applyRestrictionUI();
+
+    /* Verify the saved state from Supabase before changing the button. */
+    await loadBlockState(blockedId);
     currentBlockState.blockedByMe=true;
     currentBlockState.blockedMe=false;
     applyRestrictionUI();
-    paintConversationOptions(conversationOptionsTarget?.row,conversationOptionsTarget?.partner);
 
-    void broadcastBlockChange(blockerId,blockedId,"blocked");
-    showStatus("User blocked. Messaging is now disabled.");
+    await broadcastBlockChange(blockerId,blockedId,"blocked");
+    paintConversationOptions(conversationOptionsTarget?.row,conversationOptionsTarget?.partner);
+    showStatus("User blocked. Messaging is disabled.");
     return true;
   }catch(error){
     console.error("Block user error:",error);
-    showStatus("User could not be blocked. Please try again.");
+    if(blockBtn){
+      blockBtn.disabled=false;
+      blockBtn.style.pointerEvents="auto";
+    }
+    showStatus("User could not be blocked: " + (error?.message || "Please try again."));
     return false;
   }
 }
@@ -3595,6 +3616,8 @@ async function unblockUser(partnerId){
       throw new Error("Block row is still present in Supabase.");
     }
 
+    currentBlockState={blockedByMe:false,blockedMe:false};
+    applyRestrictionUI();
     await broadcastBlockChange(blockerId,blockedId,"unblocked");
     showStatus("User unblocked. Messaging is enabled again.");
     return true;
@@ -3674,20 +3697,18 @@ async function applyConversationAction(action){
   if(action==="mute") item.muted=!item.muted;
   if(action==="unread") item.unread=true;
   if(action==="block"){
-    const partnerId=conversationOptionsTarget.partner?.user_id;
+    const target=conversationOptionsTarget;
+    const partnerId=target?.partner?.user_id;
     if(!partnerId || !currentUser?.id) return;
 
-    /* Block/unblock is persisted in Supabase and the composer is updated
-       immediately on the current device. */
-    let ok=false;
-    if(currentBlockState.blockedByMe){
-      ok=await unblockUser(partnerId);
-    }else{
-      ok=await blockUser(partnerId);
-    }
+    const ok=currentBlockState.blockedByMe
+      ? await unblockUser(partnerId)
+      : await blockUser(partnerId);
+
     if(!ok) return;
 
-    paintConversationOptions(conversationOptionsTarget.row,conversationOptionsTarget.partner);
+    /* Repaint while the target is still available, then close the sheet. */
+    paintConversationOptions(target.row,target.partner);
     closeConversationOptions();
     return;
   }
