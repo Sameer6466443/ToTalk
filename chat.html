@@ -2436,84 +2436,15 @@ header{
   }
 }
 
-/* Typing indicator — reference-style glowing purple pill with 3 dots only */
-.typing-indicator{
-  display:none;
-  align-items:center;
-  justify-content:flex-start;
-  margin:0 0 7px 18px;
-  min-height:58px;
-  height:58px;
-  padding:0;
-  pointer-events:none;
-  opacity:0;
-  transform:translateY(5px) scale(.98);
-  transition:opacity .18s ease,transform .18s ease;
-}
-.typing-indicator.show{
-  display:flex;
-  opacity:1;
-  transform:translateY(0) scale(1);
-}
-.typing-indicator-bubble{
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  gap:13px;
-  width:136px;
-  height:58px;
-  padding:0 20px;
-  border-radius:999px;
-  background:
-    radial-gradient(circle at 50% 50%,rgba(111,52,214,.22),transparent 62%),
-    linear-gradient(145deg,rgba(25,11,61,.96),rgba(7,4,22,.98));
-  border:1px solid rgba(116,54,225,.20);
-  box-shadow:
-    0 8px 28px rgba(0,0,0,.38),
-    0 0 20px rgba(111,50,220,.20),
-    inset 0 0 18px rgba(120,58,240,.08);
-}
-.typing-dot{
-  width:14px;
-  height:14px;
-  flex:0 0 14px;
-  border-radius:50%;
-  background:#a86cff;
-  box-shadow:
-    0 0 7px #a86cff,
-    0 0 15px rgba(168,108,255,.95),
-    0 0 25px rgba(132,72,255,.55);
-  animation:totalkTypingDot 1.05s infinite ease-in-out;
-}
+/* Typing indicator — ToTalk dots only */
+.typing-indicator{display:none;align-items:center;justify-content:flex-start;margin:0 0 6px 18px;min-height:22px;height:22px;padding:0;pointer-events:none;opacity:0;transform:translateY(3px);transition:opacity .16s ease,transform .16s ease;}
+.typing-indicator.show{display:flex;opacity:1;transform:translateY(0);}
+.typing-indicator-bubble{display:flex;align-items:center;justify-content:flex-start;gap:9px;width:auto;min-width:0;height:22px;padding:0;background:transparent;border:0;box-shadow:none;}
+.typing-dot{width:8px;height:8px;border-radius:50%;background:#a86cff;box-shadow:0 0 6px #a86cff,0 0 14px rgba(168,108,255,.9);animation:totalkTypingDot 1.05s infinite ease-in-out;}
 .typing-dot:nth-child(2){animation-delay:.14s;}
 .typing-dot:nth-child(3){animation-delay:.28s;}
-@keyframes totalkTypingDot{
-  0%,60%,100%{
-    transform:translateY(0) scale(.72);
-    opacity:.45;
-  }
-  30%{
-    transform:translateY(-5px) scale(1.08);
-    opacity:1;
-  }
-}
-@media(max-width:520px){
-  .typing-indicator{
-    margin:0 0 7px 14px;
-    min-height:58px;
-    height:58px;
-  }
-  .typing-indicator-bubble{
-    width:136px;
-    height:58px;
-    gap:13px;
-  }
-  .typing-dot{
-    width:13px;
-    height:13px;
-    flex-basis:13px;
-  }
-}
+@keyframes totalkTypingDot{0%,60%,100%{transform:translateY(0) scale(.78);opacity:.42;}30%{transform:translateY(-4px) scale(1.08);opacity:1;}}
+@media(max-width:520px){.typing-indicator{margin:0 0 6px 14px}.typing-indicator-bubble{gap:9px}.typing-dot{width:7px;height:7px;}}
 
 /* Conversation options sheet */
 .conversation-options-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.62);backdrop-filter:blur(8px);display:none;align-items:flex-end;justify-content:center;z-index:9999;padding:16px;}
