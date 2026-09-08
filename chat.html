@@ -2314,6 +2314,88 @@ header{
     rgba(0,0,0,.22);
 }
 
+
+/* =====================================================
+   MOBILE KEYBOARD CHAT LAYOUT — WHATSAPP-STYLE
+   Keep the app shell fixed while Android resizes the visual viewport.
+===================================================== */
+@media(max-width:800px){
+  html,body{
+    width:100%;
+    height:100%;
+    min-height:100%;
+    overflow:hidden;
+    overscroll-behavior:none;
+  }
+
+  header{
+    position:fixed;
+    top:0;
+    left:0;
+    right:0;
+    height:62px;
+    z-index:100;
+  }
+
+  .chat-layout{
+    position:fixed;
+    top:62px;
+    left:0;
+    right:0;
+    bottom:0;
+    width:100%;
+    height:calc(var(--totalk-vh, 100vh) - 62px);
+    min-height:0;
+    padding:7px;
+    overflow:hidden;
+  }
+
+  .chat-layout.mobile-chat-open .chat-box{
+    height:100%;
+    min-height:0;
+    overflow:hidden;
+  }
+
+  .chat-layout.mobile-chat-open .chat-top{
+    position:absolute;
+    top:0;
+    left:0;
+    right:0;
+    z-index:30;
+  }
+
+  .chat-layout.mobile-chat-open #messages{
+    top:62px;
+    bottom:0;
+    height:auto;
+    padding-bottom:110px;
+    overscroll-behavior:contain;
+  }
+
+  .chat-layout.mobile-chat-open .input-area{
+    position:absolute;
+    left:7px;
+    right:7px;
+    bottom:7px;
+    z-index:40;
+  }
+
+  .chat-layout.mobile-chat-open .typing-indicator{
+    position:absolute;
+    left:14px;
+    bottom:66px;
+    z-index:41;
+    margin:0;
+  }
+}
+
+/* Prevent Android Chrome from scrolling the document to reveal the textarea. */
+@media(max-width:800px){
+  #messageInput{
+    scroll-margin:0 !important;
+  }
+}
+
 /* =====================================================
    REDUCED MOTION
 ===================================================== */
@@ -2435,6 +2517,16 @@ header{
     flex-basis:20px !important;
   }
 }
+
+/* Typing indicator — ToTalk dots only */
+.typing-indicator{display:none;align-items:center;justify-content:flex-start;margin:0 0 6px 18px;min-height:22px;height:22px;padding:0;pointer-events:none;opacity:0;transform:translateY(3px);transition:opacity .16s ease,transform .16s ease;}
+.typing-indicator.show{display:flex;opacity:1;transform:translateY(0);}
+.typing-indicator-bubble{display:flex;align-items:center;justify-content:flex-start;gap:9px;width:auto;min-width:0;height:22px;padding:0;background:transparent;border:0;box-shadow:none;}
+.typing-dot{width:8px;height:8px;border-radius:50%;background:#a86cff;box-shadow:0 0 6px #a86cff,0 0 14px rgba(168,108,255,.9);animation:totalkTypingDot 1.05s infinite ease-in-out;}
+.typing-dot:nth-child(2){animation-delay:.14s;}
+.typing-dot:nth-child(3){animation-delay:.28s;}
+@keyframes totalkTypingDot{0%,60%,100%{transform:translateY(0) scale(.78);opacity:.42;}30%{transform:translateY(-4px) scale(1.08);opacity:1;}}
+@media(max-width:520px){.typing-indicator{margin:0 0 6px 14px}.typing-indicator-bubble{gap:9px}.typing-dot{width:7px;height:7px;}}
 
 /* Conversation options sheet */
 .conversation-options-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.62);backdrop-filter:blur(8px);display:none;align-items:flex-end;justify-content:center;z-index:9999;padding:16px;}
@@ -3149,6 +3241,15 @@ header{
       <span id="blockBannerText">Messaging is blocked for this conversation.</span>
     </div>
 
+    <!-- TYPING INDICATOR -->
+    <div id="typingIndicator" class="typing-indicator" role="status" aria-live="polite" aria-hidden="true">
+      <div class="typing-indicator-bubble" aria-label="Typing">
+        <span class="typing-dot"></span>
+        <span class="typing-dot"></span>
+        <span class="typing-dot"></span>
+      </div>
+    </div>
+
     <!-- INPUT -->
 
     <div class="input-area">
@@ -3233,6 +3334,11 @@ const blockBanner =
 
 const blockBannerText =
   document.getElementById("blockBannerText");
+
+const typingIndicator =
+  document.getElementById("typingIndicator");
+
+
 
 const logoutBtn =
   document.getElementById("logoutBtn");
@@ -3334,6 +3440,8 @@ function closeMobileConversation(){
 
   /* Return to the chat list immediately — no await here. */
   stopSeenStatusWatcher();
+  stopLocalTyping(true);
+  hideTypingIndicator();
   chatLayout.classList.remove("mobile-chat-open");
   searchPanel?.classList.remove("open");
   currentConversationId = null;
@@ -3395,6 +3503,13 @@ let conversations = [];
 
 let realtimeChannel = null;
 let deleteSyncChannel = null;
+let typingChannel = null;
+let typingChannelReady = false;
+let typingStopTimer = null;
+let typingIsActive = false;
+let remoteTypingUserId = null;
+let remoteTypingConversationId = null;
+let remoteTypingStopTimer = null;
 
 /* Read-receipt watcher: checks the other participant's last_read_at while a chat is open. */
 let seenStatusTimer = null;
@@ -4009,6 +4124,128 @@ function updateUserUI(){
   document.title = "ToTalk";
 }
 
+function hideTypingIndicator(){
+  remoteTypingUserId = null;
+  remoteTypingConversationId = null;
+  if(remoteTypingStopTimer){
+    clearTimeout(remoteTypingStopTimer);
+    remoteTypingStopTimer = null;
+  }
+  if(typingIndicator){
+    typingIndicator.classList.remove("show");
+    typingIndicator.setAttribute("aria-hidden","true");
+  }
+}
+
+function showTypingIndicator(){
+  if(!typingIndicator || !currentConversationId) return;
+  typingIndicator.classList.add("show");
+  typingIndicator.setAttribute("aria-hidden","false");
+}
+
+async function sendTypingState(isTyping){
+  if(!typingChannel || !typingChannelReady || !currentUser || !currentConversationId) return;
+
+  const recipientId = currentConversationPartner?.user_id;
+  if(!recipientId) return;
+
+  try{
+    await typingChannel.send({
+      type:"broadcast",
+      event:"typing",
+      payload:{
+        conversation_id:String(currentConversationId),
+        sender_user_id:String(currentUser.id),
+        recipient_user_id:String(recipientId),
+        typing:!!isTyping
+      }
+    });
+  }catch(error){
+    console.warn("ToTalk typing broadcast failed:",error);
+  }
+}
+
+function stopLocalTyping(broadcast=true){
+  if(typingStopTimer){
+    clearTimeout(typingStopTimer);
+    typingStopTimer = null;
+  }
+  if(!typingIsActive) return;
+  typingIsActive = false;
+  if(broadcast){
+    void sendTypingState(false);
+  }
+}
+
+function startLocalTyping(){
+  if(!typingChannel || !currentUser || !currentConversationId) return;
+  if(currentUserRestricted || isConversationBlocked() || messageInput?.disabled) return;
+
+  if(!typingIsActive){
+    typingIsActive = true;
+    void sendTypingState(true);
+  }
+
+  if(typingStopTimer) clearTimeout(typingStopTimer);
+  typingStopTimer = setTimeout(()=>stopLocalTyping(true),1200);
+}
+
+function startTypingRealtime(){
+  if(!currentUser || typingChannel) return;
+  typingChannelReady = false;
+
+  const channel = supabaseClient.channel("totalk-typing-global-v2",{
+    config:{broadcast:{self:false}}
+  });
+
+  channel.on("broadcast",{event:"typing"},message=>{
+    const data = message?.payload || message || {};
+    const senderId = String(data.sender_user_id || data.user_id || "");
+    const recipientId = String(data.recipient_user_id || "");
+    const conversationId = String(data.conversation_id || "");
+    const me = String(currentUser?.id || "");
+
+    if(!senderId || senderId===me || !conversationId) return;
+    if(recipientId && recipientId!==me) return;
+    if(!currentConversationId || conversationId!==String(currentConversationId)) return;
+
+    if(data.typing===true){
+      remoteTypingUserId = senderId;
+      remoteTypingConversationId = conversationId;
+      showTypingIndicator();
+      if(remoteTypingStopTimer) clearTimeout(remoteTypingStopTimer);
+      remoteTypingStopTimer = setTimeout(hideTypingIndicator,2000);
+    }else if(remoteTypingUserId===senderId && remoteTypingConversationId===conversationId){
+      hideTypingIndicator();
+    }
+  });
+
+  typingChannel = channel;
+
+  channel.subscribe(status=>{
+    if(status === "SUBSCRIBED"){
+      typingChannelReady = true;
+      return;
+    }
+
+    if(status === "CHANNEL_ERROR" || status === "TIMED_OUT"){
+      typingChannelReady = false;
+      if(typingChannel===channel) typingChannel=null;
+      setTimeout(()=>{
+        if(currentUser && !typingChannel) startTypingRealtime();
+      },1500);
+    }
+  });
+}
+
+function handleTypingInput(){
+  if(!messageInput || !messageInput.value.trim() || !currentConversationId){
+    stopLocalTyping(true);
+    return;
+  }
+  startLocalTyping();
+}
+
 function applyRestrictionUI(){
   const box = document.querySelector(".chat-box");
   const restricted = !!currentUserRestricted;
@@ -4111,6 +4348,8 @@ function showRestrictionNotice(){
 }
 
 function setEmptyChatState(){
+  stopLocalTyping(false);
+  hideTypingIndicator();
   currentConversationId = null;
   currentConversationPartner = null;
   currentBlockState = {blockedByMe:false,blockedMe:false};
@@ -5936,6 +6175,8 @@ async function markConversationAsRead(conversationId){
 async function openConversation(row,partner){
   if(!row?.id || !partner) return;
 
+  stopLocalTyping(true);
+  hideTypingIndicator();
   currentConversationId = row.id;
   currentConversationPartner = partner;
 
@@ -6128,6 +6369,8 @@ async function sendMessage(){
 
   const text = messageInput.value.trim();
   if(!text) return;
+
+  stopLocalTyping(true);
 
   if(!currentUser){
     showStatus("Your login session is not ready.");
@@ -7426,6 +7669,16 @@ sendButton.addEventListener(
 );
 
 messageInput.addEventListener(
+  "input",
+  handleTypingInput
+);
+
+messageInput.addEventListener(
+  "blur",
+  ()=>stopLocalTyping(true)
+);
+
+messageInput.addEventListener(
   "keydown",
   event=>{
 
@@ -7501,6 +7754,13 @@ logoutBtn.addEventListener(
 
         deleteSyncChannel = null;
 
+      }
+
+      if(typingChannel){
+        try{ stopLocalTyping(false); }catch(_error){}
+        await supabaseClient.removeChannel(typingChannel);
+        typingChannel = null;
+        typingChannelReady = false;
       }
 
       currentBlockState = {blockedByMe:false,blockedMe:false};
@@ -7887,6 +8147,9 @@ async function startApp(){
 
     startDeleteSync();
 
+    /* Start the shared typing channel so other phones can see typing state. */
+    startTypingRealtime();
+
     startPresence();
 
     /*
@@ -7995,6 +8258,37 @@ totalkWarningBackdrop?.addEventListener("click",e=>{if(e.target===totalkWarningB
 document.addEventListener("keydown",e=>{if(e.key==="Escape"&&totalkWarningBackdrop?.classList.contains("open")){if(totalkWarningCurrent)markWarningSeen(totalkWarningCurrent);closeTotalkWarning();}});
 
 startApp();
+
+
+
+/* =====================================================
+   MOBILE VISUAL VIEWPORT / KEYBOARD HANDLING
+   The chat shell follows the visible viewport when the Android
+   keyboard opens, keeping the header and composer in place.
+===================================================== */
+(function setupMobileKeyboardLayout(){
+  const root=document.documentElement;
+
+  function updateVisualViewportHeight(){
+    if(window.visualViewport){
+      const h=Math.max(1,Math.round(window.visualViewport.height));
+      root.style.setProperty("--totalk-vh",h+"px");
+    }else{
+      root.style.setProperty("--totalk-vh",window.innerHeight+"px");
+    }
+  }
+
+  updateVisualViewportHeight();
+
+  window.addEventListener("resize",updateVisualViewportHeight,{passive:true});
+  window.addEventListener("orientationchange",()=>{
+    setTimeout(updateVisualViewportHeight,120);
+  },{passive:true});
+
+  if(window.visualViewport){
+    window.visualViewport.addEventListener("resize",updateVisualViewportHeight,{passive:true});
+  }
+})();
 
 </script>
 
