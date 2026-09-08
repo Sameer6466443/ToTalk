@@ -2437,14 +2437,14 @@ header{
 }
 
 /* Typing indicator — ToTalk dots only */
-.typing-indicator{display:none;align-items:center;justify-content:flex-start;margin:0 18px 8px;min-height:30px;height:30px;padding:0;pointer-events:none;opacity:0;transform:translateY(3px);transition:opacity .16s ease,transform .16s ease;}
+.typing-indicator{display:none;align-items:center;justify-content:flex-start;margin:0 0 6px 18px;min-height:22px;height:22px;padding:0;pointer-events:none;opacity:0;transform:translateY(3px);transition:opacity .16s ease,transform .16s ease;}
 .typing-indicator.show{display:flex;opacity:1;transform:translateY(0);}
-.typing-indicator-bubble{display:flex;align-items:center;justify-content:flex-start;gap:8px;width:auto;min-width:0;height:30px;padding:0;background:transparent;border:0;box-shadow:none;}
-.typing-dot{width:8px;height:8px;border-radius:50%;background:#a86cff;box-shadow:0 0 5px #a86cff,0 0 12px rgba(168,108,255,.85);animation:totalkTypingDot 1.05s infinite ease-in-out;}
+.typing-indicator-bubble{display:flex;align-items:center;justify-content:flex-start;gap:9px;width:auto;min-width:0;height:22px;padding:0;background:transparent;border:0;box-shadow:none;}
+.typing-dot{width:8px;height:8px;border-radius:50%;background:#a86cff;box-shadow:0 0 6px #a86cff,0 0 14px rgba(168,108,255,.9);animation:totalkTypingDot 1.05s infinite ease-in-out;}
 .typing-dot:nth-child(2){animation-delay:.14s;}
 .typing-dot:nth-child(3){animation-delay:.28s;}
 @keyframes totalkTypingDot{0%,60%,100%{transform:translateY(0) scale(.78);opacity:.42;}30%{transform:translateY(-4px) scale(1.08);opacity:1;}}
-@media(max-width:520px){.typing-indicator{margin:0 14px 7px}.typing-indicator-bubble{gap:8px}.typing-dot{width:7px;height:7px;}}
+@media(max-width:520px){.typing-indicator{margin:0 0 6px 14px}.typing-indicator-bubble{gap:9px}.typing-dot{width:7px;height:7px;}}
 
 /* Conversation options sheet */
 .conversation-options-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.62);backdrop-filter:blur(8px);display:none;align-items:flex-end;justify-content:center;z-index:9999;padding:16px;}
@@ -4061,18 +4061,26 @@ function showTypingIndicator(){
   typingIndicator.setAttribute("aria-hidden","false");
 }
 
-function sendTypingState(isTyping){
+async function sendTypingState(isTyping){
   if(!typingChannel || !typingChannelReady || !currentUser || !currentConversationId) return;
-  void typingChannel.send({
-    type:"broadcast",
-    event:"typing",
-    payload:{
-      conversation_id:String(currentConversationId),
-      user_id:String(currentUser.id),
-      user_name:String(currentProfile?.name || currentUser?.user_metadata?.name || "Someone"),
-      typing:!!isTyping
-    }
-  }).catch(error=>console.warn("ToTalk typing broadcast failed:",error));
+
+  const recipientId = currentConversationPartner?.user_id;
+  if(!recipientId) return;
+
+  try{
+    await typingChannel.send({
+      type:"broadcast",
+      event:"typing",
+      payload:{
+        conversation_id:String(currentConversationId),
+        sender_user_id:String(currentUser.id),
+        recipient_user_id:String(recipientId),
+        typing:!!isTyping
+      }
+    });
+  }catch(error){
+    console.warn("ToTalk typing broadcast failed:",error);
+  }
 }
 
 function stopLocalTyping(broadcast=true){
@@ -4083,7 +4091,7 @@ function stopLocalTyping(broadcast=true){
   if(!typingIsActive) return;
   typingIsActive = false;
   if(broadcast){
-    sendTypingState(false);
+    void sendTypingState(false);
   }
 }
 
@@ -4093,28 +4101,30 @@ function startLocalTyping(){
 
   if(!typingIsActive){
     typingIsActive = true;
-    sendTypingState(true);
+    void sendTypingState(true);
   }
 
   if(typingStopTimer) clearTimeout(typingStopTimer);
-  typingStopTimer = setTimeout(()=>stopLocalTyping(true),1100);
+  typingStopTimer = setTimeout(()=>stopLocalTyping(true),1200);
 }
 
 function startTypingRealtime(){
   if(!currentUser || typingChannel) return;
   typingChannelReady = false;
 
-  const channel = supabaseClient.channel("totalk-typing-v1",{
+  const channel = supabaseClient.channel("totalk-typing-global-v2",{
     config:{broadcast:{self:false}}
   });
 
   channel.on("broadcast",{event:"typing"},message=>{
     const data = message?.payload || message || {};
-    const senderId = String(data.user_id || "");
+    const senderId = String(data.sender_user_id || data.user_id || "");
+    const recipientId = String(data.recipient_user_id || "");
     const conversationId = String(data.conversation_id || "");
     const me = String(currentUser?.id || "");
 
     if(!senderId || senderId===me || !conversationId) return;
+    if(recipientId && recipientId!==me) return;
     if(!currentConversationId || conversationId!==String(currentConversationId)) return;
 
     if(data.typing===true){
@@ -4122,24 +4132,26 @@ function startTypingRealtime(){
       remoteTypingConversationId = conversationId;
       showTypingIndicator();
       if(remoteTypingStopTimer) clearTimeout(remoteTypingStopTimer);
-      remoteTypingStopTimer = setTimeout(hideTypingIndicator,1800);
-    }else{
-      if(remoteTypingUserId===senderId && remoteTypingConversationId===conversationId){
-        hideTypingIndicator();
-      }
+      remoteTypingStopTimer = setTimeout(hideTypingIndicator,2000);
+    }else if(remoteTypingUserId===senderId && remoteTypingConversationId===conversationId){
+      hideTypingIndicator();
     }
   });
 
   typingChannel = channel;
+
   channel.subscribe(status=>{
-    if(status==="SUBSCRIBED"){
+    if(status === "SUBSCRIBED"){
       typingChannelReady = true;
       return;
     }
-    if(status==="CHANNEL_ERROR" || status==="TIMED_OUT"){
+
+    if(status === "CHANNEL_ERROR" || status === "TIMED_OUT"){
       typingChannelReady = false;
       if(typingChannel===channel) typingChannel=null;
-      setTimeout(()=>{if(currentUser && !typingChannel) startTypingRealtime();},1500);
+      setTimeout(()=>{
+        if(currentUser && !typingChannel) startTypingRealtime();
+      },1500);
     }
   });
 }
@@ -6082,7 +6094,6 @@ async function openConversation(row,partner){
   if(!row?.id || !partner) return;
 
   stopLocalTyping(true);
-  hideTypingIndicator();
   hideTypingIndicator();
   currentConversationId = row.id;
   currentConversationPartner = partner;
