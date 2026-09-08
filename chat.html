@@ -3489,9 +3489,43 @@ function startLocalTyping(){
   typingStopTimer=setTimeout(()=>stopLocalTyping(true),1300);
 }
 function startTypingRealtime(){
-  if(!currentUser || !realtimeChannel) return;
-  typingChannel=realtimeChannel;
-  typingChannelReady=true;
+  if(!currentUser || typingChannel) return;
+
+  typingChannelReady=false;
+
+  /*
+   * Typing must use ONE shared Broadcast topic for every user/device.
+   * The normal message channel is user-specific, so it cannot carry
+   * cross-user typing events. This channel is optional and NEVER blocks
+   * application startup.
+   */
+  const channel = supabaseClient.channel("totalk-typing-global-v3",{
+    config:{broadcast:{self:false}}
+  });
+
+  channel.on("broadcast",{event:"totalk_typing"},payload=>{
+    receiveTypingState(payload);
+  });
+
+  typingChannel=channel;
+
+  try{
+    channel.subscribe(status=>{
+      if(status === "SUBSCRIBED"){
+        typingChannelReady=true;
+      }else if(status === "CHANNEL_ERROR" || status === "TIMED_OUT"){
+        typingChannelReady=false;
+        if(typingChannel===channel) typingChannel=null;
+        setTimeout(()=>{
+          if(currentUser && !typingChannel) startTypingRealtime();
+        },1500);
+      }
+    });
+  }catch(error){
+    console.warn("ToTalk typing channel could not start:",error);
+    typingChannelReady=false;
+    if(typingChannel===channel) typingChannel=null;
+  }
 }
 
 function applyRestrictionUI(){
@@ -6235,8 +6269,6 @@ function startRealtime(){
     }
   });
 
-  channel.on("broadcast",{event:"totalk_typing"},payload=>receiveTypingState(payload));
-
   channel
     .on(
       "postgres_changes",
@@ -7394,22 +7426,29 @@ async function startApp(){
       }
     }
 
-    /* Realtime stays connected, but only the active conversation is rendered. */
-    startRealtime();
-
-    startDeleteSync();
-
-    /* Start the shared typing channel so other phones can see typing state. */
-    startTypingRealtime();
-
-    startPresence();
-
     /*
-     * Hide loading only after
-     * everything is ready.
+     * IMPORTANT: realtime/presence/typing are background services.
+     * Never make the main ToTalk screen wait for a realtime channel to
+     * subscribe. The old version could leave the mobile app on
+     * "Connecting…" when an optional channel was slow or failed.
      */
-
     finishLoading();
+
+    /* Start optional realtime services after the UI is already visible. */
+    setTimeout(()=>{
+      try{ startRealtime(); }catch(error){
+        console.warn("ToTalk message realtime could not start:",error);
+      }
+      try{ startDeleteSync(); }catch(error){
+        console.warn("ToTalk delete sync could not start:",error);
+      }
+      try{ startTypingRealtime(); }catch(error){
+        console.warn("ToTalk typing realtime could not start:",error);
+      }
+      try{ startPresence(); }catch(error){
+        console.warn("ToTalk presence could not start:",error);
+      }
+    },0);
 
     /*
      * Focus input after loading
