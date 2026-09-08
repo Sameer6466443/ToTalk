@@ -3520,19 +3520,28 @@ async function loadBlockState(partnerId){
 async function blockUser(partnerId){
   if(!currentUser?.id || !partnerId) return false;
   try{
+    const blockerId=String(currentUser.id);
+    const blockedId=String(partnerId);
+
     const {error}=await supabaseClient
       .from("blocked_users")
-      .upsert({blocker_id:currentUser.id,blocked_id:partnerId},{onConflict:"blocker_id,blocked_id",ignoreDuplicates:true});
-    if(error) throw error;
+      .insert({blocker_id:blockerId,blocked_id:blockedId});
 
-    currentBlockState.blockedByMe=true;
-    currentBlockState.blockedMe=false;
-    applyRestrictionUI();
-    showStatus("User blocked. They can no longer send messages to you.");
+    /* A duplicate means the block already exists, which is fine. */
+    if(error && !/duplicate|unique/i.test(error.message || "")) throw error;
+
+    /* Re-read the database. Never assume the block succeeded locally. */
+    const state=await loadBlockState(blockedId);
+    if(!state.blockedByMe){
+      throw new Error("Block row was not saved in Supabase.");
+    }
+
+    await broadcastBlockChange(blockerId,blockedId,"blocked");
+    showStatus("User blocked. Messaging is now disabled.");
     return true;
   }catch(error){
     console.error("Block user error:",error);
-    showStatus("User could not be blocked. Create the blocked_users table first.");
+    showStatus("User could not be blocked. Please try again.");
     return false;
   }
 }
@@ -3540,22 +3549,80 @@ async function blockUser(partnerId){
 async function unblockUser(partnerId){
   if(!currentUser?.id || !partnerId) return false;
   try{
+    const blockerId=String(currentUser.id);
+    const blockedId=String(partnerId);
+
     const {error}=await supabaseClient
       .from("blocked_users")
       .delete()
-      .eq("blocker_id",currentUser.id)
-      .eq("blocked_id",partnerId);
+      .eq("blocker_id",blockerId)
+      .eq("blocked_id",blockedId);
     if(error) throw error;
 
-    currentBlockState.blockedByMe=false;
-    applyRestrictionUI();
-    showStatus("User unblocked.");
+    const state=await loadBlockState(blockedId);
+    if(state.blockedByMe){
+      throw new Error("Block row is still present in Supabase.");
+    }
+
+    await broadcastBlockChange(blockerId,blockedId,"unblocked");
+    showStatus("User unblocked. Messaging is enabled again.");
     return true;
   }catch(error){
     console.error("Unblock user error:",error);
     showStatus("User could not be unblocked.");
     return false;
   }
+}
+
+let blockSyncChannel = null;
+
+async function broadcastBlockChange(blockerId,blockedId,action){
+  if(!blockSyncChannel) return;
+  try{
+    await blockSyncChannel.send({
+      type:"broadcast",
+      event:"block_changed",
+      payload:{
+        blocker_id:String(blockerId),
+        blocked_id:String(blockedId),
+        action:String(action)
+      }
+    });
+  }catch(error){
+    console.warn("ToTalk block sync broadcast failed:",error);
+  }
+}
+
+function startBlockSync(){
+  if(!currentUser || blockSyncChannel) return;
+
+  const channel=supabaseClient.channel("totalk-block-sync-v1",{
+    config:{broadcast:{self:false}}
+  });
+
+  channel.on("broadcast",{event:"block_changed"},async message=>{
+    const data=message?.payload || message || {};
+    const blockerId=String(data.blocker_id || "");
+    const blockedId=String(data.blocked_id || "");
+    const me=String(currentUser?.id || "");
+
+    if(!blockerId || !blockedId || !me) return;
+    if(blockerId!==me && blockedId!==me) return;
+
+    if(currentConversationPartner?.user_id &&
+       String(currentConversationPartner.user_id)===
+       (blockerId===me ? blockedId : blockerId)){
+      await loadBlockState(currentConversationPartner.user_id);
+    }
+  });
+
+  blockSyncChannel=channel;
+  channel.subscribe(status=>{
+    if(status==="CHANNEL_ERROR" || status==="TIMED_OUT"){
+      if(blockSyncChannel===channel) blockSyncChannel=null;
+      setTimeout(()=>{if(currentUser && !blockSyncChannel) startBlockSync();},1500);
+    }
+  });
 }
 
 function isConversationBlocked(){
@@ -3581,12 +3648,19 @@ async function applyConversationAction(action){
 
     /* Block/unblock is persisted in Supabase and the composer is updated
        immediately on the current device. */
+    let ok=false;
     if(currentBlockState.blockedByMe){
-      await unblockUser(partnerId);
+      ok=await unblockUser(partnerId);
     }else{
-      const ok=await blockUser(partnerId);
-      if(!ok) return;
+      ok=await blockUser(partnerId);
     }
+    if(!ok) return;
+
+    /* Re-opened menu will read this exact state from Supabase. */
+    const blockButton=optionsBackdrop?.querySelector('[data-conversation-action="block"]');
+    const label=blockButton?.querySelector("span:last-child");
+    if(label) label.textContent=currentBlockState.blockedByMe ? "Unblock user" : "Block user";
+    if(blockButton) blockButton.classList.toggle("danger",!currentBlockState.blockedByMe);
 
     closeConversationOptions();
     return;
@@ -6357,6 +6431,7 @@ function startDeleteSync(){
         setTimeout(()=>{
           if(currentUser && !deleteSyncChannel){
             startDeleteSync();
+  startBlockSync();
           }
         },1500);
       }
