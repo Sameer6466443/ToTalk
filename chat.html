@@ -4811,10 +4811,27 @@ function addMessage(
     menuButton.textContent =
       "⋮";
 
+    /*
+     * Do not let the three-dot button steal focus from the composer.
+     * On Android, focusing this button dismisses the virtual keyboard.
+     * Preventing the default pointer action keeps the textarea focused
+     * while the menu still opens through its normal click handler.
+     */
+    menuButton.addEventListener(
+      "pointerdown",
+      event=>{
+        if(document.activeElement === messageInput){
+          event.preventDefault();
+        }
+      },
+      {passive:false}
+    );
+
     menuButton.addEventListener(
       "click",
       event=>{
 
+        event.preventDefault();
         event.stopPropagation();
 
         openMessageMenu(data,bubble);
