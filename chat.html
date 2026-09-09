@@ -1341,30 +1341,6 @@ header{
 }
 
 /* =====================================================
-   COMPOSER AUTO-RESIZE
-===================================================== */
-
-function resizeMessageInput(){
-  if(!messageInput) return;
-
-  const minHeight = 40;
-  const maxHeight = 120;
-
-  /* Reset before measuring so deleting text shrinks the field too. */
-  messageInput.style.height = "auto";
-
-  const nextHeight = Math.max(
-    minHeight,
-    Math.min(maxHeight,messageInput.scrollHeight)
-  );
-
-  messageInput.style.height = nextHeight + "px";
-
-  /* The scrollbar stays hidden even at the maximum height. */
-  messageInput.style.overflowY = "hidden";
-}
-
-/* =====================================================
    INPUT
 ===================================================== */
 
@@ -2460,32 +2436,19 @@ function resizeMessageInput(){
   }
 }
 
-/* =====================================================
-   TYPING INDICATOR — ACCURATE REALTIME DOTS
-   The dots sit directly above the composer, matching the
-   ToTalk mobile chat style. The indicator does not take
-   space away from the message scroll area.
-===================================================== */
+/* Typing indicator — screenshot-style ToTalk purple loading pill */
 .typing-indicator{
-  position:absolute;
-  left:18px;
-  bottom:76px;
-  z-index:35;
-
   display:none;
-  align-items:center;
+  align-items:flex-end;
   justify-content:flex-start;
-
-  width:auto;
-  height:18px;
-  min-height:18px;
-  margin:0;
+  margin:0 0 8px 18px;
+  min-height:68px;
+  height:68px;
   padding:0;
-
   pointer-events:none;
   opacity:0;
-  transform:translateY(4px);
-  transition:opacity .14s ease,transform .14s ease;
+  transform:translateY(5px);
+  transition:opacity .16s ease,transform .16s ease;
 }
 .typing-indicator.show{
   display:flex;
@@ -2495,78 +2458,54 @@ function resizeMessageInput(){
 .typing-indicator-bubble{
   display:flex;
   align-items:center;
-  justify-content:flex-start;
-  gap:9px;
-
-  width:auto;
-  height:18px;
-  min-height:18px;
-  padding:0;
-
-  background:transparent;
-  border:0;
-  border-radius:0;
-  box-shadow:none;
+  justify-content:center;
+  gap:13px;
+  width:136px;
+  height:68px;
+  padding:0 20px;
+  box-sizing:border-box;
+  background:linear-gradient(145deg,rgba(19,10,42,.98),rgba(7,4,21,.98));
+  border:1px solid rgba(142,70,255,.18);
+  border-radius:34px;
+  box-shadow:0 0 18px rgba(116,45,255,.22),inset 0 0 18px rgba(92,38,190,.08);
 }
 .typing-dot{
-  width:9px;
-  height:9px;
-  flex:0 0 9px;
+  width:10px;
+  height:10px;
+  flex:0 0 10px;
   border-radius:50%;
   background:#a86cff;
-  box-shadow:
-    0 0 6px #a86cff,
-    0 0 13px rgba(168,108,255,.92),
-    0 0 22px rgba(125,67,255,.46);
+  box-shadow:0 0 7px #a86cff,0 0 15px rgba(168,108,255,.95),0 0 24px rgba(125,67,255,.48);
   animation:totalkTypingDot 1.05s infinite ease-in-out;
 }
 .typing-dot:nth-child(2){animation-delay:.14s;}
 .typing-dot:nth-child(3){animation-delay:.28s;}
 @keyframes totalkTypingDot{
   0%,60%,100%{
-    transform:translateY(0) scale(.76);
-    opacity:.42;
+    transform:translateY(0) scale(.78);
+    opacity:.45;
   }
   30%{
-    transform:translateY(-4px) scale(1.08);
+    transform:translateY(-5px) scale(1.08);
     opacity:1;
-  }
-}
-
-/* Hide the native textarea scrollbar. Shift+Enter still works,
-   but the ugly grey bar cannot appear between the field and Send. */
-#messageInput{
-  scrollbar-width:none;
-  -ms-overflow-style:none;
-  overflow-y:hidden;
-}
-#messageInput::-webkit-scrollbar{
-  display:none;
-  width:0;
-  height:0;
-}
-
-/* On mobile the composer is fixed to the visible viewport, so
-   the typing dots must follow it when the keyboard is open. */
-@media(max-width:800px){
-  .typing-indicator{
-    position:fixed;
-    left:30px;
-    bottom:calc(var(--totalk-keyboard-height, 0px) + 73px);
-    z-index:1100;
   }
 }
 @media(max-width:520px){
   .typing-indicator{
-    left:30px;
-  }
-  .typing-dot{
-    width:8px;
-    height:8px;
-    flex-basis:8px;
+    margin:0 0 7px 14px;
+    min-height:64px;
+    height:64px;
   }
   .typing-indicator-bubble{
-    gap:8px;
+    width:132px;
+    height:64px;
+    gap:12px;
+    border-radius:32px;
+  }
+  .typing-dot{
+    width:9px;
+    height:9px;
+    flex-basis:9px;
   }
 }
 
@@ -3668,23 +3607,11 @@ let realtimeChannel = null;
 let deleteSyncChannel = null;
 let typingChannel = null;
 let typingChannelReady = false;
-
-/* Local typing:
-   - idle timeout stops typing after the user really stops.
-   - heartbeat keeps the remote indicator alive for 5 minutes or longer
-     while the user continues entering text. */
 let typingStopTimer = null;
-let typingHeartbeatTimer = null;
 let typingIsActive = false;
-
-/* Remote typing is considered alive as long as heartbeats keep arriving. */
 let remoteTypingUserId = null;
 let remoteTypingConversationId = null;
 let remoteTypingStopTimer = null;
-
-const TYPING_IDLE_MS = 1500;
-const TYPING_HEARTBEAT_MS = 1000;
-const TYPING_REMOTE_TIMEOUT_MS = 2800;
 
 /* Read-receipt watcher: checks the other participant's last_read_at while a chat is open. */
 let seenStatusTimer = null;
@@ -4302,12 +4229,10 @@ function updateUserUI(){
 function hideTypingIndicator(){
   remoteTypingUserId = null;
   remoteTypingConversationId = null;
-
   if(remoteTypingStopTimer){
     clearTimeout(remoteTypingStopTimer);
     remoteTypingStopTimer = null;
   }
-
   if(typingIndicator){
     typingIndicator.classList.remove("show");
     typingIndicator.setAttribute("aria-hidden","true");
@@ -4316,21 +4241,12 @@ function hideTypingIndicator(){
 
 function showTypingIndicator(){
   if(!typingIndicator || !currentConversationId) return;
-
   typingIndicator.classList.add("show");
   typingIndicator.setAttribute("aria-hidden","false");
 }
 
-/* Send a realtime typing state to the other participant. */
 async function sendTypingState(isTyping){
-  if(
-    !typingChannel ||
-    !typingChannelReady ||
-    !currentUser ||
-    !currentConversationId
-  ){
-    return;
-  }
+  if(!typingChannel || !typingChannelReady || !currentUser || !currentConversationId) return;
 
   const recipientId = currentConversationPartner?.user_id;
   if(!recipientId) return;
@@ -4351,148 +4267,57 @@ async function sendTypingState(isTyping){
   }
 }
 
-function clearTypingHeartbeat(){
-  if(typingHeartbeatTimer){
-    clearTimeout(typingHeartbeatTimer);
-    typingHeartbeatTimer = null;
-  }
-}
-
-/* Re-broadcast "typing:true" every second.
-   This is what prevents a long 5-minute typing session from
-   disappearing after a fixed receiver timeout. */
-function scheduleTypingHeartbeat(){
-  clearTypingHeartbeat();
-
-  if(!typingIsActive) return;
-
-  typingHeartbeatTimer = setTimeout(()=>{
-    typingHeartbeatTimer = null;
-
-    if(!typingIsActive) return;
-
-    void sendTypingState(true);
-    scheduleTypingHeartbeat();
-  },TYPING_HEARTBEAT_MS);
-}
-
 function stopLocalTyping(broadcast=true){
   if(typingStopTimer){
     clearTimeout(typingStopTimer);
     typingStopTimer = null;
   }
-
-  clearTypingHeartbeat();
-
   if(!typingIsActive) return;
-
   typingIsActive = false;
-
   if(broadcast){
     void sendTypingState(false);
   }
 }
 
 function startLocalTyping(){
-  if(
-    !typingChannel ||
-    !currentUser ||
-    !currentConversationId ||
-    !typingChannelReady
-  ){
-    return;
-  }
-
-  if(currentUserRestricted || isConversationBlocked() || messageInput?.disabled){
-    return;
-  }
+  if(!typingChannel || !currentUser || !currentConversationId) return;
+  if(currentUserRestricted || isConversationBlocked() || messageInput?.disabled) return;
 
   if(!typingIsActive){
     typingIsActive = true;
     void sendTypingState(true);
-    scheduleTypingHeartbeat();
   }
 
-  /* Every real keystroke refreshes the idle deadline. */
   if(typingStopTimer) clearTimeout(typingStopTimer);
-
-  typingStopTimer = setTimeout(()=>{
-    stopLocalTyping(true);
-  },TYPING_IDLE_MS);
+  typingStopTimer = setTimeout(()=>stopLocalTyping(true),1200);
 }
 
 function startTypingRealtime(){
   if(!currentUser || typingChannel) return;
-
   typingChannelReady = false;
 
-  const channel = supabaseClient.channel("totalk-typing-global-v3",{
-    config:{
-      broadcast:{self:false}
-    }
+  const channel = supabaseClient.channel("totalk-typing-global-v2",{
+    config:{broadcast:{self:false}}
   });
 
   channel.on("broadcast",{event:"typing"},message=>{
     const data = message?.payload || message || {};
+    const senderId = String(data.sender_user_id || data.user_id || "");
+    const recipientId = String(data.recipient_user_id || "");
+    const conversationId = String(data.conversation_id || "");
+    const me = String(currentUser?.id || "");
 
-    const senderId =
-      String(data.sender_user_id || data.user_id || "");
-
-    const recipientId =
-      String(data.recipient_user_id || "");
-
-    const conversationId =
-      String(data.conversation_id || "");
-
-    const me =
-      String(currentUser?.id || "");
-
-    const partnerId =
-      String(currentConversationPartner?.user_id || "");
-
-    if(!senderId || senderId===me || !conversationId){
-      return;
-    }
-
-    /* Only the current chat and its actual other participant can
-       control the visible typing indicator. */
-    if(recipientId && recipientId!==me){
-      return;
-    }
-
-    if(
-      !currentConversationId ||
-      conversationId!==String(currentConversationId) ||
-      (partnerId && senderId!==partnerId)
-    ){
-      return;
-    }
+    if(!senderId || senderId===me || !conversationId) return;
+    if(recipientId && recipientId!==me) return;
+    if(!currentConversationId || conversationId!==String(currentConversationId)) return;
 
     if(data.typing===true){
       remoteTypingUserId = senderId;
       remoteTypingConversationId = conversationId;
-
       showTypingIndicator();
-
-      if(remoteTypingStopTimer){
-        clearTimeout(remoteTypingStopTimer);
-      }
-
-      /* Safety fallback only. Normal operation receives a heartbeat
-         every second and therefore remains visible indefinitely. */
-      remoteTypingStopTimer = setTimeout(()=>{
-        if(
-          remoteTypingUserId===senderId &&
-          remoteTypingConversationId===conversationId
-        ){
-          hideTypingIndicator();
-        }
-      },TYPING_REMOTE_TIMEOUT_MS);
-
-    }else if(
-      remoteTypingUserId===senderId &&
-      remoteTypingConversationId===conversationId
-    ){
+      if(remoteTypingStopTimer) clearTimeout(remoteTypingStopTimer);
+      remoteTypingStopTimer = setTimeout(hideTypingIndicator,2000);
+    }else if(remoteTypingUserId===senderId && remoteTypingConversationId===conversationId){
       hideTypingIndicator();
     }
   });
@@ -4507,34 +4332,19 @@ function startTypingRealtime(){
 
     if(status === "CHANNEL_ERROR" || status === "TIMED_OUT"){
       typingChannelReady = false;
-
-      if(typingChannel===channel){
-        typingChannel = null;
-      }
-
+      if(typingChannel===channel) typingChannel=null;
       setTimeout(()=>{
-        if(currentUser && !typingChannel){
-          startTypingRealtime();
-        }
+        if(currentUser && !typingChannel) startTypingRealtime();
       },1500);
     }
   });
 }
 
 function handleTypingInput(){
-  /* Resize first so Shift+Enter grows naturally without a visible
-     native scrollbar. */
-  resizeMessageInput();
-
-  if(
-    !messageInput ||
-    !messageInput.value.trim() ||
-    !currentConversationId
-  ){
+  if(!messageInput || !messageInput.value.trim() || !currentConversationId){
     stopLocalTyping(true);
     return;
   }
-
   startLocalTyping();
 }
 
@@ -4660,7 +4470,6 @@ function setEmptyChatState(){
   }
   if(messageInput){
     messageInput.value = "";
-    resizeMessageInput();
     messageInput.placeholder = "Select a conversation first...";
     messageInput.disabled = true;
   }
@@ -6720,7 +6529,6 @@ async function sendMessage(){
   }
 
   messageInput.value = "";
-  resizeMessageInput();
   clearReplyTarget();
 
   requestAnimationFrame(()=>{
@@ -8067,10 +7875,13 @@ messageInput.addEventListener(
 );
 
 /*
- * The input event now performs only the tiny textarea measurement and
- * realtime typing-state update. No message DOM is rebuilt per keystroke.
+ * IMPORTANT:
+ * There is intentionally NO input
+ * event doing DOM work on every
+ * keystroke.
+ *
+ * This keeps typing lightweight.
  */
-resizeMessageInput();
 
 /* =====================================================
    PROFILE
@@ -8259,127 +8070,299 @@ function showDatabaseError(error){
 }
 
 /* =====================================================
-   STARTUP NETWORK TIMEOUT
-   Never leave the galaxy loading screen hanging forever if
-   Supabase HTTP/realtime is slow or temporarily unavailable.
-===================================================== */
-function withStartupTimeout(promise, ms, label){
-  let timer = null;
-  return Promise.race([
-    promise,
-    new Promise((_, reject)=>{
-      timer = setTimeout(()=>{
-        const error = new Error(label + " timed out after " + Math.round(ms / 1000) + " seconds.");
-        error.code = "TOTAlK_STARTUP_TIMEOUT";
-        reject(error);
-      }, ms);
-    })
-  ]).finally(()=>{
-    if(timer) clearTimeout(timer);
-  });
-}
-
-/* =====================================================
    START APPLICATION
 ===================================================== */
 
 async function startApp(){
 
-  /*
-   * STARTUP RULE:
-   * Authentication is the only thing that must block the first paint.
-   * Profile/restriction/chat-list/realtime are loaded independently so a
-   * slow Supabase table or Realtime service can NEVER leave the galaxy
-   * loading screen stuck on "Connecting…".
-   */
   try{
-    showLoading("ToTalk","Checking your account");
 
-    let user = null;
-    try{
-      user = await withStartupTimeout(getLoggedInUser(),8000,"Supabase session check");
-    }catch(error){
-      console.error("Session check failed:",error);
+    showLoading(
+      "ToTalk",
+      "Checking your account"
+    );
+
+    let user =
+      await getLoggedInUser();
+
+    if(!user){
+
+      await new Promise(
+        resolve=>
+          setTimeout(
+            resolve,
+            300
+          )
+      );
+
+      user =
+        await getLoggedInUser();
+
     }
 
     if(!user){
-      showLoading("Login required","Returning to ToTalk");
-      setTimeout(()=>window.location.replace("./index.html"),800);
+
+      showLoading(
+        "Login required",
+        "Returning to ToTalk"
+      );
+
+      setTimeout(
+        ()=>{
+          window.location.replace(
+            "./index.html"
+          );
+        },
+        800
+      );
+
       return;
+
     }
 
-    currentUser = user;
-    setLoadingText("ToTalk","Connecting…");
+    currentUser =
+      user;
 
-    /* Never block startup on moderation/restriction lookup. */
-    void withStartupTimeout(loadMyRestrictionStatus(),5000,"Restriction check")
-      .catch(error=>console.warn("Restriction startup check skipped:",error));
+    /* Check restriction status. Supabase RLS remains the final authority. */
+    await loadMyRestrictionStatus();
 
-    /* Profile is needed for the normal UI, but it gets a hard timeout. */
-    let profile = null;
-    try{
-      profile = await withStartupTimeout(checkProfile(),8000,"Profile loading");
-    }catch(error){
-      console.error("Profile startup check failed:",error);
-    }
+    /* Start moderator warning notifications for this account. */
+    startTotalkWarningNotifications();
 
-    if(!profile){
+    /*
+     * Start the database connection warm-up immediately.
+     * It runs in the background while the rest of the
+     * chat is loading, so the first real message does not
+     * pay the cold-connection delay.
+     */
+    void warmUpSupabase();
+
+    setLoadingText(
+      "ToTalk",
+      "Connecting…"
+    );
+
+    currentProfile =
+      await checkProfile();
+
+    /*
+     * Keep your current behavior:
+     * existing profile opens chat directly.
+     *
+     * If no profile exists, create a
+     * lightweight profile.
+     */
+
+    if(!currentProfile){
+
+      const fallbackName =
+        currentUser?.user_metadata?.full_name ||
+        currentUser?.user_metadata?.name ||
+        currentUser?.email?.split("@")[0] ||
+        "ToTalk User";
+
       /*
-       * Do not perform an unbounded INSERT here. If the account has no
-       * profile, send the user to the existing profile maker. This avoids
-       * the old failure mode where an INSERT could keep "Connecting…"
-       * forever when Supabase/RLS was unavailable.
+       * Generate a permanent-looking ID.
+       * This function was missing in the
+       * previous file, so define it here.
        */
-      showLoading("Profile needed","Opening your ToTalk profile");
-      setTimeout(()=>window.location.replace("./profile-maker.html"),500);
-      return;
+
+      function makeTTId(){
+
+        const chars =
+          "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+
+        let result =
+          "";
+
+        for(
+          let i=0;
+          i<6;
+          i++
+        ){
+
+          result +=
+            chars[
+              Math.floor(
+                Math.random() *
+                chars.length
+              )
+            ];
+
+        }
+
+        return "TT-" + result;
+
+      }
+
+      const newId =
+        makeTTId();
+
+      const {
+        data:created,
+        error:createError
+      } =
+        await supabaseClient
+          .from("profiles")
+          .insert({
+
+            user_id:
+              currentUser.id,
+
+            name:
+              fallbackName,
+
+            gender:
+              null,
+
+            age:
+              null,
+
+            totalk_id:
+              newId,
+
+            profile_completed:
+              true,
+
+            location:
+              "",
+
+            location_visibility:
+              "city_country"
+
+          })
+          .select(
+            "id,user_id,name,gender,age,totalk_id,profile_completed,location,location_visibility"
+          )
+          .single();
+
+      if(createError){
+
+        currentProfile =
+          await checkProfile();
+
+        if(!currentProfile){
+
+          throw createError;
+
+        }
+
+      }else{
+
+        currentProfile =
+          created;
+
+      }
+
+    }else if(
+      currentProfile.profile_completed !==
+      true
+    ){
+
+      const {
+        data:completed,
+        error:completeError
+      } =
+        await supabaseClient
+          .from("profiles")
+          .update({
+            profile_completed:true
+          })
+          .eq(
+            "id",
+            currentProfile.id
+          )
+          .eq(
+            "user_id",
+            currentUser.id
+          )
+          .select(
+            "id,user_id,name,gender,age,totalk_id,profile_completed,location,location_visibility"
+          )
+          .maybeSingle();
+
+      if(completeError){
+        throw completeError;
+      }
+
+      if(completed){
+        currentProfile =
+          completed;
+      }
+
     }
 
-    currentProfile = profile;
+    setLoadingText(
+      "ToTalk",
+      "Opening your space…"
+    );
+
     updateUserUI();
 
-    /* The actual chat screen is now safe to show. */
+    /* Load the real private conversation list.
+       A chat-list/database problem must NOT blank the whole app. */
+    try{
+      await loadConversationList();
+    }catch(listError){
+      console.error("ToTalk conversation-list error:", listError);
+      conversations = [];
+      if(conversationList){
+        conversationList.innerHTML = `
+          <div class="conversation-empty">
+            <strong>Chats could not be loaded</strong>
+            <span>Your account is open, but the chat database returned an error.</span>
+            <button type="button" class="back-button" id="showDatabaseError">Show error</button>
+          </div>
+        `;
+        document.getElementById("showDatabaseError")?.addEventListener("click",()=>{
+          showDatabaseError(listError);
+        });
+      }
+    }
+
+    /* Realtime stays connected, but only the active conversation is rendered. */
+    startRealtime();
+
+    startDeleteSync();
+
+    /* Start the shared typing channel so other phones can see typing state. */
+    startTypingRealtime();
+
+    startPresence();
+
+    /*
+     * Hide loading only after
+     * everything is ready.
+     */
+
     finishLoading();
 
-    /* Everything below is non-blocking. */
-    void (async()=>{
-      try{
-        await withStartupTimeout(loadConversationList(),10000,"Conversation loading");
-      }catch(error){
-        console.error("Conversation-list startup error:",error);
-        conversations = [];
-        if(conversationList){
-          conversationList.innerHTML = `
-            <div class="conversation-empty">
-              <strong>Chats could not be loaded</strong>
-              <span>Your ToTalk account is open. Try refreshing the chat list.</span>
-              <button type="button" class="back-button" id="showDatabaseError">Show error</button>
-            </div>
-          `;
-          document.getElementById("showDatabaseError")?.addEventListener("click",()=>showDatabaseError(error));
-        }
-      }
-    })();
+    /*
+     * Focus input after loading
+     * without forcing keyboard open
+     * on mobile.
+     */
 
-    /* Optional services must never hold up the UI. */
-    try{ startTotalkWarningNotifications(); }catch(error){ console.warn("Warning service failed:",error); }
-    try{ void warmUpSupabase(); }catch(error){ console.warn("Supabase warm-up failed:",error); }
-    try{ startRealtime(); }catch(error){ console.error("Realtime startup failed:",error); }
-    try{ startDeleteSync(); }catch(error){ console.error("Delete-sync startup failed:",error); }
-    try{ startTypingRealtime(); }catch(error){ console.error("Typing realtime startup failed:",error); }
-    try{ startPresence(); }catch(error){ console.error("Presence startup failed:",error); }
-
-    setTimeout(()=>{
-      try{
-        messageInput?.focus({preventScroll:true});
-        messageInput?.blur();
-      }catch(_error){}
-    },500);
+    setTimeout(
+      ()=>{
+        messageInput.focus({
+          preventScroll:true
+        });
+        messageInput.blur();
+      },
+      500
+    );
 
   }catch(error){
-    console.error("ToTalk startup error:",error);
+
+    console.error(
+      "ToTalk startup error:",
+      error
+    );
+
     finishLoading();
     showDatabaseError(error);
+
   }
 
 }
