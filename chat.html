@@ -7899,6 +7899,21 @@ document.addEventListener(
    INPUT
 ===================================================== */
 
+/* Keep the textarea focused when the Send button is tapped.
+   Mobile browsers otherwise transfer focus to the button and close
+   the virtual keyboard before sendMessage() can restore it. */
+sendButton.addEventListener("mousedown", event=>{
+  if(document.activeElement === messageInput){
+    event.preventDefault();
+  }
+});
+
+sendButton.addEventListener("touchstart", event=>{
+  if(document.activeElement === messageInput){
+    event.preventDefault();
+  }
+},{passive:false});
+
 sendButton.addEventListener(
   "click",
   sendMessage
