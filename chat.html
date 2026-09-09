@@ -3229,7 +3229,7 @@ header{
       <button
         id="totalkEnableNotificationsButton"
         type="button"
-        style="display:none;margin:14px 0 4px;width:100%;padding:12px 14px;border:1px solid rgba(145,76,255,.55);border-radius:12px;background:#171027;color:#fff;font:700 14px inherit;cursor:pointer;box-shadow:0 6px 20px rgba(0,0,0,.25);"
+        style="display:block;margin:14px 0 4px;width:100%;padding:12px 14px;border:1px solid rgba(145,76,255,.55);border-radius:12px;background:#171027;color:#fff;font:700 14px inherit;cursor:pointer;box-shadow:0 6px 20px rgba(0,0,0,.25);"
       >🔔 Enable ToTalk notifications</button>
     </div>
 
@@ -3757,7 +3757,12 @@ function showToTalkNotificationButton(){
   }
 
   if(Notification.permission === 'granted'){
-    button.style.display = 'none';
+    button.style.display = 'block';
+    button.disabled = false;
+    button.textContent = '🔔 Notifications enabled';
+    button.onclick = async ()=>{
+      try{ await registerToTalkPushSubscription(); }catch(error){ console.error('ToTalk Web Push subscription failed:',error); }
+    };
     return;
   }
 
