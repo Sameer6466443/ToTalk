@@ -8492,6 +8492,15 @@ startApp();
   if(!window.visualViewport) return;
 
   let keyboardTimer=null;
+  let forceBottomWhileOpening=false;
+
+  function scrollMessagesToBottom(behavior="auto"){
+    if(!messageArea) return;
+    messageArea.scrollTo({
+      top:messageArea.scrollHeight,
+      behavior
+    });
+  }
 
   function isMobile(){
     return window.matchMedia("(max-width: 800px)").matches;
@@ -8545,10 +8554,11 @@ startApp();
         messageArea.scrollTop-
         messageArea.clientHeight;
 
-      if(distanceFromBottom<180){
-        requestAnimationFrame(()=>{
-          messageArea.scrollTop=messageArea.scrollHeight;
-        });
+      /* When the composer receives focus, Android may resize the
+         visual viewport before the browser finishes its own scroll.
+         Always restore the newest messages during that transition. */
+      if(forceBottomWhileOpening || distanceFromBottom<180){
+        requestAnimationFrame(()=>scrollMessagesToBottom("auto"));
       }
     }
   }
@@ -8577,13 +8587,26 @@ startApp();
   );
 
   input?.addEventListener("focus",()=>{
-    delayedUpdate(40);
-    setTimeout(updateKeyboardViewport,120);
-    setTimeout(updateKeyboardViewport,300);
-    setTimeout(updateKeyboardViewport,500);
+    forceBottomWhileOpening=true;
+
+    /* Do this before and after the keyboard animation. */
+    scrollMessagesToBottom("auto");
+    delayedUpdate(0);
+
+    [40,120,250,400,650].forEach(delay=>{
+      setTimeout(()=>{
+        updateKeyboardViewport();
+        scrollMessagesToBottom("auto");
+      },delay);
+    });
+
+    setTimeout(()=>{
+      forceBottomWhileOpening=false;
+    },800);
   });
 
   input?.addEventListener("blur",()=>{
+    forceBottomWhileOpening=false;
     delayedUpdate(100);
     setTimeout(updateKeyboardViewport,250);
   });
