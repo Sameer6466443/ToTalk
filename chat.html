@@ -3697,7 +3697,10 @@ function paintConversationOptions(row,partner){
   const id=row?.id;
   const itemPrefs=prefs[id]||{};
   const cached=partner?.user_id ? readCachedBlockState(partner.user_id) : null;
-  const effectiveState=cached || currentBlockState;
+  const effectiveState={
+    blockedByMe:!!(currentBlockState.blockedByMe || cached?.blockedByMe),
+    blockedMe:!!(currentBlockState.blockedMe || cached?.blockedMe)
+  };
   const blocked=!!(partner?.user_id && currentUser?.id && (effectiveState.blockedByMe || effectiveState.blockedMe));
   const labels={
     pin:itemPrefs.pinned?"Unpin conversation":"Pin conversation",
@@ -3920,6 +3923,9 @@ async function unblockUser(partnerId){
     if(error) throw error;
 
     currentBlockState={blockedByMe:false,blockedMe:false};
+    /* Persist the UNBLOCK result too. Otherwise the old cached TRUE value
+       can make the chat list/menu disagree with the database. */
+    writeCachedBlockState(partnerId,currentBlockState);
     applyRestrictionUI();
     paintConversationOptions(conversationOptionsTarget?.row,conversationOptionsTarget?.partner);
     closeConversationOptions();
@@ -6370,7 +6376,14 @@ async function openConversation(row,partner){
   currentConversationId = row.id;
   currentConversationPartner = partner;
 
-  /* Load the real block state before enabling the composer. */
+  /* Restore the last known state immediately so the banner and disabled
+     composer never briefly disappear while the database is being read. */
+  const cachedBlock=readCachedBlockState(partner.user_id);
+  if(cachedBlock){
+    currentBlockState={...cachedBlock};
+    applyRestrictionUI();
+  }
+  /* Then confirm the state from Supabase. */
   await loadBlockState(partner.user_id);
 
   /* Opening a conversation marks everything currently in it as read. */
