@@ -3006,6 +3006,33 @@ header{
   .totalk-warning-icon{width:72px;height:72px;font-size:33px;}
 }
 </style>
+
+<style id="totalk-message-input-scrollbar-final">
+/* =====================================================
+   FINAL FIX — MESSAGE INPUT SCROLLBAR
+   Hide ONLY the textarea scrollbar beside Send.
+   Do not affect the main chat scrollbar.
+===================================================== */
+#messageInput{
+  overflow:hidden !important;
+  overflow-y:hidden !important;
+  overflow-x:hidden !important;
+  scrollbar-width:none !important;
+  -ms-overflow-style:none !important;
+  -webkit-appearance:none !important;
+}
+
+#messageInput::-webkit-scrollbar,
+#messageInput::-webkit-scrollbar-track,
+#messageInput::-webkit-scrollbar-thumb{
+  width:0 !important;
+  height:0 !important;
+  display:none !important;
+  background:transparent !important;
+  border:0 !important;
+}
+</style>
+
 </head>
 
 <body>
