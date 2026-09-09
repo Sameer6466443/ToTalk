@@ -8603,58 +8603,64 @@ startApp();
   let bottomFrame=0;
   let bottomTimer=0;
   let userIsAway=false;
+  let suppressAutoScroll=false;
 
   function mobile(){
     return window.matchMedia('(max-width:800px)').matches;
   }
 
   function atBottom(){
-    return messages.scrollHeight - messages.scrollTop - messages.clientHeight < 220;
+    return messages.scrollHeight - messages.scrollTop - messages.clientHeight < 80;
   }
 
-  /* One cheap, immediate correction instead of many competing timers. */
   function forceBottom(){
-    if(!mobile()) return;
+    if(!mobile() || suppressAutoScroll) return;
     cancelAnimationFrame(bottomFrame);
     bottomFrame=requestAnimationFrame(()=>{
       messages.scrollTop=messages.scrollHeight;
     });
   }
 
-  function scheduleBottom(delay=90){
+  function scheduleBottom(delay=120){
     clearTimeout(bottomTimer);
     bottomTimer=setTimeout(forceBottom,delay);
   }
 
-  input.addEventListener('focus',function(){
-    userIsAway=false;
-    scheduleBottom(80);
-  },{passive:true});
-
+  /* Scrolling upward is always respected. Opening the composer must not
+     pull the user back to the newest message. */
   messages.addEventListener('scroll',function(){
     userIsAway=!atBottom();
+    if(userIsAway){
+      suppressAutoScroll=true;
+      clearTimeout(bottomTimer);
+      cancelAnimationFrame(bottomFrame);
+    }
   },{passive:true});
 
-  /* New messages: move only when the user was already at the bottom. */
+  input.addEventListener('focus',function(){
+    /* Do not scroll here. Android may resize the viewport, but the user's
+       manually selected message position must remain untouched. */
+    suppressAutoScroll=false;
+  });
+
+  /* Only keep the view at the bottom when it was already at the bottom.
+     Never force it merely because the input is focused. */
   const observer=new MutationObserver(function(){
-    if(document.activeElement===input || !userIsAway){
+    if(!userIsAway && !suppressAutoScroll){
       forceBottom();
     }
   });
-  observer.observe(messages,{childList:true});
+  observer.observe(messages,{childList:true,subtree:true});
 
-  /* Keyboard resize: one debounced correction after resizing settles. */
   if(window.visualViewport){
     visualViewport.addEventListener('resize',function(){
-      if(document.activeElement===input) scheduleBottom(120);
+      if(!userIsAway && !suppressAutoScroll) scheduleBottom(180);
     },{passive:true});
   }
 
   window.addEventListener('resize',function(){
-    if(document.activeElement===input) scheduleBottom(120);
+    if(!userIsAway && !suppressAutoScroll) scheduleBottom(180);
   },{passive:true});
-
-  setTimeout(forceBottom,250);
 })();
 </script>
 </body>
