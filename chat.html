@@ -2314,91 +2314,6 @@ header{
     rgba(0,0,0,.22);
 }
 
-
-
-/* =====================================================
-   MOBILE KEYBOARD LAYOUT — SAFE WHATSAPP-STYLE
-   Added without changing the application/startup logic.
-===================================================== */
-@media(max-width:800px){
-  html,body{
-    width:100%;
-    min-height:100%;
-    overflow:hidden;
-    overscroll-behavior:none;
-  }
-
-  header{
-    position:fixed;
-    top:0;
-    left:0;
-    right:0;
-    z-index:100;
-  }
-
-  .chat-layout{
-    position:fixed;
-    top:62px;
-    left:0;
-    right:0;
-    bottom:0;
-    width:100%;
-    height:calc(100dvh - 62px);
-    min-height:0;
-    padding:7px;
-    overflow:hidden;
-  }
-
-  .chat-layout.mobile-chat-open .chat-box{
-    position:relative;
-    width:100%;
-    height:100%;
-    min-height:0;
-    overflow:hidden;
-  }
-
-  .chat-layout.mobile-chat-open .chat-top{
-    position:absolute;
-    top:0;
-    left:0;
-    right:0;
-    z-index:30;
-  }
-
-  .chat-layout.mobile-chat-open #messages{
-    position:absolute;
-    top:62px;
-    left:0;
-    right:0;
-    bottom:0;
-    height:auto;
-    padding-bottom:105px;
-    overflow-y:auto;
-    overscroll-behavior:contain;
-    -webkit-overflow-scrolling:touch;
-  }
-
-  .chat-layout.mobile-chat-open .input-area{
-    position:absolute;
-    left:7px;
-    right:7px;
-    bottom:7px;
-    z-index:40;
-  }
-
-  .chat-layout.mobile-chat-open .typing-indicator{
-    position:absolute;
-    left:14px;
-    bottom:68px;
-    z-index:41;
-    margin:0;
-  }
-
-  #messageInput{
-    scroll-margin:0 !important;
-  }
-}
-
 /* =====================================================
    REDUCED MOTION
 ===================================================== */
@@ -2521,15 +2436,78 @@ header{
   }
 }
 
-/* Typing indicator — ToTalk dots only */
-.typing-indicator{display:none;align-items:center;justify-content:flex-start;margin:0 0 6px 18px;min-height:22px;height:22px;padding:0;pointer-events:none;opacity:0;transform:translateY(3px);transition:opacity .16s ease,transform .16s ease;}
-.typing-indicator.show{display:flex;opacity:1;transform:translateY(0);}
-.typing-indicator-bubble{display:flex;align-items:center;justify-content:flex-start;gap:9px;width:auto;min-width:0;height:22px;padding:0;background:transparent;border:0;box-shadow:none;}
-.typing-dot{width:8px;height:8px;border-radius:50%;background:#a86cff;box-shadow:0 0 6px #a86cff,0 0 14px rgba(168,108,255,.9);animation:totalkTypingDot 1.05s infinite ease-in-out;}
+/* Typing indicator — screenshot-style ToTalk purple loading pill */
+.typing-indicator{
+  display:none;
+  align-items:flex-end;
+  justify-content:flex-start;
+  margin:0 0 8px 18px;
+  min-height:68px;
+  height:68px;
+  padding:0;
+  pointer-events:none;
+  opacity:0;
+  transform:translateY(5px);
+  transition:opacity .16s ease,transform .16s ease;
+}
+.typing-indicator.show{
+  display:flex;
+  opacity:1;
+  transform:translateY(0);
+}
+.typing-indicator-bubble{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:13px;
+  width:136px;
+  height:68px;
+  padding:0 20px;
+  box-sizing:border-box;
+  background:linear-gradient(145deg,rgba(19,10,42,.98),rgba(7,4,21,.98));
+  border:1px solid rgba(142,70,255,.18);
+  border-radius:34px;
+  box-shadow:0 0 18px rgba(116,45,255,.22),inset 0 0 18px rgba(92,38,190,.08);
+}
+.typing-dot{
+  width:10px;
+  height:10px;
+  flex:0 0 10px;
+  border-radius:50%;
+  background:#a86cff;
+  box-shadow:0 0 7px #a86cff,0 0 15px rgba(168,108,255,.95),0 0 24px rgba(125,67,255,.48);
+  animation:totalkTypingDot 1.05s infinite ease-in-out;
+}
 .typing-dot:nth-child(2){animation-delay:.14s;}
 .typing-dot:nth-child(3){animation-delay:.28s;}
-@keyframes totalkTypingDot{0%,60%,100%{transform:translateY(0) scale(.78);opacity:.42;}30%{transform:translateY(-4px) scale(1.08);opacity:1;}}
-@media(max-width:520px){.typing-indicator{margin:0 0 6px 14px}.typing-indicator-bubble{gap:9px}.typing-dot{width:7px;height:7px;}}
+@keyframes totalkTypingDot{
+  0%,60%,100%{
+    transform:translateY(0) scale(.78);
+    opacity:.45;
+  }
+  30%{
+    transform:translateY(-5px) scale(1.08);
+    opacity:1;
+  }
+}
+@media(max-width:520px){
+  .typing-indicator{
+    margin:0 0 7px 14px;
+    min-height:64px;
+    height:64px;
+  }
+  .typing-indicator-bubble{
+    width:132px;
+    height:64px;
+    gap:12px;
+    border-radius:32px;
+  }
+  .typing-dot{
+    width:9px;
+    height:9px;
+    flex-basis:9px;
+  }
+}
 
 /* Conversation options sheet */
 .conversation-options-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.62);backdrop-filter:blur(8px);display:none;align-items:flex-end;justify-content:center;z-index:9999;padding:16px;}
