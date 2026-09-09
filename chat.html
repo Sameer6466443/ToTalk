@@ -3661,6 +3661,24 @@ let replyTarget = null;
 let currentUserRestricted = false;
 let restrictionCheckCompleted = false;
 let currentBlockState = {blockedByMe:false,blockedMe:false};
+let blockStateCache = {};
+function blockCacheKey(partnerId){
+  return `totalk_block_state_${currentUser?.id || "guest"}_${String(partnerId || "")}`;
+}
+function readCachedBlockState(partnerId){
+  try{
+    const value=localStorage.getItem(blockCacheKey(partnerId));
+    return value ? JSON.parse(value) : null;
+  }catch(_error){ return null; }
+}
+function writeCachedBlockState(partnerId,state){
+  try{
+    localStorage.setItem(blockCacheKey(partnerId),JSON.stringify({
+      blockedByMe:!!state?.blockedByMe,
+      blockedMe:!!state?.blockedMe
+    }));
+  }catch(_error){}
+}
 let blockStateRequestToken = 0;
 let blockOperationInProgress = false;
 
@@ -3678,7 +3696,9 @@ function paintConversationOptions(row,partner){
   const prefs=readConversationPrefs();
   const id=row?.id;
   const itemPrefs=prefs[id]||{};
-  const blocked=!!(partner?.user_id && currentUser?.id && currentBlockState.blockedByMe);
+  const cached=partner?.user_id ? readCachedBlockState(partner.user_id) : null;
+  const effectiveState=cached || currentBlockState;
+  const blocked=!!(partner?.user_id && currentUser?.id && (effectiveState.blockedByMe || effectiveState.blockedMe));
   const labels={
     pin:itemPrefs.pinned?"Unpin conversation":"Pin conversation",
     mute:itemPrefs.muted?"Unmute notifications":"Mute notifications",
@@ -3777,11 +3797,17 @@ async function loadBlockState(partnerId){
 
   if(!currentUser?.id || !partnerId || String(partnerId)===String(currentUser.id)){
     currentBlockState={blockedByMe:false,blockedMe:false};
+    writeCachedBlockState(partnerId,currentBlockState);
     applyRestrictionUI();
     return currentBlockState;
   }
 
   try{
+    const cached=readCachedBlockState(partnerId);
+    if(cached && (cached.blockedByMe || cached.blockedMe)){
+      currentBlockState={...cached};
+      applyRestrictionUI();
+    }
     const me=String(currentUser.id);
     const partner=String(partnerId);
 
@@ -3808,6 +3834,7 @@ async function loadBlockState(partnerId){
     }
 
     currentBlockState=next;
+    writeCachedBlockState(partnerId,next);
     applyRestrictionUI();
     return currentBlockState;
   }catch(error){
@@ -3854,10 +3881,12 @@ async function blockUser(partnerId){
        realtime broadcast here — those background operations were the reason
        the old button could remain stuck on "Blocking…". */
     currentBlockState={blockedByMe:true,blockedMe:false};
+    writeCachedBlockState(partnerId,currentBlockState);
     applyRestrictionUI();
     paintConversationOptions(conversationOptionsTarget?.row,conversationOptionsTarget?.partner);
     closeConversationOptions();
-    showStatus("User blocked. Messaging is disabled.");
+    /* The persistent banner is the only block notice; do not create a
+       temporary toast that disappears or appears in the message area. */
 
     blockOperationInProgress=false;
     void broadcastBlockChange(blockerId,blockedId,"blocked");
@@ -3894,7 +3923,7 @@ async function unblockUser(partnerId){
     applyRestrictionUI();
     paintConversationOptions(conversationOptionsTarget?.row,conversationOptionsTarget?.partner);
     closeConversationOptions();
-    showStatus("User unblocked. Messaging is enabled again.");
+    /* The persistent block banner is removed by applyRestrictionUI(). */
     void broadcastBlockChange(blockerId,blockedId,"unblocked");
     return true;
   }catch(error){
@@ -3976,7 +4005,9 @@ async function applyConversationAction(action){
     const partnerId=target?.partner?.user_id;
     if(!partnerId || !currentUser?.id) return;
 
-    const ok=currentBlockState.blockedByMe
+    const cached=readCachedBlockState(partnerId);
+    const isBlocked=!!(currentBlockState.blockedByMe || currentBlockState.blockedMe || cached?.blockedByMe || cached?.blockedMe);
+    const ok=isBlocked
       ? await unblockUser(partnerId)
       : await blockUser(partnerId);
 
@@ -8634,6 +8665,33 @@ startApp();
   }
 }
 </style>
+<style id="totalk-block-ui-final-fix">
+/* Block state is persistent and the notice stays directly above the composer. */
+@media (max-width:800px){
+  .chat-box .block-banner{
+    position:fixed !important;
+    left:28px !important;
+    right:28px !important;
+    bottom:calc(var(--totalk-keyboard-height, 0px) + 82px) !important;
+    z-index:1100 !important;
+    margin:0 !important;
+    min-height:42px;
+    box-sizing:border-box;
+    pointer-events:none !important;
+  }
+}
+@media (min-width:801px){
+  .chat-box .block-banner{
+    position:absolute !important;
+    left:18px !important;
+    right:18px !important;
+    bottom:94px !important;
+    margin:0 !important;
+    z-index:60 !important;
+  }
+}
+</style>
+
 <script id="totalk-real-keyboard-bottom-fix-script">
 (function(){
   const messages=document.getElementById('messages');
