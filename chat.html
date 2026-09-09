@@ -8481,56 +8481,20 @@ startApp();
 
 /* =====================================================
    MOBILE KEYBOARD / VISUAL VIEWPORT CONTROLLER
-   Keep the newest message visible above the composer
-   when the Android keyboard opens.
+   WhatsApp-like composer positioning.
 ===================================================== */
 (function initToTalkKeyboardFix(){
   const root=document.documentElement;
   const input=document.getElementById("messageInput");
   const messageArea=document.getElementById("messages");
   const layout=document.querySelector(".chat-layout");
-  const inputArea=document.querySelector(".input-area");
 
   if(!window.visualViewport) return;
 
   let keyboardTimer=null;
-  let keyboardWasOpen=false;
-  let forceNewestMessageOnKeyboard=false;
 
   function isMobile(){
     return window.matchMedia("(max-width: 800px)").matches;
-  }
-
-  function scrollNewestMessageIntoView(){
-    if(!messageArea) return;
-
-    /*
-     * The composer is fixed above the Android keyboard.
-     * Give the scroll area enough bottom space for the whole
-     * composer, then put the message list at its true bottom.
-     * This prevents the newest bubble from sitting underneath
-     * the composer.
-     */
-    if(inputArea){
-      const composerHeight=Math.ceil(
-        inputArea.getBoundingClientRect().height
-      );
-
-      const safeBottom=Math.max(
-        140,
-        composerHeight+18
-      );
-
-      messageArea.style.paddingBottom=safeBottom+"px";
-    }
-
-    requestAnimationFrame(()=>{
-      messageArea.scrollTop=messageArea.scrollHeight;
-
-      requestAnimationFrame(()=>{
-        messageArea.scrollTop=messageArea.scrollHeight;
-      });
-    });
   }
 
   function updateKeyboardViewport(){
@@ -8538,11 +8502,6 @@ startApp();
       root.style.removeProperty("--totalk-visible-height");
       root.style.removeProperty("--totalk-keyboard-height");
       document.body.classList.remove("keyboard-open");
-      keyboardWasOpen=false;
-      forceNewestMessageOnKeyboard=false;
-      if(messageArea){
-        messageArea.style.removeProperty("padding-bottom");
-      }
       return;
     }
 
@@ -8554,6 +8513,8 @@ startApp();
       document.documentElement.clientHeight
     );
 
+    /* Distance between the layout viewport bottom and the
+       visible viewport bottom = Android keyboard height. */
     const keyboardHeight=Math.max(
       0,
       Math.round(fullHeight-vv.height-vv.offsetTop)
@@ -8578,20 +8539,18 @@ startApp();
         "calc("+layoutHeight+"px - 62px)";
     }
 
-    /*
-     * The focus event records that the user is entering the
-     * composer. During the keyboard animation the viewport
-     * becomes shorter, so the old "distance from bottom"
-     * calculation is no longer reliable. Instead, once the
-     * keyboard is open, explicitly place the newest message
-     * above the composer.
-     */
-    if(keyboardOpen && messageArea && forceNewestMessageOnKeyboard){
-      scrollNewestMessageIntoView();
-      forceNewestMessageOnKeyboard=false;
-    }
+    if(keyboardOpen && messageArea){
+      const distanceFromBottom=
+        messageArea.scrollHeight-
+        messageArea.scrollTop-
+        messageArea.clientHeight;
 
-    keyboardWasOpen=keyboardOpen;
+      if(distanceFromBottom<180){
+        requestAnimationFrame(()=>{
+          messageArea.scrollTop=messageArea.scrollHeight;
+        });
+      }
+    }
   }
 
   function delayedUpdate(delay=70){
@@ -8618,36 +8577,19 @@ startApp();
   );
 
   input?.addEventListener("focus",()=>{
-    /*
-     * Keyboard opening starts after focus. Mark the next keyboard
-     * state so the list is deliberately moved to the newest message.
-     */
-    if(isMobile()){
-      forceNewestMessageOnKeyboard=true;
-
-      delayedUpdate(40);
-
-      setTimeout(updateKeyboardViewport,120);
-      setTimeout(updateKeyboardViewport,300);
-      setTimeout(updateKeyboardViewport,500);
-      setTimeout(()=>{
-        if(document.body.classList.contains("keyboard-open")){
-          scrollNewestMessageIntoView();
-        }
-      },650);
-    }
+    delayedUpdate(40);
+    setTimeout(updateKeyboardViewport,120);
+    setTimeout(updateKeyboardViewport,300);
+    setTimeout(updateKeyboardViewport,500);
   });
 
   input?.addEventListener("blur",()=>{
-    forceNewestMessageOnKeyboard=false;
     delayedUpdate(100);
-
     setTimeout(updateKeyboardViewport,250);
   });
 
   updateKeyboardViewport();
 })();
-
 
 </script>
 
