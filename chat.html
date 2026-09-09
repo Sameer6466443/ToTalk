@@ -1341,6 +1341,19 @@ header{
 }
 
 /* =====================================================
+   CHROME NOTIFICATIONS
+===================================================== */
+let notificationPermissionRequested = false;
+function requestChromeNotificationPermission(){
+  if(notificationPermissionRequested) return;
+  notificationPermissionRequested = true;
+  if("Notification" in window && Notification.permission === "default"){
+    Notification.requestPermission().catch(()=>{});
+  }
+}
+document.addEventListener("pointerdown", requestChromeNotificationPermission, {once:true, passive:true});
+
+/* =====================================================
    INPUT
 ===================================================== */
 
@@ -7267,6 +7280,28 @@ function startRealtime(){
       payload=>{
         const data = payload?.new;
         if(!data?.id) return;
+
+        // Chrome desktop notification for incoming messages.
+        if(
+          currentUser &&
+          data.sender_id !== currentUser.id &&
+          document.visibilityState !== "visible" &&
+          "Notification" in window &&
+          Notification.permission === "granted"
+        ){
+          const title = currentConversationId === data.conversation_id
+            ? "New message on ToTalk"
+            : "New ToTalk message";
+          const notification = new Notification(title,{
+            body: data.content || "You received a new message.",
+            icon: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='46' fill='%23914cff'/%3E%3Ctext x='50' y='64' font-size='52' text-anchor='middle' fill='white'%3ET%3C/text%3E%3C/svg%3E",
+            tag: "totalk-" + data.conversation_id
+          });
+          notification.onclick = ()=>{
+            window.focus();
+            notification.close();
+          };
+        }
 
         /*
          * A local "Remove conversation" hides the sidebar card only.
