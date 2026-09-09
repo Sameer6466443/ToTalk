@@ -1393,6 +1393,19 @@ header{
 
   font-family:inherit;
 
+  /* Hide the textarea scrollbar without disabling scrolling */
+  scrollbar-width:none;
+  -ms-overflow-style:none;
+}
+
+#messageInput::-webkit-scrollbar{
+  width:0;
+  height:0;
+  display:none;
+}
+
+#messageInput{
+
   font-size:16px;
 
   line-height:18px;
