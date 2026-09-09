@@ -3487,6 +3487,7 @@ let deleteSyncChannel = null;
 let typingChannel = null;
 let typingChannelReady = false;
 let typingStopTimer = null;
+let typingHeartbeatTimer = null;
 let typingIsActive = false;
 let remoteTypingUserId = null;
 let remoteTypingConversationId = null;
@@ -4151,8 +4152,15 @@ function stopLocalTyping(broadcast=true){
     clearTimeout(typingStopTimer);
     typingStopTimer = null;
   }
+
+  if(typingHeartbeatTimer){
+    clearInterval(typingHeartbeatTimer);
+    typingHeartbeatTimer = null;
+  }
+
   if(!typingIsActive) return;
   typingIsActive = false;
+
   if(broadcast){
     void sendTypingState(false);
   }
@@ -4165,10 +4173,25 @@ function startLocalTyping(){
   if(!typingIsActive){
     typingIsActive = true;
     void sendTypingState(true);
+
+    /* Keep the remote indicator alive for as long as the user keeps typing.
+       The old version sent only one "true" event, so the remote indicator
+       expired after a couple of seconds even while typing continued. */
+    if(typingHeartbeatTimer) clearInterval(typingHeartbeatTimer);
+    typingHeartbeatTimer = setInterval(()=>{
+      if(typingIsActive && messageInput?.value.trim() && currentConversationId){
+        void sendTypingState(true);
+      }else{
+        stopLocalTyping(true);
+      }
+    },900);
+  }else{
+    /* A new keystroke is also a fresh typing signal. */
+    void sendTypingState(true);
   }
 
   if(typingStopTimer) clearTimeout(typingStopTimer);
-  typingStopTimer = setTimeout(()=>stopLocalTyping(true),1200);
+  typingStopTimer = setTimeout(()=>stopLocalTyping(true),1700);
 }
 
 function startTypingRealtime(){
@@ -4195,7 +4218,7 @@ function startTypingRealtime(){
       remoteTypingConversationId = conversationId;
       showTypingIndicator();
       if(remoteTypingStopTimer) clearTimeout(remoteTypingStopTimer);
-      remoteTypingStopTimer = setTimeout(hideTypingIndicator,2000);
+      remoteTypingStopTimer = setTimeout(hideTypingIndicator,2600);
     }else if(remoteTypingUserId===senderId && remoteTypingConversationId===conversationId){
       hideTypingIndicator();
     }
