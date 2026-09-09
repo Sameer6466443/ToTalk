@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <title>ToTalk VAPID Key Generator</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      min-height: 100vh;
+      font-family: Arial, sans-serif;
+      background: #0b1020;
+      color: white;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 700px;
+      background: #151b2e;
+      border: 1px solid #29324d;
+      border-radius: 20px;
+      padding: 25px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+    }
+
+    h1 {
+      font-size: 26px;
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      color: #9ca7c2;
+      font-size: 14px;
+      line-height: 1.5;
+      margin-bottom: 25px;
+    }
+
+    .warning {
+      background: rgba(255, 170, 0, 0.1);
+      border: 1px solid rgba(255, 170, 0, 0.35);
+      color: #ffd27a;
+      padding: 14px;
+      border-radius: 12px;
+      font-size: 13px;
+      line-height: 1.5;
+      margin-bottom: 20px;
+    }
+
+    button {
+      width: 100%;
+      border: none;
+      border-radius: 12px;
+      padding: 15px;
+      background: #5865f2;
+      color: white;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      margin-bottom: 20px;
+    }
+
+    button:hover {
+      opacity: 0.9;
+    }
+
+    button:active {
+      transform: scale(0.99);
+    }
+
+    .key-box {
+      margin-top: 18px;
+    }
+
+    .label {
+      font-size: 13px;
+      color: #aeb8d0;
+      margin-bottom: 8px;
+      font-weight: bold;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 100px;
+      resize: vertical;
+      border: 1px solid #303a58;
+      border-radius: 12px;
+      background: #0c1120;
+      color: #e9edff;
+      padding: 13px;
+      font-family: monospace;
+      font-size: 12px;
+      line-height: 1.5;
+      outline: none;
+    }
+
+    textarea:focus {
+      border-color: #5865f2;
+    }
+
+    .copy-button {
+      margin-top: 8px;
+      margin-bottom: 0;
+      background: #242c45;
+      font-size: 14px;
+      padding: 11px;
+    }
+
+    .status {
+      display: none;
+      margin-top: 18px;
+      padding: 12px;
+      border-radius: 10px;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .success {
+      display: block;
+      background: rgba(40, 200, 120, 0.1);
+      border: 1px solid rgba(40, 200, 120, 0.3);
+      color: #8ff0bc;
+    }
+
+    .error {
+      display: block;
+      background: rgba(255, 70, 70, 0.1);
+      border: 1px solid rgba(255, 70, 70, 0.3);
+      color: #ff9d9d;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .steps {
+      margin-top: 25px;
+      padding-top: 20px;
+      border-top: 1px solid #29324d;
+    }
+
+    .steps h2 {
+      font-size: 17px;
+      margin-bottom: 12px;
+    }
+
+    .steps p {
+      color: #aeb8d0;
+      font-size: 13px;
+      line-height: 1.6;
+      margin-bottom: 7px;
+    }
+
+    code {
+      background: #0b1020;
+      padding: 2px 5px;
+      border-radius: 5px;
+      color: #d8ddff;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="container">
+
+    <h1>ToTalk VAPID Key Generator</h1>
+
+    <div class="subtitle">
+      Generate a VAPID key pair for Web Push notifications.
+      This page generates the keys locally in your browser.
+    </div>
+
+    <div class="warning">
+      <strong>IMPORTANT:</strong><br>
+      Keep the Private Key secret.
+      Do not send it to anyone and do not put it inside your
+      public HTML/JavaScript files.
+    </div>
+
+    <button id="generateButton">
+      Generate VAPID Keys
+    </button>
+
+    <div id="publicSection" class="key-box hidden">
+
+      <div class="label">
+        VAPID PUBLIC KEY
+      </div>
+
+      <textarea
+        id="publicKey"
+        readonly
+        spellcheck="false"
+      ></textarea>
+
+      <button
+        class="copy-button"
+        id="copyPublicButton"
+      >
+        Copy Public Key
+      </button>
+
+    </div>
+
+    <div id="privateSection" class="key-box hidden">
+
+      <div class="label">
+        VAPID PRIVATE KEY
+      </div>
+
+      <textarea
+        id="privateKey"
+        readonly
+        spellcheck="false"
+      ></textarea>
+
+      <button
+        class="copy-button"
+        id="copyPrivateButton"
+      >
+        Copy Private Key
+      </button>
+
+    </div>
+
+    <div id="status" class="status"></div>
+
+    <div class="steps">
+
+      <h2>What we will do next</h2>
+
+      <p>
+        <strong>1.</strong>
+        Generate the two keys above.
+      </p>
+
+      <p>
+        <strong>2.</strong>
+        Put the VAPID private key into
+        <code>Supabase → Edge Functions → Secrets</code>.
+      </p>
+
+      <p>
+        <strong>3.</strong>
+        Put only the VAPID public key into your ToTalk
+        browser code.
+      </p>
+
+      <p>
+        <strong>4.</strong>
+        Connect your <code>push_subscriptions</code>
+        table to the notification system.
+      </p>
+
+      <p>
+        <strong>5.</strong>
+        Deploy the Supabase Edge Function.
+      </p>
+
+    </div>
+
+  </div>
+
+  <script>
+
+    /*
+      ==========================================
+      ToTalk VAPID Key Generator
+      ==========================================
+
+      Uses Web Crypto API.
+
+      Algorithm:
+        ECDSA
+        P-256
+
+      VAPID public key:
+        Uncompressed P-256 public key
+
+      VAPID private key:
+        Private scalar "d" from JWK
+
+      Both are converted to Base64URL.
+    */
+
+
+    const generateButton =
+      document.getElementById("generateButton");
+
+    const publicSection =
+      document.getElementById("publicSection");
+
+    const privateSection =
+      document.getElementById("privateSection");
+
+    const publicKeyElement =
+      document.getElementById("publicKey");
+
+    const privateKeyElement =
+      document.getElementById("privateKey");
+
+    const copyPublicButton =
+      document.getElementById("copyPublicButton");
+
+    const copyPrivateButton =
+      document.getElementById("copyPrivateButton");
+
+    const statusElement =
+      document.getElementById("status");
+
+
+    /*
+      ------------------------------------------
+      ArrayBuffer → Base64URL
+      ------------------------------------------
+    */
+
+    function arrayBufferToBase64Url(buffer) {
+
+      const bytes =
+        new Uint8Array(buffer);
+
+      let binary = "";
+
+      for (let i = 0; i < bytes.length; i++) {
+        binary += String.fromCharCode(bytes[i]);
+      }
+
+      const base64 =
+        btoa(binary);
+
+      return base64
+        .replace(/\+/g, "-")
+        .replace(/\//g, "_")
+        .replace(/=+$/g, "");
+    }
+
+
+    /*
+      ------------------------------------------
+      Show status message
+      ------------------------------------------
+    */
+
+    function showStatus(message, type) {
+
+      statusElement.textContent = message;
+
+      statusElement.className =
+        "status " + type;
+    }
+
+
+    /*
+      ------------------------------------------
+      Generate VAPID Keys
+      ------------------------------------------
+    */
+
+    async function generateVapidKeys() {
+
+      try {
+
+        showStatus(
+          "Generating secure VAPID keys locally...",
+          "success"
+        );
+
+
+        /*
+          Generate an ECDSA P-256 key pair.
+
+          This is the curve required for
+          VAPID / Web Push.
+        */
+
+        const keyPair =
+          await crypto.subtle.generateKey(
+            {
+              name: "ECDSA",
+              namedCurve: "P-256"
+            },
+            true,
+            [
+              "sign",
+              "verify"
+            ]
+          );
+
+
+        /*
+          Export public key in RAW format.
+
+          P-256 RAW public key is:
+
+          04 + X + Y
+
+          This is the format required for
+          the Web Push applicationServerKey.
+        */
+
+        const rawPublicKey =
+          await crypto.subtle.exportKey(
+            "raw",
+            keyPair.publicKey
+          );
+
+
+        /*
+          Export private key as JWK.
+
+          The "d" property contains the
+          private scalar.
+        */
+
+        const privateJwk =
+          await crypto.subtle.exportKey(
+            "jwk",
+            keyPair.privateKey
+          );
+
+
+        if (!privateJwk.d) {
+
+          throw new Error(
+            "Private key could not be exported."
+          );
+
+        }
+
+
+        /*
+          Convert public key to Base64URL.
+        */
+
+        const publicKey =
+          arrayBufferToBase64Url(
+            rawPublicKey
+          );
+
+
+        /*
+          JWK "d" is already Base64URL.
+        */
+
+        const privateKey =
+          privateJwk.d;
+
+
+        /*
+          Basic validation.
+        */
+
+        if (!publicKey) {
+
+          throw new Error(
+            "Public key generation failed."
+          );
+
+        }
+
+        if (!privateKey) {
+
+          throw new Error(
+            "Private key generation failed."
+          );
+
+        }
+
+
+        /*
+          Display keys.
+        */
+
+        publicKeyElement.value =
+          publicKey;
+
+        privateKeyElement.value =
+          privateKey;
+
+
+        publicSection.classList.remove(
+          "hidden"
+        );
+
+        privateSection.classList.remove(
+          "hidden"
+        );
+
+
+        showStatus(
+          "VAPID keys generated successfully. Keep the private key secret.",
+          "success"
+        );
+
+      } catch (error) {
+
+        console.error(
+          "VAPID generation error:",
+          error
+        );
+
+        showStatus(
+          "Could not generate VAPID keys: " +
+          error.message,
+          "error"
+        );
+
+      }
+
+    }
+
+
+    /*
+      ------------------------------------------
+      Copy helper
+      ------------------------------------------
+    */
+
+    async function copyText(text, button) {
+
+      try {
+
+        await navigator.clipboard.writeText(
+          text
+        );
+
+        const originalText =
+          button.textContent;
+
+        button.textContent =
+          "Copied ✓";
+
+        setTimeout(() => {
+
+          button.textContent =
+            originalText;
+
+        }, 1500);
+
+      } catch (error) {
+
+        /*
+          Fallback for browsers where
+          clipboard API is unavailable.
+        */
+
+        const temporary =
+          document.createElement("textarea");
+
+        temporary.value =
+          text;
+
+        temporary.style.position =
+          "fixed";
+
+        temporary.style.left =
+          "-9999px";
+
+        document.body.appendChild(
+          temporary
+        );
+
+        temporary.select();
+
+        document.execCommand(
+          "copy"
+        );
+
+        document.body.removeChild(
+          temporary
+        );
+
+        const originalText =
+          button.textContent;
+
+        button.textContent =
+          "Copied ✓";
+
+        setTimeout(() => {
+
+          button.textContent =
+            originalText;
+
+        }, 1500);
+
+      }
+
+    }
+
+
+    /*
+      ------------------------------------------
+      Button events
+      ------------------------------------------
+    */
+
+    generateButton.addEventListener(
+      "click",
+      generateVapidKeys
+    );
+
+
+    copyPublicButton.addEventListener(
+      "click",
+      () => {
+
+        copyText(
+          publicKeyElement.value,
+          copyPublicButton
+        );
+
+      }
+    );
+
+
+    copyPrivateButton.addEventListener(
+      "click",
+      () => {
+
+        copyText(
+          privateKeyElement.value,
+          copyPrivateButton
+        );
+
+      }
+    );
+
+
+    /*
+      ------------------------------------------
+      Check Web Crypto support
+      ------------------------------------------
+    */
+
+    if (
+      !window.crypto ||
+      !window.crypto.subtle
+    ) {
+
+      generateButton.disabled =
+        true;
+
+      generateButton.textContent =
+        "Web Crypto Not Available";
+
+      showStatus(
+        "Your browser does not provide the required Web Crypto API.",
+        "error"
+      );
+
+    }
+
+  </script>
+
+</body>
+</html>
