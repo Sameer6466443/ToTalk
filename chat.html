@@ -8492,15 +8492,6 @@ startApp();
   if(!window.visualViewport) return;
 
   let keyboardTimer=null;
-  let forceBottomWhileOpening=false;
-
-  function scrollMessagesToBottom(behavior="auto"){
-    if(!messageArea) return;
-    messageArea.scrollTo({
-      top:messageArea.scrollHeight,
-      behavior
-    });
-  }
 
   function isMobile(){
     return window.matchMedia("(max-width: 800px)").matches;
@@ -8554,11 +8545,10 @@ startApp();
         messageArea.scrollTop-
         messageArea.clientHeight;
 
-      /* When the composer receives focus, Android may resize the
-         visual viewport before the browser finishes its own scroll.
-         Always restore the newest messages during that transition. */
-      if(forceBottomWhileOpening || distanceFromBottom<180){
-        requestAnimationFrame(()=>scrollMessagesToBottom("auto"));
+      if(distanceFromBottom<180){
+        requestAnimationFrame(()=>{
+          messageArea.scrollTop=messageArea.scrollHeight;
+        });
       }
     }
   }
@@ -8587,26 +8577,13 @@ startApp();
   );
 
   input?.addEventListener("focus",()=>{
-    forceBottomWhileOpening=true;
-
-    /* Do this before and after the keyboard animation. */
-    scrollMessagesToBottom("auto");
-    delayedUpdate(0);
-
-    [40,120,250,400,650].forEach(delay=>{
-      setTimeout(()=>{
-        updateKeyboardViewport();
-        scrollMessagesToBottom("auto");
-      },delay);
-    });
-
-    setTimeout(()=>{
-      forceBottomWhileOpening=false;
-    },800);
+    delayedUpdate(40);
+    setTimeout(updateKeyboardViewport,120);
+    setTimeout(updateKeyboardViewport,300);
+    setTimeout(updateKeyboardViewport,500);
   });
 
   input?.addEventListener("blur",()=>{
-    forceBottomWhileOpening=false;
     delayedUpdate(100);
     setTimeout(updateKeyboardViewport,250);
   });
@@ -8616,5 +8593,78 @@ startApp();
 
 </script>
 
+
+<style id="totalk-real-keyboard-bottom-fix">
+/* FINAL MOBILE CHAT FIX: keep the newest message visible when the keyboard opens. */
+@media (max-width:800px){
+  #messages{
+    overflow-anchor:none !important;
+    scroll-padding-bottom:140px !important;
+  }
+  .chat-box{
+    min-height:0 !important;
+  }
+}
+</style>
+<script id="totalk-real-keyboard-bottom-fix-script">
+(function(){
+  const messages=document.getElementById('messages');
+  const input=document.getElementById('messageInput');
+  if(!messages || !input) return;
+
+  let bottomTimer=[];
+  let userIsDragging=false;
+
+  function mobile(){ return window.matchMedia('(max-width:800px)').matches; }
+  function forceBottom(){
+    if(!mobile()) return;
+    /* Run more than once because Android resizes the visual viewport in stages. */
+    messages.scrollTop=messages.scrollHeight;
+    requestAnimationFrame(()=>{
+      messages.scrollTop=messages.scrollHeight;
+      requestAnimationFrame(()=>messages.scrollTop=messages.scrollHeight);
+    });
+  }
+  function scheduleBottom(){
+    bottomTimer.forEach(clearTimeout);
+    bottomTimer=[0,40,100,180,300,500,800].map(ms=>setTimeout(forceBottom,ms));
+  }
+
+  input.addEventListener('focus',function(){
+    userIsDragging=false;
+    scheduleBottom();
+  },{passive:true});
+
+  input.addEventListener('click',scheduleBottom,{passive:true});
+  input.addEventListener('touchstart',scheduleBottom,{passive:true});
+
+  messages.addEventListener('scroll',function(){
+    const distance=messages.scrollHeight-messages.scrollTop-messages.clientHeight;
+    userIsDragging=distance>220;
+  },{passive:true});
+
+  if(window.visualViewport){
+    visualViewport.addEventListener('resize',function(){
+      if(document.activeElement===input) scheduleBottom();
+    },{passive:true});
+    visualViewport.addEventListener('scroll',function(){
+      if(document.activeElement===input) scheduleBottom();
+    },{passive:true});
+  }
+
+  window.addEventListener('resize',function(){
+    if(document.activeElement===input) scheduleBottom();
+  },{passive:true});
+
+  const observer=new MutationObserver(function(){
+    if(document.activeElement===input || !userIsDragging) scheduleBottom();
+  });
+  observer.observe(messages,{childList:true,subtree:true});
+
+  /* Initial open: always show the newest message. */
+  window.addEventListener('load',scheduleBottom,{once:true});
+  setTimeout(scheduleBottom,250);
+})();
+</script>
 </body>
 </html>
