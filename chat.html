@@ -6676,23 +6676,9 @@ async function sendMessage(){
     messageSendInFlight = false;
     applyRestrictionUI();
 
-    /*
-     * Mobile browsers often move focus to the Send button when it is
-     * tapped. That closes the virtual keyboard even though the user is
-     * still composing another message. Restore focus after the send has
-     * completely finished, without scrolling the chat.
-     */
-    if(!currentUserRestricted && currentConversationPartner && !messageInput.disabled){
-      setTimeout(()=>{
-        if(document.visibilityState !== "hidden" && !messageInput.disabled){
-          messageInput.focus({preventScroll:true});
-          try{
-            const end = messageInput.value.length;
-            messageInput.setSelectionRange(end,end);
-          }catch(e){}
-        }
-      }, 40);
-    }
+    /* Focus is preserved by the pointerdown handler above. Do not use a
+       delayed focus() here: on mobile that creates a keyboard close/open
+       cycle lasting about two seconds. */
   }
 
 }
@@ -7902,22 +7888,26 @@ document.addEventListener(
 /* Keep the textarea focused when the Send button is tapped.
    Mobile browsers otherwise transfer focus to the button and close
    the virtual keyboard before sendMessage() can restore it. */
-sendButton.addEventListener("mousedown", event=>{
+/* Never allow the Send button to take focus from the composer.
+   On mobile, focus transfer is what makes the keyboard disappear for
+   a moment before the delayed focus restoration brings it back. */
+let sendPointerHandled = false;
+sendButton.addEventListener("pointerdown", event=>{
   if(document.activeElement === messageInput){
     event.preventDefault();
-  }
-});
-
-sendButton.addEventListener("touchstart", event=>{
-  if(document.activeElement === messageInput){
-    event.preventDefault();
+    sendPointerHandled = true;
+    void sendMessage();
   }
 },{passive:false});
 
-sendButton.addEventListener(
-  "click",
-  sendMessage
-);
+sendButton.addEventListener("click", event=>{
+  if(sendPointerHandled){
+    event.preventDefault();
+    sendPointerHandled = false;
+    return;
+  }
+  void sendMessage();
+});
 
 messageInput.addEventListener(
   "input",
