@@ -1341,17 +1341,140 @@ header{
 }
 
 /* =====================================================
-   CHROME NOTIFICATIONS
+   WEB PUSH NOTIFICATIONS
+   Browser subscription -> push_subscriptions
 ===================================================== */
+const VAPID_PUBLIC_KEY =
+  "BDWOU0LJJOWe2iH_RqIW3LRwtw5xyeHf48-e8kjT8Hdtfr_PVH48v-Uyms_cutgHe6IjlR-PJmzGAgM4dipniAI";
+
 let notificationPermissionRequested = false;
+let pushSubscriptionInFlight = false;
+
 function requestChromeNotificationPermission(){
   if(notificationPermissionRequested) return;
   notificationPermissionRequested = true;
-  if("Notification" in window && Notification.permission === "default"){
-    Notification.requestPermission().catch(()=>{});
+
+  if(!('Notification' in window)) return;
+
+  if(Notification.permission === 'default'){
+    Notification.requestPermission()
+      .then(permission=>{
+        if(permission === 'granted'){
+          void registerToTalkPushSubscription();
+        }
+      })
+      .catch(error=>{
+        console.warn('ToTalk notification permission failed:', error);
+      });
+  }else if(Notification.permission === 'granted'){
+    void registerToTalkPushSubscription();
   }
 }
-document.addEventListener("pointerdown", requestChromeNotificationPermission, {once:true, passive:true});
+
+document.addEventListener(
+  'pointerdown',
+  requestChromeNotificationPermission,
+  {once:true, passive:true}
+);
+
+function urlBase64ToUint8Array(base64String){
+  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding)
+    .replace(/-/g, '+')
+    .replace(/_/g, '/');
+
+  const rawData = atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+
+  for(let i = 0; i < rawData.length; ++i){
+    outputArray[i] = rawData.charCodeAt(i);
+  }
+
+  return outputArray;
+}
+
+function arrayBufferToBase64(buffer){
+  const bytes = new Uint8Array(buffer);
+  let binary = '';
+
+  for(const byte of bytes){
+    binary += String.fromCharCode(byte);
+  }
+
+  return btoa(binary);
+}
+
+async function registerToTalkPushSubscription(){
+  if(pushSubscriptionInFlight || !currentUser?.id) return;
+  if(!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+  if(!('Notification' in window) || Notification.permission !== 'granted') return;
+  if(!window.isSecureContext) return;
+
+  pushSubscriptionInFlight = true;
+
+  try{
+    const registration = await navigator.serviceWorker.ready;
+
+    let subscription = await registration.pushManager.getSubscription();
+
+    if(!subscription){
+      subscription = await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+      });
+    }
+
+    const subscriptionJson = subscription.toJSON();
+    const endpoint = subscriptionJson.endpoint;
+    const p256dh = subscriptionJson.keys?.p256dh;
+    const auth = subscriptionJson.keys?.auth;
+
+    if(!endpoint || !p256dh || !auth){
+      throw new Error('Browser returned an incomplete push subscription.');
+    }
+
+    const {data:existing,error:findError} = await supabaseClient
+      .from('push_subscriptions')
+      .select('id')
+      .eq('user_id', currentUser.id)
+      .eq('endpoint', endpoint)
+      .maybeSingle();
+
+    if(findError) throw findError;
+
+    if(existing?.id){
+      const {error:updateError} = await supabaseClient
+        .from('push_subscriptions')
+        .update({
+          p256dh,
+          auth,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', existing.id)
+        .eq('user_id', currentUser.id);
+
+      if(updateError) throw updateError;
+    }else{
+      const {error:insertError} = await supabaseClient
+        .from('push_subscriptions')
+        .insert({
+          user_id: currentUser.id,
+          endpoint,
+          p256dh,
+          auth
+        });
+
+      if(insertError) throw insertError;
+    }
+
+    console.log('ToTalk Web Push subscription saved.');
+  }catch(error){
+    console.error('ToTalk Web Push subscription failed:', error);
+  }finally{
+    pushSubscriptionInFlight = false;
+  }
+}
+
 
 /* =====================================================
    INPUT
@@ -7283,28 +7406,6 @@ function startRealtime(){
         const data = payload?.new;
         if(!data?.id) return;
 
-        // Chrome desktop notification for incoming messages.
-        if(
-          currentUser &&
-          data.sender_id !== currentUser.id &&
-          document.visibilityState !== "visible" &&
-          "Notification" in window &&
-          Notification.permission === "granted"
-        ){
-          const title = currentConversationId === data.conversation_id
-            ? "New message on ToTalk"
-            : "New ToTalk message";
-          const notification = new Notification(title,{
-            body: data.content || "You received a new message.",
-            icon: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='46' fill='%23914cff'/%3E%3Ctext x='50' y='64' font-size='52' text-anchor='middle' fill='white'%3ET%3C/text%3E%3C/svg%3E",
-            tag: "totalk-" + data.conversation_id
-          });
-          notification.onclick = ()=>{
-            window.focus();
-            notification.close();
-          };
-        }
-
         /*
          * A local "Remove conversation" hides the sidebar card only.
          * If the other person now sends a genuine new message, restore
@@ -8283,6 +8384,13 @@ async function startApp(){
 
     currentUser =
       user;
+
+    /* Register this browser/device for background Web Push.
+       If permission is still undecided, the first user interaction
+       requests it and then saves the subscription. */
+    if("Notification" in window && Notification.permission === "granted"){
+      void registerToTalkPushSubscription();
+    }
 
     /* Check restriction status. Supabase RLS remains the final authority. */
     await loadMyRestrictionStatus();
