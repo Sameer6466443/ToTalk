@@ -8539,18 +8539,6 @@ startApp();
         "calc("+layoutHeight+"px - 62px)";
     }
 
-    if(keyboardOpen && messageArea){
-      const distanceFromBottom=
-        messageArea.scrollHeight-
-        messageArea.scrollTop-
-        messageArea.clientHeight;
-
-      if(distanceFromBottom<180){
-        requestAnimationFrame(()=>{
-          messageArea.scrollTop=messageArea.scrollHeight;
-        });
-      }
-    }
   }
 
   function delayedUpdate(delay=70){
@@ -8612,58 +8600,61 @@ startApp();
   const input=document.getElementById('messageInput');
   if(!messages || !input) return;
 
-  let bottomTimer=[];
-  let userIsDragging=false;
+  let bottomFrame=0;
+  let bottomTimer=0;
+  let userIsAway=false;
 
-  function mobile(){ return window.matchMedia('(max-width:800px)').matches; }
+  function mobile(){
+    return window.matchMedia('(max-width:800px)').matches;
+  }
+
+  function atBottom(){
+    return messages.scrollHeight - messages.scrollTop - messages.clientHeight < 220;
+  }
+
+  /* One cheap, immediate correction instead of many competing timers. */
   function forceBottom(){
     if(!mobile()) return;
-    /* Run more than once because Android resizes the visual viewport in stages. */
-    messages.scrollTop=messages.scrollHeight;
-    requestAnimationFrame(()=>{
+    cancelAnimationFrame(bottomFrame);
+    bottomFrame=requestAnimationFrame(()=>{
       messages.scrollTop=messages.scrollHeight;
-      requestAnimationFrame(()=>messages.scrollTop=messages.scrollHeight);
     });
   }
-  function scheduleBottom(){
-    bottomTimer.forEach(clearTimeout);
-    bottomTimer=[0,40,100,180,300,500,800].map(ms=>setTimeout(forceBottom,ms));
+
+  function scheduleBottom(delay=90){
+    clearTimeout(bottomTimer);
+    bottomTimer=setTimeout(forceBottom,delay);
   }
 
   input.addEventListener('focus',function(){
-    userIsDragging=false;
-    scheduleBottom();
+    userIsAway=false;
+    scheduleBottom(80);
   },{passive:true});
-
-  input.addEventListener('click',scheduleBottom,{passive:true});
-  input.addEventListener('touchstart',scheduleBottom,{passive:true});
 
   messages.addEventListener('scroll',function(){
-    const distance=messages.scrollHeight-messages.scrollTop-messages.clientHeight;
-    userIsDragging=distance>220;
+    userIsAway=!atBottom();
   },{passive:true});
 
+  /* New messages: move only when the user was already at the bottom. */
+  const observer=new MutationObserver(function(){
+    if(document.activeElement===input || !userIsAway){
+      forceBottom();
+    }
+  });
+  observer.observe(messages,{childList:true});
+
+  /* Keyboard resize: one debounced correction after resizing settles. */
   if(window.visualViewport){
     visualViewport.addEventListener('resize',function(){
-      if(document.activeElement===input) scheduleBottom();
-    },{passive:true});
-    visualViewport.addEventListener('scroll',function(){
-      if(document.activeElement===input) scheduleBottom();
+      if(document.activeElement===input) scheduleBottom(120);
     },{passive:true});
   }
 
   window.addEventListener('resize',function(){
-    if(document.activeElement===input) scheduleBottom();
+    if(document.activeElement===input) scheduleBottom(120);
   },{passive:true});
 
-  const observer=new MutationObserver(function(){
-    if(document.activeElement===input || !userIsDragging) scheduleBottom();
-  });
-  observer.observe(messages,{childList:true,subtree:true});
-
-  /* Initial open: always show the newest message. */
-  window.addEventListener('load',scheduleBottom,{once:true});
-  setTimeout(scheduleBottom,250);
+  setTimeout(forceBottom,250);
 })();
 </script>
 </body>
