@@ -1371,11 +1371,85 @@ function requestChromeNotificationPermission(){
   }
 }
 
+/*
+   Explicit notification button.
+   Chrome/Android is more reliable when permission is requested
+   directly from a real button click rather than a document pointer event.
+*/
+function showToTalkNotificationButton(){
+  if(!('Notification' in window)) return;
+  if(Notification.permission === 'granted') return;
+
+  let button = document.getElementById('totalkEnableNotificationsButton');
+  if(button) return;
+
+  button = document.createElement('button');
+  button.id = 'totalkEnableNotificationsButton';
+  button.type = 'button';
+  button.textContent = Notification.permission === 'denied'
+    ? 'Notifications blocked — open Chrome site settings'
+    : '🔔 Enable ToTalk notifications';
+
+  Object.assign(button.style,{
+    position:'fixed',
+    left:'50%',
+    bottom:'18px',
+    transform:'translateX(-50%)',
+    zIndex:'2147483647',
+    padding:'12px 18px',
+    border:'1px solid rgba(180,140,255,.55)',
+    borderRadius:'999px',
+    background:'#171027',
+    color:'#fff',
+    fontSize:'14px',
+    fontWeight:'700',
+    boxShadow:'0 8px 28px rgba(0,0,0,.45)',
+    cursor:'pointer',
+    maxWidth:'calc(100vw - 28px)'
+  });
+
+  if(Notification.permission === 'denied'){
+    button.style.cursor='default';
+    button.addEventListener('click',()=>{
+      alert('Notifications are blocked for ToTalk. Open Chrome Site settings for this site and allow Notifications, then reload ToTalk.');
+    });
+  }else{
+    button.addEventListener('click',async()=>{
+      button.disabled=true;
+      button.textContent='Requesting permission…';
+      try{
+        const permission = await Notification.requestPermission();
+        console.log('ToTalk notification permission:', permission);
+
+        if(permission === 'granted'){
+          button.remove();
+          await registerToTalkPushSubscription();
+        }else if(permission === 'denied'){
+          button.textContent='Notifications blocked — open Chrome site settings';
+          button.disabled=false;
+        }else{
+          button.textContent='🔔 Enable ToTalk notifications';
+          button.disabled=false;
+        }
+      }catch(error){
+        console.error('ToTalk notification permission failed:',error);
+        button.textContent='🔔 Enable ToTalk notifications';
+        button.disabled=false;
+      }
+    });
+  }
+
+  document.body.appendChild(button);
+}
+
+/* Keep the automatic request, but also provide an explicit button. */
 document.addEventListener(
   'pointerdown',
   requestChromeNotificationPermission,
   {once:true, passive:true}
 );
+
+setTimeout(showToTalkNotificationButton, 1200);
 
 function urlBase64ToUint8Array(base64String){
   const padding = '='.repeat((4 - base64String.length % 4) % 4);
