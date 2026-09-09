@@ -3046,6 +3046,8 @@ document.addEventListener("pointerdown", requestChromeNotificationPermission, {o
 }
 </style>
 
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#05020d">
 </head>
 
 <body>
@@ -8840,6 +8842,16 @@ startApp();
     if(!userManuallyScrolled) scheduleBottom(120);
   },{passive:true});
 })();
+</script>
+<script>
+/* ToTalk PWA service worker registration */
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/sw.js")
+      .then(() => console.log("ToTalk service worker registered"))
+      .catch(error => console.error("ToTalk service worker error:", error));
+  });
+}
 </script>
 </body>
 </html>
