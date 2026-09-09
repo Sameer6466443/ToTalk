@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,interactive-widget=resizes-content">
 <meta name="theme-color" content="#020108">
 <title>ToTalk</title>
 
@@ -2550,6 +2550,127 @@ header{
 .report-cancel{border:1px solid rgba(255,255,255,.10);background:rgba(255,255,255,.05);color:#c7b8d5;}
 .report-submit{border:1px solid rgba(166,103,255,.55);background:linear-gradient(135deg,#7130e9,#a65cff);color:#fff;}
 .report-submit:disabled{opacity:.45;cursor:not-allowed;}
+
+
+/* =====================================================
+   MOBILE KEYBOARD FIX — NATIVE CHAT STYLE
+   Keeps the ToTalk composer attached to the visible
+   viewport when the Android keyboard opens.
+===================================================== */
+@media(max-width:800px){
+  html,
+  body{
+    width:100%;
+    height:100%;
+    height:100dvh;
+    min-height:100dvh;
+    overflow:hidden;
+  }
+
+  .chat-layout{
+    height:calc(var(--totalk-visible-height, 100dvh) - 62px) !important;
+    min-height:0 !important;
+  }
+
+  .chat-box{
+    height:100% !important;
+    min-height:0 !important;
+    overflow:hidden !important;
+  }
+
+  #messages{
+    inset:62px 0 0 0 !important;
+    padding:16px 12px 104px !important;
+    overflow-y:auto !important;
+    overscroll-behavior-y:contain;
+    -webkit-overflow-scrolling:touch;
+  }
+
+  .chat-space{
+    inset:62px 0 0 !important;
+  }
+
+  .input-area{
+    left:7px !important;
+    right:7px !important;
+    bottom:7px !important;
+    z-index:50 !important;
+    transform:translateZ(0);
+    will-change:bottom;
+    padding:6px !important;
+    border-radius:15px !important;
+  }
+
+  #messageInput{
+    min-width:0;
+    min-height:40px;
+    height:40px;
+    max-height:120px;
+    font-size:16px !important;
+    line-height:20px;
+    -webkit-text-size-adjust:100%;
+  }
+
+  #sendButton{
+    min-width:62px !important;
+    width:62px;
+    height:40px;
+    flex:0 0 62px;
+    border-radius:12px !important;
+    font-size:11px;
+  }
+
+  body.keyboard-open .input-area{
+    bottom:6px !important;
+  }
+
+  body.keyboard-open #messages{
+    padding-bottom:104px !important;
+  }
+}
+
+</style>
+
+<style id="totalk-whatsapp-keyboard-final">
+/* =====================================================
+   TO TALK MOBILE KEYBOARD — WHATSAPP-LIKE BEHAVIOR
+   Composer sits immediately above the Android keyboard.
+   The chat viewport fills all visible space.
+===================================================== */
+@media(max-width:800px){
+  .chat-layout{
+    height:calc(var(--totalk-visible-height, 100dvh) - 62px) !important;
+  }
+
+  .chat-box{
+    position:relative !important;
+    height:100% !important;
+  }
+
+  #messages{
+    bottom:0 !important;
+    padding-bottom:108px !important;
+  }
+
+  .input-area{
+    position:fixed !important;
+    left:14px !important;
+    right:14px !important;
+    bottom:7px !important;
+    z-index:1000 !important;
+    width:auto !important;
+  }
+
+  body.keyboard-open .input-area{
+    /* JS supplies the exact distance from the visible viewport
+       to the top edge of the Android keyboard. */
+    bottom:calc(var(--totalk-keyboard-height, 0px) + 7px) !important;
+  }
+
+  body.keyboard-open #messages{
+    padding-bottom:112px !important;
+  }
+}
 </style>
 
 <style id="totalk-final-galaxy-fix">
@@ -8239,6 +8360,120 @@ totalkWarningBackdrop?.addEventListener("click",e=>{if(e.target===totalkWarningB
 document.addEventListener("keydown",e=>{if(e.key==="Escape"&&totalkWarningBackdrop?.classList.contains("open")){if(totalkWarningCurrent)markWarningSeen(totalkWarningCurrent);closeTotalkWarning();}});
 
 startApp();
+
+
+
+/* =====================================================
+   MOBILE KEYBOARD / VISUAL VIEWPORT CONTROLLER
+   WhatsApp-like composer positioning.
+===================================================== */
+(function initToTalkKeyboardFix(){
+  const root=document.documentElement;
+  const input=document.getElementById("messageInput");
+  const messageArea=document.getElementById("messages");
+  const layout=document.querySelector(".chat-layout");
+
+  if(!window.visualViewport) return;
+
+  let keyboardTimer=null;
+
+  function isMobile(){
+    return window.matchMedia("(max-width: 800px)").matches;
+  }
+
+  function updateKeyboardViewport(){
+    if(!isMobile()){
+      root.style.removeProperty("--totalk-visible-height");
+      root.style.removeProperty("--totalk-keyboard-height");
+      document.body.classList.remove("keyboard-open");
+      return;
+    }
+
+    const vv=window.visualViewport;
+    const visibleHeight=Math.max(320,Math.round(vv.height));
+    const layoutHeight=Math.max(320,visibleHeight);
+    const fullHeight=Math.max(
+      window.innerHeight,
+      document.documentElement.clientHeight
+    );
+
+    /* Distance between the layout viewport bottom and the
+       visible viewport bottom = Android keyboard height. */
+    const keyboardHeight=Math.max(
+      0,
+      Math.round(fullHeight-vv.height-vv.offsetTop)
+    );
+
+    const keyboardOpen=keyboardHeight>100;
+
+    root.style.setProperty(
+      "--totalk-visible-height",
+      layoutHeight+"px"
+    );
+
+    root.style.setProperty(
+      "--totalk-keyboard-height",
+      keyboardOpen ? keyboardHeight+"px" : "0px"
+    );
+
+    document.body.classList.toggle("keyboard-open",keyboardOpen);
+
+    if(layout){
+      layout.style.height=
+        "calc("+layoutHeight+"px - 62px)";
+    }
+
+    if(keyboardOpen && messageArea){
+      const distanceFromBottom=
+        messageArea.scrollHeight-
+        messageArea.scrollTop-
+        messageArea.clientHeight;
+
+      if(distanceFromBottom<180){
+        requestAnimationFrame(()=>{
+          messageArea.scrollTop=messageArea.scrollHeight;
+        });
+      }
+    }
+  }
+
+  function delayedUpdate(delay=70){
+    clearTimeout(keyboardTimer);
+    keyboardTimer=setTimeout(updateKeyboardViewport,delay);
+  }
+
+  visualViewport.addEventListener(
+    "resize",
+    updateKeyboardViewport,
+    {passive:true}
+  );
+
+  visualViewport.addEventListener(
+    "scroll",
+    updateKeyboardViewport,
+    {passive:true}
+  );
+
+  window.addEventListener(
+    "resize",
+    ()=>delayedUpdate(40),
+    {passive:true}
+  );
+
+  input?.addEventListener("focus",()=>{
+    delayedUpdate(40);
+    setTimeout(updateKeyboardViewport,120);
+    setTimeout(updateKeyboardViewport,300);
+    setTimeout(updateKeyboardViewport,500);
+  });
+
+  input?.addEventListener("blur",()=>{
+    delayedUpdate(100);
+    setTimeout(updateKeyboardViewport,250);
+  });
+
+  updateKeyboardViewport();
+})();
 
 </script>
 
