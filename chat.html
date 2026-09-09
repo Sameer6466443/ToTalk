@@ -6950,6 +6950,34 @@ async function addRealtimeConversationToList(data){
     return;
   }
 
+  /*
+   * IMPORTANT — "Remove conversation" is only a local history action.
+   *
+   * A deleted flag means:
+   *   "Hide this conversation until the OTHER PERSON sends a NEW message."
+   *
+   * This callback is reached only for a real incoming Realtime INSERT,
+   * so this is the exact moment when the deleted flag must be cleared.
+   * Previously the card was recreated in the DOM but prefs.deleted stayed
+   * true, so the next refresh/login filtered the conversation out again.
+   */
+  const conversationId = String(data.conversation_id);
+  const prefs = readConversationPrefs();
+  const deletedPref = !!prefs[conversationId]?.deleted;
+
+  if(deletedPref){
+    const restored = {...(prefs[conversationId] || {})};
+    delete restored.deleted;
+
+    if(Object.keys(restored).length){
+      prefs[conversationId] = restored;
+    }else{
+      delete prefs[conversationId];
+    }
+
+    writeConversationPrefs(prefs);
+  }
+
   /* Another callback may already have added it. */
   if(updateRealtimeConversationItem(data)){
     return;
@@ -7064,6 +7092,46 @@ async function addRealtimeConversationToList(data){
   }
 }
 
+/*
+ * Restore a locally removed conversation when a genuine incoming message
+ * arrives while that conversation is currently open.
+ *
+ * We clear the local deleted flag first, then let the normal realtime list
+ * updater rebuild the sidebar card. No database conversation/message is
+ * deleted or recreated here.
+ */
+function restoreConversationFromIncomingMessage(data){
+  if(
+    !data?.conversation_id ||
+    !currentUser?.id ||
+    data.sender_id === currentUser.id
+  ){
+    return;
+  }
+
+  const id = String(data.conversation_id);
+  const prefs = readConversationPrefs();
+
+  if(!prefs[id]?.deleted){
+    return;
+  }
+
+  const restored = {...prefs[id]};
+  delete restored.deleted;
+
+  if(Object.keys(restored).length){
+    prefs[id] = restored;
+  }else{
+    delete prefs[id];
+  }
+
+  writeConversationPrefs(prefs);
+
+  /* The card may have been removed locally, so rebuild it from the
+     incoming message. This is intentionally fire-and-forget. */
+  void addRealtimeConversationToList(data);
+}
+
 function startRealtime(){
 
   if(!currentUser){
@@ -7094,6 +7162,14 @@ function startRealtime(){
       payload=>{
         const data = payload?.new;
         if(!data?.id) return;
+
+        /*
+         * A local "Remove conversation" hides the sidebar card only.
+         * If the other person now sends a genuine new message, restore
+         * that conversation immediately and clear the persisted deleted
+         * flag so refresh/logout/login keeps it visible.
+         */
+        restoreConversationFromIncomingMessage(data);
 
         const isCurrentConversation =
           !!currentConversationId &&
