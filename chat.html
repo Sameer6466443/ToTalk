@@ -2436,59 +2436,50 @@ header{
   }
 }
 
-/* =====================================================
-   TYPING INDICATOR — IDENTICAL ON NORMAL + INCOGNITO
-   Screenshot-style dark purple pill with 3 glowing dots.
-===================================================== */
+/* Typing indicator — screenshot-style ToTalk purple loading pill */
 .typing-indicator{
-  display:none !important;
-  align-items:flex-end !important;
-  justify-content:flex-start !important;
-  width:100% !important;
-  min-height:68px !important;
-  height:68px !important;
-  margin:0 0 8px 0 !important;
-  padding:0 0 0 18px !important;
-  box-sizing:border-box !important;
-  pointer-events:none !important;
-  opacity:0 !important;
-  transform:translateY(5px) !important;
-  transition:opacity .16s ease,transform .16s ease !important;
+  display:none;
+  align-items:flex-end;
+  justify-content:flex-start;
+  margin:0 0 8px 18px;
+  min-height:68px;
+  height:68px;
+  padding:0;
+  pointer-events:none;
+  opacity:0;
+  transform:translateY(5px);
+  transition:opacity .16s ease,transform .16s ease;
 }
 .typing-indicator.show{
-  display:flex !important;
-  opacity:1 !important;
-  transform:translateY(0) !important;
+  display:flex;
+  opacity:1;
+  transform:translateY(0);
 }
 .typing-indicator-bubble{
-  display:flex !important;
-  align-items:center !important;
-  justify-content:center !important;
-  gap:13px !important;
-  width:136px !important;
-  height:68px !important;
-  min-width:136px !important;
-  padding:0 20px !important;
-  box-sizing:border-box !important;
-  background:linear-gradient(145deg,rgba(19,10,42,.98),rgba(7,4,21,.98)) !important;
-  border:1px solid rgba(142,70,255,.18) !important;
-  border-radius:34px !important;
-  box-shadow:0 0 18px rgba(116,45,255,.22),inset 0 0 18px rgba(92,38,190,.08) !important;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:13px;
+  width:136px;
+  height:68px;
+  padding:0 20px;
+  box-sizing:border-box;
+  background:linear-gradient(145deg,rgba(19,10,42,.98),rgba(7,4,21,.98));
+  border:1px solid rgba(142,70,255,.18);
+  border-radius:34px;
+  box-shadow:0 0 18px rgba(116,45,255,.22),inset 0 0 18px rgba(92,38,190,.08);
 }
 .typing-dot{
-  display:block !important;
-  width:10px !important;
-  height:10px !important;
-  min-width:10px !important;
-  min-height:10px !important;
-  flex:0 0 10px !important;
-  border-radius:50% !important;
-  background:#a86cff !important;
-  box-shadow:0 0 7px #a86cff,0 0 15px rgba(168,108,255,.95),0 0 24px rgba(125,67,255,.48) !important;
-  animation:totalkTypingDot 1.05s infinite ease-in-out !important;
+  width:10px;
+  height:10px;
+  flex:0 0 10px;
+  border-radius:50%;
+  background:#a86cff;
+  box-shadow:0 0 7px #a86cff,0 0 15px rgba(168,108,255,.95),0 0 24px rgba(125,67,255,.48);
+  animation:totalkTypingDot 1.05s infinite ease-in-out;
 }
-.typing-dot:nth-child(2){animation-delay:.14s !important;}
-.typing-dot:nth-child(3){animation-delay:.28s !important;}
+.typing-dot:nth-child(2){animation-delay:.14s;}
+.typing-dot:nth-child(3){animation-delay:.28s;}
 @keyframes totalkTypingDot{
   0%,60%,100%{
     transform:translateY(0) scale(.78);
@@ -2501,24 +2492,20 @@ header{
 }
 @media(max-width:520px){
   .typing-indicator{
-    min-height:64px !important;
-    height:64px !important;
-    margin:0 0 7px 0 !important;
-    padding-left:14px !important;
+    margin:0 0 7px 14px;
+    min-height:64px;
+    height:64px;
   }
   .typing-indicator-bubble{
-    width:132px !important;
-    min-width:132px !important;
-    height:64px !important;
-    gap:12px !important;
-    border-radius:32px !important;
+    width:132px;
+    height:64px;
+    gap:12px;
+    border-radius:32px;
   }
   .typing-dot{
-    width:9px !important;
-    height:9px !important;
-    min-width:9px !important;
-    min-height:9px !important;
-    flex-basis:9px !important;
+    width:9px;
+    height:9px;
+    flex-basis:9px;
   }
 }
 
@@ -4197,14 +4184,14 @@ function startLocalTyping(){
       }else{
         stopLocalTyping(true);
       }
-    },1000);
+    },900);
   }else{
     /* A new keystroke is also a fresh typing signal. */
     void sendTypingState(true);
   }
 
   if(typingStopTimer) clearTimeout(typingStopTimer);
-  typingStopTimer = setTimeout(()=>stopLocalTyping(true),2000);
+  typingStopTimer = setTimeout(()=>stopLocalTyping(true),1700);
 }
 
 function startTypingRealtime(){
@@ -4231,7 +4218,7 @@ function startTypingRealtime(){
       remoteTypingConversationId = conversationId;
       showTypingIndicator();
       if(remoteTypingStopTimer) clearTimeout(remoteTypingStopTimer);
-      remoteTypingStopTimer = setTimeout(hideTypingIndicator,6000);
+      remoteTypingStopTimer = setTimeout(hideTypingIndicator,2600);
     }else if(remoteTypingUserId===senderId && remoteTypingConversationId===conversationId){
       hideTypingIndicator();
     }
