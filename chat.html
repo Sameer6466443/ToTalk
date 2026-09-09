@@ -8642,8 +8642,8 @@ startApp();
 
   let bottomFrame=0;
   let bottomTimer=0;
-  let userIsAway=false;
-  let suppressAutoScroll=false;
+  let userManuallyScrolled=false;
+  let lastManualScrollGesture=0;
 
   function mobile(){
     return window.matchMedia('(max-width:800px)').matches;
@@ -8653,40 +8653,68 @@ startApp();
     return messages.scrollHeight - messages.scrollTop - messages.clientHeight < 80;
   }
 
+  function markManualScrollGesture(){
+    lastManualScrollGesture=Date.now();
+  }
+
+  /* Only real scrolling gestures count as the user choosing an older
+     position. Chrome can restore an old scrollTop by itself when a normal
+     tab/page is reopened; that must NOT be treated as a manual scroll. */
+  messages.addEventListener('touchmove',markManualScrollGesture,{passive:true});
+  messages.addEventListener('wheel',markManualScrollGesture,{passive:true});
+
   function forceBottom(){
-    if(!mobile() || suppressAutoScroll) return;
+    if(!mobile() || userManuallyScrolled) return;
     cancelAnimationFrame(bottomFrame);
     bottomFrame=requestAnimationFrame(()=>{
       messages.scrollTop=messages.scrollHeight;
     });
   }
 
-  function scheduleBottom(delay=120){
+  function scheduleBottom(delay=90){
+    if(userManuallyScrolled) return;
     clearTimeout(bottomTimer);
     bottomTimer=setTimeout(forceBottom,delay);
   }
 
-  /* Scrolling upward is always respected. Opening the composer must not
-     pull the user back to the newest message. */
   messages.addEventListener('scroll',function(){
-    userIsAway=!atBottom();
-    if(userIsAway){
-      suppressAutoScroll=true;
-      clearTimeout(bottomTimer);
-      cancelAnimationFrame(bottomFrame);
+    const manualGestureWasRecent=(Date.now()-lastManualScrollGesture)<900;
+
+    if(manualGestureWasRecent){
+      if(atBottom()){
+        /* Once the user comes back to the newest messages, normal
+           auto-follow behavior is enabled again. */
+        userManuallyScrolled=false;
+      }else{
+        /* The user deliberately scrolled up. From now on, opening the
+           keyboard or receiving a message must preserve that position. */
+        userManuallyScrolled=true;
+        clearTimeout(bottomTimer);
+        cancelAnimationFrame(bottomFrame);
+      }
     }
   },{passive:true});
 
+  /* If the user has NOT manually scrolled up, focusing or typing in the
+     composer always brings the conversation to the newest message. This
+     also fixes Chrome restoring an old message position from a prior tab. */
   input.addEventListener('focus',function(){
-    /* Do not scroll here. Android may resize the viewport, but the user's
-       manually selected message position must remain untouched. */
-    suppressAutoScroll=false;
+    if(!userManuallyScrolled){
+      forceBottom();
+      scheduleBottom(80);
+      scheduleBottom(220);
+    }
   });
 
-  /* Only keep the view at the bottom when it was already at the bottom.
-     Never force it merely because the input is focused. */
+  input.addEventListener('input',function(){
+    if(!userManuallyScrolled){
+      forceBottom();
+      scheduleBottom(80);
+    }
+  });
+
   const observer=new MutationObserver(function(){
-    if(!userIsAway && !suppressAutoScroll){
+    if(!userManuallyScrolled){
       forceBottom();
     }
   });
@@ -8694,12 +8722,16 @@ startApp();
 
   if(window.visualViewport){
     visualViewport.addEventListener('resize',function(){
-      if(!userIsAway && !suppressAutoScroll) scheduleBottom(180);
+      if(!userManuallyScrolled){
+        forceBottom();
+        scheduleBottom(120);
+        scheduleBottom(260);
+      }
     },{passive:true});
   }
 
   window.addEventListener('resize',function(){
-    if(!userIsAway && !suppressAutoScroll) scheduleBottom(180);
+    if(!userManuallyScrolled) scheduleBottom(120);
   },{passive:true});
 })();
 </script>
