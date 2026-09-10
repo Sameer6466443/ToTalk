@@ -3035,6 +3035,118 @@ header{
 
   <link rel="manifest" href="/manifest.json">
   <meta name="theme-color" content="#05020d">
+
+<style id="totalk-notification-ui-final">
+.totalk-chats-heading-row{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:16px;
+}
+.totalk-chats-heading-copy{
+  min-width:0;
+}
+.totalk-notification-icon{
+  position:relative;
+  flex:0 0 58px;
+  width:58px;
+  height:58px;
+  margin-top:0;
+  display:grid;
+  place-items:center;
+  border:1px solid rgba(145,76,255,.62);
+  border-radius:18px;
+  background:rgba(18,10,35,.72);
+  color:rgba(181,157,255,.62);
+  cursor:pointer;
+  transition:color .22s ease, border-color .22s ease, box-shadow .22s ease, transform .15s ease;
+  -webkit-tap-highlight-color:transparent;
+}
+.totalk-notification-icon:active{transform:scale(.94);}
+.totalk-notification-bell{
+  width:30px;
+  height:30px;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:1.75;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+  transition:filter .22s ease, transform .22s ease;
+}
+.totalk-notification-dot{
+  position:absolute;
+  top:8px;
+  right:8px;
+  width:9px;
+  height:9px;
+  border-radius:50%;
+  background:rgba(177,151,255,.35);
+  box-shadow:none;
+  transition:background .22s ease, box-shadow .22s ease;
+}
+.totalk-notification-icon.enabled{
+  color:#dca8ff;
+  border-color:rgba(171,82,255,.95);
+  background:linear-gradient(145deg,rgba(43,17,77,.9),rgba(17,8,35,.9));
+  box-shadow:0 0 18px rgba(139,61,255,.35), inset 0 0 16px rgba(139,61,255,.12);
+}
+.totalk-notification-icon.enabled .totalk-notification-bell{
+  filter:drop-shadow(0 0 7px rgba(191,104,255,.95));
+}
+.totalk-notification-icon.enabled .totalk-notification-dot{
+  background:#ff4ecd;
+  box-shadow:0 0 9px rgba(255,78,205,.95);
+}
+.totalk-notification-icon.disabled{
+  color:rgba(173,151,220,.55);
+  border-color:rgba(126,92,190,.42);
+  box-shadow:none;
+}
+.totalk-notification-icon.disabled .totalk-notification-dot{
+  background:rgba(173,151,220,.25);
+}
+.totalk-notification-icon.denied{
+  color:rgba(173,151,220,.38);
+  border-color:rgba(126,92,190,.32);
+}
+.totalk-notification-toast{
+  position:fixed;
+  left:50%;
+  bottom:30px;
+  z-index:9999;
+  transform:translate(-50%,18px);
+  min-width:210px;
+  max-width:calc(100vw - 32px);
+  padding:11px 17px;
+  border:1px solid rgba(171,82,255,.72);
+  border-radius:14px;
+  background:rgba(15,8,29,.96);
+  color:#fff;
+  font:700 14px/1.25 inherit;
+  text-align:center;
+  box-shadow:0 10px 35px rgba(0,0,0,.45),0 0 22px rgba(139,61,255,.24);
+  opacity:0;
+  visibility:hidden;
+  pointer-events:none;
+  transition:opacity .25s ease, transform .25s ease, visibility 0s linear .25s;
+}
+.totalk-notification-toast.show{
+  opacity:1;
+  visibility:visible;
+  transform:translate(-50%,0);
+  transition:opacity .25s ease, transform .25s ease, visibility 0s;
+}
+@media(max-width:800px){
+  .totalk-notification-icon{
+    flex-basis:54px;
+    width:54px;
+    height:54px;
+    border-radius:17px;
+  }
+  .totalk-notification-bell{width:28px;height:28px;}
+  .totalk-notification-toast{bottom:90px;}
+}
+</style>
 </head>
 
 <body>
@@ -3204,8 +3316,28 @@ header{
   <aside class="sidebar">
 
     <div class="sidebar-title">
-      <h2 id="sideTitle">Chats</h2>
-      <p>Your private ToTalk conversations</p>
+      <div class="totalk-chats-heading-row">
+        <div class="totalk-chats-heading-copy">
+          <h2 id="sideTitle">Chats</h2>
+          <p>Your private ToTalk conversations</p>
+        </div>
+
+        <button
+          id="totalkEnableNotificationsButton"
+          class="totalk-notification-icon"
+          type="button"
+          aria-label="Enable ToTalk notifications"
+          title="Notifications disabled"
+        >
+          <svg class="totalk-notification-bell" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/>
+            <path d="M10 21h4"/>
+          </svg>
+          <span class="totalk-notification-dot" aria-hidden="true"></span>
+        </button>
+      </div>
+
+      <div id="totalkNotificationToast" class="totalk-notification-toast" role="status" aria-live="polite" aria-atomic="true"></div>
 
       <div class="user-search-row">
         <input
@@ -3226,11 +3358,6 @@ header{
 
       <div id="userSearchResult" class="user-search-result"></div>
 
-      <button
-        id="totalkEnableNotificationsButton"
-        type="button"
-        style="display:block;margin:14px 0 4px;width:100%;padding:12px 14px;border:1px solid rgba(145,76,255,.55);border-radius:12px;background:#171027;color:#fff;font:700 14px inherit;cursor:pointer;box-shadow:0 6px 20px rgba(0,0,0,.25);"
-      >🔔 Enable ToTalk notifications</button>
     </div>
 
     <div id="conversationList" class="conversation-list">
@@ -3745,73 +3872,119 @@ async function registerToTalkPushSubscription(){
   }
 }
 
-function showToTalkNotificationButton(){
+let totalkNotificationToastTimer = null;
+
+function showToTalkNotificationToast(message){
+  const toast = document.getElementById('totalkNotificationToast');
+  if(!toast) return;
+
+  toast.textContent = message;
+  toast.classList.remove('show');
+  void toast.offsetWidth;
+  toast.classList.add('show');
+
+  clearTimeout(totalkNotificationToastTimer);
+  totalkNotificationToastTimer = setTimeout(()=>{
+    toast.classList.remove('show');
+  },2600);
+}
+
+function updateToTalkNotificationUI(){
   const button = document.getElementById('totalkEnableNotificationsButton');
   if(!button) return;
 
+  button.classList.remove('enabled','disabled','denied');
+
   if(!('Notification' in window)){
-    button.style.display = 'block';
-    button.disabled = true;
-    button.textContent = 'Notifications are not supported in this browser';
+    button.classList.add('disabled');
+    button.title = 'Notifications are not supported in this browser';
+    button.setAttribute('aria-label','Notifications are not supported in this browser');
     return;
   }
 
   if(Notification.permission === 'granted'){
-    button.style.display = 'block';
-    button.disabled = false;
-    button.textContent = '🔔 Notifications enabled';
-    button.onclick = async ()=>{
-      try{ await registerToTalkPushSubscription(); }catch(error){ console.error('ToTalk Web Push subscription failed:',error); }
-    };
-    return;
+    button.classList.add('enabled');
+    button.title = 'Notifications enabled';
+    button.setAttribute('aria-label','Notifications enabled');
+  }else if(Notification.permission === 'denied'){
+    button.classList.add('denied');
+    button.title = 'Notifications disabled — open Site settings to allow them';
+    button.setAttribute('aria-label','Notifications disabled');
+  }else{
+    button.classList.add('disabled');
+    button.title = 'Notifications disabled — tap to enable';
+    button.setAttribute('aria-label','Enable ToTalk notifications');
   }
+}
 
-  button.style.display = 'block';
-  button.disabled = false;
+function showToTalkNotificationButton(){
+  const button = document.getElementById('totalkEnableNotificationsButton');
+  if(!button) return;
 
-  if(Notification.permission === 'denied'){
-    button.textContent = 'Notifications blocked — open Site settings';
-    button.onclick = ()=>{
-      alert('Notifications are blocked for ToTalk. In Chrome, open the site settings for ToTalk, allow Notifications, then reload the page.');
-    };
-    return;
-  }
+  updateToTalkNotificationUI();
 
-  button.textContent = '🔔 Enable ToTalk notifications';
   button.onclick = async ()=>{
+    if(!('Notification' in window)){
+      showToTalkNotificationToast('Notifications are not supported');
+      return;
+    }
+
+    if(Notification.permission === 'granted'){
+      try{
+        await registerToTalkPushSubscription();
+        showToTalkNotificationToast('Notifications enabled ✓');
+      }catch(error){
+        console.error('ToTalk Web Push subscription failed:',error);
+        showToTalkNotificationToast('Notifications enabled ✓');
+      }
+      updateToTalkNotificationUI();
+      return;
+    }
+
+    if(Notification.permission === 'denied'){
+      showToTalkNotificationToast('Notifications disabled');
+      setTimeout(()=>{
+        alert('Notifications are blocked for ToTalk. Open Chrome Site settings for this site, allow Notifications, then reload ToTalk.');
+      },80);
+      return;
+    }
+
     button.disabled = true;
-    button.textContent = 'Requesting permission…';
 
     try{
-      /* This is called directly by the real button click. */
       const permission = await Notification.requestPermission();
       console.log('ToTalk notification permission:',permission);
 
       if(permission === 'granted'){
-        button.textContent = 'Notifications enabled ✓';
+        updateToTalkNotificationUI();
+        showToTalkNotificationToast('Notifications enabled ✓');
         await registerToTalkPushSubscription();
-        button.style.display = 'none';
       }else if(permission === 'denied'){
-        button.textContent = 'Notifications blocked — open Site settings';
-        button.disabled = false;
+        updateToTalkNotificationUI();
+        showToTalkNotificationToast('Notifications disabled');
       }else{
-        button.textContent = '🔔 Enable ToTalk notifications';
-        button.disabled = false;
+        updateToTalkNotificationUI();
       }
     }catch(error){
       console.error('ToTalk notification permission failed:',error);
-      button.textContent = '🔔 Enable ToTalk notifications';
+      showToTalkNotificationToast('Notifications disabled');
+      updateToTalkNotificationUI();
+    }finally{
       button.disabled = false;
     }
   };
 }
 
-/* Do not auto-request permission from a random pointer event.
-   Chrome/Android is most reliable when the user presses the
-   visible notification button directly. */
+/* Permission is requested only from the bell's direct user click. */
 showToTalkNotificationButton();
 
 
+
+
+document.addEventListener('visibilitychange',()=>{
+  if(!document.hidden) updateToTalkNotificationUI();
+});
+window.addEventListener('focus',updateToTalkNotificationUI);
 
 let currentProfile = null;
 
