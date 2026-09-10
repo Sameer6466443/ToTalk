@@ -7606,6 +7606,47 @@ async function addRealtimeConversationToList(data){
       ...conversations.filter(item=>item.id !== row.id)
     ];
 
+    /*
+     * The full chat-list loader and this realtime callback can finish at
+     * almost the same time when a brand-new person sends the first message.
+     * The loader may have inserted the card while we were fetching the
+     * participant/profile above.  Check the DOM AGAIN immediately before
+     * creating a new card so the same conversation can never be rendered
+     * twice.
+     */
+    const existingItem = conversationList.querySelector(
+      `[data-conversation-id="${CSS.escape(String(row.id))}"]`
+    );
+
+    if(existingItem){
+      const existingPreview = existingItem.querySelector(".conversation-preview");
+      const existingTime = existingItem.querySelector(".conversation-time");
+      if(existingPreview) existingPreview.textContent = data.content || "No messages yet";
+      if(existingTime) existingTime.textContent = formatTime(data.created_at);
+      existingItem.classList.add("is-unread");
+
+      let existingBadge = existingItem.querySelector(".unread-badge");
+      if(!existingBadge){
+        existingBadge = document.createElement("span");
+        existingBadge.className = "unread-badge";
+        existingBadge.textContent = "1";
+        existingItem.appendChild(existingBadge);
+      }
+
+      /* Move the existing card to the top instead of creating another one. */
+      const existingHeading = conversationList.querySelector(".history-heading");
+      if(existingHeading && existingItem.parentElement === conversationList){
+        conversationList.insertBefore(existingItem,existingHeading.nextSibling);
+      }
+
+      /* Keep the in-memory conversation array unique as well. */
+      conversations = [
+        row,
+        ...conversations.filter(item=>String(item.id) !== String(row.id))
+      ];
+      return;
+    }
+
     const prefs = readConversationPrefs();
     const pref = prefs[row.id] || {};
     const name = partner.name || "ToTalk User";
