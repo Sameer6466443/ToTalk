@@ -3094,47 +3094,29 @@ header{
 .totalk-notification-toast{
   position:fixed;
   left:50%;
-  bottom:82px;
+  bottom:92px;
   z-index:9999;
   transform:translate(-50%,10px);
   min-width:0;
-  max-width:calc(100vw - 48px);
+  max-width:calc(100vw - 40px);
   padding:9px 14px;
-  border:1px solid rgba(145,76,255,.45);
-  border-radius:11px;
+  border:1px solid rgba(150,95,255,.38);
+  border-radius:12px;
   background:rgba(12,8,24,.94);
-  color:#f4efff;
-  font:600 13px/1.2 inherit;
+  color:rgba(245,240,255,.96);
+  font:500 13px/1.2 inherit;
   text-align:center;
-  box-shadow:0 8px 24px rgba(0,0,0,.35);
+  box-shadow:0 6px 22px rgba(0,0,0,.35);
   opacity:0;
   visibility:hidden;
   pointer-events:none;
-  transition:opacity .16s ease, transform .16s ease, visibility 0s linear .16s;
+  transition:opacity .18s ease, transform .18s ease, visibility 0s linear .18s;
 }
 .totalk-notification-toast.show{
   opacity:1;
   visibility:visible;
   transform:translate(-50%,0);
-  transition:opacity .16s ease, transform .16s ease, visibility 0s;
-}
-.totalk-toast-inner{
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  gap:8px;
-  white-space:nowrap;
-}
-.totalk-toast-icon{
-  width:16px;
-  height:16px;
-  flex:0 0 16px;
-  fill:none;
-  stroke:#c994ff;
-  stroke-width:1.8;
-  stroke-linecap:round;
-  stroke-linejoin:round;
-  filter:drop-shadow(0 0 4px rgba(173,91,255,.55));
+  transition:opacity .18s ease, transform .18s ease, visibility 0s;
 }
 @media(max-width:800px){
   .totalk-notification-icon{
@@ -3919,14 +3901,7 @@ function showToTalkNotificationToast(message){
   const toast = document.getElementById('totalkNotificationToast');
   if(!toast) return;
 
-  toast.innerHTML = `<span class="totalk-toast-inner">
-    <svg class="totalk-toast-icon" viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/>
-      <path d="M10 21h4"/>
-    </svg>
-    <span>${message}</span>
-  </span>`;
-
+  toast.textContent = message;
   toast.classList.remove('show');
   void toast.offsetWidth;
   toast.classList.add('show');
