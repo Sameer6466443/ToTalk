@@ -3083,7 +3083,47 @@ header{
 }
 .totalk-notification-icon.disabled{color:rgba(173,151,220,.42);filter:none;}
 .totalk-notification-icon.denied{color:rgba(173,151,220,.30);filter:none;}
-@media(max-width:800px){.totalk-notification-toast{bottom:86px;}}.totalk-notification-bell{width:24px !important;height:24px !important;}.totalk-notification-toast{bottom:86px;}}
+.totalk-notification-toast{
+  position:fixed;
+  left:50%;
+  bottom:82px;
+  z-index:999999;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  width:max-content;
+  max-width:calc(100vw - 32px);
+  min-height:34px;
+  padding:8px 14px;
+  border:1px solid rgba(145,76,255,.42);
+  border-radius:10px;
+  background:rgba(9,5,23,.97);
+  color:#eee8ff;
+  font-family:Arial,Helvetica,sans-serif;
+  font-size:13px;
+  font-weight:700;
+  line-height:1.2;
+  white-space:nowrap;
+  box-shadow:0 8px 24px rgba(0,0,0,.38);
+  opacity:0;
+  visibility:hidden;
+  pointer-events:none;
+  transform:translate(-50%,8px);
+  transition:opacity .16s ease,transform .16s ease,visibility 0s linear .16s;
+}
+.totalk-notification-toast.show{
+  opacity:1;
+  visibility:visible;
+  transform:translate(-50%,0);
+  transition:opacity .16s ease,transform .16s ease,visibility 0s;
+}
+.totalk-notification-toast.disabled-state{
+  border-color:rgba(145,76,255,.28);
+  color:rgba(238,232,255,.82);
+}
+@media(max-width:800px){
+  .totalk-notification-toast{bottom:86px;}
+}
 </style>
 </head>
 
@@ -3874,14 +3914,12 @@ function showToTalkNotificationToast(message, state='enabled'){
 
   toast.textContent = message;
   toast.classList.toggle('disabled-state', state === 'disabled');
-  toast.classList.remove('show');
-  void toast.offsetWidth;
   toast.classList.add('show');
 
   clearTimeout(totalkNotificationToastTimer);
   totalkNotificationToastTimer = setTimeout(()=>{
     toast.classList.remove('show');
-  },900);
+  },1100);
 }
 
 function updateToTalkNotificationUI(){
@@ -3923,88 +3961,57 @@ function showToTalkNotificationButton(){
 
   updateToTalkNotificationUI();
 
-  button.onclick = async ()=>{
-    if(pushToggleInFlight) return;
+  button.onclick = async (event)=>{
+    event.preventDefault();
+    event.stopPropagation();
 
+    // Do not wait for Supabase, service worker, or another click.
+    // The bell and popup are controlled immediately by the app-level flag.
     if(!('Notification' in window) ||
        !('serviceWorker' in navigator) ||
        !('PushManager' in window)){
-      showToTalkNotificationToast('Notification Disabled','disabled');
+      setToTalkNotificationsDisabled(true);
       updateToTalkNotificationUI();
+      showToTalkNotificationToast('Notification Disabled','disabled');
       return;
     }
 
-    /*
-     * IMPORTANT:
-     * The bell UI changes immediately on click.
-     * We do not wait for Supabase / Service Worker work before
-     * showing the glow or the small popup.
-     */
-
-    // Browser permission is already granted: toggle ToTalk ON/OFF instantly.
     if(Notification.permission === 'granted'){
       const turningOn = areToTalkNotificationsDisabled();
 
+      // Change the app state FIRST so the bell reacts instantly.
+      setToTalkNotificationsDisabled(!turningOn);
+      updateToTalkNotificationUI();
+      showToTalkNotificationToast(
+        turningOn ? 'Notification Enabled' : 'Notification Disabled',
+        turningOn ? 'enabled' : 'disabled'
+      );
+
+      // Synchronize push subscription in the background. Never undo the
+      // visual state just because network/service-worker work is slow.
       if(turningOn){
-        // OFF -> ON: update the UI first.
-        setToTalkNotificationsDisabled(false);
-        updateToTalkNotificationUI();
-        showToTalkNotificationToast('Notification Enabled','enabled');
-
-        // Finish subscription work in the background.
-        pushToggleInFlight = true;
-        try{
-          await registerToTalkPushSubscription();
-        }catch(error){
+        void registerToTalkPushSubscription().catch(error=>{
           console.error('ToTalk notification enable sync failed:',error);
-          // If saving the subscription failed, keep the app disabled so
-          // the button does not falsely promise background notifications.
-          setToTalkNotificationsDisabled(true);
-          updateToTalkNotificationUI();
-        }finally{
-          pushToggleInFlight = false;
-        }
+        });
       }else{
-        // ON -> OFF: update the UI first.
-        setToTalkNotificationsDisabled(true);
-        updateToTalkNotificationUI();
-        showToTalkNotificationToast('Notification Disabled','disabled');
-
-        // Remove the subscription in the background.
-        pushToggleInFlight = true;
-        try{
-          await disableToTalkPushNotifications();
-        }catch(error){
+        void disableToTalkPushNotifications().catch(error=>{
           console.error('ToTalk notification disable sync failed:',error);
-        }finally{
-          pushToggleInFlight = false;
-        }
+        });
       }
-
       return;
     }
 
-    // Permission is undecided: the browser prompt can only be opened
-    // after this direct click, so this part necessarily waits for it.
+    // First enable: browser permission must be requested from this direct click.
     if(Notification.permission === 'default'){
-      pushToggleInFlight = true;
-
       try{
         const permission = await Notification.requestPermission();
-        console.log('ToTalk notification permission:',permission);
-
         if(permission === 'granted'){
           setToTalkNotificationsDisabled(false);
           updateToTalkNotificationUI();
           showToTalkNotificationToast('Notification Enabled','enabled');
-
-          try{
-            await registerToTalkPushSubscription();
-          }catch(error){
+          void registerToTalkPushSubscription().catch(error=>{
             console.error('ToTalk notification subscription save failed:',error);
-            setToTalkNotificationsDisabled(true);
-            updateToTalkNotificationUI();
-          }
+          });
         }else{
           setToTalkNotificationsDisabled(true);
           updateToTalkNotificationUI();
@@ -4015,14 +4022,11 @@ function showToTalkNotificationButton(){
         setToTalkNotificationsDisabled(true);
         updateToTalkNotificationUI();
         showToTalkNotificationToast('Notification Disabled','disabled');
-      }finally{
-        pushToggleInFlight = false;
       }
-
       return;
     }
 
-    // Browser permission is blocked. JavaScript cannot change it.
+    // Browser permission is blocked. The app cannot revoke browser permission.
     setToTalkNotificationsDisabled(true);
     updateToTalkNotificationUI();
     showToTalkNotificationToast('Notification Disabled','disabled');
