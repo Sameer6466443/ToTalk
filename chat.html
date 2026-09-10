@@ -7233,27 +7233,84 @@ async function sendMessage(){
 
 async function refreshConversationPreviewAfterMessageDelete(conversationId){
 
-  if(!conversationId || !conversationList) return;
+  if(!conversationId || !conversationList || !currentUser?.id) return;
 
   try{
-    const {data:latestRows,error} = await supabaseClient
+    /*
+     * Re-read the newest remaining message AND the current user's
+     * read position.  A deleted message can be one of several unread
+     * messages, so checking only the newest remaining message is not
+     * enough to rebuild the unread badge.
+     */
+    const [
+      latestResult,
+      participantResult
+    ] = await Promise.all([
+      supabaseClient
+        .from("messages")
+        .select("id,sender_id,content,created_at,edited_at,conversation_id")
+        .eq("conversation_id",conversationId)
+        .order("created_at",{ascending:false})
+        .limit(1),
+
+      supabaseClient
+        .from("conversation_participants")
+        .select("last_read_at")
+        .eq("conversation_id",conversationId)
+        .eq("user_id",currentUser.id)
+        .maybeSingle()
+    ]);
+
+    if(latestResult.error) throw latestResult.error;
+    if(participantResult.error) throw participantResult.error;
+
+    const latest = latestResult.data?.[0] || null;
+    const readAt = Date.parse(
+      participantResult.data?.last_read_at || ""
+    ) || 0;
+
+    /*
+     * IMPORTANT:
+     * Recalculate the EXACT unread count from the messages that still
+     * exist in Supabase. This prevents a stale "3" badge when, for
+     * example, 3 incoming messages existed and 2 were later deleted.
+     */
+    let unreadCount = 0;
+
+    let unreadQuery = supabaseClient
       .from("messages")
-      .select("id,sender_id,content,created_at,edited_at,conversation_id")
+      .select("id,sender_id,created_at")
       .eq("conversation_id",conversationId)
-      .order("created_at",{ascending:false})
-      .limit(1);
+      .neq("sender_id",currentUser.id);
 
-    if(error) throw error;
+    if(readAt > 0){
+      unreadQuery = unreadQuery.gt(
+        "created_at",
+        new Date(readAt).toISOString()
+      );
+    }
 
-    const latest = latestRows?.[0] || null;
+    const {data:unreadRows,error:unreadError} = await unreadQuery;
+
+    if(unreadError) throw unreadError;
+
+    unreadCount = (unreadRows || []).filter(row=>{
+      const messageTime = Date.parse(row.created_at || "") || 0;
+      return messageTime > readAt;
+    }).length;
+
     const item = conversationList.querySelector(
       `[data-conversation-id="${CSS.escape(String(conversationId))}"]`
     );
 
     /* Keep the local conversation cache in sync too. */
     const conversation = conversations.find(c=>c.id === conversationId);
-    if(conversation && latest?.created_at){
-      conversation.updated_at = latest.created_at;
+    if(conversation){
+      if(latest?.created_at){
+        conversation.updated_at = latest.created_at;
+      }else{
+        conversation.updated_at = conversation.created_at || null;
+      }
     }
 
     if(!item) return;
@@ -7270,32 +7327,24 @@ async function refreshConversationPreviewAfterMessageDelete(conversationId){
     }
 
     /*
-     * The deleted message may have been the unread message. Rebuild the
-     * unread state from the database instead of leaving a stale badge.
+     * Rebuild the unread UI from the EXACT remaining unread-message
+     * count. Never leave the old badge value behind after a deletion.
      */
-    if(latest && latest.sender_id !== currentUser.id){
-      const participant = await supabaseClient
-        .from("conversation_participants")
-        .select("last_read_at")
-        .eq("conversation_id",conversationId)
-        .eq("user_id",currentUser.id)
-        .maybeSingle();
+    item.classList.toggle("is-unread", unreadCount > 0);
 
-      const readAt = Date.parse(participant?.data?.last_read_at || "") || 0;
-      const latestTime = Date.parse(latest.created_at || "") || 0;
+    let badge = item.querySelector(".unread-badge");
 
-      if(latestTime > readAt){
-        item.classList.add("is-unread");
-      }else{
-        item.classList.remove("is-unread");
-        item.querySelector(".unread-badge")?.remove();
+    if(unreadCount > 0){
+      if(!badge){
+        badge = document.createElement("span");
+        badge.className = "unread-badge";
+        item.appendChild(badge);
       }
-    }else if(!latest || latest.sender_id === currentUser.id){
-      /* Do not invent an unread state after deleting a message. */
-      if(currentConversationId === conversationId){
-        item.classList.remove("is-unread");
-        item.querySelector(".unread-badge")?.remove();
-      }
+
+      badge.textContent =
+        unreadCount > 99 ? "99+" : String(unreadCount);
+    }else if(badge){
+      badge.remove();
     }
 
     /*
@@ -7306,14 +7355,22 @@ async function refreshConversationPreviewAfterMessageDelete(conversationId){
     const pinned = !!prefs[conversationId]?.pinned;
     const allItems = [...conversationList.querySelectorAll(".conversation-item")];
 
-    const targetTime = Date.parse(latest?.created_at || conversation?.created_at || "") || 0;
+    const targetTime =
+      Date.parse(
+        latest?.created_at ||
+        conversation?.updated_at ||
+        conversation?.created_at ||
+        ""
+      ) || 0;
 
     let inserted = false;
+
     for(const other of allItems){
       if(other === item) continue;
 
       const otherId = other.dataset.conversationId;
       const otherPinned = !!prefs[otherId]?.pinned;
+
       if(pinned !== otherPinned){
         if(pinned && !otherPinned){
           conversationList.insertBefore(item,other);
@@ -7323,9 +7380,15 @@ async function refreshConversationPreviewAfterMessageDelete(conversationId){
         continue;
       }
 
-      const otherTimeText = other.querySelector(".conversation-time")?.textContent || "";
-      const otherConversation = conversations.find(c=>c.id === otherId);
-      const otherTime = Date.parse(otherConversation?.updated_at || otherConversation?.created_at || "") || 0;
+      const otherConversation =
+        conversations.find(c=>String(c.id) === String(otherId));
+
+      const otherTime =
+        Date.parse(
+          otherConversation?.updated_at ||
+          otherConversation?.created_at ||
+          ""
+        ) || 0;
 
       if(targetTime > otherTime){
         conversationList.insertBefore(item,other);
@@ -7339,12 +7402,11 @@ async function refreshConversationPreviewAfterMessageDelete(conversationId){
     }
 
   }catch(error){
-    console.warn("Conversation preview refresh after delete failed:",error);
+    console.warn("Conversation preview/unread refresh after delete failed:",error);
 
     /*
-     * If the preview could not be reconciled immediately, a normal list
-     * refresh is the safe fallback. It reads the database again and never
-     * restores a deleted message.
+     * Safe fallback: rebuild the whole list from Supabase so the badge
+     * cannot remain stale if the targeted reconciliation fails.
      */
     void loadConversationList().catch(listError=>{
       console.warn("Chat-list refresh after delete failed:",listError);
