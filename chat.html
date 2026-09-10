@@ -3860,48 +3860,119 @@ function updateToTalkNotificationUI(){
 async function registerToTalkPushSubscription(){
   if(pushSubscriptionInFlight || !currentUser?.id) return false;
   if(areToTalkNotificationsDisabled()) return false;
-  if(!("serviceWorker" in navigator) || !("PushManager" in window)) return false;
-  if(!("Notification" in window) || Notification.permission !== "granted") return false;
-  if(!window.isSecureContext) return false;
+
+  if(!("serviceWorker" in navigator)){
+    throw new Error("ToTalk Push Error: Service Worker is not supported by this browser.");
+  }
+
+  if(!("PushManager" in window)){
+    throw new Error("ToTalk Push Error: PushManager is not supported by this browser.");
+  }
+
+  if(!("Notification" in window)){
+    throw new Error("ToTalk Push Error: Browser Notification API is not supported.");
+  }
+
+  if(Notification.permission !== "granted"){
+    throw new Error("ToTalk Push Error: Notification permission is not granted.");
+  }
+
+  if(!window.isSecureContext){
+    throw new Error("ToTalk Push Error: ToTalk must be opened over HTTPS.");
+  }
 
   pushSubscriptionInFlight = true;
 
   try{
+    console.log("ToTalk PUSH 1/7: Starting subscription registration.");
+    console.log("ToTalk PUSH: current user id:", currentUser.id);
+
     const registration = await navigator.serviceWorker.ready;
-    let subscription = await registration.pushManager.getSubscription();
+
+    if(!registration){
+      throw new Error("ToTalk Push Error: Service Worker registration is unavailable.");
+    }
+
+    console.log("ToTalk PUSH 2/7: Service Worker is ready.");
+
+    let subscription =
+      await registration.pushManager.getSubscription();
+
+    console.log(
+      "ToTalk PUSH 3/7: Existing browser subscription:",
+      !!subscription
+    );
 
     /*
-      We changed the VAPID key. An existing browser subscription belongs to
-      the previous key pair, so replace it exactly once.
+      Keep the existing VAPID-version handling exactly as before.
+      An old browser subscription is removed when the VAPID public key changes.
     */
     let previousVapidKey = null;
     try{
       previousVapidKey = localStorage.getItem(TOTAlK_VAPID_KEY_VERSION);
-    }catch(e){}
+    }catch(e){
+      console.warn("ToTalk PUSH: Could not read VAPID key version from localStorage.",e);
+    }
 
     if(subscription && previousVapidKey !== VAPID_PUBLIC_KEY){
-      const oldEndpoint = subscription.endpoint;
-      await subscription.unsubscribe().catch(()=>{});
+      console.log("ToTalk PUSH: Replacing subscription created with an older VAPID key.");
 
-      await supabaseClient
+      const oldEndpoint = subscription.endpoint;
+
+      await subscription.unsubscribe().catch(error=>{
+        console.warn("ToTalk PUSH: Old browser subscription unsubscribe failed.",error);
+      });
+
+      const {error:deleteError} = await supabaseClient
         .from("push_subscriptions")
         .delete()
         .eq("user_id",currentUser.id)
         .eq("endpoint",oldEndpoint);
 
+      if(deleteError){
+        throw new Error(
+          "ToTalk Push Error: Could not remove the old subscription from Supabase: " +
+          deleteError.message
+        );
+      }
+
       subscription = null;
     }
 
     if(!subscription){
-      subscription = await registration.pushManager.subscribe({
-        userVisibleOnly:true,
-        applicationServerKey:urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
-      });
+      console.log("ToTalk PUSH 4/7: Creating browser push subscription...");
+
+      let applicationServerKey;
+      try{
+        applicationServerKey = urlBase64ToUint8Array(VAPID_PUBLIC_KEY);
+      }catch(error){
+        throw new Error(
+          "ToTalk Push Error: VAPID public key could not be converted: " +
+          (error?.message || error)
+        );
+      }
+
+      try{
+        subscription = await registration.pushManager.subscribe({
+          userVisibleOnly:true,
+          applicationServerKey
+        });
+      }catch(error){
+        throw new Error(
+          "ToTalk Push Error: Browser push subscription creation failed: " +
+          (error?.message || error)
+        );
+      }
     }
 
     try{
-      localStorage.setItem(TOTAlK_VAPID_KEY_VERSION,VAPID_PUBLIC_KEY);
-    }catch(e){}
+      localStorage.setItem(
+        TOTAlK_VAPID_KEY_VERSION,
+        VAPID_PUBLIC_KEY
+      );
+    }catch(e){
+      console.warn("ToTalk PUSH: Could not save VAPID key version.",e);
+    }
 
     const subscriptionJson = subscription.toJSON();
     const endpoint = subscriptionJson.endpoint;
@@ -3909,8 +3980,13 @@ async function registerToTalkPushSubscription(){
     const auth = subscriptionJson.keys?.auth;
 
     if(!endpoint || !p256dh || !auth){
-      throw new Error("Browser returned an incomplete push subscription.");
+      throw new Error(
+        "ToTalk Push Error: Browser returned an incomplete push subscription."
+      );
     }
+
+    console.log("ToTalk PUSH 5/7: Browser subscription is complete.");
+    console.log("ToTalk PUSH: endpoint received:", endpoint);
 
     const {data:existing,error:findError} = await supabaseClient
       .from("push_subscriptions")
@@ -3919,9 +3995,16 @@ async function registerToTalkPushSubscription(){
       .eq("endpoint",endpoint)
       .maybeSingle();
 
-    if(findError) throw findError;
+    if(findError){
+      throw new Error(
+        "ToTalk Push Error: Supabase SELECT failed: " +
+        findError.message
+      );
+    }
 
     if(existing?.id){
+      console.log("ToTalk PUSH 6/7: Existing subscription found; updating it.");
+
       const {error:updateError} = await supabaseClient
         .from("push_subscriptions")
         .update({
@@ -3932,8 +4015,15 @@ async function registerToTalkPushSubscription(){
         .eq("id",existing.id)
         .eq("user_id",currentUser.id);
 
-      if(updateError) throw updateError;
+      if(updateError){
+        throw new Error(
+          "ToTalk Push Error: Supabase UPDATE failed: " +
+          updateError.message
+        );
+      }
     }else{
+      console.log("ToTalk PUSH 6/7: No subscription row found; inserting one.");
+
       const {error:insertError} = await supabaseClient
         .from("push_subscriptions")
         .insert({
@@ -3943,10 +4033,15 @@ async function registerToTalkPushSubscription(){
           auth
         });
 
-      if(insertError) throw insertError;
+      if(insertError){
+        throw new Error(
+          "ToTalk Push Error: Supabase INSERT failed: " +
+          insertError.message
+        );
+      }
     }
 
-    console.log("ToTalk Web Push subscription saved.");
+    console.log("ToTalk PUSH 7/7: Subscription successfully saved to push_subscriptions.");
     return true;
 
   }catch(error){
@@ -3956,7 +4051,6 @@ async function registerToTalkPushSubscription(){
     pushSubscriptionInFlight = false;
   }
 }
-
 async function disableToTalkPushNotifications(){
   try{
     const registration = await navigator.serviceWorker.ready;
