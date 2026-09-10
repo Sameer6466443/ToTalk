@@ -3094,77 +3094,38 @@ header{
  .totalk-notification-toast{
   position:fixed;
   left:50%;
-  bottom:92px;
+  bottom:82px;
   z-index:9999;
-  transform:translate(-50%,10px);
-  min-width:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
   width:max-content;
   max-width:calc(100vw - 40px);
-  padding:9px 16px;
-  border:1px solid rgba(177,112,255,.48);
-  border-radius:999px;
-  background:rgba(13,9,25,.94);
-  color:#f3edff;
+  padding:8px 16px;
+  border:1px solid rgba(139,92,246,.45);
+  border-radius:10px;
+  background:rgba(15,10,28,.96);
+  color:#eee8ff;
   font:600 13px/1.2 inherit;
-  letter-spacing:.1px;
-  text-align:center;
-  box-shadow:0 7px 24px rgba(0,0,0,.32),0 0 14px rgba(139,61,255,.12);
+  white-space:nowrap;
+  box-shadow:0 6px 18px rgba(0,0,0,.32);
   opacity:0;
   visibility:hidden;
   pointer-events:none;
-  transition:opacity .16s ease, transform .16s ease, visibility 0s linear .16s;
+  transform:translate(-50%,5px);
+  transition:opacity .12s ease, transform .12s ease, visibility 0s linear .12s;
+}
+.totalk-notification-toast.disabled-state{
+  border-color:rgba(139,92,246,.28);
+  color:rgba(238,232,255,.82);
 }
 .totalk-notification-toast.show{
   opacity:1;
   visibility:visible;
   transform:translate(-50%,0);
-  transition:opacity .16s ease, transform .16s ease, visibility 0s;
+  transition:opacity .12s ease, transform .12s ease, visibility 0s;
 }
-@media(max-width:800px){
-  .totalk-notification-toast{bottom:84px;padding:8px 14px;font-size:12px;}
-}
-</style>
-<style id="totalk-notification-ui-size-fix">
-/* Compact ToTalk notification control */
-.totalk-notification-icon,
-.totalk-notification-icon.enabled,
-.totalk-notification-icon.disabled,
-.totalk-notification-icon.denied{
-  flex:0 0 30px !important;
-  width:30px !important;
-  height:30px !important;
-  margin-top:4px !important;
-  padding:0 !important;
-  border:0 !important;
-  border-radius:50% !important;
-  background:transparent !important;
-  box-shadow:none !important;
-  color:rgba(173,151,220,.55) !important;
-}
-.totalk-notification-icon::before,
-.totalk-notification-icon::after{display:none !important;content:none !important;}
-.totalk-notification-bell{
-  width:25px !important;
-  height:25px !important;
-  stroke-width:1.7 !important;
-}
-.totalk-notification-icon.enabled{
-  color:#dca8ff !important;
-}
-.totalk-notification-icon.enabled .totalk-notification-bell{
-  filter:drop-shadow(0 0 5px rgba(191,104,255,.95)) !important;
-}
-@media(max-width:800px){
-  .totalk-notification-icon,
-  .totalk-notification-icon.enabled,
-  .totalk-notification-icon.disabled,
-  .totalk-notification-icon.denied{
-    flex-basis:30px !important;
-    width:30px !important;
-    height:30px !important;
-  }
-  .totalk-notification-bell{width:24px !important;height:24px !important;}
-}
+@media(max-width:800px){.totalk-notification-icon,.totalk-notification-icon.enabled,.totalk-notification-icon.disabled,.totalk-notification-icon.denied{flex-basis:30px !important;width:30px !important;height:30px !important;}.totalk-notification-bell{width:24px !important;height:24px !important;}.totalk-notification-toast{bottom:86px;}}
 </style>
 </head>
 
@@ -3892,11 +3853,12 @@ async function registerToTalkPushSubscription(){
 
 let totalkNotificationToastTimer = null;
 
-function showToTalkNotificationToast(message){
+function showToTalkNotificationToast(message, state='enabled'){
   const toast = document.getElementById('totalkNotificationToast');
   if(!toast) return;
 
   toast.textContent = message;
+  toast.classList.toggle('disabled-state', state === 'disabled');
   toast.classList.remove('show');
   void toast.offsetWidth;
   toast.classList.add('show');
@@ -3904,7 +3866,7 @@ function showToTalkNotificationToast(message){
   clearTimeout(totalkNotificationToastTimer);
   totalkNotificationToastTimer = setTimeout(()=>{
     toast.classList.remove('show');
-  },1200);
+  },900);
 }
 
 function updateToTalkNotificationUI(){
@@ -3943,24 +3905,24 @@ function showToTalkNotificationButton(){
 
   button.onclick = async ()=>{
     if(!('Notification' in window)){
-      showToTalkNotificationToast('Notifications are not supported');
+      showToTalkNotificationToast('Notification Disabled','disabled');
       return;
     }
 
     if(Notification.permission === 'granted'){
       try{
         await registerToTalkPushSubscription();
-        showToTalkNotificationToast('Notifications enabled');
+        showToTalkNotificationToast('Notification Enabled','enabled');
       }catch(error){
         console.error('ToTalk Web Push subscription failed:',error);
-        showToTalkNotificationToast('Notifications enabled');
+        showToTalkNotificationToast('Notification Enabled','enabled');
       }
       updateToTalkNotificationUI();
       return;
     }
 
     if(Notification.permission === 'denied'){
-      showToTalkNotificationToast('Notifications disabled');
+      showToTalkNotificationToast('Notification Disabled','disabled');
       setTimeout(()=>{
         alert('Notifications are blocked for ToTalk. Open Chrome Site settings for this site, allow Notifications, then reload ToTalk.');
       },80);
@@ -3975,17 +3937,17 @@ function showToTalkNotificationButton(){
 
       if(permission === 'granted'){
         updateToTalkNotificationUI();
-        showToTalkNotificationToast('Notifications enabled');
+        showToTalkNotificationToast('Notification Enabled','enabled');
         await registerToTalkPushSubscription();
       }else if(permission === 'denied'){
         updateToTalkNotificationUI();
-        showToTalkNotificationToast('Notifications disabled');
+        showToTalkNotificationToast('Notification Disabled','disabled');
       }else{
         updateToTalkNotificationUI();
       }
     }catch(error){
       console.error('ToTalk notification permission failed:',error);
-      showToTalkNotificationToast('Notifications disabled');
+      showToTalkNotificationToast('Notification Disabled','disabled');
       updateToTalkNotificationUI();
     }finally{
       button.disabled = false;
