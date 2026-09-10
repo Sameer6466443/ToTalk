@@ -3083,46 +3083,51 @@ header{
 }
 .totalk-notification-icon.disabled{color:rgba(173,151,220,.42);filter:none;}
 .totalk-notification-icon.denied{color:rgba(173,151,220,.30);filter:none;}
+/* ToTalk notification toast - fixed overlay, never part of page layout */
 .totalk-notification-toast{
-  position:fixed;
-  left:50%;
-  bottom:82px;
-  z-index:999999;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  width:max-content;
-  max-width:calc(100vw - 32px);
-  min-height:34px;
-  padding:8px 14px;
-  border:1px solid rgba(145,76,255,.42);
-  border-radius:10px;
-  background:rgba(9,5,23,.97);
-  color:#eee8ff;
-  font-family:Arial,Helvetica,sans-serif;
-  font-size:13px;
-  font-weight:700;
-  line-height:1.2;
-  white-space:nowrap;
-  box-shadow:0 8px 24px rgba(0,0,0,.38);
-  opacity:0;
-  visibility:hidden;
-  pointer-events:none;
-  transform:translate(-50%,8px);
-  transition:opacity .16s ease,transform .16s ease,visibility 0s linear .16s;
+  position:fixed !important;
+  left:50% !important;
+  top:140px !important;
+  bottom:auto !important;
+  z-index:2147483647 !important;
+  display:block !important;
+  width:max-content !important;
+  max-width:calc(100vw - 32px) !important;
+  min-height:0 !important;
+  box-sizing:border-box !important;
+  margin:0 !important;
+  padding:8px 14px !important;
+  border:1px solid rgba(145,76,255,.48) !important;
+  border-radius:10px !important;
+  background:rgba(9,5,23,.98) !important;
+  color:#eee8ff !important;
+  font-family:Arial,Helvetica,sans-serif !important;
+  font-size:13px !important;
+  font-weight:700 !important;
+  line-height:1.2 !important;
+  white-space:nowrap !important;
+  text-align:center !important;
+  box-shadow:0 8px 24px rgba(0,0,0,.42) !important;
+  opacity:0 !important;
+  visibility:hidden !important;
+  pointer-events:none !important;
+  transform:translate(-50%,-4px) !important;
+  transition:opacity .14s ease,transform .14s ease,visibility 0s linear .14s !important;
 }
 .totalk-notification-toast.show{
-  opacity:1;
-  visibility:visible;
-  transform:translate(-50%,0);
-  transition:opacity .16s ease,transform .16s ease,visibility 0s;
+  opacity:1 !important;
+  visibility:visible !important;
+  transform:translate(-50%,0) !important;
+  transition:opacity .14s ease,transform .14s ease,visibility 0s !important;
 }
 .totalk-notification-toast.disabled-state{
-  border-color:rgba(145,76,255,.28);
-  color:rgba(238,232,255,.82);
+  border-color:rgba(145,76,255,.30) !important;
+  color:rgba(238,232,255,.84) !important;
 }
 @media(max-width:800px){
-  .totalk-notification-toast{bottom:86px;}
+  .totalk-notification-toast{
+    top:140px !important;
+  }
 }
 </style>
 </head>
@@ -3908,15 +3913,80 @@ async function disableToTalkPushNotifications(){
 
 let totalkNotificationToastTimer = null;
 
+/*
+ * The bell is an APP-LEVEL toggle.
+ * Its visual state is kept in memory immediately and persisted to localStorage.
+ * Browser permission is separate: once granted, JavaScript cannot revoke it.
+ */
+let totalkNotificationsEnabled = false;
+
+function loadToTalkNotificationToggleState(){
+  try{
+    totalkNotificationsEnabled =
+      localStorage.getItem(TOTAlK_NOTIFICATIONS_DISABLED_KEY) !== '1';
+  }catch(e){
+    /* If storage is unavailable, default to enabled when browser permission is granted. */
+    totalkNotificationsEnabled =
+      ('Notification' in window && Notification.permission === 'granted');
+  }
+}
+
+function saveToTalkNotificationToggleState(enabled){
+  totalkNotificationsEnabled = !!enabled;
+  try{
+    if(totalkNotificationsEnabled){
+      localStorage.removeItem(TOTAlK_NOTIFICATIONS_DISABLED_KEY);
+    }else{
+      localStorage.setItem(TOTAlK_NOTIFICATIONS_DISABLED_KEY,'1');
+    }
+  }catch(e){}
+}
+
+function positionToTalkNotificationToast(){
+  const toast = document.getElementById('totalkNotificationToast');
+  const button = document.getElementById('totalkEnableNotificationsButton');
+  if(!toast || !button) return;
+
+  const rect = button.getBoundingClientRect();
+  const gap = 8;
+  let left = rect.left + rect.width / 2;
+  let top = rect.bottom + gap;
+
+  const toastWidth = toast.offsetWidth || 150;
+  const half = toastWidth / 2;
+  const margin = 10;
+
+  left = Math.max(margin + half, Math.min(window.innerWidth - margin - half, left));
+
+  /* Keep it near the bell but never let it cover the browser/page controls. */
+  if(top < 8) top = 8;
+  if(top + toast.offsetHeight > window.innerHeight - 8){
+    top = Math.max(8, rect.top - toast.offsetHeight - gap);
+  }
+
+  toast.style.left = left + 'px';
+  toast.style.top = top + 'px';
+}
+
 function showToTalkNotificationToast(message, state='enabled'){
   const toast = document.getElementById('totalkNotificationToast');
   if(!toast) return;
 
+  clearTimeout(totalkNotificationToastTimer);
+
   toast.textContent = message;
   toast.classList.toggle('disabled-state', state === 'disabled');
+
+  /* Inline positioning guarantees the toast cannot fall into the card layout. */
+  toast.style.position = 'fixed';
+  toast.style.zIndex = '2147483647';
+  toast.style.bottom = 'auto';
+
+  toast.classList.remove('show');
+  void toast.offsetWidth;
+  positionToTalkNotificationToast();
   toast.classList.add('show');
 
-  clearTimeout(totalkNotificationToastTimer);
   totalkNotificationToastTimer = setTimeout(()=>{
     toast.classList.remove('show');
   },1100);
@@ -3928,23 +3998,23 @@ function updateToTalkNotificationUI(){
 
   button.classList.remove('enabled','disabled','denied');
 
-  if(!('Notification' in window) ||
-     !('serviceWorker' in navigator) ||
-     !('PushManager' in window)){
+  const supported =
+    ('Notification' in window) &&
+    ('serviceWorker' in navigator) &&
+    ('PushManager' in window);
+
+  if(!supported){
     button.classList.add('disabled');
     button.title = 'Notifications unavailable';
     button.setAttribute('aria-label','Notifications unavailable');
     return;
   }
 
-  if(Notification.permission === 'denied'){
-    button.classList.add('denied');
-    button.title = 'Notifications blocked by browser';
-    button.setAttribute('aria-label','Notifications blocked by browser');
-    return;
-  }
-
-  if(Notification.permission === 'granted' && !areToTalkNotificationsDisabled()){
+  /*
+   * IMPORTANT: use our app-level toggle state, not the asynchronous
+   * subscription state. This makes the bell change on the same click.
+   */
+  if(totalkNotificationsEnabled){
     button.classList.add('enabled');
     button.title = 'Notifications enabled — click to disable';
     button.setAttribute('aria-label','Notifications enabled — click to disable');
@@ -3959,37 +4029,41 @@ function showToTalkNotificationButton(){
   const button = document.getElementById('totalkEnableNotificationsButton');
   if(!button) return;
 
+  loadToTalkNotificationToggleState();
   updateToTalkNotificationUI();
 
   button.onclick = async (event)=>{
     event.preventDefault();
     event.stopPropagation();
 
-    // Do not wait for Supabase, service worker, or another click.
-    // The bell and popup are controlled immediately by the app-level flag.
-    if(!('Notification' in window) ||
-       !('serviceWorker' in navigator) ||
-       !('PushManager' in window)){
-      setToTalkNotificationsDisabled(true);
+    const supported =
+      ('Notification' in window) &&
+      ('serviceWorker' in navigator) &&
+      ('PushManager' in window);
+
+    if(!supported){
+      saveToTalkNotificationToggleState(false);
       updateToTalkNotificationUI();
       showToTalkNotificationToast('Notification Disabled','disabled');
       return;
     }
 
+    /*
+     * If browser permission is already granted, this is a pure instant
+     * ON/OFF app toggle. No await is used before changing the UI.
+     */
     if(Notification.permission === 'granted'){
-      const turningOn = areToTalkNotificationsDisabled();
+      const nextEnabled = !totalkNotificationsEnabled;
 
-      // Change the app state FIRST so the bell reacts instantly.
-      setToTalkNotificationsDisabled(!turningOn);
+      saveToTalkNotificationToggleState(nextEnabled);
       updateToTalkNotificationUI();
       showToTalkNotificationToast(
-        turningOn ? 'Notification Enabled' : 'Notification Disabled',
-        turningOn ? 'enabled' : 'disabled'
+        nextEnabled ? 'Notification Enabled' : 'Notification Disabled',
+        nextEnabled ? 'enabled' : 'disabled'
       );
 
-      // Synchronize push subscription in the background. Never undo the
-      // visual state just because network/service-worker work is slow.
-      if(turningOn){
+      /* Background sync only. It can never change the visual toggle back. */
+      if(nextEnabled){
         void registerToTalkPushSubscription().catch(error=>{
           console.error('ToTalk notification enable sync failed:',error);
         });
@@ -4001,33 +4075,38 @@ function showToTalkNotificationButton(){
       return;
     }
 
-    // First enable: browser permission must be requested from this direct click.
+    /*
+     * First-ever click: browser permission prompt is required.
+     * This is the only case where we wait for the browser.
+     */
     if(Notification.permission === 'default'){
       try{
         const permission = await Notification.requestPermission();
+
         if(permission === 'granted'){
-          setToTalkNotificationsDisabled(false);
+          saveToTalkNotificationToggleState(true);
           updateToTalkNotificationUI();
           showToTalkNotificationToast('Notification Enabled','enabled');
+
           void registerToTalkPushSubscription().catch(error=>{
             console.error('ToTalk notification subscription save failed:',error);
           });
         }else{
-          setToTalkNotificationsDisabled(true);
+          saveToTalkNotificationToggleState(false);
           updateToTalkNotificationUI();
           showToTalkNotificationToast('Notification Disabled','disabled');
         }
       }catch(error){
         console.error('ToTalk notification permission failed:',error);
-        setToTalkNotificationsDisabled(true);
+        saveToTalkNotificationToggleState(false);
         updateToTalkNotificationUI();
         showToTalkNotificationToast('Notification Disabled','disabled');
       }
       return;
     }
 
-    // Browser permission is blocked. The app cannot revoke browser permission.
-    setToTalkNotificationsDisabled(true);
+    /* Browser permission is blocked. The app toggle remains OFF. */
+    saveToTalkNotificationToggleState(false);
     updateToTalkNotificationUI();
     showToTalkNotificationToast('Notification Disabled','disabled');
   };
@@ -4041,6 +4120,7 @@ document.addEventListener('visibilitychange',()=>{
 });
 
 window.addEventListener('focus',updateToTalkNotificationUI);
+window.addEventListener('resize',positionToTalkNotificationToast);
 
 let currentProfile = null;
 
