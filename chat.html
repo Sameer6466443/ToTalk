@@ -3129,6 +3129,48 @@ header{
   .totalk-notification-toast{bottom:90px;}
 }
 </style>
+<style id="totalk-notification-ui-size-fix">
+/* Compact ToTalk notification control */
+.totalk-notification-icon,
+.totalk-notification-icon.enabled,
+.totalk-notification-icon.disabled,
+.totalk-notification-icon.denied{
+  flex:0 0 30px !important;
+  width:30px !important;
+  height:30px !important;
+  margin-top:4px !important;
+  padding:0 !important;
+  border:0 !important;
+  border-radius:50% !important;
+  background:transparent !important;
+  box-shadow:none !important;
+  color:rgba(173,151,220,.55) !important;
+}
+.totalk-notification-icon::before,
+.totalk-notification-icon::after{display:none !important;content:none !important;}
+.totalk-notification-bell{
+  width:25px !important;
+  height:25px !important;
+  stroke-width:1.7 !important;
+}
+.totalk-notification-icon.enabled{
+  color:#dca8ff !important;
+}
+.totalk-notification-icon.enabled .totalk-notification-bell{
+  filter:drop-shadow(0 0 5px rgba(191,104,255,.95)) !important;
+}
+@media(max-width:800px){
+  .totalk-notification-icon,
+  .totalk-notification-icon.enabled,
+  .totalk-notification-icon.disabled,
+  .totalk-notification-icon.denied{
+    flex-basis:30px !important;
+    width:30px !important;
+    height:30px !important;
+  }
+  .totalk-notification-bell{width:24px !important;height:24px !important;}
+}
+</style>
 </head>
 
 <body>
