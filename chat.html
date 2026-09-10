@@ -3858,8 +3858,24 @@ function updateToTalkNotificationUI(){
 }
 
 async function registerToTalkPushSubscription(){
-  if(pushSubscriptionInFlight || !currentUser?.id) return false;
-  if(areToTalkNotificationsDisabled()) return false;
+  if(pushSubscriptionInFlight || !currentUser?.id){
+    const diagnosticError = new Error(
+      "ToTalk Push Diagnostic: Registration stopped before starting. " +
+      "pushSubscriptionInFlight=" + String(pushSubscriptionInFlight) +
+      ", currentUser.id=" + String(currentUser?.id || "MISSING")
+    );
+    console.error(diagnosticError.message);
+    try{ showDatabaseError(diagnosticError); }catch(e){ console.error(e); }
+    return false;
+  }
+  if(areToTalkNotificationsDisabled()){
+    const diagnosticError = new Error(
+      "ToTalk Push Diagnostic: Registration stopped because ToTalk notifications are disabled at the moment registration was called."
+    );
+    console.error(diagnosticError.message);
+    try{ showDatabaseError(diagnosticError); }catch(e){ console.error(e); }
+    return false;
+  }
 
   if(!("serviceWorker" in navigator)){
     throw new Error("ToTalk Push Error: Service Worker is not supported by this browser.");
