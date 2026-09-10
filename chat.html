@@ -3048,14 +3048,14 @@ header{
 }
 .totalk-notification-icon{
   position:relative;
-  flex:0 0 58px;
-  width:58px;
-  height:58px;
-  margin-top:0;
+  flex:0 0 42px;
+  width:42px;
+  height:42px;
+  margin-top:2px;
   display:grid;
   place-items:center;
   border:1px solid rgba(145,76,255,.62);
-  border-radius:18px;
+  border-radius:13px;
   background:rgba(18,10,35,.72);
   color:rgba(181,157,255,.62);
   cursor:pointer;
@@ -3064,25 +3064,14 @@ header{
 }
 .totalk-notification-icon:active{transform:scale(.94);}
 .totalk-notification-bell{
-  width:30px;
-  height:30px;
+  width:21px;
+  height:21px;
   fill:none;
   stroke:currentColor;
   stroke-width:1.75;
   stroke-linecap:round;
   stroke-linejoin:round;
   transition:filter .22s ease, transform .22s ease;
-}
-.totalk-notification-dot{
-  position:absolute;
-  top:8px;
-  right:8px;
-  width:9px;
-  height:9px;
-  border-radius:50%;
-  background:rgba(177,151,255,.35);
-  box-shadow:none;
-  transition:background .22s ease, box-shadow .22s ease;
 }
 .totalk-notification-icon.enabled{
   color:#dca8ff;
@@ -3093,17 +3082,10 @@ header{
 .totalk-notification-icon.enabled .totalk-notification-bell{
   filter:drop-shadow(0 0 7px rgba(191,104,255,.95));
 }
-.totalk-notification-icon.enabled .totalk-notification-dot{
-  background:#ff4ecd;
-  box-shadow:0 0 9px rgba(255,78,205,.95);
-}
 .totalk-notification-icon.disabled{
   color:rgba(173,151,220,.55);
   border-color:rgba(126,92,190,.42);
   box-shadow:none;
-}
-.totalk-notification-icon.disabled .totalk-notification-dot{
-  background:rgba(173,151,220,.25);
 }
 .totalk-notification-icon.denied{
   color:rgba(173,151,220,.38);
@@ -3138,12 +3120,12 @@ header{
 }
 @media(max-width:800px){
   .totalk-notification-icon{
-    flex-basis:54px;
-    width:54px;
-    height:54px;
-    border-radius:17px;
+    flex-basis:40px;
+    width:40px;
+    height:40px;
+    border-radius:12px;
   }
-  .totalk-notification-bell{width:28px;height:28px;}
+  .totalk-notification-bell{width:20px;height:20px;}
   .totalk-notification-toast{bottom:90px;}
 }
 </style>
@@ -3333,7 +3315,6 @@ header{
             <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/>
             <path d="M10 21h4"/>
           </svg>
-          <span class="totalk-notification-dot" aria-hidden="true"></span>
         </button>
       </div>
 
