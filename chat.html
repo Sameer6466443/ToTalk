@@ -4046,6 +4046,11 @@ async function registerToTalkPushSubscription(){
 
   }catch(error){
     console.error("ToTalk Web Push subscription failed:",error);
+    try{
+      showDatabaseError(error);
+    }catch(_diagnosticError){
+      console.error("ToTalk push diagnostic display failed:",_diagnosticError);
+    }
     throw error;
   }finally{
     pushSubscriptionInFlight = false;
