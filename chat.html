@@ -3048,84 +3048,42 @@ header{
 }
 .totalk-notification-icon{
   position:relative;
-  flex:0 0 42px;
-  width:42px;
-  height:42px;
+  flex:0 0 30px;
+  width:30px;
+  height:30px;
   margin-top:2px;
+  padding:0;
   display:grid;
   place-items:center;
-  border:1px solid rgba(145,76,255,.62);
-  border-radius:13px;
-  background:rgba(18,10,35,.72);
-  color:rgba(181,157,255,.62);
+  border:0;
+  border-radius:50%;
+  background:transparent;
+  color:rgba(173,151,220,.42);
   cursor:pointer;
-  transition:color .22s ease, border-color .22s ease, box-shadow .22s ease, transform .15s ease;
+  transition:color .18s ease,filter .18s ease,transform .12s ease;
   -webkit-tap-highlight-color:transparent;
 }
-.totalk-notification-icon:active{transform:scale(.94);}
+.totalk-notification-icon:hover{color:rgba(197,171,255,.78);}
+.totalk-notification-icon:active{transform:scale(.92);}
+.totalk-notification-icon:disabled{cursor:default;opacity:.7;}
 .totalk-notification-bell{
-  width:21px;
-  height:21px;
+  width:24px;
+  height:24px;
   fill:none;
   stroke:currentColor;
   stroke-width:1.75;
   stroke-linecap:round;
   stroke-linejoin:round;
-  transition:filter .22s ease, transform .22s ease;
+  transition:filter .18s ease,transform .18s ease;
 }
-.totalk-notification-icon.enabled{
-  color:#dca8ff;
-  border-color:rgba(171,82,255,.95);
-  background:linear-gradient(145deg,rgba(43,17,77,.9),rgba(17,8,35,.9));
-  box-shadow:0 0 18px rgba(139,61,255,.35), inset 0 0 16px rgba(139,61,255,.12);
-}
+.totalk-notification-icon.enabled{color:#c994ff;}
 .totalk-notification-icon.enabled .totalk-notification-bell{
-  filter:drop-shadow(0 0 7px rgba(191,104,255,.95));
+  filter:drop-shadow(0 0 5px rgba(183,101,255,.95))
+         drop-shadow(0 0 11px rgba(139,61,255,.55));
 }
-.totalk-notification-icon.disabled{
-  color:rgba(173,151,220,.55);
-  border-color:rgba(126,92,190,.42);
-  box-shadow:none;
-}
-.totalk-notification-icon.denied{
-  color:rgba(173,151,220,.38);
-  border-color:rgba(126,92,190,.32);
-}
- .totalk-notification-toast{
-  position:fixed;
-  left:50%;
-  bottom:82px;
-  z-index:9999;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  width:max-content;
-  max-width:calc(100vw - 40px);
-  padding:8px 16px;
-  border:1px solid rgba(139,92,246,.45);
-  border-radius:10px;
-  background:rgba(15,10,28,.96);
-  color:#eee8ff;
-  font:600 13px/1.2 inherit;
-  white-space:nowrap;
-  box-shadow:0 6px 18px rgba(0,0,0,.32);
-  opacity:0;
-  visibility:hidden;
-  pointer-events:none;
-  transform:translate(-50%,5px);
-  transition:opacity .12s ease, transform .12s ease, visibility 0s linear .12s;
-}
-.totalk-notification-toast.disabled-state{
-  border-color:rgba(139,92,246,.28);
-  color:rgba(238,232,255,.82);
-}
-.totalk-notification-toast.show{
-  opacity:1;
-  visibility:visible;
-  transform:translate(-50%,0);
-  transition:opacity .12s ease, transform .12s ease, visibility 0s;
-}
-@media(max-width:800px){.totalk-notification-icon,.totalk-notification-icon.enabled,.totalk-notification-icon.disabled,.totalk-notification-icon.denied{flex-basis:30px !important;width:30px !important;height:30px !important;}.totalk-notification-bell{width:24px !important;height:24px !important;}.totalk-notification-toast{bottom:86px;}}
+.totalk-notification-icon.disabled{color:rgba(173,151,220,.42);filter:none;}
+.totalk-notification-icon.denied{color:rgba(173,151,220,.30);filter:none;}
+@media(max-width:800px){.totalk-notification-toast{bottom:86px;}}.totalk-notification-bell{width:24px !important;height:24px !important;}.totalk-notification-toast{bottom:86px;}}
 </style>
 </head>
 
@@ -3762,6 +3720,7 @@ const VAPID_PUBLIC_KEY =
   "BDWOU0LJJOWe2iH_RqIW3LRwtw5xyeHf48-e8kjT8Hdtfr_PVH48v-Uyms_cutgHe6IjlR-PJmzGAgM4dipniAI";
 
 let pushSubscriptionInFlight = false;
+let pushToggleInFlight = false;
 const TOTAlK_NOTIFICATIONS_DISABLED_KEY = 'totalk_notifications_disabled';
 
 function areToTalkNotificationsDisabled(){
@@ -3799,17 +3758,16 @@ function urlBase64ToUint8Array(base64String){
 }
 
 async function registerToTalkPushSubscription(){
-  if(pushSubscriptionInFlight || !currentUser?.id) return;
-  if(areToTalkNotificationsDisabled()) return;
-  if(!('serviceWorker' in navigator) || !('PushManager' in window)) return;
-  if(!('Notification' in window) || Notification.permission !== 'granted') return;
-  if(!window.isSecureContext) return;
+  if(pushSubscriptionInFlight || !currentUser?.id) return false;
+  if(areToTalkNotificationsDisabled()) return false;
+  if(!('serviceWorker' in navigator) || !('PushManager' in window)) return false;
+  if(!('Notification' in window) || Notification.permission !== 'granted') return false;
+  if(!window.isSecureContext) return false;
 
   pushSubscriptionInFlight = true;
 
   try{
     const registration = await navigator.serviceWorker.ready;
-
     let subscription = await registration.pushManager.getSubscription();
 
     if(!subscription){
@@ -3863,6 +3821,7 @@ async function registerToTalkPushSubscription(){
     }
 
     console.log('ToTalk Web Push subscription saved.');
+    return true;
   }catch(error){
     console.error('ToTalk Web Push subscription failed:',error);
     throw error;
@@ -3872,45 +3831,39 @@ async function registerToTalkPushSubscription(){
 }
 
 async function disableToTalkPushNotifications(){
-  if(!currentUser?.id) return;
+  setToTalkNotificationsDisabled(true);
+
+  if(!('serviceWorker' in navigator) || !('PushManager' in window)){
+    return;
+  }
+
+  let endpoint = null;
 
   try{
-    setToTalkNotificationsDisabled(true);
+    const registration = await navigator.serviceWorker.ready;
+    const subscription = await registration.pushManager.getSubscription();
 
-    if('serviceWorker' in navigator && 'PushManager' in window){
-      const registration = await navigator.serviceWorker.ready;
-      const subscription = await registration.pushManager.getSubscription();
-
-      if(subscription){
-        const endpoint = subscription.endpoint;
-        await subscription.unsubscribe().catch(()=>{});
-
-        const {error} = await supabaseClient
-          .from('push_subscriptions')
-          .delete()
-          .eq('user_id',currentUser.id)
-          .eq('endpoint',endpoint);
-
-        if(error) throw error;
-      }else{
-        await supabaseClient
-          .from('push_subscriptions')
-          .delete()
-          .eq('user_id',currentUser.id);
-      }
-    }else{
-      await supabaseClient
-        .from('push_subscriptions')
-        .delete()
-        .eq('user_id',currentUser.id);
+    if(subscription){
+      endpoint = subscription.endpoint;
+      await subscription.unsubscribe().catch(()=>{});
     }
-
-    console.log('ToTalk Web Push notifications disabled.');
   }catch(error){
-    console.error('ToTalk Web Push disable failed:',error);
-    setToTalkNotificationsDisabled(true);
-    throw error;
+    console.error('ToTalk browser push unsubscribe failed:',error);
   }
+
+  // Delete only this browser/device subscription.
+  // Other phones/browsers remain unaffected.
+  if(currentUser?.id && endpoint){
+    const {error} = await supabaseClient
+      .from('push_subscriptions')
+      .delete()
+      .eq('user_id',currentUser.id)
+      .eq('endpoint',endpoint);
+
+    if(error) console.error('ToTalk push subscription cleanup failed:',error);
+  }
+
+  console.log('ToTalk Web Push notifications disabled for this browser.');
 }
 
 let totalkNotificationToastTimer = null;
@@ -3937,10 +3890,19 @@ function updateToTalkNotificationUI(){
 
   button.classList.remove('enabled','disabled','denied');
 
-  if(!('Notification' in window)){
+  if(!('Notification' in window) ||
+     !('serviceWorker' in navigator) ||
+     !('PushManager' in window)){
     button.classList.add('disabled');
-    button.title = 'Notifications are not supported in this browser';
-    button.setAttribute('aria-label','Notifications are not supported in this browser');
+    button.title = 'Notifications unavailable';
+    button.setAttribute('aria-label','Notifications unavailable');
+    return;
+  }
+
+  if(Notification.permission === 'denied'){
+    button.classList.add('denied');
+    button.title = 'Notifications blocked by browser';
+    button.setAttribute('aria-label','Notifications blocked by browser');
     return;
   }
 
@@ -3948,14 +3910,10 @@ function updateToTalkNotificationUI(){
     button.classList.add('enabled');
     button.title = 'Notifications enabled — click to disable';
     button.setAttribute('aria-label','Notifications enabled — click to disable');
-  }else if(Notification.permission === 'denied'){
-    button.classList.add('denied');
-    button.title = 'Notifications disabled — open Site settings to allow them';
-    button.setAttribute('aria-label','Notifications disabled');
   }else{
     button.classList.add('disabled');
-    button.title = 'Notifications disabled — tap to enable';
-    button.setAttribute('aria-label','Enable ToTalk notifications');
+    button.title = 'Notifications disabled — click to enable';
+    button.setAttribute('aria-label','Notifications disabled — click to enable');
   }
 }
 
@@ -3966,84 +3924,91 @@ function showToTalkNotificationButton(){
   updateToTalkNotificationUI();
 
   button.onclick = async ()=>{
-    if(!('Notification' in window)){
+    if(pushToggleInFlight) return;
+
+    if(!('Notification' in window) ||
+       !('serviceWorker' in navigator) ||
+       !('PushManager' in window)){
       showToTalkNotificationToast('Notification Disabled','disabled');
+      updateToTalkNotificationUI();
       return;
     }
 
+    // Browser permission itself cannot be revoked by JavaScript.
+    // This button toggles ToTalk's own push subscription:
+    // ON -> OFF -> ON -> OFF.
     if(Notification.permission === 'granted'){
-      if(areToTalkNotificationsDisabled()){
-        button.disabled = true;
-        try{
+      pushToggleInFlight = true;
+      button.disabled = true;
+
+      try{
+        if(areToTalkNotificationsDisabled()){
+          // OFF -> ON
           setToTalkNotificationsDisabled(false);
           await registerToTalkPushSubscription();
           showToTalkNotificationToast('Notification Enabled','enabled');
-        }catch(error){
-          console.error('ToTalk Web Push re-enable failed:',error);
-          setToTalkNotificationsDisabled(true);
-          showToTalkNotificationToast('Notification Disabled','disabled');
-        }finally{
-          button.disabled = false;
-          updateToTalkNotificationUI();
-        }
-      }else{
-        button.disabled = true;
-        try{
+        }else{
+          // ON -> OFF
           await disableToTalkPushNotifications();
           showToTalkNotificationToast('Notification Disabled','disabled');
-        }catch(error){
-          showToTalkNotificationToast('Notification Disabled','disabled');
-        }finally{
-          button.disabled = false;
-          updateToTalkNotificationUI();
         }
-      }
-      return;
-    }
+      }catch(error){
+        console.error('ToTalk notification toggle failed:',error);
 
-    if(Notification.permission === 'denied'){
-      showToTalkNotificationToast('Notification Disabled','disabled');
-      setTimeout(()=>{
-        alert('Notifications are blocked for ToTalk. Open Chrome Site settings for this site, allow Notifications, then reload ToTalk.');
-      },80);
-      return;
-    }
-
-    button.disabled = true;
-
-    try{
-      const permission = await Notification.requestPermission();
-      console.log('ToTalk notification permission:',permission);
-
-      if(permission === 'granted'){
-        updateToTalkNotificationUI();
-        showToTalkNotificationToast('Notification Enabled','enabled');
-        await registerToTalkPushSubscription();
-      }else if(permission === 'denied'){
-        updateToTalkNotificationUI();
+        setToTalkNotificationsDisabled(true);
         showToTalkNotificationToast('Notification Disabled','disabled');
-      }else{
+      }finally{
+        pushToggleInFlight = false;
+        button.disabled = false;
         updateToTalkNotificationUI();
       }
-    }catch(error){
-      console.error('ToTalk notification permission failed:',error);
-      showToTalkNotificationToast('Notification Disabled','disabled');
-      updateToTalkNotificationUI();
-    }finally{
-      button.disabled = false;
+
+      return;
     }
+
+    // Permission is undecided: ask only from this direct bell click.
+    if(Notification.permission === 'default'){
+      pushToggleInFlight = true;
+      button.disabled = true;
+
+      try{
+        const permission = await Notification.requestPermission();
+        console.log('ToTalk notification permission:',permission);
+
+        if(permission === 'granted'){
+          setToTalkNotificationsDisabled(false);
+          await registerToTalkPushSubscription();
+          showToTalkNotificationToast('Notification Enabled','enabled');
+        }else{
+          setToTalkNotificationsDisabled(true);
+          showToTalkNotificationToast('Notification Disabled','disabled');
+        }
+      }catch(error){
+        console.error('ToTalk notification permission failed:',error);
+        setToTalkNotificationsDisabled(true);
+        showToTalkNotificationToast('Notification Disabled','disabled');
+      }finally{
+        pushToggleInFlight = false;
+        button.disabled = false;
+        updateToTalkNotificationUI();
+      }
+
+      return;
+    }
+
+    // Browser has blocked permission; JavaScript cannot override it.
+    showToTalkNotificationToast('Notification Disabled','disabled');
+    updateToTalkNotificationUI();
   };
 }
 
 /* Permission is requested only from the bell's direct user click. */
 showToTalkNotificationButton();
 
-
-
-
 document.addEventListener('visibilitychange',()=>{
   if(!document.hidden) updateToTalkNotificationUI();
 });
+
 window.addEventListener('focus',updateToTalkNotificationUI);
 
 let currentProfile = null;
