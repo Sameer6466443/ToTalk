@@ -3048,88 +3048,127 @@ header{
 }
 .totalk-notification-icon{
   position:relative;
-  flex:0 0 30px;
-  width:30px;
-  height:30px;
+  flex:0 0 42px;
+  width:42px;
+  height:42px;
   margin-top:2px;
-  padding:0;
   display:grid;
   place-items:center;
-  border:0;
-  border-radius:50%;
-  background:transparent;
-  color:rgba(173,151,220,.42);
+  border:1px solid rgba(145,76,255,.62);
+  border-radius:13px;
+  background:rgba(18,10,35,.72);
+  color:rgba(181,157,255,.62);
   cursor:pointer;
-  transition:color .18s ease,filter .18s ease,transform .12s ease;
+  transition:color .22s ease, border-color .22s ease, box-shadow .22s ease, transform .15s ease;
   -webkit-tap-highlight-color:transparent;
 }
-.totalk-notification-icon:hover{color:rgba(197,171,255,.78);}
-.totalk-notification-icon:active{transform:scale(.92);}
-.totalk-notification-icon:disabled{cursor:default;opacity:.7;}
+.totalk-notification-icon:active{transform:scale(.94);}
 .totalk-notification-bell{
-  width:24px;
-  height:24px;
+  width:21px;
+  height:21px;
   fill:none;
   stroke:currentColor;
   stroke-width:1.75;
   stroke-linecap:round;
   stroke-linejoin:round;
-  transition:filter .18s ease,transform .18s ease;
+  transition:filter .22s ease, transform .22s ease;
 }
-.totalk-notification-icon.enabled{color:#c994ff;}
+.totalk-notification-icon.enabled{
+  color:#dca8ff;
+  border-color:rgba(171,82,255,.95);
+  background:linear-gradient(145deg,rgba(43,17,77,.9),rgba(17,8,35,.9));
+  box-shadow:0 0 18px rgba(139,61,255,.35), inset 0 0 16px rgba(139,61,255,.12);
+}
 .totalk-notification-icon.enabled .totalk-notification-bell{
-  filter:drop-shadow(0 0 5px rgba(183,101,255,.95))
-         drop-shadow(0 0 11px rgba(139,61,255,.55));
+  filter:drop-shadow(0 0 7px rgba(191,104,255,.95));
 }
-.totalk-notification-icon.disabled{color:rgba(173,151,220,.42);filter:none;}
-.totalk-notification-icon.denied{color:rgba(173,151,220,.30);filter:none;}
-/* ToTalk notification toast - fixed, clean bottom-center */
+.totalk-notification-icon.disabled{
+  color:rgba(173,151,220,.55);
+  border-color:rgba(126,92,190,.42);
+  box-shadow:none;
+}
+.totalk-notification-icon.denied{
+  color:rgba(173,151,220,.38);
+  border-color:rgba(126,92,190,.32);
+}
 .totalk-notification-toast{
-  position:fixed !important;
-  left:50% !important;
-  right:auto !important;
-  top:auto !important;
-  bottom:calc(92px + env(safe-area-inset-bottom)) !important;
-  z-index:2147483647 !important;
-  display:block !important;
-  box-sizing:border-box !important;
-  width:max-content !important;
-  max-width:calc(100vw - 32px) !important;
-  margin:0 !important;
-  padding:10px 17px !important;
-  border:1px solid rgba(145,76,255,.50) !important;
-  border-radius:12px !important;
-  background:rgba(9,5,23,.97) !important;
-  color:#eee8ff !important;
-  font-family:Arial,Helvetica,sans-serif !important;
-  font-size:13px !important;
-  font-weight:700 !important;
-  line-height:1.2 !important;
-  text-align:center !important;
-  white-space:nowrap !important;
-  box-shadow:0 8px 24px rgba(0,0,0,.42) !important;
-  opacity:0 !important;
-  visibility:hidden !important;
-  pointer-events:none !important;
-  transform:translate(-50%,10px) !important;
-  transition:opacity .16s ease,transform .16s ease,visibility 0s linear .16s !important;
+  position:fixed;
+  left:50%;
+  bottom:30px;
+  z-index:9999;
+  transform:translate(-50%,18px);
+  min-width:210px;
+  max-width:calc(100vw - 32px);
+  padding:11px 17px;
+  border:1px solid rgba(171,82,255,.72);
+  border-radius:14px;
+  background:rgba(15,8,29,.96);
+  color:#fff;
+  font:700 14px/1.25 inherit;
+  text-align:center;
+  box-shadow:0 10px 35px rgba(0,0,0,.45),0 0 22px rgba(139,61,255,.24);
+  opacity:0;
+  visibility:hidden;
+  pointer-events:none;
+  transition:opacity .25s ease, transform .25s ease, visibility 0s linear .25s;
 }
 .totalk-notification-toast.show{
-  opacity:1 !important;
-  visibility:visible !important;
-  transform:translate(-50%,0) !important;
-  transition:opacity .16s ease,transform .16s ease,visibility 0s !important;
-}
-.totalk-notification-toast.disabled-state{
-  border-color:rgba(145,76,255,.34) !important;
-  color:rgba(238,232,255,.88) !important;
+  opacity:1;
+  visibility:visible;
+  transform:translate(-50%,0);
+  transition:opacity .25s ease, transform .25s ease, visibility 0s;
 }
 @media(max-width:800px){
-  .totalk-notification-toast{
-    bottom:calc(82px + env(safe-area-inset-bottom)) !important;
-    max-width:calc(100vw - 24px) !important;
-    padding:10px 15px !important;
+  .totalk-notification-icon{
+    flex-basis:40px;
+    width:40px;
+    height:40px;
+    border-radius:12px;
   }
+  .totalk-notification-bell{width:20px;height:20px;}
+  .totalk-notification-toast{bottom:90px;}
+}
+</style>
+<style id="totalk-notification-ui-size-fix">
+/* Compact ToTalk notification control */
+.totalk-notification-icon,
+.totalk-notification-icon.enabled,
+.totalk-notification-icon.disabled,
+.totalk-notification-icon.denied{
+  flex:0 0 30px !important;
+  width:30px !important;
+  height:30px !important;
+  margin-top:4px !important;
+  padding:0 !important;
+  border:0 !important;
+  border-radius:50% !important;
+  background:transparent !important;
+  box-shadow:none !important;
+  color:rgba(173,151,220,.55) !important;
+}
+.totalk-notification-icon::before,
+.totalk-notification-icon::after{display:none !important;content:none !important;}
+.totalk-notification-bell{
+  width:25px !important;
+  height:25px !important;
+  stroke-width:1.7 !important;
+}
+.totalk-notification-icon.enabled{
+  color:#dca8ff !important;
+}
+.totalk-notification-icon.enabled .totalk-notification-bell{
+  filter:drop-shadow(0 0 5px rgba(191,104,255,.95)) !important;
+}
+@media(max-width:800px){
+  .totalk-notification-icon,
+  .totalk-notification-icon.enabled,
+  .totalk-notification-icon.disabled,
+  .totalk-notification-icon.denied{
+    flex-basis:30px !important;
+    width:30px !important;
+    height:30px !important;
+  }
+  .totalk-notification-bell{width:24px !important;height:24px !important;}
 }
 </style>
 </head>
@@ -3321,6 +3360,7 @@ header{
         </button>
       </div>
 
+      <div id="totalkNotificationToast" class="totalk-notification-toast" role="status" aria-live="polite" aria-atomic="true"></div>
 
       <div class="user-search-row">
         <input
@@ -3763,29 +3803,9 @@ let currentUser = null;
 ===================================================== */
 
 const VAPID_PUBLIC_KEY =
-  "BDWOU0LJJOWe2iH_RqIW3LRwtw5xyeHf48-e8kjT8Hdtfr_PVH48v-Uyms_cutgHe6IjlR-PJmzGAgM4dipniAI";
+  "BGHg1Xy8wZdoBshscwav_msjm0JiQCUIrkG5zQuEJov0aNqh5-z3qWY65hdcmleyG-IEBXXPHFaz1AU8XqJCmaU";
 
 let pushSubscriptionInFlight = false;
-let pushToggleInFlight = false;
-const TOTAlK_NOTIFICATIONS_DISABLED_KEY = 'totalk_notifications_disabled';
-
-function areToTalkNotificationsDisabled(){
-  try{
-    return localStorage.getItem(TOTAlK_NOTIFICATIONS_DISABLED_KEY) === '1';
-  }catch(e){
-    return false;
-  }
-}
-
-function setToTalkNotificationsDisabled(disabled){
-  try{
-    if(disabled){
-      localStorage.setItem(TOTAlK_NOTIFICATIONS_DISABLED_KEY,'1');
-    }else{
-      localStorage.removeItem(TOTAlK_NOTIFICATIONS_DISABLED_KEY);
-    }
-  }catch(e){}
-}
 
 function urlBase64ToUint8Array(base64String){
   const padding = '='.repeat((4 - base64String.length % 4) % 4);
@@ -3804,16 +3824,16 @@ function urlBase64ToUint8Array(base64String){
 }
 
 async function registerToTalkPushSubscription(){
-  if(pushSubscriptionInFlight || !currentUser?.id) return false;
-  if(areToTalkNotificationsDisabled()) return false;
-  if(!('serviceWorker' in navigator) || !('PushManager' in window)) return false;
-  if(!('Notification' in window) || Notification.permission !== 'granted') return false;
-  if(!window.isSecureContext) return false;
+  if(pushSubscriptionInFlight || !currentUser?.id) return;
+  if(!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+  if(!('Notification' in window) || Notification.permission !== 'granted') return;
+  if(!window.isSecureContext) return;
 
   pushSubscriptionInFlight = true;
 
   try{
     const registration = await navigator.serviceWorker.ready;
+
     let subscription = await registration.pushManager.getSubscription();
 
     if(!subscription){
@@ -3867,7 +3887,6 @@ async function registerToTalkPushSubscription(){
     }
 
     console.log('ToTalk Web Push subscription saved.');
-    return true;
   }catch(error){
     console.error('ToTalk Web Push subscription failed:',error);
     throw error;
@@ -3876,81 +3895,13 @@ async function registerToTalkPushSubscription(){
   }
 }
 
-async function disableToTalkPushNotifications(){
-  setToTalkNotificationsDisabled(true);
-
-  if(!('serviceWorker' in navigator) || !('PushManager' in window)){
-    return;
-  }
-
-  let endpoint = null;
-
-  try{
-    const registration = await navigator.serviceWorker.ready;
-    const subscription = await registration.pushManager.getSubscription();
-
-    if(subscription){
-      endpoint = subscription.endpoint;
-      await subscription.unsubscribe().catch(()=>{});
-    }
-  }catch(error){
-    console.error('ToTalk browser push unsubscribe failed:',error);
-  }
-
-  // Delete only this browser/device subscription.
-  // Other phones/browsers remain unaffected.
-  if(currentUser?.id && endpoint){
-    const {error} = await supabaseClient
-      .from('push_subscriptions')
-      .delete()
-      .eq('user_id',currentUser.id)
-      .eq('endpoint',endpoint);
-
-    if(error) console.error('ToTalk push subscription cleanup failed:',error);
-  }
-
-  console.log('ToTalk Web Push notifications disabled for this browser.');
-}
-
 let totalkNotificationToastTimer = null;
 
-/*
- * The bell is an APP-LEVEL toggle.
- * Its visual state is kept in memory immediately and persisted to localStorage.
- * Browser permission is separate: once granted, JavaScript cannot revoke it.
- */
-let totalkNotificationsEnabled = false;
-
-function loadToTalkNotificationToggleState(){
-  try{
-    totalkNotificationsEnabled =
-      localStorage.getItem(TOTAlK_NOTIFICATIONS_DISABLED_KEY) !== '1';
-  }catch(e){
-    /* If storage is unavailable, default to enabled when browser permission is granted. */
-    totalkNotificationsEnabled =
-      ('Notification' in window && Notification.permission === 'granted');
-  }
-}
-
-function saveToTalkNotificationToggleState(enabled){
-  totalkNotificationsEnabled = !!enabled;
-  try{
-    if(totalkNotificationsEnabled){
-      localStorage.removeItem(TOTAlK_NOTIFICATIONS_DISABLED_KEY);
-    }else{
-      localStorage.setItem(TOTAlK_NOTIFICATIONS_DISABLED_KEY,'1');
-    }
-  }catch(e){}
-}
-
-function showToTalkNotificationToast(message, state='enabled'){
+function showToTalkNotificationToast(message){
   const toast = document.getElementById('totalkNotificationToast');
-  const button = document.getElementById('totalkEnableNotificationsButton');
   if(!toast) return;
 
   toast.textContent = message;
-  toast.classList.toggle('disabled-state', state === 'disabled');
-
   toast.classList.remove('show');
   void toast.offsetWidth;
   toast.classList.add('show');
@@ -3958,7 +3909,7 @@ function showToTalkNotificationToast(message, state='enabled'){
   clearTimeout(totalkNotificationToastTimer);
   totalkNotificationToastTimer = setTimeout(()=>{
     toast.classList.remove('show');
-  },1100);
+  },2600);
 }
 
 function updateToTalkNotificationUI(){
@@ -3967,156 +3918,96 @@ function updateToTalkNotificationUI(){
 
   button.classList.remove('enabled','disabled','denied');
 
-  const supported =
-    ('Notification' in window) &&
-    ('serviceWorker' in navigator) &&
-    ('PushManager' in window);
-
-  if(!supported){
+  if(!('Notification' in window)){
     button.classList.add('disabled');
-    button.title = 'Notifications unavailable';
-    button.setAttribute('aria-label','Notifications unavailable');
+    button.title = 'Notifications are not supported in this browser';
+    button.setAttribute('aria-label','Notifications are not supported in this browser');
     return;
   }
 
-  /*
-   * IMPORTANT: use our app-level toggle state, not the asynchronous
-   * subscription state. This makes the bell change on the same click.
-   */
-  if(totalkNotificationsEnabled){
+  if(Notification.permission === 'granted'){
     button.classList.add('enabled');
-    button.title = 'Notifications enabled — click to disable';
-    button.setAttribute('aria-label','Notifications enabled — click to disable');
+    button.title = 'Notifications enabled';
+    button.setAttribute('aria-label','Notifications enabled');
+  }else if(Notification.permission === 'denied'){
+    button.classList.add('denied');
+    button.title = 'Notifications disabled — open Site settings to allow them';
+    button.setAttribute('aria-label','Notifications disabled');
   }else{
     button.classList.add('disabled');
-    button.title = 'Notifications disabled — click to enable';
-    button.setAttribute('aria-label','Notifications disabled — click to enable');
+    button.title = 'Notifications disabled — tap to enable';
+    button.setAttribute('aria-label','Enable ToTalk notifications');
   }
-}
-
-function showToTalkNotificationBlockedHelp(){
-  let box = document.getElementById('totalkNotificationBlockedHelp');
-  if(!box){
-    box = document.createElement('div');
-    box.id = 'totalkNotificationBlockedHelp';
-    box.innerHTML = `
-      <div class="totalk-notification-help-card" role="dialog" aria-modal="true" aria-label="Notifications blocked">
-        <button type="button" class="totalk-notification-help-close" aria-label="Close">×</button>
-        <div class="totalk-notification-help-title">Notifications are blocked</div>
-        <div class="totalk-notification-help-text">This browser has blocked notifications for ToTalk. Open this site's browser settings, allow Notifications, then tap the bell again.</div>
-        <button type="button" class="totalk-notification-help-done">Got it</button>
-      </div>`;
-    document.body.appendChild(box);
-    const close = ()=>box.classList.remove('show');
-    box.querySelector('.totalk-notification-help-close').onclick = close;
-    box.querySelector('.totalk-notification-help-done').onclick = close;
-    box.addEventListener('click',e=>{ if(e.target===box) close(); });
-  }
-  box.classList.add('show');
 }
 
 function showToTalkNotificationButton(){
   const button = document.getElementById('totalkEnableNotificationsButton');
   if(!button) return;
 
-  loadToTalkNotificationToggleState();
   updateToTalkNotificationUI();
 
-  button.onclick = async (event)=>{
-    event.preventDefault();
-    event.stopPropagation();
-
-    const supported =
-      ('Notification' in window) &&
-      ('serviceWorker' in navigator) &&
-      ('PushManager' in window);
-
-    if(!supported){
-      saveToTalkNotificationToggleState(false);
-      updateToTalkNotificationUI();
-      showToTalkNotificationToast('Notification Disabled','disabled');
+  button.onclick = async ()=>{
+    if(!('Notification' in window)){
+      showToTalkNotificationToast('Notifications are not supported');
       return;
     }
 
-    /*
-     * If browser permission is already granted, this is a pure instant
-     * ON/OFF app toggle. No await is used before changing the UI.
-     */
     if(Notification.permission === 'granted'){
-      const nextEnabled = !totalkNotificationsEnabled;
-
-      saveToTalkNotificationToggleState(nextEnabled);
-      updateToTalkNotificationUI();
-      showToTalkNotificationToast(
-        nextEnabled ? 'Notification Enabled' : 'Notification Disabled',
-        nextEnabled ? 'enabled' : 'disabled'
-      );
-
-      /* Background sync only. It can never change the visual toggle back. */
-      if(nextEnabled){
-        void registerToTalkPushSubscription().catch(error=>{
-          console.error('ToTalk notification enable sync failed:',error);
-        });
-      }else{
-        void disableToTalkPushNotifications().catch(error=>{
-          console.error('ToTalk notification disable sync failed:',error);
-        });
-      }
-      return;
-    }
-
-    /*
-     * First-ever click: browser permission prompt is required.
-     * This is the only case where we wait for the browser.
-     */
-    if(Notification.permission === 'default'){
       try{
-        const permission = await Notification.requestPermission();
-
-        if(permission === 'granted'){
-          saveToTalkNotificationToggleState(true);
-          updateToTalkNotificationUI();
-          showToTalkNotificationToast('Notification Enabled','enabled');
-
-          void registerToTalkPushSubscription().catch(error=>{
-            console.error('ToTalk notification subscription save failed:',error);
-          });
-        }else{
-          saveToTalkNotificationToggleState(false);
-          updateToTalkNotificationUI();
-          showToTalkNotificationToast('Notification Disabled','disabled');
-        }
+        await registerToTalkPushSubscription();
+        showToTalkNotificationToast('Notifications enabled ✓');
       }catch(error){
-        console.error('ToTalk notification permission failed:',error);
-        saveToTalkNotificationToggleState(false);
-        updateToTalkNotificationUI();
-        showToTalkNotificationToast('Notification Disabled','disabled');
+        console.error('ToTalk Web Push subscription failed:',error);
+        showToTalkNotificationToast('Notifications enabled ✓');
       }
+      updateToTalkNotificationUI();
       return;
     }
 
-    /*
-     * Browser permission is blocked/denied on this device.
-     * JavaScript cannot re-open the browser permission prompt after a denial.
-     * Do not silently pretend that notifications were enabled. Instead, keep
-     * the app toggle OFF and clearly tell the user how to unblock it.
-     */
-    saveToTalkNotificationToggleState(false);
-    updateToTalkNotificationUI();
-    showToTalkNotificationToast('Notification Disabled','disabled');
-    showToTalkNotificationBlockedHelp();
+    if(Notification.permission === 'denied'){
+      showToTalkNotificationToast('Notifications disabled');
+      setTimeout(()=>{
+        alert('Notifications are blocked for ToTalk. Open Chrome Site settings for this site, allow Notifications, then reload ToTalk.');
+      },80);
+      return;
+    }
+
+    button.disabled = true;
+
+    try{
+      const permission = await Notification.requestPermission();
+      console.log('ToTalk notification permission:',permission);
+
+      if(permission === 'granted'){
+        updateToTalkNotificationUI();
+        showToTalkNotificationToast('Notifications enabled ✓');
+        await registerToTalkPushSubscription();
+      }else if(permission === 'denied'){
+        updateToTalkNotificationUI();
+        showToTalkNotificationToast('Notifications disabled');
+      }else{
+        updateToTalkNotificationUI();
+      }
+    }catch(error){
+      console.error('ToTalk notification permission failed:',error);
+      showToTalkNotificationToast('Notifications disabled');
+      updateToTalkNotificationUI();
+    }finally{
+      button.disabled = false;
+    }
   };
 }
 
 /* Permission is requested only from the bell's direct user click. */
 showToTalkNotificationButton();
 
+
+
+
 document.addEventListener('visibilitychange',()=>{
   if(!document.hidden) updateToTalkNotificationUI();
 });
-
 window.addEventListener('focus',updateToTalkNotificationUI);
-
 
 let currentProfile = null;
 
@@ -6188,7 +6079,7 @@ async function deleteMessage(
      * conversation lost this message. This is intentionally sent only
      * after the database DELETE succeeds.
      */
-    void broadcastMessageDeleted(data.id,conversationId,data.created_at,data.sender_id);
+    void broadcastMessageDeleted(data.id,conversationId);
 
     /*
      * IMPORTANT: if the deleted message was the latest message, the chat
@@ -6753,8 +6644,6 @@ async function loadConversationList(){
 
     const item = document.createElement("button");
     item.type = "button";
-    /* Keep the server read position available to remote-delete reconciliation. */
-    row.__lastReadAt = readAtMap.get(row.id) || 0;
     const pref = prefs[row.id] || {};
     const unreadCount = unreadMap.get(row.id) || 0;
 
@@ -7154,6 +7043,54 @@ async function sendMessage(){
       throw error;
     }
 
+    /*
+     * The message is saved successfully. Now ask the Supabase Edge Function
+     * to send a Web Push notification to the other user's registered device(s).
+     *
+     * IMPORTANT: notification failure must NEVER make a successfully saved
+     * message appear as "Not sent". Therefore this is intentionally isolated
+     * from the main message-send try/catch.
+     */
+    try{
+      const recipientUserId = currentConversationPartner?.user_id;
+
+      if(recipientUserId){
+        const {data:pushResult,error:pushError} =
+          await supabaseClient.functions.invoke(
+            "send-push-notification",
+            {
+              body:{
+                recipient_user_id: String(recipientUserId),
+                sender_user_id: String(currentUser.id),
+                sender_name:
+                  currentProfile?.name ||
+                  currentUser?.user_metadata?.full_name ||
+                  "ToTalk User",
+                message: text,
+                conversation_id: String(currentConversationId)
+              }
+            }
+          );
+
+        if(pushError){
+          console.error(
+            "ToTalk push notification error:",
+            pushError
+          );
+        }else{
+          console.log(
+            "ToTalk push notification result:",
+            pushResult
+          );
+        }
+      }
+    }catch(pushError){
+      console.error(
+        "ToTalk push delivery request failed:",
+        pushError
+      );
+    }
+
     /* The database accepted the message. Mark the optimistic row as sent. */
     if(optimisticRow){
       const status = optimisticRow.querySelector(".message-status");
@@ -7235,84 +7172,27 @@ async function sendMessage(){
 
 async function refreshConversationPreviewAfterMessageDelete(conversationId){
 
-  if(!conversationId || !conversationList || !currentUser?.id) return;
+  if(!conversationId || !conversationList) return;
 
   try{
-    /*
-     * Re-read the newest remaining message AND the current user's
-     * read position.  A deleted message can be one of several unread
-     * messages, so checking only the newest remaining message is not
-     * enough to rebuild the unread badge.
-     */
-    const [
-      latestResult,
-      participantResult
-    ] = await Promise.all([
-      supabaseClient
-        .from("messages")
-        .select("id,sender_id,content,created_at,edited_at,conversation_id")
-        .eq("conversation_id",conversationId)
-        .order("created_at",{ascending:false})
-        .limit(1),
-
-      supabaseClient
-        .from("conversation_participants")
-        .select("last_read_at")
-        .eq("conversation_id",conversationId)
-        .eq("user_id",currentUser.id)
-        .maybeSingle()
-    ]);
-
-    if(latestResult.error) throw latestResult.error;
-    if(participantResult.error) throw participantResult.error;
-
-    const latest = latestResult.data?.[0] || null;
-    const readAt = Date.parse(
-      participantResult.data?.last_read_at || ""
-    ) || 0;
-
-    /*
-     * IMPORTANT:
-     * Recalculate the EXACT unread count from the messages that still
-     * exist in Supabase. This prevents a stale "3" badge when, for
-     * example, 3 incoming messages existed and 2 were later deleted.
-     */
-    let unreadCount = 0;
-
-    let unreadQuery = supabaseClient
+    const {data:latestRows,error} = await supabaseClient
       .from("messages")
-      .select("id,sender_id,created_at")
+      .select("id,sender_id,content,created_at,edited_at,conversation_id")
       .eq("conversation_id",conversationId)
-      .neq("sender_id",currentUser.id);
+      .order("created_at",{ascending:false})
+      .limit(1);
 
-    if(readAt > 0){
-      unreadQuery = unreadQuery.gt(
-        "created_at",
-        new Date(readAt).toISOString()
-      );
-    }
+    if(error) throw error;
 
-    const {data:unreadRows,error:unreadError} = await unreadQuery;
-
-    if(unreadError) throw unreadError;
-
-    unreadCount = (unreadRows || []).filter(row=>{
-      const messageTime = Date.parse(row.created_at || "") || 0;
-      return messageTime > readAt;
-    }).length;
-
+    const latest = latestRows?.[0] || null;
     const item = conversationList.querySelector(
       `[data-conversation-id="${CSS.escape(String(conversationId))}"]`
     );
 
     /* Keep the local conversation cache in sync too. */
     const conversation = conversations.find(c=>c.id === conversationId);
-    if(conversation){
-      if(latest?.created_at){
-        conversation.updated_at = latest.created_at;
-      }else{
-        conversation.updated_at = conversation.created_at || null;
-      }
+    if(conversation && latest?.created_at){
+      conversation.updated_at = latest.created_at;
     }
 
     if(!item) return;
@@ -7329,24 +7209,32 @@ async function refreshConversationPreviewAfterMessageDelete(conversationId){
     }
 
     /*
-     * Rebuild the unread UI from the EXACT remaining unread-message
-     * count. Never leave the old badge value behind after a deletion.
+     * The deleted message may have been the unread message. Rebuild the
+     * unread state from the database instead of leaving a stale badge.
      */
-    item.classList.toggle("is-unread", unreadCount > 0);
+    if(latest && latest.sender_id !== currentUser.id){
+      const participant = await supabaseClient
+        .from("conversation_participants")
+        .select("last_read_at")
+        .eq("conversation_id",conversationId)
+        .eq("user_id",currentUser.id)
+        .maybeSingle();
 
-    let badge = item.querySelector(".unread-badge");
+      const readAt = Date.parse(participant?.data?.last_read_at || "") || 0;
+      const latestTime = Date.parse(latest.created_at || "") || 0;
 
-    if(unreadCount > 0){
-      if(!badge){
-        badge = document.createElement("span");
-        badge.className = "unread-badge";
-        item.appendChild(badge);
+      if(latestTime > readAt){
+        item.classList.add("is-unread");
+      }else{
+        item.classList.remove("is-unread");
+        item.querySelector(".unread-badge")?.remove();
       }
-
-      badge.textContent =
-        unreadCount > 99 ? "99+" : String(unreadCount);
-    }else if(badge){
-      badge.remove();
+    }else if(!latest || latest.sender_id === currentUser.id){
+      /* Do not invent an unread state after deleting a message. */
+      if(currentConversationId === conversationId){
+        item.classList.remove("is-unread");
+        item.querySelector(".unread-badge")?.remove();
+      }
     }
 
     /*
@@ -7357,22 +7245,14 @@ async function refreshConversationPreviewAfterMessageDelete(conversationId){
     const pinned = !!prefs[conversationId]?.pinned;
     const allItems = [...conversationList.querySelectorAll(".conversation-item")];
 
-    const targetTime =
-      Date.parse(
-        latest?.created_at ||
-        conversation?.updated_at ||
-        conversation?.created_at ||
-        ""
-      ) || 0;
+    const targetTime = Date.parse(latest?.created_at || conversation?.created_at || "") || 0;
 
     let inserted = false;
-
     for(const other of allItems){
       if(other === item) continue;
 
       const otherId = other.dataset.conversationId;
       const otherPinned = !!prefs[otherId]?.pinned;
-
       if(pinned !== otherPinned){
         if(pinned && !otherPinned){
           conversationList.insertBefore(item,other);
@@ -7382,15 +7262,9 @@ async function refreshConversationPreviewAfterMessageDelete(conversationId){
         continue;
       }
 
-      const otherConversation =
-        conversations.find(c=>String(c.id) === String(otherId));
-
-      const otherTime =
-        Date.parse(
-          otherConversation?.updated_at ||
-          otherConversation?.created_at ||
-          ""
-        ) || 0;
+      const otherTimeText = other.querySelector(".conversation-time")?.textContent || "";
+      const otherConversation = conversations.find(c=>c.id === otherId);
+      const otherTime = Date.parse(otherConversation?.updated_at || otherConversation?.created_at || "") || 0;
 
       if(targetTime > otherTime){
         conversationList.insertBefore(item,other);
@@ -7404,11 +7278,12 @@ async function refreshConversationPreviewAfterMessageDelete(conversationId){
     }
 
   }catch(error){
-    console.warn("Conversation preview/unread refresh after delete failed:",error);
+    console.warn("Conversation preview refresh after delete failed:",error);
 
     /*
-     * Safe fallback: rebuild the whole list from Supabase so the badge
-     * cannot remain stale if the targeted reconciliation fails.
+     * If the preview could not be reconciled immediately, a normal list
+     * refresh is the safe fallback. It reads the database again and never
+     * restores a deleted message.
      */
     void loadConversationList().catch(listError=>{
       console.warn("Chat-list refresh after delete failed:",listError);
@@ -7426,40 +7301,6 @@ async function refreshConversationPreviewAfterMessageDelete(conversationId){
    This keeps another phone's open chat AND its sidebar preview
    synchronized without requiring a page refresh.
 ===================================================== */
-
-function adjustUnreadBadgeAfterRemoteDelete(data){
-  if(!data?.conversation_id || !data?.created_at || !currentUser?.id) return;
-  if(data.sender_id && String(data.sender_id) === String(currentUser.id)) return;
-  if(String(currentConversationId || "") === String(data.conversation_id)) return;
-
-  const item = conversationList?.querySelector(
-    `[data-conversation-id="${CSS.escape(String(data.conversation_id))}"]`
-  );
-  if(!item) return;
-
-  const participant = conversations.find(c=>String(c.id)===String(data.conversation_id));
-  const prefs = readConversationReadOverrides();
-  const localReadAt = Number(prefs[data.conversation_id] || 0);
-  const participantReadAt = participant?.__lastReadAt || 0;
-  const readAt = Math.max(localReadAt,Number(participantReadAt)||0);
-  const messageTime = Date.parse(data.created_at || "") || 0;
-
-  /* Only reduce the badge when the deleted message was actually unread. */
-  if(messageTime <= readAt) return;
-
-  const badge = item.querySelector(".unread-badge");
-  const current = badge ? parseInt(badge.textContent,10) || 0 : 0;
-  if(current <= 0) return;
-
-  const next = current - 1;
-  if(next > 0){
-    if(badge) badge.textContent = next > 99 ? "99+" : String(next);
-    item.classList.add("is-unread");
-  }else{
-    badge?.remove();
-    item.classList.remove("is-unread");
-  }
-}
 
 function startDeleteSync(){
 
@@ -7495,10 +7336,6 @@ function startDeleteSync(){
     messageCache.delete(id);
 
     if(conversationId){
-      /* Update the unread badge immediately from the deleted message itself.
-         This avoids leaving a stale 3/2/1 badge when the DELETE event or
-         database replication reaches the other device slightly later. */
-      adjustUnreadBadgeAfterRemoteDelete(data);
       void refreshConversationPreviewAfterMessageDelete(String(conversationId));
     }
 
@@ -7537,7 +7374,7 @@ function startDeleteSync(){
   });
 }
 
-async async function broadcastMessageDeleted(messageId,conversationId,createdAt,senderId){
+async function broadcastMessageDeleted(messageId,conversationId){
 
   if(!deleteSyncChannel || !messageId || !conversationId) return;
 
@@ -7548,8 +7385,6 @@ async async function broadcastMessageDeleted(messageId,conversationId,createdAt,
       payload:{
         message_id:String(messageId),
         conversation_id:String(conversationId),
-        created_at:createdAt || null,
-        sender_id:senderId || null,
         deleted_at:new Date().toISOString()
       }
     });
@@ -7709,47 +7544,6 @@ async function addRealtimeConversationToList(data){
       row,
       ...conversations.filter(item=>item.id !== row.id)
     ];
-
-    /*
-     * The full chat-list loader and this realtime callback can finish at
-     * almost the same time when a brand-new person sends the first message.
-     * The loader may have inserted the card while we were fetching the
-     * participant/profile above.  Check the DOM AGAIN immediately before
-     * creating a new card so the same conversation can never be rendered
-     * twice.
-     */
-    const existingItem = conversationList.querySelector(
-      `[data-conversation-id="${CSS.escape(String(row.id))}"]`
-    );
-
-    if(existingItem){
-      const existingPreview = existingItem.querySelector(".conversation-preview");
-      const existingTime = existingItem.querySelector(".conversation-time");
-      if(existingPreview) existingPreview.textContent = data.content || "No messages yet";
-      if(existingTime) existingTime.textContent = formatTime(data.created_at);
-      existingItem.classList.add("is-unread");
-
-      let existingBadge = existingItem.querySelector(".unread-badge");
-      if(!existingBadge){
-        existingBadge = document.createElement("span");
-        existingBadge.className = "unread-badge";
-        existingBadge.textContent = "1";
-        existingItem.appendChild(existingBadge);
-      }
-
-      /* Move the existing card to the top instead of creating another one. */
-      const existingHeading = conversationList.querySelector(".history-heading");
-      if(existingHeading && existingItem.parentElement === conversationList){
-        conversationList.insertBefore(existingItem,existingHeading.nextSibling);
-      }
-
-      /* Keep the in-memory conversation array unique as well. */
-      conversations = [
-        row,
-        ...conversations.filter(item=>String(item.id) !== String(row.id))
-      ];
-      return;
-    }
 
     const prefs = readConversationPrefs();
     const pref = prefs[row.id] || {};
@@ -8876,7 +8670,7 @@ async function startApp(){
     /* Register this browser/device for background Web Push.
        If permission is still undecided, the first user interaction
        requests it and then saves the subscription. */
-    if("Notification" in window && Notification.permission === "granted" && !areToTalkNotificationsDisabled()){
+    if("Notification" in window && Notification.permission === "granted"){
       void registerToTalkPushSubscription();
     }
 
@@ -9336,71 +9130,6 @@ startApp();
     z-index:60 !important;
   }
 }
-
-/* Notification blocked help — only shown when this browser has denied notifications. */
-#totalkNotificationBlockedHelp{
-  position:fixed;
-  inset:0;
-  z-index:2147483646;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  padding:20px;
-  background:rgba(5,4,16,.58);
-  backdrop-filter:blur(5px);
-  -webkit-backdrop-filter:blur(5px);
-  opacity:0;
-  visibility:hidden;
-  pointer-events:none;
-  transition:opacity .18s ease,visibility .18s ease;
-}
-#totalkNotificationBlockedHelp.show{
-  opacity:1;
-  visibility:visible;
-  pointer-events:auto;
-}
-.totalk-notification-help-card{
-  position:relative;
-  width:min(340px,calc(100vw - 40px));
-  padding:20px 18px 16px;
-  border:1px solid rgba(170,120,255,.42);
-  border-radius:18px;
-  background:linear-gradient(145deg,rgba(27,20,58,.97),rgba(10,9,27,.98));
-  box-shadow:0 18px 60px rgba(0,0,0,.48),0 0 28px rgba(124,53,255,.16);
-  text-align:center;
-}
-.totalk-notification-help-title{
-  font-size:16px;
-  font-weight:800;
-  margin:2px 24px 9px;
-}
-.totalk-notification-help-text{
-  font-size:13px;
-  line-height:1.55;
-  opacity:.82;
-  margin:0 4px 15px;
-}
-.totalk-notification-help-close{
-  position:absolute;
-  top:8px;
-  right:10px;
-  width:30px;
-  height:30px;
-  border:0;
-  background:transparent;
-  color:inherit;
-  font-size:22px;
-  line-height:30px;
-  cursor:pointer;
-  opacity:.72;
-}
-.totalk-notification-help-done{
-  border:0;
-  border-radius:10px;
-  padding:9px 18px;
-  font-weight:700;
-  cursor:pointer;
-}
 </style>
 
 <script id="totalk-real-keyboard-bottom-fix-script">
@@ -9514,6 +9243,5 @@ if ("serviceWorker" in navigator) {
   });
 }
 </script>
-  <div id="totalkNotificationToast" class="totalk-notification-toast" role="status" aria-live="polite" aria-atomic="true"></div>
 </body>
 </html>
