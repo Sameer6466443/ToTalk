@@ -6188,7 +6188,7 @@ async function deleteMessage(
      * conversation lost this message. This is intentionally sent only
      * after the database DELETE succeeds.
      */
-    void broadcastMessageDeleted(data.id,conversationId);
+    void broadcastMessageDeleted(data.id,conversationId,data.created_at,data.sender_id);
 
     /*
      * IMPORTANT: if the deleted message was the latest message, the chat
@@ -6753,6 +6753,8 @@ async function loadConversationList(){
 
     const item = document.createElement("button");
     item.type = "button";
+    /* Keep the server read position available to remote-delete reconciliation. */
+    row.__lastReadAt = readAtMap.get(row.id) || 0;
     const pref = prefs[row.id] || {};
     const unreadCount = unreadMap.get(row.id) || 0;
 
@@ -7425,6 +7427,40 @@ async function refreshConversationPreviewAfterMessageDelete(conversationId){
    synchronized without requiring a page refresh.
 ===================================================== */
 
+function adjustUnreadBadgeAfterRemoteDelete(data){
+  if(!data?.conversation_id || !data?.created_at || !currentUser?.id) return;
+  if(data.sender_id && String(data.sender_id) === String(currentUser.id)) return;
+  if(String(currentConversationId || "") === String(data.conversation_id)) return;
+
+  const item = conversationList?.querySelector(
+    `[data-conversation-id="${CSS.escape(String(data.conversation_id))}"]`
+  );
+  if(!item) return;
+
+  const participant = conversations.find(c=>String(c.id)===String(data.conversation_id));
+  const prefs = readConversationReadOverrides();
+  const localReadAt = Number(prefs[data.conversation_id] || 0);
+  const participantReadAt = participant?.__lastReadAt || 0;
+  const readAt = Math.max(localReadAt,Number(participantReadAt)||0);
+  const messageTime = Date.parse(data.created_at || "") || 0;
+
+  /* Only reduce the badge when the deleted message was actually unread. */
+  if(messageTime <= readAt) return;
+
+  const badge = item.querySelector(".unread-badge");
+  const current = badge ? parseInt(badge.textContent,10) || 0 : 0;
+  if(current <= 0) return;
+
+  const next = current - 1;
+  if(next > 0){
+    if(badge) badge.textContent = next > 99 ? "99+" : String(next);
+    item.classList.add("is-unread");
+  }else{
+    badge?.remove();
+    item.classList.remove("is-unread");
+  }
+}
+
 function startDeleteSync(){
 
   if(!currentUser || deleteSyncChannel) return;
@@ -7459,6 +7495,10 @@ function startDeleteSync(){
     messageCache.delete(id);
 
     if(conversationId){
+      /* Update the unread badge immediately from the deleted message itself.
+         This avoids leaving a stale 3/2/1 badge when the DELETE event or
+         database replication reaches the other device slightly later. */
+      adjustUnreadBadgeAfterRemoteDelete(data);
       void refreshConversationPreviewAfterMessageDelete(String(conversationId));
     }
 
@@ -7497,7 +7537,7 @@ function startDeleteSync(){
   });
 }
 
-async function broadcastMessageDeleted(messageId,conversationId){
+async async function broadcastMessageDeleted(messageId,conversationId,createdAt,senderId){
 
   if(!deleteSyncChannel || !messageId || !conversationId) return;
 
@@ -7508,6 +7548,8 @@ async function broadcastMessageDeleted(messageId,conversationId){
       payload:{
         message_id:String(messageId),
         conversation_id:String(conversationId),
+        created_at:createdAt || null,
+        sender_id:senderId || null,
         deleted_at:new Date().toISOString()
       }
     });
