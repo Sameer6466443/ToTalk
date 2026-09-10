@@ -3083,53 +3083,52 @@ header{
 }
 .totalk-notification-icon.disabled{color:rgba(173,151,220,.42);filter:none;}
 .totalk-notification-icon.denied{color:rgba(173,151,220,.30);filter:none;}
-/* ToTalk notification toast - clean bottom-center app toast */
+/* ToTalk notification toast - fixed, clean bottom-center */
 .totalk-notification-toast{
   position:fixed !important;
   left:50% !important;
-  top:auto !important;
   right:auto !important;
-  bottom:28px !important;
+  top:auto !important;
+  bottom:calc(92px + env(safe-area-inset-bottom)) !important;
   z-index:2147483647 !important;
   display:block !important;
+  box-sizing:border-box !important;
   width:max-content !important;
   max-width:calc(100vw - 32px) !important;
-  min-height:0 !important;
-  box-sizing:border-box !important;
   margin:0 !important;
-  padding:9px 16px !important;
-  border:1px solid rgba(145,76,255,.48) !important;
-  border-radius:11px !important;
+  padding:10px 17px !important;
+  border:1px solid rgba(145,76,255,.50) !important;
+  border-radius:12px !important;
   background:rgba(9,5,23,.97) !important;
   color:#eee8ff !important;
   font-family:Arial,Helvetica,sans-serif !important;
   font-size:13px !important;
   font-weight:700 !important;
   line-height:1.2 !important;
-  white-space:nowrap !important;
   text-align:center !important;
+  white-space:nowrap !important;
   box-shadow:0 8px 24px rgba(0,0,0,.42) !important;
   opacity:0 !important;
   visibility:hidden !important;
   pointer-events:none !important;
-  transform:translate(-50%,8px) !important;
-  transition:opacity .14s ease,transform .14s ease,visibility 0s linear .14s !important;
+  transform:translate(-50%,10px) !important;
+  transition:opacity .16s ease,transform .16s ease,visibility 0s linear .16s !important;
 }
 .totalk-notification-toast.show{
   opacity:1 !important;
   visibility:visible !important;
   transform:translate(-50%,0) !important;
-  transition:opacity .14s ease,transform .14s ease,visibility 0s !important;
+  transition:opacity .16s ease,transform .16s ease,visibility 0s !important;
 }
 .totalk-notification-toast.disabled-state{
-  border-color:rgba(145,76,255,.30) !important;
-  color:rgba(238,232,255,.84) !important;
+  border-color:rgba(145,76,255,.34) !important;
+  color:rgba(238,232,255,.88) !important;
 }
 @media(max-width:800px){
   .totalk-notification-toast{
-    bottom:calc(24px + env(safe-area-inset-bottom)) !important;
-    max-width:calc(100vw - 28px) !important;
-    padding:9px 15px !important;
+    bottom:calc(82px + env(safe-area-inset-bottom)) !important;
+    max-width:calc(100vw - 24px) !important;
+    padding:10px 15px !important;
   }
 }
 </style>
@@ -3322,7 +3321,6 @@ header{
         </button>
       </div>
 
-      <div id="totalkNotificationToast" class="totalk-notification-toast" role="status" aria-live="polite" aria-atomic="true"></div>
 
       <div class="user-search-row">
         <input
@@ -3945,32 +3943,6 @@ function saveToTalkNotificationToggleState(enabled){
   }catch(e){}
 }
 
-function positionToTalkNotificationToast(){
-  const toast = document.getElementById('totalkNotificationToast');
-  const button = document.getElementById('totalkEnableNotificationsButton');
-  if(!toast || !button) return;
-
-  const rect = button.getBoundingClientRect();
-  const gap = 8;
-  let left = rect.left + rect.width / 2;
-  let top = rect.bottom + gap;
-
-  const toastWidth = toast.offsetWidth || 150;
-  const half = toastWidth / 2;
-  const margin = 10;
-
-  left = Math.max(margin + half, Math.min(window.innerWidth - margin - half, left));
-
-  /* Keep it near the bell but never let it cover the browser/page controls. */
-  if(top < 8) top = 8;
-  if(top + toast.offsetHeight > window.innerHeight - 8){
-    top = Math.max(8, rect.top - toast.offsetHeight - gap);
-  }
-
-  toast.style.left = left + 'px';
-  toast.style.top = top + 'px';
-}
-
 function showToTalkNotificationToast(message, state='enabled'){
   const toast = document.getElementById('totalkNotificationToast');
   const button = document.getElementById('totalkEnableNotificationsButton');
@@ -3978,15 +3950,6 @@ function showToTalkNotificationToast(message, state='enabled'){
 
   toast.textContent = message;
   toast.classList.toggle('disabled-state', state === 'disabled');
-
-  /* Place the popup directly underneath the bell, not in the page content. */
-  if(button){
-    const rect = button.getBoundingClientRect();
-    const centerX = rect.left + (rect.width / 2);
-    const topY = rect.bottom + 10;
-    toast.style.left = `${centerX}px`;
-    toast.style.top = `${topY}px`;
-  }
 
   toast.classList.remove('show');
   void toast.offsetWidth;
@@ -4126,7 +4089,7 @@ document.addEventListener('visibilitychange',()=>{
 });
 
 window.addEventListener('focus',updateToTalkNotificationUI);
-window.addEventListener('resize',positionToTalkNotificationToast);
+
 
 let currentProfile = null;
 
@@ -9314,5 +9277,6 @@ if ("serviceWorker" in navigator) {
   });
 }
 </script>
+  <div id="totalkNotificationToast" class="totalk-notification-toast" role="status" aria-live="polite" aria-atomic="true"></div>
 </body>
 </html>
