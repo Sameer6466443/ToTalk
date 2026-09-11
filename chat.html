@@ -6327,6 +6327,85 @@ async function refreshSeenStatus(){
   }
 }
 
+/* =====================================================
+   OPTIMISTIC MESSAGE RECONCILIATION
+   ===================================================== */
+function reconcileOptimisticMessage(data){
+  if(!data?.id || !currentUser?.id) return false;
+  if(data.sender_id !== currentUser.id) return false;
+
+  const rows = Array.from(document.querySelectorAll('[data-message-id^="local-"]'));
+  if(!rows.length) return false;
+
+  const targetTime = Date.parse(data.created_at || "") || Date.now();
+  let bestRow = null;
+  let bestDiff = Infinity;
+
+  for(const row of rows){
+    const localMessage = messageCache.get(row.dataset.messageId);
+    if(!localMessage) continue;
+
+    const localText = row.querySelector('.message-text')?.textContent || '';
+    if(localText !== (data.content || "")) continue;
+    if(localMessage.sender_id !== data.sender_id) continue;
+    if((localMessage.reply_to_id || null) !== (data.reply_to_id || null)) continue;
+    if((localMessage.conversation_id || null) !== (data.conversation_id || null)) continue;
+
+    const localTime = Date.parse(localMessage.created_at || "") || targetTime;
+    const diff = Math.abs(targetTime - localTime);
+    if(diff > 120000) continue;
+
+    if(diff < bestDiff){
+      bestDiff = diff;
+      bestRow = row;
+    }
+  }
+
+  if(!bestRow) return false;
+
+  const oldId = bestRow.dataset.messageId;
+  bestRow.dataset.messageId = data.id;
+  bestRow.dataset.messageContent = data.content || "";
+
+  messageCache.delete(oldId);
+  messageCache.set(data.id, data);
+
+  const status = bestRow.querySelector('.message-status');
+  if(status){
+    status.textContent = 'Sent';
+    status.classList.remove('seen','send-failed');
+  }
+
+  const menuButton = bestRow.querySelector('.message-menu-btn');
+  if(menuButton){
+    const newMenuButton = menuButton.cloneNode(true);
+    menuButton.replaceWith(newMenuButton);
+    newMenuButton.addEventListener('click', event=>{
+      event.preventDefault();
+      event.stopPropagation();
+      closeMenus();
+      const bubble = bestRow.querySelector('.message');
+      if(!bubble) return;
+      const menu = createMessageMenu(data, bubble);
+      document.body.appendChild(menu);
+      const rect = bubble.getBoundingClientRect();
+      menu.style.left = Math.max(8, Math.min(rect.right - 130, window.innerWidth - 138)) + 'px';
+      menu.style.top = Math.min(window.innerHeight - 120, rect.bottom + 7) + 'px';
+      menu.classList.add('open');
+    });
+  }
+
+  const bubble = bestRow.querySelector('.message');
+  if(bubble){
+    const oldPicker = bubble._reactionPicker;
+    if(oldPicker) oldPicker.remove();
+    const picker = createReactionPicker(data, bubble);
+    bubble._reactionPicker = picker;
+  }
+
+  return true;
+}
+
 async function pollOpenConversationMessages(){
 
   if(
@@ -6381,6 +6460,10 @@ async function pollOpenConversationMessages(){
 
     for(const item of (data || [])){
       messageCache.set(item.id,item);
+
+      if(reconcileOptimisticMessage(item)){
+        continue;
+      }
 
       const existing = document.querySelector(
         `[data-message-id="${item.id}"]`
@@ -7274,47 +7357,34 @@ async function sendMessage(){
       conversation_id: currentConversationId
     };
 
-    messageCache.delete(tempId);
-    messageCache.set(messageId, realMessage);
+    /* Promote the optimistic row in place. If Realtime or the fallback poll
+     * already did it, this becomes a no-op and never creates a second bubble. */
+    if(!reconcileOptimisticMessage(realMessage)){
+      const existingRealRow = document.querySelector(
+        `[data-message-id="${messageId}"]`
+      );
 
-    if(optimisticRow){
-      optimisticRow.dataset.messageId = messageId;
-      optimisticRow.dataset.messageContent = text;
-
-      const status = optimisticRow.querySelector(".message-status");
-      if(status){
-        status.textContent = "Sent";
-        status.classList.remove("send-failed");
-      }
-
-      /* Rebind the message menu to the permanent database id. */
-      const menuButton = optimisticRow.querySelector(".message-menu-btn");
-      if(menuButton){
-        const newMenuButton = menuButton.cloneNode(true);
-        menuButton.replaceWith(newMenuButton);
-        newMenuButton.addEventListener("click", event=>{
-          event.preventDefault();
-          event.stopPropagation();
-          closeMenus();
-          const bubble = optimisticRow.querySelector(".message");
-          const menu = createMessageMenu(realMessage, bubble);
-          document.body.appendChild(menu);
-          const rect = bubble.getBoundingClientRect();
-          menu.style.left = Math.max(8, Math.min(rect.right - 130, window.innerWidth - 138)) + "px";
-          menu.style.top = Math.min(window.innerHeight - 120, rect.bottom + 7) + "px";
-          menu.classList.add("open");
-        });
-      }
-
-      /* Rebind reactions to the permanent database id as well. */
-      const bubble = optimisticRow.querySelector(".message");
-      if(bubble){
-        const oldPicker = bubble._reactionPicker;
-        if(oldPicker) oldPicker.remove();
-        const picker = createReactionPicker(realMessage, bubble);
-        bubble._reactionPicker = picker;
+      if(existingRealRow){
+        messageCache.set(messageId, realMessage);
+        const status = existingRealRow.querySelector(".message-status");
+        if(status){
+          status.textContent = "Sent";
+          status.classList.remove("seen","send-failed");
+        }
+      }else if(optimisticRow){
+        messageCache.delete(tempId);
+        messageCache.set(messageId, realMessage);
+        optimisticRow.dataset.messageId = messageId;
+        optimisticRow.dataset.messageContent = text;
+        if(optimisticStatus){
+          optimisticStatus.textContent = "Sent";
+          optimisticStatus.classList.remove("send-failed");
+        }
       }
     }
+
+    messageCache.delete(tempId);
+    messageCache.set(messageId, realMessage);
 
     /* Keep the sidebar preview/order current after a successful send. */
     void loadConversationList();
@@ -7918,49 +7988,11 @@ function startRealtime(){
           void markConversationAsRead(data.conversation_id);
           messageCache.set(data.id, data);
 
-          /*
-           * Reconcile our optimistic local message when the sender's
-           * Realtime INSERT arrives before the HTTP INSERT finishes.
-           */
-          if(currentUser && data.sender_id === currentUser.id){
-
-            const localRows = document.querySelectorAll(
-              '[data-message-id^="local-"]'
-            );
-
-            for(const row of localRows){
-
-              const localText =
-                row.querySelector(".message-text")?.textContent || "";
-
-              const localMessage =
-                messageCache.get(row.dataset.messageId);
-
-              if(
-                localText === (data.content || "") &&
-                localMessage?.sender_id === data.sender_id &&
-                (localMessage?.reply_to_id || null) ===
-                  (data.reply_to_id || null)
-              ){
-
-                row.dataset.messageId = data.id;
-                row.dataset.messageContent = data.content || "";
-
-                messageCache.delete(localMessage.id);
-                messageCache.set(data.id, data);
-
-                const status =
-                  row.querySelector(".message-status");
-
-                if(status){
-                  status.textContent = "Sent";
-                  status.classList.remove("seen");
-                }
-
-                void refreshSeenStatus();
-                return;
-              }
-            }
+          /* Reconcile optimistic local sends regardless of whether
+           * Realtime or the HTTP request wins the race. */
+          if(reconcileOptimisticMessage(data)){
+            void refreshSeenStatus();
+            return;
           }
 
           const exists = document.querySelector(
