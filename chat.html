@@ -3858,13 +3858,7 @@ function updateToTalkNotificationUI(){
 }
 
 async function registerToTalkPushSubscription(){
-  if(!currentUser?.id) return false;
-  if(pushSubscriptionInFlight){
-    for(let i=0;i<100 && pushSubscriptionInFlight;i++){
-      await new Promise(resolve=>setTimeout(resolve,100));
-    }
-    if(pushSubscriptionInFlight) return false;
-  }
+  if(pushSubscriptionInFlight || !currentUser?.id) return false;
   if(areToTalkNotificationsDisabled()) return false;
   if(!("serviceWorker" in navigator) || !("PushManager" in window)) return false;
   if(!("Notification" in window) || Notification.permission !== "granted") return false;
@@ -3880,7 +3874,7 @@ async function registerToTalkPushSubscription(){
     if(!registration){
       throw new Error("ToTalk Push Error: Service Worker registration is unavailable.");
     }
-    await navigator.serviceWorker.ready;
+    registration = await navigator.serviceWorker.ready;
     let subscription = await registration.pushManager.getSubscription();
 
     /*
@@ -8742,9 +8736,6 @@ async function startApp(){
     /* Register this browser/device for background Web Push.
        If permission is still undecided, the first user interaction
        requests it and then saves the subscription. */
-    if("Notification" in window && Notification.permission === "granted"){
-      void registerToTalkPushSubscription();
-    }
 
     /* Check restriction status. Supabase RLS remains the final authority. */
     await loadMyRestrictionStatus();
