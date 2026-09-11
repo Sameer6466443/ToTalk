@@ -9398,5 +9398,124 @@ if ("serviceWorker" in navigator) {
   });
 }
 </script>
+
+<!-- ToTalk polished PWA install prompt -->
+<style>
+  #totalkInstallPrompt{
+    position:fixed;
+    left:14px;
+    right:14px;
+    bottom:calc(14px + env(safe-area-inset-bottom));
+    z-index:999999;
+    display:none;
+    max-width:520px;
+    margin:0 auto;
+    padding:14px;
+    border:1px solid rgba(139,92,246,.34);
+    border-radius:22px;
+    background:
+      radial-gradient(circle at 12% 0%,rgba(124,58,237,.24),transparent 40%),
+      linear-gradient(145deg,rgba(10,6,24,.98),rgba(4,3,13,.98));
+    box-shadow:0 18px 50px rgba(0,0,0,.48),0 0 32px rgba(124,58,237,.16);
+    backdrop-filter:blur(18px);
+    -webkit-backdrop-filter:blur(18px);
+    color:#fff;
+    font-family:inherit;
+  }
+  #totalkInstallPrompt.is-visible{display:block;animation:totalkInstallIn .28s ease-out both}
+  @keyframes totalkInstallIn{from{opacity:0;transform:translateY(18px) scale(.985)}to{opacity:1;transform:none}}
+  .totalk-install-row{display:flex;gap:12px;align-items:center}
+  .totalk-install-icon{
+    width:52px;height:52px;flex:0 0 52px;border-radius:16px;object-fit:cover;
+    box-shadow:0 0 0 1px rgba(255,255,255,.08),0 0 24px rgba(124,58,237,.28)
+  }
+  .totalk-install-copy{min-width:0;flex:1}
+  .totalk-install-title{font-size:16px;font-weight:800;letter-spacing:.1px;margin:0 0 4px}
+  .totalk-install-text{font-size:12.5px;line-height:1.42;color:rgba(235,230,255,.72);margin:0}
+  .totalk-install-actions{display:flex;gap:9px;margin-top:13px}
+  .totalk-install-btn{
+    border:0;border-radius:14px;min-height:43px;padding:0 17px;font:700 13px/1 inherit;cursor:pointer
+  }
+  #totalkInstallNow{
+    flex:1;color:#fff;background:linear-gradient(135deg,#6d28d9,#8b5cf6 58%,#5b21b6);
+    box-shadow:0 8px 24px rgba(124,58,237,.28)
+  }
+  #totalkInstallLater{color:rgba(240,236,255,.72);background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.08)}
+  @media (min-width:700px){#totalkInstallPrompt{left:auto;right:22px;bottom:22px;width:390px}}
+</style>
+
+<div id="totalkInstallPrompt" role="dialog" aria-live="polite" aria-label="Install ToTalk">
+  <div class="totalk-install-row">
+    <img class="totalk-install-icon" src="/ToTalk/icon-192.png" alt="ToTalk">
+    <div class="totalk-install-copy">
+      <p class="totalk-install-title">Get the full ToTalk experience</p>
+      <p class="totalk-install-text">Install ToTalk for faster access and app-style notifications. You can keep using ToTalk in Chrome too.</p>
+    </div>
+  </div>
+  <div class="totalk-install-actions">
+    <button id="totalkInstallLater" class="totalk-install-btn" type="button">Not now</button>
+    <button id="totalkInstallNow" class="totalk-install-btn" type="button">Install ToTalk</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  const card = document.getElementById('totalkInstallPrompt');
+  const installBtn = document.getElementById('totalkInstallNow');
+  const laterBtn = document.getElementById('totalkInstallLater');
+  if(!card || !installBtn || !laterBtn) return;
+
+  const isStandalone = () =>
+    window.matchMedia('(display-mode: standalone)').matches ||
+    window.navigator.standalone === true;
+
+  if(isStandalone()) return;
+
+  let deferredInstallPrompt = null;
+  let dismissedThisSession = false;
+
+  function showInstallCard(){
+    if(!deferredInstallPrompt || dismissedThisSession || isStandalone()) return;
+    card.classList.add('is-visible');
+  }
+
+  function hideInstallCard(){
+    card.classList.remove('is-visible');
+  }
+
+  window.addEventListener('beforeinstallprompt', function(event){
+    event.preventDefault();
+    deferredInstallPrompt = event;
+    setTimeout(showInstallCard, 1200);
+  });
+
+  installBtn.addEventListener('click', async function(){
+    if(!deferredInstallPrompt) return;
+    hideInstallCard();
+    deferredInstallPrompt.prompt();
+    try{
+      await deferredInstallPrompt.userChoice;
+    }catch(error){
+      console.warn('ToTalk install prompt result unavailable:', error);
+    }
+    deferredInstallPrompt = null;
+  });
+
+  laterBtn.addEventListener('click', function(){
+    dismissedThisSession = true;
+    hideInstallCard();
+  });
+
+  window.addEventListener('appinstalled', function(){
+    deferredInstallPrompt = null;
+    hideInstallCard();
+  });
+
+  window.matchMedia('(display-mode: standalone)').addEventListener?.('change', function(event){
+    if(event.matches) hideInstallCard();
+  });
+})();
+</script>
+
 </body>
 </html>
