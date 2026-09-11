@@ -129,7 +129,7 @@ self.addEventListener("push", event => {
 
         /*
         ===================================================
-        FIND EXISTING TOTalk NOTIFICATIONS
+        FIND EXISTING ToTalk NOTIFICATIONS
         ===================================================
         */
 
@@ -215,7 +215,7 @@ self.addEventListener("push", event => {
 
       /*
       =====================================================
-      CHECK WHETHER TOTalk IS CURRENTLY VISIBLE
+      CHECK WHETHER ToTalk IS CURRENTLY VISIBLE
       =====================================================
       */
 
@@ -341,13 +341,10 @@ self.addEventListener("push", event => {
 
       /*
       =====================================================
-      TOTalk ICON
+      ToTalk ICON
       =====================================================
 
       This is a simple cosmic ToTalk icon.
-
-      Later, if you have your final production ToTalk logo,
-      replace this with the real icon URL.
       */
 
       const totalkIcon =
@@ -431,7 +428,10 @@ self.addEventListener("push", event => {
             data.sender_id || null,
 
           sender_name:
-            data.sender_name || null
+            data.sender_name || null,
+
+          body:
+            data.body || null
 
         },
 
@@ -444,7 +444,7 @@ self.addEventListener("push", event => {
         Android/Chrome decides exactly how these buttons
         are visually rendered.
 
-        We only define the available actions here.
+        We define the available actions here.
         */
 
         actions: [
@@ -510,61 +510,89 @@ self.addEventListener(
   "notificationclick",
   event => {
 
-    /*
-    Always close the notification after interaction.
-    */
-
     event.notification.close();
-
 
     event.waitUntil(
       (async () => {
 
-        const notification =
-          event.notification;
-
-
+        const notification = event.notification;
         const notificationData =
           notification?.data || {};
 
-
         const conversationId =
-          notificationData
-            ?.conversation_id || null;
+          notificationData?.conversation_id
+            ? String(
+                notificationData.conversation_id
+              )
+            : "";
 
+        const messageId =
+          notificationData?.message_id
+            ? String(
+                notificationData.message_id
+              )
+            : "";
 
-        const action =
-          event.action || "";
+        const messageBody =
+          notificationData?.body
+            ? String(
+                notificationData.body
+              )
+            : "";
 
+        const senderName =
+          notificationData?.sender_name
+            ? String(
+                notificationData.sender_name
+              )
+            : "";
 
         /*
-        ===================================================
-        REPLY / MARK AS READ
-        ===================================================
-
-        Both actions open the appropriate ToTalk
-        conversation.
-
-        The actual visual UI of the action buttons is
-        controlled by Android/Chrome.
+        If the notification action is empty, this is a
+        normal notification tap.
         */
 
-        if (
-          action === "reply" ||
-          action === "mark_read"
-        ) {
-
-          console.log(
-            "ToTalk notification action:",
-            action
-          );
-
-        }
+        const action =
+          event.action || "open";
 
 
         /*
         ===================================================
-        FIND EXISTING TOTalk WINDOW
+        SEND ACTION TO CHAT.HTML
+        ===================================================
+
+        chat.html has the authenticated Supabase session,
+        so it performs the actual Reply / Mark as read
+        operation.
+
+        The service worker passes all required information.
+        */
+
+        const actionMessage = {
+
+          type:
+            "TOTalk_NOTIFICATION_ACTION",
+
+          conversation_id:
+            conversationId || null,
+
+          message_id:
+            messageId || null,
+
+          body:
+            messageBody || null,
+
+          sender_name:
+            senderName || null,
+
+          action
+
+        };
+
+
+        /*
+        ===================================================
+        FIND AN ALREADY OPEN ToTalk WINDOW
         ===================================================
         */
 
@@ -577,7 +605,7 @@ self.addEventListener(
 
         /*
         ---------------------------------------------------
-        Prefer an already-open ToTalk window.
+        Use an already-open ToTalk window when possible.
         ---------------------------------------------------
         */
 
@@ -593,16 +621,14 @@ self.addEventListener(
 
 
             /*
-            Only interact with our own origin.
+            Only communicate with the same origin.
             */
 
             if (
               url.origin !==
               self.location.origin
             ) {
-
               continue;
-
             }
 
 
@@ -614,28 +640,16 @@ self.addEventListener(
 
 
             /*
-            -------------------------------------------------
-            Tell chat.html which conversation was opened.
-            -------------------------------------------------
+            Send the action to chat.html.
             */
 
             if (
-              conversationId &&
               "postMessage" in client
             ) {
 
-              client.postMessage({
-
-                type:
-                  "TOTalk_NOTIFICATION_CLICK",
-
-                conversation_id:
-                  conversationId,
-
-                action:
-                  action || "open"
-
-              });
+              client.postMessage(
+                actionMessage
+              );
 
             }
 
@@ -645,7 +659,7 @@ self.addEventListener(
           } catch (error) {
 
             console.warn(
-              "Could not focus ToTalk window:",
+              "ToTalk notification action could not reach window:",
               error
             );
 
@@ -656,21 +670,117 @@ self.addEventListener(
 
         /*
         ===================================================
-        NO TOTalk WINDOW IS OPEN
+        NO ToTalk WINDOW IS OPEN
+        ===================================================
+
+        Open chat.html and pass the action through the URL.
+        chat.html reads these parameters after startup.
         ===================================================
         */
 
-        if (self.clients.openWindow) {
+        if (
+          self.clients.openWindow
+        ) {
+
+          const chatUrl =
+            new URL(
+              "chat.html",
+              self.registration.scope
+            );
+
 
           /*
-          Open the normal chat page.
+          -------------------------------------------------
+          Conversation ID
+          -------------------------------------------------
+          */
 
-          chat.html can then handle the conversation
-          selection after loading.
+          if (
+            conversationId
+          ) {
+
+            chatUrl.searchParams.set(
+              "totalk_notification_conversation",
+              conversationId
+            );
+
+          }
+
+
+          /*
+          -------------------------------------------------
+          Message ID
+          -------------------------------------------------
+          */
+
+          if (
+            messageId
+          ) {
+
+            chatUrl.searchParams.set(
+              "totalk_notification_message",
+              messageId
+            );
+
+          }
+
+
+          /*
+          -------------------------------------------------
+          Message body
+          -------------------------------------------------
+          */
+
+          if (
+            messageBody
+          ) {
+
+            chatUrl.searchParams.set(
+              "totalk_notification_body",
+              messageBody
+            );
+
+          }
+
+
+          /*
+          -------------------------------------------------
+          Sender name
+          -------------------------------------------------
+          */
+
+          if (
+            senderName
+          ) {
+
+            chatUrl.searchParams.set(
+              "totalk_notification_sender",
+              senderName
+            );
+
+          }
+
+
+          /*
+          -------------------------------------------------
+          Requested action
+          -------------------------------------------------
+          */
+
+          chatUrl.searchParams.set(
+            "totalk_notification_action",
+            action
+          );
+
+
+          /*
+          -------------------------------------------------
+          Open ToTalk.
+          -------------------------------------------------
           */
 
           await self.clients.openWindow(
-            "/chat.html"
+            chatUrl.href
           );
 
         }
