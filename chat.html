@@ -7717,6 +7717,144 @@ function updateRealtimeConversationItem(data){
   return true;
 }
 
+/* =====================================================
+   REALTIME CHAT-LIST PREVIEW
+   Update the Users/Chats list directly from the incoming
+   message instead of waiting for the full multi-query
+   loadConversationList() refresh.
+===================================================== */
+
+/*
+ * A single Realtime INSERT can race with loadConversationList().
+ * Both functions are asynchronous, so the old code could do this:
+ *
+ *   Realtime callback -> starts fetching participant/profile
+ *   loadConversationList -> clears/rebuilds sidebar
+ *   Realtime callback -> resumes and appends another card
+ *
+ * The result was two identical cards for the SAME conversation_id.
+ *
+ * These two guards make the sidebar an upsert, not an append-only list.
+ */
+const realtimeConversationBuilds = new Set();
+const processedRealtimeMessageIds = new Set();
+
+function removeDuplicateConversationCards(conversationId){
+  if(!conversationList || !conversationId) return;
+
+  const id = String(conversationId);
+  const cards = [
+    ...conversationList.querySelectorAll(".conversation-item")
+  ].filter(item =>
+    String(item.dataset.conversationId || "") === id
+  );
+
+  /* Keep exactly one card for this conversation. */
+  for(let i=1;i<cards.length;i++){
+    cards[i].remove();
+  }
+}
+
+function updateRealtimeConversationItem(data){
+
+  if(
+    !data?.conversation_id ||
+    !conversationList ||
+    !currentUser?.id ||
+    data.sender_id === currentUser.id
+  ){
+    return false;
+  }
+
+  const conversationId = String(data.conversation_id);
+
+  const item = conversationList.querySelector(
+    `[data-conversation-id="${CSS.escape(conversationId)}"]`
+  );
+
+  if(!item) return false;
+
+  /* Never process the same database message twice. */
+  const messageId = String(data.id || "");
+  const alreadyProcessed =
+    messageId && processedRealtimeMessageIds.has(messageId);
+
+  if(messageId){
+    processedRealtimeMessageIds.add(messageId);
+
+    /*
+     * Keep this set small. It is only a short-lived duplicate-event guard;
+     * the database remains the source of truth after a normal list reload.
+     */
+    if(processedRealtimeMessageIds.size > 500){
+      const first = processedRealtimeMessageIds.values().next().value;
+      if(first) processedRealtimeMessageIds.delete(first);
+    }
+  }
+
+  const preview = item.querySelector(".conversation-preview");
+  const time = item.querySelector(".conversation-time");
+
+  if(preview){
+    preview.textContent = data.content || "No messages yet";
+  }
+
+  if(time){
+    time.textContent = formatTime(data.created_at);
+  }
+
+  /*
+   * The same Realtime INSERT may be delivered more than once by the
+   * browser/channel lifecycle. Only the first delivery may increment
+   * the unread badge.
+   */
+  if(!alreadyProcessed){
+    item.classList.add("is-unread");
+
+    try{
+      const prefs = readConversationPrefs();
+      prefs[conversationId] = prefs[conversationId] || {};
+      prefs[conversationId].unread = true;
+      writeConversationPrefs(prefs);
+    }catch(_error){}
+
+    let badge = item.querySelector(".unread-badge");
+
+    if(!badge){
+      badge = document.createElement("span");
+      badge.className = "unread-badge";
+      item.appendChild(badge);
+    }
+
+    const oldCount = Number(
+      String(badge.textContent || "0").replace("+","")
+    ) || 0;
+
+    const nextCount = Math.min(100, oldCount + 1);
+    badge.textContent = nextCount > 99 ? "99+" : String(nextCount);
+  }
+
+  /* Clean up any stale duplicate card that may already be on screen. */
+  removeDuplicateConversationCards(conversationId);
+
+  /* Put the newly active conversation first, below the heading. */
+  const currentItem = conversationList.querySelector(
+    `[data-conversation-id="${CSS.escape(conversationId)}"]`
+  );
+
+  const heading = conversationList.querySelector(".history-heading");
+
+  if(
+    heading &&
+    currentItem &&
+    currentItem.parentElement === conversationList
+  ){
+    conversationList.insertBefore(currentItem,heading.nextSibling);
+  }
+
+  return true;
+}
+
 async function addRealtimeConversationToList(data){
 
   if(
@@ -7728,6 +7866,8 @@ async function addRealtimeConversationToList(data){
     return;
   }
 
+  const conversationId = String(data.conversation_id);
+
   /*
    * IMPORTANT — "Remove conversation" is only a local history action.
    *
@@ -7736,10 +7876,7 @@ async function addRealtimeConversationToList(data){
    *
    * This callback is reached only for a real incoming Realtime INSERT,
    * so this is the exact moment when the deleted flag must be cleared.
-   * Previously the card was recreated in the DOM but prefs.deleted stayed
-   * true, so the next refresh/login filtered the conversation out again.
    */
-  const conversationId = String(data.conversation_id);
   const prefs = readConversationPrefs();
   const deletedPref = !!prefs[conversationId]?.deleted;
 
@@ -7756,10 +7893,25 @@ async function addRealtimeConversationToList(data){
     writeConversationPrefs(prefs);
   }
 
-  /* Another callback may already have added it. */
+  /*
+   * Fast path: if the card is already present, update it and STOP.
+   * This prevents a second card when Realtime fires after the normal
+   * conversation-list load.
+   */
   if(updateRealtimeConversationItem(data)){
     return;
   }
+
+  /*
+   * Only one async builder may create a card for a conversation at a time.
+   * This closes the race where two Realtime deliveries both passed the
+   * "card does not exist" check before either one finished its queries.
+   */
+  if(realtimeConversationBuilds.has(conversationId)){
+    return;
+  }
+
+  realtimeConversationBuilds.add(conversationId);
 
   try{
 
@@ -7767,7 +7919,7 @@ async function addRealtimeConversationToList(data){
       await supabaseClient
         .from("conversation_participants")
         .select("conversation_id,user_id")
-        .eq("conversation_id",data.conversation_id);
+        .eq("conversation_id",conversationId);
 
     if(participantsError) throw participantsError;
 
@@ -7787,21 +7939,46 @@ async function addRealtimeConversationToList(data){
     if(partnerError) throw partnerError;
     if(!partner) return;
 
+    /*
+     * CRITICAL RACE CHECK:
+     * loadConversationList() may have rebuilt the sidebar while the
+     * participant/profile queries above were waiting.
+     *
+     * Re-check the DOM AFTER every await before creating anything.
+     */
+    if(updateRealtimeConversationItem(data)){
+      return;
+    }
+
     const row = {
-      id:data.conversation_id,
+      id:conversationId,
       created_at:data.created_at,
       updated_at:data.created_at
     };
 
     conversations = [
       row,
-      ...conversations.filter(item=>item.id !== row.id)
+      ...conversations.filter(item=>String(item.id) !== conversationId)
     ];
 
-    const prefs = readConversationPrefs();
-    const pref = prefs[row.id] || {};
+    const latestPrefs = readConversationPrefs();
+    const pref = latestPrefs[row.id] || {};
     const name = partner.name || "ToTalk User";
     const first = name.trim().charAt(0).toUpperCase() || "T";
+
+    /*
+     * Final synchronous guard immediately before DOM insertion.
+     * This is intentionally repeated because DOM creation must happen
+     * only when there is still no card for this conversation.
+     */
+    const existingBeforeInsert = conversationList.querySelector(
+      `[data-conversation-id="${CSS.escape(conversationId)}"]`
+    );
+
+    if(existingBeforeInsert){
+      updateRealtimeConversationItem(data);
+      return;
+    }
 
     const item = document.createElement("button");
     item.type = "button";
@@ -7809,7 +7986,8 @@ async function addRealtimeConversationToList(data){
       "conversation-item is-unread" +
       (pref.muted ? " is-muted" : "") +
       (row.id === currentConversationId ? " active" : "");
-    item.dataset.conversationId = row.id;
+    item.dataset.conversationId = conversationId;
+    item.dataset.partnerUserId = String(partner.user_id);
 
     /* Keep the partner id on the row so presence changes can update
        the icon without guessing from the conversation id. */
@@ -7856,6 +8034,9 @@ async function addRealtimeConversationToList(data){
       conversationList.prepend(item);
     }
 
+    /* Absolute final DOM cleanup for this conversation id. */
+    removeDuplicateConversationCards(conversationId);
+
   }catch(error){
 
     /*
@@ -7867,8 +8048,11 @@ async function addRealtimeConversationToList(data){
       console.error("Realtime fallback chat-list refresh error:",listError);
     });
 
+  }finally{
+    realtimeConversationBuilds.delete(conversationId);
   }
 }
+
 
 /*
  * Restore a locally removed conversation when a genuine incoming message
