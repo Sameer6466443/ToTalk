@@ -7429,6 +7429,7 @@ async function sendMessage(){
    The final read always reflects the messages that remain in the DB.
 ===================================================== */
 const conversationDeleteRefreshTimers = new Map();
+const conversationDeleteReconcileRuns = new Map();
 
 function refreshConversationPreviewAfterMessageDelete(conversationId){
   if(!conversationId || !conversationList) return;
@@ -7437,16 +7438,29 @@ function refreshConversationPreviewAfterMessageDelete(conversationId){
   const previousTimer = conversationDeleteRefreshTimers.get(id);
   if(previousTimer) clearTimeout(previousTimer);
 
+  /*
+   * A delete can arrive on the second device a few milliseconds before the
+   * database read on that device can see the committed change. Give the
+   * database a short moment, then reconcile again. This is bounded so it
+   * can never create a permanent polling loop.
+   */
   const timer = window.setTimeout(()=>{
     conversationDeleteRefreshTimers.delete(id);
-    void refreshConversationPreviewAfterMessageDeleteNow(id);
+    const runId = (conversationDeleteReconcileRuns.get(id) || 0) + 1;
+    conversationDeleteReconcileRuns.set(id,runId);
+    void refreshConversationPreviewAfterMessageDeleteNow(id,runId,0);
   },120);
 
   conversationDeleteRefreshTimers.set(id,timer);
 }
 
-async function refreshConversationPreviewAfterMessageDeleteNow(conversationId){
+async function refreshConversationPreviewAfterMessageDeleteNow(conversationId,runId,attempt=0){
   if(!conversationId || !conversationList || !currentUser?.id) return;
+
+  /* Ignore an older reconcile if another delete for this conversation arrived. */
+  if(runId && conversationDeleteReconcileRuns.get(String(conversationId)) !== runId){
+    return;
+  }
 
   try{
     /* Read the user's real read position. */
@@ -7590,6 +7604,21 @@ async function refreshConversationPreviewAfterMessageDeleteNow(conversationId){
       conversationId,
       unreadCount
     );
+
+    /*
+     * Short verification reads protect against a tiny Realtime -> DB
+     * visibility race. The UI is already updated; these reads only make
+     * the final state agree with Supabase without a page refresh.
+     */
+    if(attempt < 2){
+      window.setTimeout(()=>{
+        void refreshConversationPreviewAfterMessageDeleteNow(
+          String(conversationId),
+          runId,
+          attempt + 1
+        );
+      },180 + (attempt * 220));
+    }
 
   }catch(error){
     console.warn("Conversation preview/unread refresh after delete failed:",error);
