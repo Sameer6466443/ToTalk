@@ -7109,11 +7109,13 @@ async function loadConversationList(){
   }
 }
 
-async function markConversationAsRead(conversationId){
+async function markConversationAsRead(conversationId,options={}){
+  const fromNotification = !!options.fromNotification;
+
   if(
     !currentUser?.id ||
     !conversationId ||
-    document.visibilityState !== "visible"
+    (!fromNotification && document.visibilityState !== "visible")
   ){
     return false;
   }
@@ -9023,9 +9025,21 @@ function showDatabaseError(error){
    Handles Android/Chrome notification buttons sent by sw.js.
 ===================================================== */
 
+let totalkNotificationActionsReady = false;
+const queuedToTalkNotificationActions = [];
+
 async function handleToTalkNotificationAction(payload){
 
-  if(!payload || !currentUser?.id) return;
+  if(!payload) return;
+
+  /*
+   * A notification can be tapped while chat.html is still restoring the
+   * Supabase session or loading conversations. Never lose that action.
+   */
+  if(!currentUser?.id || !totalkNotificationActionsReady){
+    queuedToTalkNotificationActions.push(payload);
+    return;
+  }
 
   const action = String(payload.action || "open");
   const conversationId = payload.conversation_id
@@ -9034,14 +9048,33 @@ async function handleToTalkNotificationAction(payload){
 
   if(!conversationId) return;
 
-  /*
-   * The conversation list has already been loaded by startApp(). Use the
-   * resolved partner stored on each conversation row so we do not need to
-   * guess who the notification belongs to.
-   */
-  const row = conversations.find(
+  let row = conversations.find(
     conversation => String(conversation.id) === conversationId
   );
+
+  /*
+   * A conversation may have been hidden by the local Remove Conversation
+   * preference. A notification for that conversation should still be able
+   * to reopen it. Restore the local row and reload the list before giving up.
+   */
+  if(!row){
+    const prefs = readConversationPrefs();
+    if(prefs[conversationId]?.deleted){
+      delete prefs[conversationId].deleted;
+      writeConversationPrefs(prefs);
+      try{
+        await loadConversationList();
+      }catch(error){
+        console.warn(
+          "ToTalk notification conversation reload failed:",
+          error
+        );
+      }
+      row = conversations.find(
+        conversation => String(conversation.id) === conversationId
+      );
+    }
+  }
 
   if(!row) {
     console.warn(
@@ -9056,10 +9089,14 @@ async function handleToTalkNotificationAction(payload){
   if(action === "mark_read") {
 
     /*
-     * Marking from the notification does not need to open the chat. The
-     * authenticated page performs the same RPC used by normal chat opens.
+     * This action is coming from a system notification. The browser may
+     * briefly report the page as hidden while Android is focusing it, so the
+     * normal visibility guard is intentionally bypassed here.
      */
-    const success = await markConversationAsRead(conversationId);
+    const success = await markConversationAsRead(
+      conversationId,
+      {fromNotification:true}
+    );
 
     if(success){
       const prefs = readConversationPrefs();
@@ -9091,12 +9128,13 @@ async function handleToTalkNotificationAction(payload){
       return;
     }
 
+    /*
+     * Open the exact conversation first. openConversation() intentionally
+     * clears any previous reply target, so set the notification reply target
+     * immediately afterwards.
+     */
     await openConversation(row,partner);
 
-    /*
-     * Set the reply target only AFTER openConversation() because opening a
-     * conversation intentionally clears any old reply target.
-     */
     const messageId = payload.message_id
       ? String(payload.message_id)
       : "";
@@ -9116,6 +9154,23 @@ async function handleToTalkNotificationAction(payload){
       messageInput.focus({preventScroll:true});
       messages.scrollTop = messages.scrollHeight;
     });
+  }
+}
+
+async function flushQueuedToTalkNotificationActions(){
+  if(!currentUser?.id) return;
+  if(!totalkNotificationActionsReady) return;
+
+  while(queuedToTalkNotificationActions.length){
+    const payload = queuedToTalkNotificationActions.shift();
+    try{
+      await handleToTalkNotificationAction(payload);
+    }catch(error){
+      console.error(
+        "ToTalk queued notification action failed:",
+        error
+      );
+    }
   }
 }
 
@@ -9430,6 +9485,12 @@ async function startApp(){
       }
     }
 
+    /*
+     * Authentication and the conversation list are now ready, so notification
+     * actions can safely target a real conversation and partner.
+     */
+    totalkNotificationActionsReady = true;
+
     /* Realtime stays connected, but only the active conversation is rendered. */
     startRealtime();
 
@@ -9443,15 +9504,12 @@ async function startApp(){
     /* Handle a notification action after authentication and the chat list
        are ready. This covers both a closed app and an already-open app. */
     if(pendingToTalkNotificationAction){
-      void handleToTalkNotificationAction(
+      queuedToTalkNotificationActions.push(
         pendingToTalkNotificationAction
-      ).catch(error=>{
-        console.error(
-          "ToTalk pending notification action failed:",
-          error
-        );
-      });
+      );
     }
+
+    await flushQueuedToTalkNotificationActions();
 
     /*
      * Hide loading only after
