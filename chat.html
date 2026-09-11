@@ -7287,17 +7287,23 @@ async function sendMessage(){
     }
 
     /*
-     * The message is saved successfully. Now ask the Supabase Edge Function
-     * to send a Web Push notification to the other user's registered device(s).
+     * IMPORTANT SMOOTH-SEND FIX:
      *
-     * IMPORTANT: notification failure must NEVER make a successfully saved
-     * message appear as "Not sent". Therefore this is intentionally isolated
-     * from the main message-send try/catch.
+     * The message is already safely saved once INSERT succeeds. Do NOT wait
+     * for Web Push delivery before changing the bubble from "Sending…" to
+     * "Sent". Push delivery is a separate network operation and can be slow
+     * even when the message itself was saved instantly.
+     *
+     * Fire the notification in the background so it can never make the chat
+     * bubble feel delayed or freeze the send flow. A push failure also cannot
+     * turn a successfully saved message into "Not sent".
      */
-    try{
-      const recipientUserId = currentConversationPartner?.user_id;
+    void (async()=>{
+      try{
+        const recipientUserId = currentConversationPartner?.user_id;
 
-      if(recipientUserId){
+        if(!recipientUserId) return;
+
         const {data:pushResult,error:pushError} =
           await supabaseClient.functions.invoke(
             "send-push-notification",
@@ -7328,13 +7334,13 @@ async function sendMessage(){
             pushResult
           );
         }
+      }catch(pushError){
+        console.error(
+          "ToTalk push delivery request failed:",
+          pushError
+        );
       }
-    }catch(pushError){
-      console.error(
-        "ToTalk push delivery request failed:",
-        pushError
-      );
-    }
+    })();
 
     /*
      * Success: the optimistic bubble already has the FINAL database id.
