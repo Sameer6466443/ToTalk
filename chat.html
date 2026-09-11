@@ -7043,6 +7043,9 @@ async function loadConversationList(){
 
     if(!partner) return;
 
+    /* Keep the resolved partner available for notification actions. */
+    row.__partner = partner;
+
     const item = document.createElement("button");
     item.type = "button";
     const pref = prefs[row.id] || {};
@@ -9016,6 +9019,167 @@ function showDatabaseError(error){
 }
 
 /* =====================================================
+   NOTIFICATION ACTIONS
+   Handles Android/Chrome notification buttons sent by sw.js.
+===================================================== */
+
+async function handleToTalkNotificationAction(payload){
+
+  if(!payload || !currentUser?.id) return;
+
+  const action = String(payload.action || "open");
+  const conversationId = payload.conversation_id
+    ? String(payload.conversation_id)
+    : "";
+
+  if(!conversationId) return;
+
+  /*
+   * The conversation list has already been loaded by startApp(). Use the
+   * resolved partner stored on each conversation row so we do not need to
+   * guess who the notification belongs to.
+   */
+  const row = conversations.find(
+    conversation => String(conversation.id) === conversationId
+  );
+
+  if(!row) {
+    console.warn(
+      "ToTalk notification action: conversation not found",
+      conversationId
+    );
+    return;
+  }
+
+  const partner = row.__partner;
+
+  if(action === "mark_read") {
+
+    /*
+     * Marking from the notification does not need to open the chat. The
+     * authenticated page performs the same RPC used by normal chat opens.
+     */
+    const success = await markConversationAsRead(conversationId);
+
+    if(success){
+      const prefs = readConversationPrefs();
+      if(prefs[conversationId]){
+        prefs[conversationId].unread = false;
+      }else{
+        prefs[conversationId] = {unread:false};
+      }
+      writeConversationPrefs(prefs);
+
+      void loadConversationList().catch(error=>{
+        console.warn(
+          "ToTalk notification read-state refresh failed:",
+          error
+        );
+      });
+    }
+
+    return;
+  }
+
+  if(action === "reply") {
+
+    if(!partner){
+      console.warn(
+        "ToTalk notification reply: partner is unavailable",
+        conversationId
+      );
+      return;
+    }
+
+    await openConversation(row,partner);
+
+    /*
+     * Set the reply target only AFTER openConversation() because opening a
+     * conversation intentionally clears any old reply target.
+     */
+    const messageId = payload.message_id
+      ? String(payload.message_id)
+      : "";
+
+    if(messageId){
+      setReplyTarget({
+        id:messageId,
+        sender_id:partner.user_id,
+        content:String(payload.body || ""),
+        conversation_id:conversationId
+      });
+    }else{
+      messageInput.focus();
+    }
+
+    requestAnimationFrame(()=>{
+      messageInput.focus({preventScroll:true});
+      messages.scrollTop = messages.scrollHeight;
+    });
+  }
+}
+
+function readToTalkNotificationActionFromUrl(){
+  try{
+    const params = new URLSearchParams(window.location.search);
+    const action = params.get("totalk_notification_action");
+    const conversationId = params.get("totalk_notification_conversation");
+
+    if(!action || !conversationId) return null;
+
+    const payload = {
+      action,
+      conversation_id:conversationId,
+      message_id:params.get("totalk_notification_message"),
+      body:params.get("totalk_notification_body"),
+      sender_name:params.get("totalk_notification_sender")
+    };
+
+    /* Remove the one-shot action from the address bar/history. */
+    const cleanUrl = new URL(window.location.href);
+    [
+      "totalk_notification_action",
+      "totalk_notification_conversation",
+      "totalk_notification_message",
+      "totalk_notification_body",
+      "totalk_notification_sender"
+    ].forEach(key=>cleanUrl.searchParams.delete(key));
+
+    window.history.replaceState({},document.title,cleanUrl.href);
+
+    return payload;
+  }catch(error){
+    console.warn(
+      "ToTalk notification URL action could not be read:",
+      error
+    );
+    return null;
+  }
+}
+
+/*
+ * When chat.html is already open, sw.js sends the action directly to it.
+ * When the app was closed, startApp() processes the same action from the
+ * one-shot URL parameters after authentication and conversation loading.
+ */
+if("serviceWorker" in navigator){
+  navigator.serviceWorker.addEventListener("message",event=>{
+    const data = event.data;
+    if(data?.type !== "TOTalk_NOTIFICATION_ACTION") return;
+
+    void handleToTalkNotificationAction(data).catch(error=>{
+      console.error(
+        "ToTalk notification action failed:",
+        error
+      );
+    });
+  });
+}
+
+const pendingToTalkNotificationAction =
+  readToTalkNotificationActionFromUrl();
+
+/* =====================================================
    START APPLICATION
 ===================================================== */
 
@@ -9275,6 +9439,19 @@ async function startApp(){
     startTypingRealtime();
 
     startPresence();
+
+    /* Handle a notification action after authentication and the chat list
+       are ready. This covers both a closed app and an already-open app. */
+    if(pendingToTalkNotificationAction){
+      void handleToTalkNotificationAction(
+        pendingToTalkNotificationAction
+      ).catch(error=>{
+        console.error(
+          "ToTalk pending notification action failed:",
+          error
+        );
+      });
+    }
 
     /*
      * Hide loading only after
