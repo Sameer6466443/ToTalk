@@ -6330,6 +6330,8 @@ async function refreshSeenStatus(){
 /* =====================================================
    OPTIMISTIC MESSAGE RECONCILIATION
    ===================================================== */
+const pendingLocalMessageIds = new Set();
+
 function reconcileOptimisticMessage(data){
   if(!data?.id || !currentUser?.id) return false;
   if(data.sender_id !== currentUser.id) return false;
@@ -6445,6 +6447,7 @@ async function pollOpenConversationMessages(){
     document.querySelectorAll(".message-row[data-message-id]").forEach(row=>{
       const id = String(row.dataset.messageId || "");
       if(!id || id.startsWith("local-")) return;
+      if(pendingLocalMessageIds.has(id)) return;
       if(!liveIds.has(id)){
         row.remove();
         messageCache.delete(id);
@@ -6452,8 +6455,10 @@ async function pollOpenConversationMessages(){
     });
 
     Array.from(messageCache.keys()).forEach(id=>{
-      if(String(id).startsWith("local-")) return;
-      if(!liveIds.has(String(id))) messageCache.delete(id);
+      const idString = String(id);
+      if(idString.startsWith("local-")) return;
+      if(pendingLocalMessageIds.has(idString)) return;
+      if(!liveIds.has(idString)) messageCache.delete(id);
     });
 
     let addedIncoming = false;
@@ -7223,6 +7228,8 @@ async function sendMessage(){
    * Each send has its own final UUID, so multiple messages can safely be
    * in flight at the same time. This removes the old multi-second lock.
    */
+  /* Protect this freshly-sent bubble from the fallback poll while the INSERT settles. */
+  pendingLocalMessageIds.add(messageId);
   addMessage(optimistic, true);
 
   const optimisticRow = document.querySelector(
@@ -7355,6 +7362,7 @@ async function sendMessage(){
     };
 
     messageCache.set(messageId, realMessage);
+    pendingLocalMessageIds.delete(messageId);
 
     const existingRealRow = document.querySelector(
       `[data-message-id="${messageId}"]`
@@ -7373,6 +7381,7 @@ async function sendMessage(){
 
   }catch(error){
 
+    pendingLocalMessageIds.delete(messageId);
     console.error("Send message error:", error);
 
     /*
