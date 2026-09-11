@@ -28,17 +28,38 @@ self.addEventListener("activate", event => {
 PUSH RECEIVED
 =========================================================
 */
+
 self.addEventListener("push", event => {
 
   event.waitUntil(
     (async () => {
 
+      /*
+      -----------------------------------------------------
+      DEFAULT PUSH DATA
+      -----------------------------------------------------
+      */
+
       let data = {
         type: "message",
         title: "ToTalk",
         body: "New message",
+
+        /*
+        Optional fields supported by this service worker:
+        sender_name
+        sender_avatar
+        conversation_id
+        message_id
+        sender_id
+        */
+
+        sender_name: null,
+        sender_avatar: null,
+
         conversation_id: null,
-        message_id: null
+        message_id: null,
+        sender_id: null
       };
 
 
@@ -80,11 +101,14 @@ self.addEventListener("push", event => {
       DELETE NOTIFICATION COMMAND
       =====================================================
 
-      When a sent message is deleted, chat.html will send
-      a special push command to the recipient's device.
+      IMPORTANT:
+      This block is intentionally preserved.
 
-      The Service Worker then finds the existing ToTalk
-      notification and closes it.
+      When a sent message is deleted, chat.html sends a
+      special delete_notification push command.
+
+      The service worker finds the matching notification
+      using message_id first and conversation_id as fallback.
       */
 
       if (
@@ -250,16 +274,35 @@ self.addEventListener("push", event => {
 
       /*
       =====================================================
-      SHOW NORMAL MESSAGE NOTIFICATION
+      PREPARE NOTIFICATION CONTENT
       =====================================================
       */
 
-      const title =
-        data.title || "ToTalk";
+      /*
+      If sender_name exists, use the sender's name as the
+      notification title.
+
+      Otherwise fall back to the supplied title.
+      */
+
+      const notificationTitle =
+        data.sender_name
+          ? String(data.sender_name)
+          : (
+              data.title
+                ? String(data.title)
+                : "ToTalk"
+            );
 
 
-      const body =
-        data.body || "New message";
+      /*
+      Message preview.
+      */
+
+      const notificationBody =
+        data.body
+          ? String(data.body)
+          : "New message";
 
 
       /*
@@ -267,10 +310,10 @@ self.addEventListener("push", event => {
       NOTIFICATION TAG
       =====================================================
 
-      Each message gets its own notification tag when a
-      message_id is available.
+      Each message gets its own notification.
 
-      This lets us remove the exact notification later.
+      This is IMPORTANT because the delete command later
+      needs to identify the exact notification.
       */
 
       let notificationTag;
@@ -298,70 +341,157 @@ self.addEventListener("push", event => {
 
       /*
       =====================================================
+      TOTalk ICON
+      =====================================================
+
+      This is a simple cosmic ToTalk icon.
+
+      Later, if you have your final production ToTalk logo,
+      replace this with the real icon URL.
+      */
+
+      const totalkIcon =
+        "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Cdefs%3E%3CradialGradient id='g' cx='50%25' cy='35%25' r='70%25'%3E%3Cstop offset='0%25' stop-color='%23b875ff'/%3E%3Cstop offset='55%25' stop-color='%23914cff'/%3E%3Cstop offset='100%25' stop-color='%23510f9c'/%3E%3C/radialGradient%3E%3Cfilter id='s'%3E%3CfeGaussianBlur stdDeviation='4' result='b'/%3E%3C/filter%3E%3C/defs%3E%3Ccircle cx='96' cy='96' r='88' fill='%237d2cff' opacity='.35' filter='url(%23s)'/%3E%3Ccircle cx='96' cy='96' r='78' fill='url(%23g)'/%3E%3Ccircle cx='96' cy='96' r='68' fill='none' stroke='%23ffffff' stroke-opacity='.18' stroke-width='2'/%3E%3Ccircle cx='61' cy='57' r='5' fill='%23ffffff' opacity='.65'/%3E%3Ccircle cx='137' cy='68' r='3' fill='%23ffffff' opacity='.55'/%3E%3Ccircle cx='126' cy='132' r='4' fill='%23ffffff' opacity='.45'/%3E%3Ctext x='96' y='119' font-family='Arial,sans-serif' font-size='78' font-weight='700' text-anchor='middle' fill='%23ffffff'%3ET%3C/text%3E%3C/svg%3E";
+
+
+      /*
+      =====================================================
+      NOTIFICATION OPTIONS
+      =====================================================
+      */
+
+      const notificationOptions = {
+
+        /*
+        ---------------------------------------------------
+        Message text
+        ---------------------------------------------------
+        */
+
+        body: notificationBody,
+
+
+        /*
+        ---------------------------------------------------
+        ToTalk icon
+        ---------------------------------------------------
+        */
+
+        icon: totalkIcon,
+
+
+        /*
+        ---------------------------------------------------
+        Small notification badge
+        ---------------------------------------------------
+        */
+
+        badge: totalkIcon,
+
+
+        /*
+        ---------------------------------------------------
+        Individual message tag
+        ---------------------------------------------------
+        */
+
+        tag: notificationTag,
+
+
+        /*
+        ---------------------------------------------------
+        Allow a new message to notify again.
+        ---------------------------------------------------
+        */
+
+        renotify: true,
+
+
+        /*
+        ---------------------------------------------------
+        Keep notification data.
+
+        DO NOT REMOVE THESE FIELDS.
+
+        The delete-notification system depends on them.
+        ---------------------------------------------------
+        */
+
+        data: {
+
+          type: "message",
+
+          conversation_id:
+            data.conversation_id || null,
+
+          message_id:
+            data.message_id || null,
+
+          sender_id:
+            data.sender_id || null,
+
+          sender_name:
+            data.sender_name || null
+
+        },
+
+
+        /*
+        ===================================================
+        NOTIFICATION ACTIONS
+        ===================================================
+
+        Android/Chrome decides exactly how these buttons
+        are visually rendered.
+
+        We only define the available actions here.
+        */
+
+        actions: [
+
+          {
+            action: "reply",
+            title: "Reply"
+          },
+
+          {
+            action: "mark_read",
+            title: "Mark as read"
+          }
+
+        ],
+
+
+        /*
+        ---------------------------------------------------
+        Direction / language
+        ---------------------------------------------------
+        */
+
+        dir: "auto",
+        lang: "en",
+
+
+        /*
+        ---------------------------------------------------
+        Timestamp
+        ---------------------------------------------------
+        */
+
+        timestamp: Date.now()
+
+      };
+
+
+      /*
+      =====================================================
       SHOW NOTIFICATION
       =====================================================
       */
 
       await self.registration.showNotification(
-        title,
-        {
-
-          body: body,
-
-          /*
-          -------------------------------------------------
-          Current ToTalk icon.
-          Keep this here until we connect the final
-          uploaded ToTalk logo path.
-          -------------------------------------------------
-          */
-
-          icon:
-            "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='46' fill='%23914cff'/%3E%3Ctext x='50' y='64' font-size='52' text-anchor='middle' fill='white'%3ET%3C/text%3E%3C/svg%3E",
-
-
-          badge:
-            "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='46' fill='%23914cff'/%3E%3Ctext x='50' y='64' font-size='52' text-anchor='middle' fill='white'%3ET%3C/text%3E%3C/svg%3E",
-
-
-          tag: notificationTag,
-
-
-          /*
-          -------------------------------------------------
-          Allow a new message to update the notification.
-          -------------------------------------------------
-          */
-
-          renotify: true,
-
-
-          /*
-          =================================================
-          DATA KEPT INSIDE THE NOTIFICATION
-          =================================================
-
-          This is important because the delete command
-          needs to know which notification belongs to
-          which message.
-          */
-
-          data: {
-
-            type: "message",
-
-            conversation_id:
-              data.conversation_id || null,
-
-            message_id:
-              data.message_id || null,
-
-            sender_id:
-              data.sender_id || null
-
-          }
-
-        }
+        notificationTitle,
+        notificationOptions
       );
 
     })()
@@ -380,16 +510,63 @@ self.addEventListener(
   "notificationclick",
   event => {
 
+    /*
+    Always close the notification after interaction.
+    */
+
     event.notification.close();
 
 
     event.waitUntil(
       (async () => {
 
+        const notification =
+          event.notification;
+
+
+        const notificationData =
+          notification?.data || {};
+
+
         const conversationId =
-          event.notification?.data
+          notificationData
             ?.conversation_id || null;
 
+
+        const action =
+          event.action || "";
+
+
+        /*
+        ===================================================
+        REPLY / MARK AS READ
+        ===================================================
+
+        Both actions open the appropriate ToTalk
+        conversation.
+
+        The actual visual UI of the action buttons is
+        controlled by Android/Chrome.
+        */
+
+        if (
+          action === "reply" ||
+          action === "mark_read"
+        ) {
+
+          console.log(
+            "ToTalk notification action:",
+            action
+          );
+
+        }
+
+
+        /*
+        ===================================================
+        FIND EXISTING TOTalk WINDOW
+        ===================================================
+        */
 
         const windowClients =
           await self.clients.matchAll({
@@ -399,9 +576,9 @@ self.addEventListener(
 
 
         /*
-        ===================================================
-        PREFER EXISTING TOTalk WINDOW
-        ===================================================
+        ---------------------------------------------------
+        Prefer an already-open ToTalk window.
+        ---------------------------------------------------
         */
 
         for (
@@ -415,6 +592,10 @@ self.addEventListener(
               new URL(client.url);
 
 
+            /*
+            Only interact with our own origin.
+            */
+
             if (
               url.origin !==
               self.location.origin
@@ -425,13 +606,17 @@ self.addEventListener(
             }
 
 
+            /*
+            Bring ToTalk to the foreground.
+            */
+
             await client.focus();
 
 
             /*
-            -----------------------------------------------
+            -------------------------------------------------
             Tell chat.html which conversation was opened.
-            -----------------------------------------------
+            -------------------------------------------------
             */
 
             if (
@@ -445,7 +630,10 @@ self.addEventListener(
                   "TOTalk_NOTIFICATION_CLICK",
 
                 conversation_id:
-                  conversationId
+                  conversationId,
+
+                action:
+                  action || "open"
 
               });
 
@@ -468,11 +656,18 @@ self.addEventListener(
 
         /*
         ===================================================
-        NO WINDOW OPEN
+        NO TOTalk WINDOW IS OPEN
         ===================================================
         */
 
         if (self.clients.openWindow) {
+
+          /*
+          Open the normal chat page.
+
+          chat.html can then handle the conversation
+          selection after loading.
+          */
 
           await self.clients.openWindow(
             "/chat.html"
