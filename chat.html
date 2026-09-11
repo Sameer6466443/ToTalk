@@ -3867,7 +3867,10 @@ async function registerToTalkPushSubscription(){
   pushSubscriptionInFlight = true;
 
   try{
-    const registration = await navigator.serviceWorker.register("/sw.js");
+    let registration = await navigator.serviceWorker.getRegistration();
+    if(!registration){
+      registration = await navigator.serviceWorker.register("/sw.js");
+    }
     if(!registration){
       throw new Error("ToTalk Push Error: Service Worker registration is unavailable.");
     }
@@ -8732,7 +8735,253 @@ async function startApp(){
     /* Register this browser/device for background Web Push.
        If permission is still undecided, the first user interaction
        requests it and then saves the subscription. */
-    /* Push subscription starts from the Bell enable action. */
+    if("Notification" in window && Notification.permission === "granted"){
+      void registerToTalkPushSubscription();
+    }
+
+    /* Check restriction status. Supabase RLS remains the final authority. */
+    await loadMyRestrictionStatus();
+
+    /* Start moderator warning notifications for this account. */
+    startTotalkWarningNotifications();
+
+    /*
+     * Start the database connection warm-up immediately.
+     * It runs in the background while the rest of the
+     * chat is loading, so the first real message does not
+     * pay the cold-connection delay.
+     */
+    void warmUpSupabase();
+
+    setLoadingText(
+      "ToTalk",
+      "Connecting…"
+    );
+
+    currentProfile =
+      await checkProfile();
+
+    /*
+     * Keep your current behavior:
+     * existing profile opens chat directly.
+     *
+     * If no profile exists, create a
+     * lightweight profile.
+     */
+
+    if(!currentProfile){
+
+      const fallbackName =
+        currentUser?.user_metadata?.full_name ||
+        currentUser?.user_metadata?.name ||
+        currentUser?.email?.split("@")[0] ||
+        "ToTalk User";
+
+      /*
+       * Generate a permanent-looking ID.
+       * This function was missing in the
+       * previous file, so define it here.
+       */
+
+      function makeTTId(){
+
+        const chars =
+          "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+
+        let result =
+          "";
+
+        for(
+          let i=0;
+          i<6;
+          i++
+        ){
+
+          result +=
+            chars[
+              Math.floor(
+                Math.random() *
+                chars.length
+              )
+            ];
+
+        }
+
+        return "TT-" + result;
+
+      }
+
+      const newId =
+        makeTTId();
+
+      const {
+        data:created,
+        error:createError
+      } =
+        await supabaseClient
+          .from("profiles")
+          .insert({
+
+            user_id:
+              currentUser.id,
+
+            name:
+              fallbackName,
+
+            gender:
+              null,
+
+            age:
+              null,
+
+            totalk_id:
+              newId,
+
+            profile_completed:
+              true,
+
+            location:
+              "",
+
+            location_visibility:
+              "city_country"
+
+          })
+          .select(
+            "id,user_id,name,gender,age,totalk_id,profile_completed,location,location_visibility"
+          )
+          .single();
+
+      if(createError){
+
+        currentProfile =
+          await checkProfile();
+
+        if(!currentProfile){
+
+          throw createError;
+
+        }
+
+      }else{
+
+        currentProfile =
+          created;
+
+      }
+
+    }else if(
+      currentProfile.profile_completed !==
+      true
+    ){
+
+      const {
+        data:completed,
+        error:completeError
+      } =
+        await supabaseClient
+          .from("profiles")
+          .update({
+            profile_completed:true
+          })
+          .eq(
+            "id",
+            currentProfile.id
+          )
+          .eq(
+            "user_id",
+            currentUser.id
+          )
+          .select(
+            "id,user_id,name,gender,age,totalk_id,profile_completed,location,location_visibility"
+          )
+          .maybeSingle();
+
+      if(completeError){
+        throw completeError;
+      }
+
+      if(completed){
+        currentProfile =
+          completed;
+      }
+
+    }
+
+    setLoadingText(
+      "ToTalk",
+      "Opening your space…"
+    );
+
+    updateUserUI();
+
+    /* Load the real private conversation list.
+       A chat-list/database problem must NOT blank the whole app. */
+    try{
+      await loadConversationList();
+    }catch(listError){
+      console.error("ToTalk conversation-list error:", listError);
+      conversations = [];
+      if(conversationList){
+        conversationList.innerHTML = `
+          <div class="conversation-empty">
+            <strong>Chats could not be loaded</strong>
+            <span>Your account is open, but the chat database returned an error.</span>
+            <button type="button" class="back-button" id="showDatabaseError">Show error</button>
+          </div>
+        `;
+        document.getElementById("showDatabaseError")?.addEventListener("click",()=>{
+          showDatabaseError(listError);
+        });
+      }
+    }
+
+    /* Realtime stays connected, but only the active conversation is rendered. */
+    startRealtime();
+
+    startDeleteSync();
+
+    /* Start the shared typing channel so other phones can see typing state. */
+    startTypingRealtime();
+
+    startPresence();
+
+    /*
+     * Hide loading only after
+     * everything is ready.
+     */
+
+    finishLoading();
+
+    /*
+     * Focus input after loading
+     * without forcing keyboard open
+     * on mobile.
+     */
+
+    setTimeout(
+      ()=>{
+        messageInput.focus({
+          preventScroll:true
+        });
+        messageInput.blur();
+      },
+      500
+    );
+
+  }catch(error){
+
+    console.error(
+      "ToTalk startup error:",
+      error
+    );
+
+    finishLoading();
+    showDatabaseError(error);
+
+  }
+
+}
 
 /* =====================================================
    START
