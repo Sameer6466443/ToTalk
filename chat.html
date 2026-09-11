@@ -5111,6 +5111,104 @@ function clearReplyTarget(){
 }
 
 /* =====================================================
+   MESSAGE STATE / STATUS PROTECTION
+===================================================== */
+
+/*
+ * Message status is monotonic:
+ * Sending… -> Sent -> Seen
+ *
+ * Once a message is Seen, no realtime event, polling pass,
+ * optimistic reconciliation, or send response is allowed to
+ * downgrade it back to Sent/Sending.
+ */
+function setMessageStatusMonotonic(messageId, nextStatus){
+  const id = String(messageId || "");
+  if(!id) return;
+
+  const data = messageCache.get(id);
+  const row = document.querySelector(
+    `[data-message-id="${CSS.escape(id)}"]`
+  );
+  const status = row?.querySelector(".message-status");
+
+  if(!status) return;
+
+  const alreadySeen =
+    data?._seen === true ||
+    status.textContent === "Seen" ||
+    status.classList.contains("seen");
+
+  if(alreadySeen && nextStatus !== "Seen"){
+    if(data) data._seen = true;
+    status.textContent = "Seen";
+    status.classList.add("seen");
+    status.classList.remove("send-failed");
+    return;
+  }
+
+  if(nextStatus === "Seen"){
+    if(data) data._seen = true;
+    status.textContent = "Seen";
+    status.classList.add("seen");
+    status.classList.remove("send-failed");
+    return;
+  }
+
+  status.textContent = nextStatus;
+  status.classList.toggle("seen",false);
+
+  if(nextStatus !== "Not sent"){
+    status.classList.remove("send-failed");
+  }
+}
+
+function mergeMessageIntoCache(data){
+  if(!data?.id) return data;
+
+  const id = String(data.id);
+  const previous = messageCache.get(id);
+
+  /*
+   * Never let a newer realtime/poll payload erase a local Seen state.
+   * Supabase message rows do not contain _seen, so preserve it locally.
+   */
+  const merged = {
+    ...(previous || {}),
+    ...data,
+    _seen: previous?._seen === true || data._seen === true
+  };
+
+  messageCache.set(id,merged);
+  return merged;
+}
+
+/*
+ * Hard DOM guard:
+ * one database message ID may have exactly one visible row.
+ * If an older event/race somehow produced duplicates, keep the
+ * first row and remove the extras.
+ */
+function dedupeMessageRows(messageId){
+  const id = String(messageId || "");
+  if(!id) return null;
+
+  const rows = Array.from(
+    document.querySelectorAll(
+      `[data-message-id="${CSS.escape(id)}"]`
+    )
+  );
+
+  if(!rows.length) return null;
+
+  for(let i=1;i<rows.length;i++){
+    rows[i].remove();
+  }
+
+  return rows[0];
+}
+
+/* =====================================================
    ADD MESSAGE
 ===================================================== */
 
@@ -5123,11 +5221,23 @@ function addMessage(
     return;
   }
 
-  if(
-    document.querySelector(
-      `[data-message-id="${data.id}"]`
-    )
-  ){
+  const existingRow = dedupeMessageRows(data.id);
+
+  if(existingRow){
+    const merged = mergeMessageIntoCache(data);
+    const text = existingRow.querySelector(".message-text");
+    if(text && !existingRow.querySelector(".message.editing")){
+      text.textContent = merged?.content || "";
+    }
+
+    /*
+     * Re-rendering an already-existing message must never reset
+     * Seen back to Sent.
+     */
+    if(merged?._seen === true){
+      setMessageStatusMonotonic(data.id,"Seen");
+    }
+
     return;
   }
 
@@ -5140,10 +5250,7 @@ function addMessage(
     welcome.remove();
   }
 
-  messageCache.set(
-    data.id,
-    data
-  );
+  data = mergeMessageIntoCache(data);
 
   const mine =
     currentUser &&
@@ -5293,9 +5400,9 @@ function addMessage(
     /* A message is Seen only after the other participant
        has opened this conversation and updated last_read_at. */
     status.textContent =
-      data._seen ? "Seen" : "Sent";
+      data._seen === true ? "Seen" : "Sent";
 
-    if(data._seen){
+    if(data._seen === true){
       status.classList.add("seen");
     }
 
@@ -6280,20 +6387,43 @@ function applySeenStatus(partnerLastReadAt){
     .forEach(row=>{
 
       const messageId = row.dataset.messageId;
-      const data = messageCache.get(messageId);
+      const data = messageCache.get(String(messageId));
       const status = row.querySelector(".message-status");
 
       if(!data || !status) return;
 
+      /*
+       * IMPORTANT:
+       * We only promote Sent -> Seen here.
+       * We intentionally never perform Seen -> Sent.
+       */
+      if(data._seen === true ||
+         status.textContent === "Seen" ||
+         status.classList.contains("seen")){
+        data._seen = true;
+        setMessageStatusMonotonic(messageId,"Seen");
+        return;
+      }
+
       const messageTime = Date.parse(data.created_at || "") || 0;
       const seen = messageTime > 0 && messageTime <= readTime;
 
-      status.textContent = seen ? "Seen" : "Sent";
-      status.classList.toggle("seen",seen);
-      data._seen = seen;
+      if(seen){
+        data._seen = true;
+        setMessageStatusMonotonic(messageId,"Seen");
+      }else{
+        /*
+         * Keep the current state as-is. New messages remain Sent.
+         * There is deliberately no downgrade operation here.
+         */
+        if(status.textContent !== "Sending…" &&
+           status.textContent !== "Not sent"){
+          status.textContent = "Sent";
+          status.classList.remove("seen");
+        }
+      }
     });
 }
-
 async function refreshSeenStatus(){
 
   if(
@@ -6368,12 +6498,33 @@ function reconcileOptimisticMessage(data){
   bestRow.dataset.messageContent = data.content || "";
 
   messageCache.delete(oldId);
-  messageCache.set(data.id, data);
+
+  /*
+   * Preserve any Seen state that may have arrived while the
+   * optimistic bubble was waiting for reconciliation.
+   */
+  const previousSeen =
+    bestRow.querySelector(".message-status")?.textContent === "Seen" ||
+    bestRow.querySelector(".message-status")?.classList.contains("seen") ||
+    messageCache.get(data.id)?._seen === true;
+
+  const merged = {
+    ...data,
+    _seen: previousSeen === true || data._seen === true
+  };
+
+  messageCache.set(data.id,merged);
 
   const status = bestRow.querySelector('.message-status');
   if(status){
-    status.textContent = 'Sent';
-    status.classList.remove('seen','send-failed');
+    if(merged._seen === true){
+      status.textContent = 'Seen';
+      status.classList.add('seen');
+      status.classList.remove('send-failed');
+    }else{
+      status.textContent = 'Sent';
+      status.classList.remove('seen','send-failed');
+    }
   }
 
   const menuButton = bestRow.querySelector('.message-menu-btn');
@@ -6459,9 +6610,9 @@ async function pollOpenConversationMessages(){
     let addedIncoming = false;
 
     for(const item of (data || [])){
-      messageCache.set(item.id,item);
+      const mergedItem = mergeMessageIntoCache(item);
 
-      if(reconcileOptimisticMessage(item)){
+      if(reconcileOptimisticMessage(mergedItem)){
         continue;
       }
 
@@ -6471,11 +6622,18 @@ async function pollOpenConversationMessages(){
 
       if(existing){
         const text = existing.querySelector(".message-text");
-        if(text) text.textContent = item.content || "";
+        if(text) text.textContent = mergedItem.content || "";
+
+        if(mergedItem._seen === true){
+          setMessageStatusMonotonic(item.id,"Seen");
+        }
+
+        dedupeMessageRows(item.id);
         continue;
       }
 
-      addMessage(item,true);
+      addMessage(mergedItem,true);
+      dedupeMessageRows(item.id);
 
       if(item.sender_id !== currentUser.id){
         addedIncoming = true;
@@ -6570,9 +6728,14 @@ async function loadMessages(){
     return;
   }
 
-  data.forEach(message=>messageCache.set(message.id,message));
+  data.forEach(message=>mergeMessageIntoCache(message));
 
   data.forEach(message=>addMessage(message,false));
+
+  /*
+   * Final load-time duplicate guard.
+   */
+  data.forEach(message=>dedupeMessageRows(message.id));
 
   requestAnimationFrame(()=>{
     messages.scrollTop = messages.scrollHeight;
@@ -7239,8 +7402,19 @@ async function sendMessage(){
   );
 
   if(optimisticStatus){
-    optimisticStatus.textContent = "Sending…";
-    optimisticStatus.classList.remove("seen");
+    /*
+     * Normally this is a fresh Sending state. If a very fast
+     * realtime/read-receipt event already marked it Seen, keep Seen.
+     */
+    const currentOptimisticState =
+      messageCache.get(messageId)?._seen === true ||
+      optimisticStatus.textContent === "Seen" ||
+      optimisticStatus.classList.contains("seen");
+
+    if(!currentOptimisticState){
+      optimisticStatus.textContent = "Sending…";
+      optimisticStatus.classList.remove("seen");
+    }
   }
 
   messageInput.value = "";
@@ -7350,17 +7524,22 @@ async function sendMessage(){
       conversation_id: currentConversationId
     };
 
-    messageCache.set(messageId, realMessage);
+    mergeMessageIntoCache(realMessage);
 
-    const existingRealRow = document.querySelector(
-      `[data-message-id="${messageId}"]`
-    );
+    const existingRealRow = dedupeMessageRows(messageId);
 
     if(existingRealRow){
       const status = existingRealRow.querySelector(".message-status");
+      const cached = messageCache.get(messageId);
+
       if(status){
-        status.textContent = "Sent";
-        status.classList.remove("seen","send-failed");
+        if(cached?._seen === true ||
+           status.textContent === "Seen" ||
+           status.classList.contains("seen")){
+          setMessageStatusMonotonic(messageId,"Seen");
+        }else{
+          setMessageStatusMonotonic(messageId,"Sent");
+        }
       }
     }
 
@@ -7964,11 +8143,11 @@ function startRealtime(){
           console.log("Realtime INSERT:", data);
 
           void markConversationAsRead(data.conversation_id);
-          messageCache.set(data.id, data);
+          const mergedRealtimeMessage = mergeMessageIntoCache(data);
 
           /* Reconcile optimistic local sends regardless of whether
            * Realtime or the HTTP request wins the race. */
-          if(reconcileOptimisticMessage(data)){
+          if(reconcileOptimisticMessage(mergedRealtimeMessage)){
             void refreshSeenStatus();
             return;
           }
@@ -7984,7 +8163,8 @@ function startRealtime(){
               messages.scrollTop -
               messages.clientHeight < 180;
 
-            addMessage(data,true);
+            addMessage(mergedRealtimeMessage,true);
+            dedupeMessageRows(data.id);
 
             if(nearBottom){
               requestAnimationFrame(()=>{
@@ -8017,7 +8197,7 @@ function startRealtime(){
         if(!currentConversationId || data.conversation_id !== currentConversationId) return;
 
         console.log("Realtime UPDATE:", data);
-        messageCache.set(data.id, data);
+        const mergedRealtimeUpdate = mergeMessageIntoCache(data);
 
         const row = document.querySelector(
           `[data-message-id="${data.id}"]`
@@ -8029,7 +8209,7 @@ function startRealtime(){
            the latest value when the editor closes. */
         if(!row.querySelector(".message.editing")){
           const text = row.querySelector(".message-text");
-          if(text) text.textContent = data.content || "";
+          if(text) text.textContent = mergedRealtimeUpdate.content || "";
         }
 
         const time = row.querySelector(".message-time");
@@ -9570,5 +9750,6 @@ if ("serviceWorker" in navigator) {
 })();
 </script>
 
+<!-- ToTalk: duplicate-message + monotonic Seen-state fix applied to this full chat.html. -->
 </body>
 </html>
