@@ -5111,6 +5111,104 @@ function clearReplyTarget(){
 }
 
 /* =====================================================
+   MESSAGE STATE / STATUS PROTECTION
+===================================================== */
+
+/*
+ * Message status is monotonic:
+ * Sending… -> Sent -> Seen
+ *
+ * Once a message is Seen, no realtime event, polling pass,
+ * optimistic reconciliation, or send response is allowed to
+ * downgrade it back to Sent/Sending.
+ */
+function setMessageStatusMonotonic(messageId, nextStatus){
+  const id = String(messageId || "");
+  if(!id) return;
+
+  const data = messageCache.get(id);
+  const row = document.querySelector(
+    `[data-message-id="${CSS.escape(id)}"]`
+  );
+  const status = row?.querySelector(".message-status");
+
+  if(!status) return;
+
+  const alreadySeen =
+    data?._seen === true ||
+    status.textContent === "Seen" ||
+    status.classList.contains("seen");
+
+  if(alreadySeen && nextStatus !== "Seen"){
+    if(data) data._seen = true;
+    status.textContent = "Seen";
+    status.classList.add("seen");
+    status.classList.remove("send-failed");
+    return;
+  }
+
+  if(nextStatus === "Seen"){
+    if(data) data._seen = true;
+    status.textContent = "Seen";
+    status.classList.add("seen");
+    status.classList.remove("send-failed");
+    return;
+  }
+
+  status.textContent = nextStatus;
+  status.classList.toggle("seen",false);
+
+  if(nextStatus !== "Not sent"){
+    status.classList.remove("send-failed");
+  }
+}
+
+function mergeMessageIntoCache(data){
+  if(!data?.id) return data;
+
+  const id = String(data.id);
+  const previous = messageCache.get(id);
+
+  /*
+   * Never let a newer realtime/poll payload erase a local Seen state.
+   * Supabase message rows do not contain _seen, so preserve it locally.
+   */
+  const merged = {
+    ...(previous || {}),
+    ...data,
+    _seen: previous?._seen === true || data._seen === true
+  };
+
+  messageCache.set(id,merged);
+  return merged;
+}
+
+/*
+ * Hard DOM guard:
+ * one database message ID may have exactly one visible row.
+ * If an older event/race somehow produced duplicates, keep the
+ * first row and remove the extras.
+ */
+function dedupeMessageRows(messageId){
+  const id = String(messageId || "");
+  if(!id) return null;
+
+  const rows = Array.from(
+    document.querySelectorAll(
+      `[data-message-id="${CSS.escape(id)}"]`
+    )
+  );
+
+  if(!rows.length) return null;
+
+  for(let i=1;i<rows.length;i++){
+    rows[i].remove();
+  }
+
+  return rows[0];
+}
+
+/* =====================================================
    ADD MESSAGE
 ===================================================== */
 
@@ -5123,11 +5221,23 @@ function addMessage(
     return;
   }
 
-  if(
-    document.querySelector(
-      `[data-message-id="${data.id}"]`
-    )
-  ){
+  const existingRow = dedupeMessageRows(data.id);
+
+  if(existingRow){
+    const merged = mergeMessageIntoCache(data);
+    const text = existingRow.querySelector(".message-text");
+    if(text && !existingRow.querySelector(".message.editing")){
+      text.textContent = merged?.content || "";
+    }
+
+    /*
+     * Re-rendering an already-existing message must never reset
+     * Seen back to Sent.
+     */
+    if(merged?._seen === true){
+      setMessageStatusMonotonic(data.id,"Seen");
+    }
+
     return;
   }
 
@@ -5140,10 +5250,7 @@ function addMessage(
     welcome.remove();
   }
 
-  messageCache.set(
-    data.id,
-    data
-  );
+  data = mergeMessageIntoCache(data);
 
   const mine =
     currentUser &&
@@ -5293,9 +5400,9 @@ function addMessage(
     /* A message is Seen only after the other participant
        has opened this conversation and updated last_read_at. */
     status.textContent =
-      data._seen ? "Seen" : "Sent";
+      data._seen === true ? "Seen" : "Sent";
 
-    if(data._seen){
+    if(data._seen === true){
       status.classList.add("seen");
     }
 
@@ -6280,20 +6387,43 @@ function applySeenStatus(partnerLastReadAt){
     .forEach(row=>{
 
       const messageId = row.dataset.messageId;
-      const data = messageCache.get(messageId);
+      const data = messageCache.get(String(messageId));
       const status = row.querySelector(".message-status");
 
       if(!data || !status) return;
 
+      /*
+       * IMPORTANT:
+       * We only promote Sent -> Seen here.
+       * We intentionally never perform Seen -> Sent.
+       */
+      if(data._seen === true ||
+         status.textContent === "Seen" ||
+         status.classList.contains("seen")){
+        data._seen = true;
+        setMessageStatusMonotonic(messageId,"Seen");
+        return;
+      }
+
       const messageTime = Date.parse(data.created_at || "") || 0;
       const seen = messageTime > 0 && messageTime <= readTime;
 
-      status.textContent = seen ? "Seen" : "Sent";
-      status.classList.toggle("seen",seen);
-      data._seen = seen;
+      if(seen){
+        data._seen = true;
+        setMessageStatusMonotonic(messageId,"Seen");
+      }else{
+        /*
+         * Keep the current state as-is. New messages remain Sent.
+         * There is deliberately no downgrade operation here.
+         */
+        if(status.textContent !== "Sending…" &&
+           status.textContent !== "Not sent"){
+          status.textContent = "Sent";
+          status.classList.remove("seen");
+        }
+      }
     });
 }
-
 async function refreshSeenStatus(){
 
   if(
@@ -6325,6 +6455,106 @@ async function refreshSeenStatus(){
   }finally{
     seenStatusRequestInFlight = false;
   }
+}
+
+/* =====================================================
+   OPTIMISTIC MESSAGE RECONCILIATION
+   ===================================================== */
+function reconcileOptimisticMessage(data){
+  if(!data?.id || !currentUser?.id) return false;
+  if(data.sender_id !== currentUser.id) return false;
+
+  const rows = Array.from(document.querySelectorAll('[data-message-id^="local-"]'));
+  if(!rows.length) return false;
+
+  const targetTime = Date.parse(data.created_at || "") || Date.now();
+  let bestRow = null;
+  let bestDiff = Infinity;
+
+  for(const row of rows){
+    const localMessage = messageCache.get(row.dataset.messageId);
+    if(!localMessage) continue;
+
+    const localText = row.querySelector('.message-text')?.textContent || '';
+    if(localText !== (data.content || "")) continue;
+    if(localMessage.sender_id !== data.sender_id) continue;
+    if((localMessage.reply_to_id || null) !== (data.reply_to_id || null)) continue;
+    if((localMessage.conversation_id || null) !== (data.conversation_id || null)) continue;
+
+    const localTime = Date.parse(localMessage.created_at || "") || targetTime;
+    const diff = Math.abs(targetTime - localTime);
+    if(diff > 120000) continue;
+
+    if(diff < bestDiff){
+      bestDiff = diff;
+      bestRow = row;
+    }
+  }
+
+  if(!bestRow) return false;
+
+  const oldId = bestRow.dataset.messageId;
+  bestRow.dataset.messageId = data.id;
+  bestRow.dataset.messageContent = data.content || "";
+
+  messageCache.delete(oldId);
+
+  /*
+   * Preserve any Seen state that may have arrived while the
+   * optimistic bubble was waiting for reconciliation.
+   */
+  const previousSeen =
+    bestRow.querySelector(".message-status")?.textContent === "Seen" ||
+    bestRow.querySelector(".message-status")?.classList.contains("seen") ||
+    messageCache.get(data.id)?._seen === true;
+
+  const merged = {
+    ...data,
+    _seen: previousSeen === true || data._seen === true
+  };
+
+  messageCache.set(data.id,merged);
+
+  const status = bestRow.querySelector('.message-status');
+  if(status){
+    if(merged._seen === true){
+      status.textContent = 'Seen';
+      status.classList.add('seen');
+      status.classList.remove('send-failed');
+    }else{
+      status.textContent = 'Sent';
+      status.classList.remove('seen','send-failed');
+    }
+  }
+
+  const menuButton = bestRow.querySelector('.message-menu-btn');
+  if(menuButton){
+    const newMenuButton = menuButton.cloneNode(true);
+    menuButton.replaceWith(newMenuButton);
+    newMenuButton.addEventListener('click', event=>{
+      event.preventDefault();
+      event.stopPropagation();
+      closeMenus();
+      const bubble = bestRow.querySelector('.message');
+      if(!bubble) return;
+      const menu = createMessageMenu(data, bubble);
+      document.body.appendChild(menu);
+      const rect = bubble.getBoundingClientRect();
+      menu.style.left = Math.max(8, Math.min(rect.right - 130, window.innerWidth - 138)) + 'px';
+      menu.style.top = Math.min(window.innerHeight - 120, rect.bottom + 7) + 'px';
+      menu.classList.add('open');
+    });
+  }
+
+  const bubble = bestRow.querySelector('.message');
+  if(bubble){
+    const oldPicker = bubble._reactionPicker;
+    if(oldPicker) oldPicker.remove();
+    const picker = createReactionPicker(data, bubble);
+    bubble._reactionPicker = picker;
+  }
+
+  return true;
 }
 
 async function pollOpenConversationMessages(){
@@ -6366,6 +6596,8 @@ async function pollOpenConversationMessages(){
     document.querySelectorAll(".message-row[data-message-id]").forEach(row=>{
       const id = String(row.dataset.messageId || "");
       if(!id || id.startsWith("local-")) return;
+      const cached = messageCache.get(id);
+      if(!liveIds.has(id) && cached?._optimistic === true) return;
       if(!liveIds.has(id)){
         row.remove();
         messageCache.delete(id);
@@ -6380,7 +6612,12 @@ async function pollOpenConversationMessages(){
     let addedIncoming = false;
 
     for(const item of (data || [])){
-      messageCache.set(item.id,item);
+      const mergedItem = mergeMessageIntoCache(item);
+      mergedItem._optimistic = false;
+
+      if(reconcileOptimisticMessage(mergedItem)){
+        continue;
+      }
 
       const existing = document.querySelector(
         `[data-message-id="${item.id}"]`
@@ -6388,11 +6625,18 @@ async function pollOpenConversationMessages(){
 
       if(existing){
         const text = existing.querySelector(".message-text");
-        if(text) text.textContent = item.content || "";
+        if(text) text.textContent = mergedItem.content || "";
+
+        if(mergedItem._seen === true){
+          setMessageStatusMonotonic(item.id,"Seen");
+        }
+
+        dedupeMessageRows(item.id);
         continue;
       }
 
-      addMessage(item,true);
+      addMessage(mergedItem,true);
+      dedupeMessageRows(item.id);
 
       if(item.sender_id !== currentUser.id){
         addedIncoming = true;
@@ -6487,9 +6731,14 @@ async function loadMessages(){
     return;
   }
 
-  data.forEach(message=>messageCache.set(message.id,message));
+  data.forEach(message=>mergeMessageIntoCache(message));
 
   data.forEach(message=>addMessage(message,false));
+
+  /*
+   * Final load-time duplicate guard.
+   */
+  data.forEach(message=>dedupeMessageRows(message.id));
 
   requestAnimationFrame(()=>{
     messages.scrollTop = messages.scrollHeight;
@@ -7118,7 +7367,14 @@ async function sendMessage(){
   }
 
   const replyId = replyTarget?.id || null;
-  const tempId = "local-" + Date.now() + "-" + Math.random().toString(36).slice(2);
+
+  /*
+   * IMPORTANT: create the FINAL database UUID BEFORE rendering the local bubble.
+   * The optimistic bubble and the row inserted into Supabase now use the SAME id.
+   * Therefore Realtime and the fallback poll can never create a second bubble for
+   * this send: addMessage() sees the exact same data-message-id and ignores it.
+   */
+  const messageId = crypto.randomUUID();
 
   /*
    * Put the message on screen immediately.
@@ -7126,7 +7382,7 @@ async function sendMessage(){
    * looking like the message magically appeared before saving.
    */
   const optimistic = {
-    id: tempId,
+    id: messageId,
     sender_id: currentUser.id,
     content: text,
     created_at: new Date().toISOString(),
@@ -7141,7 +7397,7 @@ async function sendMessage(){
   addMessage(optimistic, true);
 
   const optimisticRow = document.querySelector(
-    `[data-message-id="${tempId}"]`
+    `[data-message-id="${messageId}"]`
   );
 
   const optimisticStatus = optimisticRow?.querySelector(
@@ -7149,8 +7405,19 @@ async function sendMessage(){
   );
 
   if(optimisticStatus){
-    optimisticStatus.textContent = "Sending…";
-    optimisticStatus.classList.remove("seen");
+    /*
+     * Normally this is a fresh Sending state. If a very fast
+     * realtime/read-receipt event already marked it Seen, keep Seen.
+     */
+    const currentOptimisticState =
+      messageCache.get(messageId)?._seen === true ||
+      optimisticStatus.textContent === "Seen" ||
+      optimisticStatus.classList.contains("seen");
+
+    if(!currentOptimisticState){
+      optimisticStatus.textContent = "Sending…";
+      optimisticStatus.classList.remove("seen");
+    }
   }
 
   messageInput.value = "";
@@ -7168,13 +7435,6 @@ async function sendMessage(){
     if(!currentConversationId){
       throw new Error("Select a conversation first.");
     }
-
-    /*
-     * Give the message its final UUID before saving it.
-     * This lets Web Push carry the exact message_id, so a later delete can
-     * remove the matching notification on the recipient device.
-     */
-    const messageId = crypto.randomUUID();
 
     const payload = {
       id: messageId,
@@ -7253,24 +7513,40 @@ async function sendMessage(){
       );
     }
 
-    /* The database accepted the message. Mark the optimistic row as sent. */
-    if(optimisticRow){
-      const status = optimisticRow.querySelector(".message-status");
-      if(status){
-        status.textContent = "Sent";
-        status.classList.remove("send-failed");
-      }
-    }
-
     /*
-     * Reconcile the optimistic row with the real database message.
-     * loadMessages() replaces the temporary id with the real id, so edit,
-     * delete and reaction actions continue to work normally.
+     * Success: the optimistic bubble already has the FINAL database id.
+     * Do not rename or replace it. This exact-id strategy is the duplicate guard.
      */
-    try{
-      await loadMessages();
-    }catch(reconcileError){
-      console.warn("Message sent, but refresh failed:", reconcileError);
+    const realMessage = {
+      id: messageId,
+      sender_id: currentUser.id,
+      content: text,
+      created_at: optimistic.created_at,
+      edited_at: null,
+      reply_to_id: replyId,
+      conversation_id: currentConversationId,
+      _optimistic: false
+    };
+
+    const mergedRealMessage = mergeMessageIntoCache(realMessage);
+    mergedRealMessage._optimistic = false;
+
+    const existingRealRow = dedupeMessageRows(messageId);
+
+    if(existingRealRow){
+      const status = existingRealRow.querySelector(".message-status");
+      const cached = messageCache.get(messageId);
+
+      if(status){
+        if(cached?._seen === true ||
+           status.textContent === "Seen" ||
+           status.classList.contains("seen")){
+          setMessageStatusMonotonic(messageId,"Seen");
+        }else{
+          setMessageStatusMonotonic(messageId,"Sent");
+        }
+      }
+      existingRealRow.classList.remove("message-sending");
     }
 
     /* Keep the sidebar preview/order current after a successful send. */
@@ -7873,51 +8149,14 @@ function startRealtime(){
           console.log("Realtime INSERT:", data);
 
           void markConversationAsRead(data.conversation_id);
-          messageCache.set(data.id, data);
+          const mergedRealtimeMessage = mergeMessageIntoCache(data);
+          mergedRealtimeMessage._optimistic = false;
 
-          /*
-           * Reconcile our optimistic local message when the sender's
-           * Realtime INSERT arrives before the HTTP INSERT finishes.
-           */
-          if(currentUser && data.sender_id === currentUser.id){
-
-            const localRows = document.querySelectorAll(
-              '[data-message-id^="local-"]'
-            );
-
-            for(const row of localRows){
-
-              const localText =
-                row.querySelector(".message-text")?.textContent || "";
-
-              const localMessage =
-                messageCache.get(row.dataset.messageId);
-
-              if(
-                localText === (data.content || "") &&
-                localMessage?.sender_id === data.sender_id &&
-                (localMessage?.reply_to_id || null) ===
-                  (data.reply_to_id || null)
-              ){
-
-                row.dataset.messageId = data.id;
-                row.dataset.messageContent = data.content || "";
-
-                messageCache.delete(localMessage.id);
-                messageCache.set(data.id, data);
-
-                const status =
-                  row.querySelector(".message-status");
-
-                if(status){
-                  status.textContent = "Sent";
-                  status.classList.remove("seen");
-                }
-
-                void refreshSeenStatus();
-                return;
-              }
-            }
+          /* Reconcile optimistic local sends regardless of whether
+           * Realtime or the HTTP request wins the race. */
+          if(reconcileOptimisticMessage(mergedRealtimeMessage)){
+            void refreshSeenStatus();
+            return;
           }
 
           const exists = document.querySelector(
@@ -7931,7 +8170,8 @@ function startRealtime(){
               messages.scrollTop -
               messages.clientHeight < 180;
 
-            addMessage(data,true);
+            addMessage(mergedRealtimeMessage,true);
+            dedupeMessageRows(data.id);
 
             if(nearBottom){
               requestAnimationFrame(()=>{
@@ -7964,7 +8204,7 @@ function startRealtime(){
         if(!currentConversationId || data.conversation_id !== currentConversationId) return;
 
         console.log("Realtime UPDATE:", data);
-        messageCache.set(data.id, data);
+        const mergedRealtimeUpdate = mergeMessageIntoCache(data);
 
         const row = document.querySelector(
           `[data-message-id="${data.id}"]`
@@ -7976,7 +8216,7 @@ function startRealtime(){
            the latest value when the editor closes. */
         if(!row.querySelector(".message.editing")){
           const text = row.querySelector(".message-text");
-          if(text) text.textContent = data.content || "";
+          if(text) text.textContent = mergedRealtimeUpdate.content || "";
         }
 
         const time = row.querySelector(".message-time");
@@ -9044,13 +9284,6 @@ async function startApp(){
     finishLoading();
 
     /*
-     * Mark the app as ready before showing optional install UI.
-     * This prevents the install card from appearing over the splash/loading screen.
-     */
-    window.__totalkAppReady = true;
-    window.dispatchEvent(new Event("totalk-app-ready"));
-
-    /*
      * Focus input after loading
      * without forcing keyboard open
      * on mobile.
@@ -9449,6 +9682,9 @@ if ("serviceWorker" in navigator) {
   }
   #totalkInstallLater{color:rgba(240,236,255,.72);background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.08)}
   @media (min-width:700px){#totalkInstallPrompt{left:auto;right:22px;bottom:22px;width:390px}}
+
+/* Keep an optimistic message visually stable while it is being saved. */
+.message-row.message-sending .message-status{opacity:.72;}
 </style>
 
 <div id="totalkInstallPrompt" role="dialog" aria-live="polite" aria-label="Install ToTalk">
@@ -9480,10 +9716,9 @@ if ("serviceWorker" in navigator) {
 
   let deferredInstallPrompt = null;
   let dismissedThisSession = false;
-  let appReady = window.__totalkAppReady === true;
 
   function showInstallCard(){
-    if(!deferredInstallPrompt || dismissedThisSession || isStandalone() || !appReady) return;
+    if(!deferredInstallPrompt || dismissedThisSession || isStandalone()) return;
     card.classList.add('is-visible');
   }
 
@@ -9491,27 +9726,10 @@ if ("serviceWorker" in navigator) {
     card.classList.remove('is-visible');
   }
 
-  window.addEventListener('totalk-app-ready', function(){
-    appReady = true;
-
-    /*
-     * Give the splash screen time to finish its fade-out before
-     * showing the optional install card.
-     */
-    setTimeout(showInstallCard, 850);
-  });
-
   window.addEventListener('beforeinstallprompt', function(event){
     event.preventDefault();
     deferredInstallPrompt = event;
-
-    /*
-     * If the app is already ready, show after a short polished delay.
-     * Otherwise totalk-app-ready will show it after loading finishes.
-     */
-    if(appReady){
-      setTimeout(showInstallCard, 850);
-    }
+    setTimeout(showInstallCard, 1200);
   });
 
   installBtn.addEventListener('click', async function(){
@@ -9542,5 +9760,6 @@ if ("serviceWorker" in navigator) {
 })();
 </script>
 
+<!-- ToTalk: duplicate-message + monotonic Seen-state fix applied to this full chat.html. -->
 </body>
 </html>
