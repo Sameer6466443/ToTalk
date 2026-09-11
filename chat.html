@@ -6142,9 +6142,19 @@ async function deleteMessage(
     const conversationId =
       data?.conversation_id || currentConversationId || null;
 
+    const messageId =
+      data?.id || null;
+
     /*
-     * Delete the real database row first. This is the source of truth, so
-     * the deletion is also available to the other phone through Realtime.
+     * Save the recipient BEFORE deleting anything. The conversation partner
+     * is the device that may currently have the notification.
+     */
+    const recipientUserId =
+      currentConversationPartner?.user_id || null;
+
+    /*
+     * Delete the real database row first. The database remains the source
+     * of truth for the message itself.
      */
     const {
       error,
@@ -6153,7 +6163,7 @@ async function deleteMessage(
       await supabaseClient
         .from("messages")
         .delete({count:"exact"})
-        .eq("id",data.id)
+        .eq("id",messageId)
         .eq("sender_id",currentUser.id);
 
     if(error){
@@ -6167,7 +6177,7 @@ async function deleteMessage(
     /* Remove it from this phone immediately. */
     const row = bubble?.closest?.(".message-row") ||
       document.querySelector(
-        `[data-message-id="${CSS.escape(String(data.id))}"]`
+        `[data-message-id="${CSS.escape(String(messageId))}"]`
       );
 
     if(row){
@@ -6175,19 +6185,59 @@ async function deleteMessage(
       window.setTimeout(()=>row.remove(),120);
     }
 
-    messageCache.delete(data.id);
+    messageCache.delete(messageId);
+    messageCache.delete(String(messageId));
 
     /*
      * Tell every other logged-in ToTalk tab/device exactly which
-     * conversation lost this message. This is intentionally sent only
-     * after the database DELETE succeeds.
+     * conversation lost this message.
      */
-    void broadcastMessageDeleted(data.id,conversationId);
+    void broadcastMessageDeleted(messageId,conversationId);
 
     /*
-     * IMPORTANT: if the deleted message was the latest message, the chat
-     * list must show the previous latest message instead of the deleted
-     * text. This also runs on the other phone when Realtime reports DELETE.
+     * NEW: ask the recipient's Service Worker to remove the notification
+     * belonging to this exact message. This runs only after the database
+     * delete succeeds, so a failed notification request can never undo or
+     * break the message deletion.
+     */
+    if(recipientUserId && messageId){
+      try{
+        const {data:deletePushResult,error:deletePushError} =
+          await supabaseClient.functions.invoke(
+            "send-push-notification",
+            {
+              body:{
+                type:"delete_notification",
+                recipient_user_id:String(recipientUserId),
+                sender_user_id:String(currentUser.id),
+                message_id:String(messageId),
+                conversation_id:String(conversationId || "")
+              }
+            }
+          );
+
+        if(deletePushError){
+          console.warn(
+            "ToTalk notification delete request failed:",
+            deletePushError
+          );
+        }else{
+          console.log(
+            "ToTalk notification delete result:",
+            deletePushResult
+          );
+        }
+      }catch(deletePushError){
+        console.warn(
+          "ToTalk notification delete delivery failed:",
+          deletePushError
+        );
+      }
+    }
+
+    /*
+     * If the deleted message was the latest message, rebuild the chat preview
+     * from the database so the deleted text never remains in the sidebar.
      */
     if(conversationId){
       void refreshConversationPreviewAfterMessageDelete(conversationId);
@@ -6214,7 +6264,6 @@ async function deleteMessage(
     );
 
   }
-
 }
 
 /* =====================================================
@@ -7120,7 +7169,15 @@ async function sendMessage(){
       throw new Error("Select a conversation first.");
     }
 
+    /*
+     * Give the message its final UUID before saving it.
+     * This lets Web Push carry the exact message_id, so a later delete can
+     * remove the matching notification on the recipient device.
+     */
+    const messageId = crypto.randomUUID();
+
     const payload = {
+      id: messageId,
       sender_id: currentUser.id,
       content: text,
       reply_to_id: replyId,
@@ -7170,7 +7227,9 @@ async function sendMessage(){
                   currentUser?.user_metadata?.full_name ||
                   "ToTalk User",
                 message: text,
-                conversation_id: String(currentConversationId)
+                message_id: String(messageId),
+                conversation_id: String(currentConversationId),
+                type: "message"
               }
             }
           );
