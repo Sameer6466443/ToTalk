@@ -7167,15 +7167,7 @@ async function warmUpSupabase(){
    SEND MESSAGE
 ===================================================== */
 
-let messageSendInFlight = false;
-
 async function sendMessage(){
-
-  /* Prevent duplicate sends from rapid taps, Enter + click, or
-     browser/mobile event combinations. */
-  if(messageSendInFlight){
-    return;
-  }
 
   const text = messageInput.value.trim();
   if(!text) return;
@@ -7226,8 +7218,11 @@ async function sendMessage(){
     _optimistic: true
   };
 
-  messageSendInFlight = true;
-
+  /*
+   * Do not lock the whole composer while this message is saving.
+   * Each send has its own final UUID, so multiple messages can safely be
+   * in flight at the same time. This removes the old multi-second lock.
+   */
   addMessage(optimistic, true);
 
   const optimisticRow = document.querySelector(
@@ -7250,7 +7245,10 @@ async function sendMessage(){
     messages.scrollTop = messages.scrollHeight;
   });
 
-  sendButton.disabled = true;
+  /*
+   * Keep Send usable immediately. The message bubble already shows
+   * "Sending…", while Supabase saves this message independently.
+   */
   sendButton.classList.add("sending");
 
   try{
@@ -7411,9 +7409,7 @@ async function sendMessage(){
     messageInput.value = text;
 
   }finally{
-    sendButton.disabled = currentUserRestricted || !currentConversationPartner;
     sendButton.classList.remove("sending");
-    messageSendInFlight = false;
     applyRestrictionUI();
 
     /* Focus is preserved by the pointerdown handler above. Do not use a
