@@ -7418,38 +7418,89 @@ async function sendMessage(){
 }
 
 /* =====================================================
-   CHAT-LIST PREVIEW AFTER MESSAGE DELETE
-   Replaces the deleted latest message with the actual newest remaining
-   message, so every phone shows the correct conversation preview.
+   CHAT-LIST PREVIEW + UNREAD COUNT AFTER MESSAGE DELETE
+   -----------------------------------------------------
+   The sidebar unread badge is based on the messages that still exist
+   in Supabase.  When several messages are deleted, rebuilding only the
+   latest preview is not enough: the unread badge must be recalculated too.
+
+   This is deliberately debounced because deleting two/three messages
+   quickly can otherwise start several database reads at the same time.
+   The final read always reflects the messages that remain in the DB.
 ===================================================== */
+const conversationDeleteRefreshTimers = new Map();
 
-async function refreshConversationPreviewAfterMessageDelete(conversationId){
-
+function refreshConversationPreviewAfterMessageDelete(conversationId){
   if(!conversationId || !conversationList) return;
 
+  const id = String(conversationId);
+  const previousTimer = conversationDeleteRefreshTimers.get(id);
+  if(previousTimer) clearTimeout(previousTimer);
+
+  const timer = window.setTimeout(()=>{
+    conversationDeleteRefreshTimers.delete(id);
+    void refreshConversationPreviewAfterMessageDeleteNow(id);
+  },120);
+
+  conversationDeleteRefreshTimers.set(id,timer);
+}
+
+async function refreshConversationPreviewAfterMessageDeleteNow(conversationId){
+  if(!conversationId || !conversationList || !currentUser?.id) return;
+
   try{
-    const {data:latestRows,error} = await supabaseClient
+    /* Read the user's real read position. */
+    const {data:participant,error:participantError} = await supabaseClient
+      .from("conversation_participants")
+      .select("last_read_at")
+      .eq("conversation_id",conversationId)
+      .eq("user_id",currentUser.id)
+      .maybeSingle();
+
+    if(participantError) throw participantError;
+
+    const serverReadAt = Date.parse(participant?.last_read_at || "") || 0;
+    const readOverrides = readConversationReadOverrides();
+    const localReadAt = Number(readOverrides[conversationId] || 0);
+    const readAt = Math.max(serverReadAt,localReadAt);
+
+    /*
+     * Get ALL remaining messages for this conversation.
+     * We need all of them here because the unread badge is a COUNT,
+     * not just a latest-message flag.
+     */
+    const {data:remainingMessages,error:messagesError} = await supabaseClient
       .from("messages")
       .select("id,sender_id,content,created_at,edited_at,conversation_id")
       .eq("conversation_id",conversationId)
       .order("created_at",{ascending:false})
-      .limit(1);
+      .order("id",{ascending:false});
 
-    if(error) throw error;
+    if(messagesError) throw messagesError;
 
-    const latest = latestRows?.[0] || null;
+    const rows = remainingMessages || [];
+    const latest = rows[0] || null;
+
+    /* Recalculate the exact unread count from the remaining DB rows. */
+    let unreadCount = 0;
+
+    for(const message of rows){
+      if(!message?.sender_id) continue;
+      if(message.sender_id === currentUser.id) continue;
+
+      const messageTime = Date.parse(message.created_at || "") || 0;
+      if(messageTime > readAt){
+        unreadCount++;
+      }
+    }
+
     const item = conversationList.querySelector(
       `[data-conversation-id="${CSS.escape(String(conversationId))}"]`
     );
 
-    /* Keep the local conversation cache in sync too. */
-    const conversation = conversations.find(c=>c.id === conversationId);
-    if(conversation && latest?.created_at){
-      conversation.updated_at = latest.created_at;
-    }
-
     if(!item) return;
 
+    /* Update latest preview/time from the actual remaining message. */
     const preview = item.querySelector(".conversation-preview");
     const time = item.querySelector(".conversation-time");
 
@@ -7462,50 +7513,51 @@ async function refreshConversationPreviewAfterMessageDelete(conversationId){
     }
 
     /*
-     * The deleted message may have been the unread message. Rebuild the
-     * unread state from the database instead of leaving a stale badge.
+     * IMPORTANT:
+     * Replace the old badge instead of incrementing/decrementing it.
+     * This makes 3 messages -> delete 2 -> exactly 1.
      */
-    if(latest && latest.sender_id !== currentUser.id){
-      const participant = await supabaseClient
-        .from("conversation_participants")
-        .select("last_read_at")
-        .eq("conversation_id",conversationId)
-        .eq("user_id",currentUser.id)
-        .maybeSingle();
+    let badge = item.querySelector(".unread-badge");
 
-      const readAt = Date.parse(participant?.data?.last_read_at || "") || 0;
-      const latestTime = Date.parse(latest.created_at || "") || 0;
+    if(unreadCount > 0){
+      item.classList.add("is-unread");
 
-      if(latestTime > readAt){
-        item.classList.add("is-unread");
-      }else{
-        item.classList.remove("is-unread");
-        item.querySelector(".unread-badge")?.remove();
+      if(!badge){
+        badge = document.createElement("span");
+        badge.className = "unread-badge";
+        item.appendChild(badge);
       }
-    }else if(!latest || latest.sender_id === currentUser.id){
-      /* Do not invent an unread state after deleting a message. */
-      if(currentConversationId === conversationId){
-        item.classList.remove("is-unread");
-        item.querySelector(".unread-badge")?.remove();
-      }
+
+      badge.textContent = unreadCount > 99
+        ? "99+"
+        : String(unreadCount);
+    }else{
+      item.classList.remove("is-unread");
+      if(badge) badge.remove();
     }
 
-    /*
-     * Reposition the conversation using its NEW latest-message timestamp.
-     * Pinned chats remain above unpinned chats.
-     */
+    /* Keep the local conversation cache in sync too. */
+    const conversation = conversations.find(c=>c.id === conversationId);
+    if(conversation){
+      conversation.updated_at = latest?.created_at || conversation.created_at;
+    }
+
+    /* Reposition using the NEW latest-message timestamp. */
     const prefs = readConversationPrefs();
     const pinned = !!prefs[conversationId]?.pinned;
     const allItems = [...conversationList.querySelectorAll(".conversation-item")];
-
-    const targetTime = Date.parse(latest?.created_at || conversation?.created_at || "") || 0;
+    const targetTime = Date.parse(
+      latest?.created_at || conversation?.created_at || ""
+    ) || 0;
 
     let inserted = false;
+
     for(const other of allItems){
       if(other === item) continue;
 
       const otherId = other.dataset.conversationId;
       const otherPinned = !!prefs[otherId]?.pinned;
+
       if(pinned !== otherPinned){
         if(pinned && !otherPinned){
           conversationList.insertBefore(item,other);
@@ -7515,9 +7567,12 @@ async function refreshConversationPreviewAfterMessageDelete(conversationId){
         continue;
       }
 
-      const otherTimeText = other.querySelector(".conversation-time")?.textContent || "";
       const otherConversation = conversations.find(c=>c.id === otherId);
-      const otherTime = Date.parse(otherConversation?.updated_at || otherConversation?.created_at || "") || 0;
+      const otherTime = Date.parse(
+        otherConversation?.updated_at ||
+        otherConversation?.created_at ||
+        ""
+      ) || 0;
 
       if(targetTime > otherTime){
         conversationList.insertBefore(item,other);
@@ -7530,14 +7585,16 @@ async function refreshConversationPreviewAfterMessageDelete(conversationId){
       conversationList.appendChild(item);
     }
 
-  }catch(error){
-    console.warn("Conversation preview refresh after delete failed:",error);
+    console.log(
+      "ToTalk delete sync: unread count recalculated",
+      conversationId,
+      unreadCount
+    );
 
-    /*
-     * If the preview could not be reconciled immediately, a normal list
-     * refresh is the safe fallback. It reads the database again and never
-     * restores a deleted message.
-     */
+  }catch(error){
+    console.warn("Conversation preview/unread refresh after delete failed:",error);
+
+    /* Safe fallback: the full list rebuild also calculates unread counts. */
     void loadConversationList().catch(listError=>{
       console.warn("Chat-list refresh after delete failed:",listError);
     });
