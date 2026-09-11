@@ -7201,7 +7201,14 @@ async function sendMessage(){
   }
 
   const replyId = replyTarget?.id || null;
-  const tempId = "local-" + Date.now() + "-" + Math.random().toString(36).slice(2);
+
+  /*
+   * IMPORTANT: create the FINAL database UUID BEFORE rendering the local bubble.
+   * The optimistic bubble and the row inserted into Supabase now use the SAME id.
+   * Therefore Realtime and the fallback poll can never create a second bubble for
+   * this send: addMessage() sees the exact same data-message-id and ignores it.
+   */
+  const messageId = crypto.randomUUID();
 
   /*
    * Put the message on screen immediately.
@@ -7209,7 +7216,7 @@ async function sendMessage(){
    * looking like the message magically appeared before saving.
    */
   const optimistic = {
-    id: tempId,
+    id: messageId,
     sender_id: currentUser.id,
     content: text,
     created_at: new Date().toISOString(),
@@ -7224,7 +7231,7 @@ async function sendMessage(){
   addMessage(optimistic, true);
 
   const optimisticRow = document.querySelector(
-    `[data-message-id="${tempId}"]`
+    `[data-message-id="${messageId}"]`
   );
 
   const optimisticStatus = optimisticRow?.querySelector(
@@ -7251,13 +7258,6 @@ async function sendMessage(){
     if(!currentConversationId){
       throw new Error("Select a conversation first.");
     }
-
-    /*
-     * Give the message its final UUID before saving it.
-     * This lets Web Push carry the exact message_id, so a later delete can
-     * remove the matching notification on the recipient device.
-     */
-    const messageId = crypto.randomUUID();
 
     const payload = {
       id: messageId,
@@ -7337,15 +7337,8 @@ async function sendMessage(){
     }
 
     /*
-     * The database accepted the message. Promote the existing optimistic row
-     * to the real database id IN PLACE.
-     *
-     * Do not call loadMessages() here. A realtime INSERT or the open-chat
-     * fallback poll can arrive while the optimistic row is still visible.
-     * Reloading the whole conversation at this exact moment can briefly render
-     * the same message twice: once as the optimistic row and once as the real
-     * database row. Keeping the existing row and changing only its id removes
-     * that race completely.
+     * Success: the optimistic bubble already has the FINAL database id.
+     * Do not rename or replace it. This exact-id strategy is the duplicate guard.
      */
     const realMessage = {
       id: messageId,
@@ -7357,34 +7350,19 @@ async function sendMessage(){
       conversation_id: currentConversationId
     };
 
-    /* Promote the optimistic row in place. If Realtime or the fallback poll
-     * already did it, this becomes a no-op and never creates a second bubble. */
-    if(!reconcileOptimisticMessage(realMessage)){
-      const existingRealRow = document.querySelector(
-        `[data-message-id="${messageId}"]`
-      );
+    messageCache.set(messageId, realMessage);
 
-      if(existingRealRow){
-        messageCache.set(messageId, realMessage);
-        const status = existingRealRow.querySelector(".message-status");
-        if(status){
-          status.textContent = "Sent";
-          status.classList.remove("seen","send-failed");
-        }
-      }else if(optimisticRow){
-        messageCache.delete(tempId);
-        messageCache.set(messageId, realMessage);
-        optimisticRow.dataset.messageId = messageId;
-        optimisticRow.dataset.messageContent = text;
-        if(optimisticStatus){
-          optimisticStatus.textContent = "Sent";
-          optimisticStatus.classList.remove("send-failed");
-        }
+    const existingRealRow = document.querySelector(
+      `[data-message-id="${messageId}"]`
+    );
+
+    if(existingRealRow){
+      const status = existingRealRow.querySelector(".message-status");
+      if(status){
+        status.textContent = "Sent";
+        status.classList.remove("seen","send-failed");
       }
     }
-
-    messageCache.delete(tempId);
-    messageCache.set(messageId, realMessage);
 
     /* Keep the sidebar preview/order current after a successful send. */
     void loadConversationList();
