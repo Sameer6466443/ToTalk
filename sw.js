@@ -45,15 +45,6 @@ self.addEventListener("push", event => {
         title: "ToTalk",
         body: "New message",
 
-        /*
-        Optional fields:
-        sender_name
-        sender_avatar
-        conversation_id
-        message_id
-        sender_id
-        */
-
         sender_name: null,
         sender_avatar: null,
 
@@ -75,10 +66,7 @@ self.addEventListener("push", event => {
 
           const incoming = event.data.json();
 
-          if (
-            incoming &&
-            typeof incoming === "object"
-          ) {
+          if (incoming && typeof incoming === "object") {
 
             data = {
               ...data,
@@ -105,10 +93,10 @@ self.addEventListener("push", event => {
       =====================================================
 
       When a message is deleted, chat.html sends a special
-      push command.
+      delete_notification push command.
 
-      We find the notification using message_id first.
-      conversation_id is used as a fallback.
+      The service worker finds the matching notification
+      using message_id first and conversation_id as fallback.
       */
 
       if (
@@ -129,7 +117,7 @@ self.addEventListener("push", event => {
 
         /*
         ===================================================
-        FIND EXISTING NOTIFICATIONS
+        FIND EXISTING TOTalk NOTIFICATIONS
         ===================================================
         */
 
@@ -164,7 +152,7 @@ self.addEventListener("push", event => {
 
           /*
           -------------------------------------------------
-          Match exact message first.
+          Match by message ID first.
           -------------------------------------------------
           */
 
@@ -176,7 +164,8 @@ self.addEventListener("push", event => {
 
           /*
           -------------------------------------------------
-          Conversation fallback.
+          Match by conversation if message ID is not
+          available.
           -------------------------------------------------
           */
 
@@ -256,7 +245,7 @@ self.addEventListener("push", event => {
 
       /*
       -----------------------------------------------------
-      If ToTalk is already visible, don't show notification.
+      If ToTalk is visible, suppress system notification.
       -----------------------------------------------------
       */
 
@@ -295,29 +284,123 @@ self.addEventListener("push", event => {
 
       /*
       =====================================================
-      NOTIFICATION TAG
+      NOTIFICATION TAG / ANTI-SPAM BEHAVIOR
       =====================================================
+
+      IMPORTANT:
+
+      We do NOT create a completely separate Android
+      notification for every message in the same chat.
+
+      Instead, one notification slot is used per conversation.
+
+      This greatly reduces notification flooding and makes
+      the notification behavior more friendly to Chrome's
+      notification protection system.
       */
 
-      let notificationTag;
+      const notificationTag =
+        data.conversation_id
+          ? "totalk-conversation-" +
+            String(data.conversation_id)
+          : (
+              data.message_id
+                ? "totalk-message-" +
+                  String(data.message_id)
+                : "totalk-message"
+            );
 
 
-      if (data.message_id) {
+      /*
+      =====================================================
+      CONTROL RE-NOTIFICATION
+      =====================================================
 
-        notificationTag =
-          "totalk-message-" +
-          String(data.message_id);
+      If another message arrives very shortly after the
+      previous notification for the same conversation,
+      update the notification without repeatedly alerting
+      the user.
 
-      } else if (data.conversation_id) {
+      After 45 seconds, a normal notification alert is
+      allowed again.
+      */
 
-        notificationTag =
-          "totalk-" +
-          String(data.conversation_id);
+      let shouldRenotify = true;
 
-      } else {
 
-        notificationTag =
-          "totalk-message";
+      try {
+
+        const existing =
+          await self.registration.getNotifications({
+            tag: notificationTag
+          });
+
+
+        if (existing.length) {
+
+          const newest =
+            existing[existing.length - 1];
+
+
+          const previousTime =
+            Number(
+              newest.timestamp || 0
+            );
+
+
+          const age =
+            Date.now() - previousTime;
+
+
+          /*
+          -------------------------------------------------
+          Within 45 seconds:
+          update silently.
+
+          After 45 seconds:
+          allow a normal alert again.
+          -------------------------------------------------
+          */
+
+          if (
+            previousTime > 0 &&
+            age < 45000
+          ) {
+
+            shouldRenotify = false;
+
+          }
+
+
+          /*
+          -------------------------------------------------
+          Close the old notification.
+
+          The new notification will replace it with the
+          latest message information.
+          -------------------------------------------------
+          */
+
+          existing.forEach(
+            notification => {
+
+              try {
+
+                notification.close();
+
+              } catch (_) {}
+
+            }
+          );
+
+        }
+
+      } catch (error) {
+
+        console.warn(
+          "ToTalk notification history check failed:",
+          error
+        );
 
       }
 
@@ -326,6 +409,8 @@ self.addEventListener("push", event => {
       =====================================================
       TOTalk ICON
       =====================================================
+
+      Cosmic ToTalk notification icon.
       */
 
       const totalkIcon =
@@ -344,52 +429,59 @@ self.addEventListener("push", event => {
         Message preview
         */
 
-        body: notificationBody,
+        body:
+          notificationBody,
 
 
         /*
         ToTalk icon
         */
 
-        icon: totalkIcon,
+        icon:
+          totalkIcon,
 
 
         /*
-        Notification badge
+        Small notification badge
         */
 
-        badge: totalkIcon,
+        badge:
+          totalkIcon,
 
 
         /*
-        Unique notification tag
+        One notification slot per conversation
         */
 
-        tag: notificationTag,
+        tag:
+          notificationTag,
 
 
         /*
-        Allow new messages to notify again.
+        Anti-spam notification behavior
         */
 
-        renotify: true,
+        renotify:
+          shouldRenotify,
 
 
         /*
         ===================================================
-        IMPORTANT NOTIFICATION DATA
+        NOTIFICATION DATA
         ===================================================
 
-        These fields are required for:
+        These values are required by:
 
-        • Reply
-        • Mark as read
-        • Delete notification
+        - Delete notification
+        - Reply action
+        - Mark as read action
+        - Opening the correct conversation
         */
 
         data: {
 
-          type: "message",
+          type:
+            "message",
 
           conversation_id:
             data.conversation_id || null,
@@ -413,37 +505,56 @@ self.addEventListener("push", event => {
         ===================================================
         NOTIFICATION ACTIONS
         ===================================================
+
+        Android/Chrome controls the exact visual appearance
+        of these buttons.
+
+        Reply:
+        Opens the exact sender conversation and prepares
+        the reply.
+
+        Mark as read:
+        Marks that conversation as read.
         */
 
         actions: [
 
           {
-            action: "reply",
-            title: "Reply"
+            action:
+              "reply",
+
+            title:
+              "Reply"
           },
 
           {
-            action: "mark_read",
-            title: "Mark as read"
+            action:
+              "mark_read",
+
+            title:
+              "Mark as read"
           }
 
         ],
 
 
         /*
-        Direction / language
+        Notification language/direction
         */
 
-        dir: "auto",
+        dir:
+          "auto",
 
-        lang: "en",
+        lang:
+          "en",
 
 
         /*
-        Timestamp
+        Notification timestamp
         */
 
-        timestamp: Date.now()
+        timestamp:
+          Date.now()
 
       };
 
@@ -476,14 +587,13 @@ self.addEventListener(
   event => {
 
     /*
-    Close the notification immediately.
+    Close notification immediately.
     */
 
     event.notification.close();
 
 
     event.waitUntil(
-
       (async () => {
 
         /*
@@ -526,16 +636,12 @@ self.addEventListener(
 
         /*
         ===================================================
-        BUILD CHAT URL
+        BUILD EXACT CHAT URL
         ===================================================
 
-        We ALWAYS target chat.html.
-
-        We do NOT target:
-
-        index.html
-        admin.html
-        random same-origin pages
+        These parameters allow chat.html to know exactly
+        which conversation/message the notification belongs
+        to.
         */
 
         const chatUrl =
@@ -544,10 +650,6 @@ self.addEventListener(
             self.registration.scope
           );
 
-
-        /*
-        Conversation
-        */
 
         if (conversationId) {
 
@@ -559,10 +661,6 @@ self.addEventListener(
         }
 
 
-        /*
-        Message
-        */
-
         if (messageId) {
 
           chatUrl.searchParams.set(
@@ -572,10 +670,6 @@ self.addEventListener(
 
         }
 
-
-        /*
-        Message body
-        */
 
         if (body) {
 
@@ -587,10 +681,6 @@ self.addEventListener(
         }
 
 
-        /*
-        Sender name
-        */
-
         if (senderName) {
 
           chatUrl.searchParams.set(
@@ -601,10 +691,6 @@ self.addEventListener(
         }
 
 
-        /*
-        Selected action
-        */
-
         chatUrl.searchParams.set(
           "totalk_notification_action",
           action
@@ -613,17 +699,17 @@ self.addEventListener(
 
         /*
         ===================================================
-        FIND OPEN ToTalk CHAT PAGE
+        FIND OPEN CHAT.HTML WINDOWS
         ===================================================
         */
 
         const clients =
           await self.clients.matchAll({
+            type:
+              "window",
 
-            type: "window",
-
-            includeUncontrolled: true
-
+            includeUncontrolled:
+              true
           });
 
 
@@ -636,14 +722,6 @@ self.addEventListener(
                 new URL(client.url);
 
 
-              /*
-              IMPORTANT:
-
-              Only use chat.html.
-
-              Never use index.html or admin.html.
-              */
-
               return (
                 url.origin ===
                   self.location.origin &&
@@ -653,7 +731,7 @@ self.addEventListener(
                 )
               );
 
-            } catch (error) {
+            } catch (_) {
 
               return false;
 
@@ -664,7 +742,7 @@ self.addEventListener(
 
         /*
         ===================================================
-        CHAT ALREADY OPEN
+        CHAT IS ALREADY OPEN
         ===================================================
         */
 
@@ -675,43 +753,37 @@ self.addEventListener(
 
 
           /*
-          Focus the actual chat page.
+          Focus the existing ToTalk chat.
           */
 
           await client.focus();
 
 
           /*
-          Send notification action to chat.html.
+          Send the action directly to chat.html.
           */
 
-          if (
-            "postMessage" in client
-          ) {
+          client.postMessage({
 
-            client.postMessage({
+            type:
+              "TOTalk_NOTIFICATION_ACTION",
 
-              type:
-                "TOTalk_NOTIFICATION_ACTION",
+            action:
+              action,
 
-              action:
-                action,
+            conversation_id:
+              conversationId || null,
 
-              conversation_id:
-                conversationId || null,
+            message_id:
+              messageId || null,
 
-              message_id:
-                messageId || null,
+            body:
+              body || null,
 
-              body:
-                body || null,
+            sender_name:
+              senderName || null
 
-              sender_name:
-                senderName || null
-
-            });
-
-          }
+          });
 
 
           return;
@@ -724,13 +796,10 @@ self.addEventListener(
         CHAT IS NOT OPEN
         ===================================================
 
-        Open the exact chat.html URL containing the
-        notification action information.
+        Open chat.html with the exact notification action.
         */
 
-        if (
-          self.clients.openWindow
-        ) {
+        if (self.clients.openWindow) {
 
           await self.clients.openWindow(
             chatUrl.href
@@ -739,7 +808,6 @@ self.addEventListener(
         }
 
       })()
-
     );
 
   }
