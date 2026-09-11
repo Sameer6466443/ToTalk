@@ -7,19 +7,46 @@ Web Push Notifications
 =========================================================
 */
 
+
+/*
+=========================================================
+INSTALL
+=========================================================
+*/
+
 self.addEventListener("install", event => {
-  console.log("ToTalk Service Worker: installed");
+
+  console.log(
+    "ToTalk Service Worker: installed"
+  );
+
   self.skipWaiting();
+
 });
 
 
+/*
+=========================================================
+ACTIVATE
+=========================================================
+*/
+
 self.addEventListener("activate", event => {
+
   event.waitUntil(
+
     (async () => {
+
       await self.clients.claim();
-      console.log("ToTalk Service Worker: activated");
+
+      console.log(
+        "ToTalk Service Worker: activated"
+      );
+
     })()
+
   );
+
 });
 
 
@@ -32,50 +59,53 @@ PUSH RECEIVED
 self.addEventListener("push", event => {
 
   event.waitUntil(
+
     (async () => {
 
       /*
-      -----------------------------------------------------
-      DEFAULT PUSH DATA
-      -----------------------------------------------------
+      ---------------------------------------------------
+      Default notification data
+      ---------------------------------------------------
       */
 
       let data = {
+
         type: "message",
+
         title: "ToTalk",
+
         body: "New message",
 
-        /*
-        Optional fields supported by this service worker:
-        sender_name
-        sender_avatar
-        conversation_id
-        message_id
-        sender_id
-        */
-
         sender_name: null,
+
         sender_avatar: null,
 
         conversation_id: null,
+
         message_id: null,
+
         sender_id: null
+
       };
 
 
       /*
-      =====================================================
+      ===================================================
       READ PUSH PAYLOAD
-      =====================================================
+      ===================================================
       */
 
       try {
 
-        if (event.data) {
+        if(event.data){
 
-          const incoming = event.data.json();
+          const incoming =
+            event.data.json();
 
-          if (incoming && typeof incoming === "object") {
+          if(
+            incoming &&
+            typeof incoming === "object"
+          ){
 
             data = {
               ...data,
@@ -86,7 +116,7 @@ self.addEventListener("push", event => {
 
         }
 
-      } catch (error) {
+      }catch(error){
 
         console.warn(
           "ToTalk push payload could not be parsed:",
@@ -97,24 +127,21 @@ self.addEventListener("push", event => {
 
 
       /*
-      =====================================================
-      DELETE NOTIFICATION COMMAND
-      =====================================================
+      ===================================================
+      DELETE NOTIFICATION
+      ===================================================
+
+      Used when the sender deletes a message.
 
       IMPORTANT:
-      This block is intentionally preserved.
-
-      When a sent message is deleted, chat.html sends a
-      special delete_notification push command.
-
-      The service worker finds the matching notification
-      using message_id first and conversation_id as fallback.
+      Keep this system working.
+      ===================================================
       */
 
-      if (
+      if(
         data.type === "delete_notification" ||
         data.action === "delete_notification"
-      ) {
+      ){
 
         const conversationId =
           data.conversation_id
@@ -127,20 +154,14 @@ self.addEventListener("push", event => {
             : null;
 
 
-        /*
-        ===================================================
-        FIND EXISTING ToTalk NOTIFICATIONS
-        ===================================================
-        */
-
         const existingNotifications =
           await self.registration.getNotifications();
 
 
-        for (
+        for(
           const notification
           of existingNotifications
-        ) {
+        ){
 
           const notificationData =
             notification?.data || {};
@@ -162,36 +183,27 @@ self.addEventListener("push", event => {
               : null;
 
 
-          /*
-          -------------------------------------------------
-          Match by message ID first.
-          -------------------------------------------------
-          */
-
           const messageMatches =
-            messageId &&
-            notificationMessageId &&
-            messageId === notificationMessageId;
+            !!(
+              messageId &&
+              notificationMessageId &&
+              messageId === notificationMessageId
+            );
 
-
-          /*
-          -------------------------------------------------
-          Match by conversation if message ID is not
-          available.
-          -------------------------------------------------
-          */
 
           const conversationMatches =
-            conversationId &&
-            notificationConversationId &&
-            conversationId ===
-              notificationConversationId;
+            !!(
+              conversationId &&
+              notificationConversationId &&
+              conversationId ===
+                notificationConversationId
+            );
 
 
-          if (
+          if(
             messageMatches ||
             conversationMatches
-          ) {
+          ){
 
             notification.close();
 
@@ -214,39 +226,41 @@ self.addEventListener("push", event => {
 
 
       /*
-      =====================================================
-      CHECK WHETHER ToTalk IS CURRENTLY VISIBLE
-      =====================================================
+      ===================================================
+      CHECK WHETHER ToTalk IS VISIBLE
+      ===================================================
       */
 
       const windowClients =
         await self.clients.matchAll({
+
           type: "window",
+
           includeUncontrolled: true
+
         });
 
 
       const visibleToTalkWindow =
         windowClients.some(client => {
 
-          try {
+          try{
 
             const url =
               new URL(client.url);
 
 
-            const isToTalk =
-              url.origin ===
-              self.location.origin;
-
-
             return (
-              isToTalk &&
+
+              url.origin ===
+                self.location.origin &&
+
               client.visibilityState ===
                 "visible"
+
             );
 
-          } catch (error) {
+          }catch(error){
 
             return false;
 
@@ -256,12 +270,13 @@ self.addEventListener("push", event => {
 
 
       /*
-      -----------------------------------------------------
-      If ToTalk is visible, suppress system notification.
-      -----------------------------------------------------
+      ---------------------------------------------------
+      If ToTalk is currently visible, don't create a
+      duplicate system notification.
+      ---------------------------------------------------
       */
 
-      if (visibleToTalkWindow) {
+      if(visibleToTalkWindow){
 
         console.log(
           "ToTalk is visible. Notification suppressed."
@@ -273,16 +288,9 @@ self.addEventListener("push", event => {
 
 
       /*
-      =====================================================
-      PREPARE NOTIFICATION CONTENT
-      =====================================================
-      */
-
-      /*
-      If sender_name exists, use the sender's name as the
-      notification title.
-
-      Otherwise fall back to the supplied title.
+      ===================================================
+      NOTIFICATION TITLE
+      ===================================================
       */
 
       const notificationTitle =
@@ -296,7 +304,9 @@ self.addEventListener("push", event => {
 
 
       /*
-      Message preview.
+      ===================================================
+      NOTIFICATION BODY
+      ===================================================
       */
 
       const notificationBody =
@@ -306,32 +316,27 @@ self.addEventListener("push", event => {
 
 
       /*
-      =====================================================
+      ===================================================
       NOTIFICATION TAG
-      =====================================================
-
-      Each message gets its own notification.
-
-      This is IMPORTANT because the delete command later
-      needs to identify the exact notification.
+      ===================================================
       */
 
       let notificationTag;
 
 
-      if (data.message_id) {
+      if(data.message_id){
 
         notificationTag =
           "totalk-message-" +
           String(data.message_id);
 
-      } else if (data.conversation_id) {
+      }else if(data.conversation_id){
 
         notificationTag =
-          "totalk-" +
+          "totalk-conversation-" +
           String(data.conversation_id);
 
-      } else {
+      }else{
 
         notificationTag =
           "totalk-message";
@@ -340,11 +345,9 @@ self.addEventListener("push", event => {
 
 
       /*
-      =====================================================
+      ===================================================
       ToTalk ICON
-      =====================================================
-
-      This is a simple cosmic ToTalk icon.
+      ===================================================
       */
 
       const totalkIcon =
@@ -352,149 +355,135 @@ self.addEventListener("push", event => {
 
 
       /*
-      =====================================================
+      ===================================================
       NOTIFICATION OPTIONS
-      =====================================================
+      ===================================================
       */
 
       const notificationOptions = {
 
-        /*
-        ---------------------------------------------------
-        Message text
-        ---------------------------------------------------
-        */
-
-        body: notificationBody,
+        body:
+          notificationBody,
 
 
-        /*
-        ---------------------------------------------------
-        ToTalk icon
-        ---------------------------------------------------
-        */
-
-        icon: totalkIcon,
+        icon:
+          totalkIcon,
 
 
-        /*
-        ---------------------------------------------------
-        Small notification badge
-        ---------------------------------------------------
-        */
+        badge:
+          totalkIcon,
 
-        badge: totalkIcon,
+
+        tag:
+          notificationTag,
+
+
+        renotify:
+          true,
 
 
         /*
-        ---------------------------------------------------
-        Individual message tag
-        ---------------------------------------------------
-        */
+        -------------------------------------------------
+        IMPORTANT
 
-        tag: notificationTag,
+        ALL notification information is stored here.
 
-
-        /*
-        ---------------------------------------------------
-        Allow a new message to notify again.
-        ---------------------------------------------------
-        */
-
-        renotify: true,
-
-
-        /*
-        ---------------------------------------------------
-        Keep notification data.
-
-        DO NOT REMOVE THESE FIELDS.
-
-        The delete-notification system depends on them.
-        ---------------------------------------------------
+        Reply and Mark as read depend on this.
+        -------------------------------------------------
         */
 
         data: {
 
-          type: "message",
+          type:
+            "message",
 
           conversation_id:
-            data.conversation_id || null,
+            data.conversation_id
+              ? String(data.conversation_id)
+              : null,
 
           message_id:
-            data.message_id || null,
+            data.message_id
+              ? String(data.message_id)
+              : null,
 
           sender_id:
-            data.sender_id || null,
+            data.sender_id
+              ? String(data.sender_id)
+              : null,
 
           sender_name:
-            data.sender_name || null,
+            data.sender_name
+              ? String(data.sender_name)
+              : null,
 
           body:
-            data.body || null
+            data.body
+              ? String(data.body)
+              : ""
 
         },
 
 
         /*
-        ===================================================
-        NOTIFICATION ACTIONS
-        ===================================================
-
-        Android/Chrome decides exactly how these buttons
-        are visually rendered.
-
-        We define the available actions here.
+        =================================================
+        ANDROID NOTIFICATION ACTIONS
+        =================================================
         */
 
         actions: [
 
           {
-            action: "reply",
-            title: "Reply"
+            action:
+              "reply",
+
+            title:
+              "Reply"
+
           },
 
           {
-            action: "mark_read",
-            title: "Mark as read"
+            action:
+              "mark_read",
+
+            title:
+              "Mark as read"
+
           }
 
         ],
 
 
-        /*
-        ---------------------------------------------------
-        Direction / language
-        ---------------------------------------------------
-        */
-
-        dir: "auto",
-        lang: "en",
+        dir:
+          "auto",
 
 
-        /*
-        ---------------------------------------------------
-        Timestamp
-        ---------------------------------------------------
-        */
+        lang:
+          "en",
 
-        timestamp: Date.now()
+
+        timestamp:
+          Date.now()
 
       };
 
 
       /*
-      =====================================================
+      ===================================================
       SHOW NOTIFICATION
-      =====================================================
+      ===================================================
       */
 
       await self.registration.showNotification(
+
         notificationTitle,
+
         notificationOptions
+
       );
 
     })()
+
   );
 
 });
@@ -502,7 +491,7 @@ self.addEventListener("push", event => {
 
 /*
 =========================================================
-NOTIFICATION CLICK
+NOTIFICATION CLICK / ACTION
 =========================================================
 */
 
@@ -510,14 +499,36 @@ self.addEventListener(
   "notificationclick",
   event => {
 
-    event.notification.close();
-
     event.waitUntil(
+
       (async () => {
 
-        const notification = event.notification;
+        /*
+        -------------------------------------------------
+        CLOSE NOTIFICATION
+        -------------------------------------------------
+        */
+
+        try{
+
+          event.notification.close();
+
+        }catch(error){}
+
+
+        /*
+        =================================================
+        READ NOTIFICATION DATA
+        =================================================
+        */
+
+        const notification =
+          event.notification;
+
+
         const notificationData =
           notification?.data || {};
+
 
         const conversationId =
           notificationData?.conversation_id
@@ -526,12 +537,14 @@ self.addEventListener(
               )
             : "";
 
+
         const messageId =
           notificationData?.message_id
             ? String(
                 notificationData.message_id
               )
             : "";
+
 
         const messageBody =
           notificationData?.body
@@ -540,6 +553,7 @@ self.addEventListener(
               )
             : "";
 
+
         const senderName =
           notificationData?.sender_name
             ? String(
@@ -547,31 +561,50 @@ self.addEventListener(
               )
             : "";
 
+
         /*
-        If the notification action is empty, this is a
-        normal notification tap.
+        -------------------------------------------------
+        IMPORTANT
+
+        event.action tells us exactly which button was
+        pressed.
+
+        Empty action = normal notification tap.
+        -------------------------------------------------
         */
 
         const action =
-          event.action || "open";
+          event.action
+            ? String(event.action)
+            : "open";
+
+
+        console.log(
+          "ToTalk notification action:",
+          {
+            action,
+            conversationId,
+            messageId
+          }
+        );
 
 
         /*
-        ===================================================
-        SEND ACTION TO CHAT.HTML
-        ===================================================
+        =================================================
+        BUILD COMPLETE ACTION PAYLOAD
+        =================================================
 
-        chat.html has the authenticated Supabase session,
-        so it performs the actual Reply / Mark as read
-        operation.
-
-        The service worker passes all required information.
+        chat.html expects these fields.
+        =================================================
         */
 
         const actionMessage = {
 
           type:
             "TOTalk_NOTIFICATION_ACTION",
+
+          action:
+            action,
 
           conversation_id:
             conversationId || null,
@@ -580,86 +613,98 @@ self.addEventListener(
             messageId || null,
 
           body:
-            messageBody || null,
+            messageBody || "",
 
           sender_name:
-            senderName || null,
-
-          action
+            senderName || ""
 
         };
 
 
         /*
-        ===================================================
-        FIND AN ALREADY OPEN ToTalk WINDOW
-        ===================================================
+        =================================================
+        FIND EXISTING TOTalk WINDOW
+        =================================================
         */
 
         const windowClients =
           await self.clients.matchAll({
-            type: "window",
-            includeUncontrolled: true
+
+            type:
+              "window",
+
+            includeUncontrolled:
+              true
+
           });
 
 
         /*
-        ---------------------------------------------------
-        Use an already-open ToTalk window when possible.
-        ---------------------------------------------------
+        =================================================
+        FIRST PRIORITY:
+        EXISTING ToTalk WINDOW
+        =================================================
         */
 
-        for (
+        for(
           const client
           of windowClients
-        ) {
+        ){
 
-          try {
+          try{
 
             const url =
               new URL(client.url);
 
 
             /*
-            Only communicate with the same origin.
+            Only communicate with our own site.
             */
 
-            if (
+            if(
               url.origin !==
               self.location.origin
-            ) {
+            ){
+
               continue;
+
             }
 
 
             /*
-            Bring ToTalk to the foreground.
+            ------------------------------------------------
+            Focus the existing ToTalk window.
+            ------------------------------------------------
             */
 
             await client.focus();
 
 
             /*
-            Send the action to chat.html.
+            ------------------------------------------------
+            Send COMPLETE action data.
+
+            This is the important fix.
+            ------------------------------------------------
             */
 
-            if (
-              "postMessage" in client
-            ) {
+            client.postMessage(
+              actionMessage
+            );
 
-              client.postMessage(
-                actionMessage
-              );
 
-            }
+            console.log(
+              "ToTalk notification action delivered to open window:",
+              actionMessage
+            );
 
 
             return;
 
-          } catch (error) {
+          }catch(error){
 
             console.warn(
-              "ToTalk notification action could not reach window:",
+              "ToTalk existing-window action failed:",
               error
             );
 
@@ -669,18 +714,25 @@ self.addEventListener(
 
 
         /*
-        ===================================================
+        =================================================
         NO ToTalk WINDOW IS OPEN
-        ===================================================
+        =================================================
 
-        Open chat.html and pass the action through the URL.
-        chat.html reads these parameters after startup.
-        ===================================================
+        Open chat.html with the action encoded in the URL.
+        =================================================
         */
 
-        if (
+        if(
           self.clients.openWindow
-        ) {
+        ){
+
+          /*
+          ------------------------------------------------
+          Build URL using the service worker scope.
+
+          This is safer than hard-coding the root path.
+          ------------------------------------------------
+          */
 
           const chatUrl =
             new URL(
@@ -690,94 +742,109 @@ self.addEventListener(
 
 
           /*
-          -------------------------------------------------
-          Conversation ID
-          -------------------------------------------------
-          */
-
-          if (
-            conversationId
-          ) {
-
-            chatUrl.searchParams.set(
-              "totalk_notification_conversation",
-              conversationId
-            );
-
-          }
-
-
-          /*
-          -------------------------------------------------
-          Message ID
-          -------------------------------------------------
-          */
-
-          if (
-            messageId
-          ) {
-
-            chatUrl.searchParams.set(
-              "totalk_notification_message",
-              messageId
-            );
-
-          }
-
-
-          /*
-          -------------------------------------------------
-          Message body
-          -------------------------------------------------
-          */
-
-          if (
-            messageBody
-          ) {
-
-            chatUrl.searchParams.set(
-              "totalk_notification_body",
-              messageBody
-            );
-
-          }
-
-
-          /*
-          -------------------------------------------------
-          Sender name
-          -------------------------------------------------
-          */
-
-          if (
-            senderName
-          ) {
-
-            chatUrl.searchParams.set(
-              "totalk_notification_sender",
-              senderName
-            );
-
-          }
-
-
-          /*
-          -------------------------------------------------
-          Requested action
-          -------------------------------------------------
+          ------------------------------------------------
+          ACTION
+          ------------------------------------------------
           */
 
           chatUrl.searchParams.set(
+
             "totalk_notification_action",
+
             action
+
           );
 
 
           /*
-          -------------------------------------------------
-          Open ToTalk.
-          -------------------------------------------------
+          ------------------------------------------------
+          CONVERSATION
+          ------------------------------------------------
           */
+
+          if(
+            conversationId
+          ){
+
+            chatUrl.searchParams.set(
+
+              "totalk_notification_conversation",
+
+              conversationId
+
+            );
+
+          }
+
+
+          /*
+          ------------------------------------------------
+          MESSAGE ID
+          ------------------------------------------------
+          */
+
+          if(
+            messageId
+          ){
+
+            chatUrl.searchParams.set(
+
+              "totalk_notification_message",
+
+              messageId
+
+            );
+
+          }
+
+
+          /*
+          ------------------------------------------------
+          MESSAGE BODY
+          ------------------------------------------------
+          */
+
+          if(
+            messageBody
+          ){
+
+            chatUrl.searchParams.set(
+
+              "totalk_notification_body",
+
+              messageBody
+
+            );
+
+          }
+
+
+          /*
+          ------------------------------------------------
+          SENDER NAME
+          ------------------------------------------------
+          */
+
+          if(
+            senderName
+          ){
+
+            chatUrl.searchParams.set(
+
+              "totalk_notification_sender",
+
+              senderName
+
+            );
+
+          }
+
+
+          console.log(
+            "Opening ToTalk for notification action:",
+            chatUrl.href
+          );
+
 
           await self.clients.openWindow(
             chatUrl.href
@@ -786,6 +853,7 @@ self.addEventListener(
         }
 
       })()
+
     );
 
   }
