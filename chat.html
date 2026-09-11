@@ -7253,24 +7253,67 @@ async function sendMessage(){
       );
     }
 
-    /* The database accepted the message. Mark the optimistic row as sent. */
+    /*
+     * The database accepted the message. Promote the existing optimistic row
+     * to the real database id IN PLACE.
+     *
+     * Do not call loadMessages() here. A realtime INSERT or the open-chat
+     * fallback poll can arrive while the optimistic row is still visible.
+     * Reloading the whole conversation at this exact moment can briefly render
+     * the same message twice: once as the optimistic row and once as the real
+     * database row. Keeping the existing row and changing only its id removes
+     * that race completely.
+     */
+    const realMessage = {
+      id: messageId,
+      sender_id: currentUser.id,
+      content: text,
+      created_at: optimistic.created_at,
+      edited_at: null,
+      reply_to_id: replyId,
+      conversation_id: currentConversationId
+    };
+
+    messageCache.delete(tempId);
+    messageCache.set(messageId, realMessage);
+
     if(optimisticRow){
+      optimisticRow.dataset.messageId = messageId;
+      optimisticRow.dataset.messageContent = text;
+
       const status = optimisticRow.querySelector(".message-status");
       if(status){
         status.textContent = "Sent";
         status.classList.remove("send-failed");
       }
-    }
 
-    /*
-     * Reconcile the optimistic row with the real database message.
-     * loadMessages() replaces the temporary id with the real id, so edit,
-     * delete and reaction actions continue to work normally.
-     */
-    try{
-      await loadMessages();
-    }catch(reconcileError){
-      console.warn("Message sent, but refresh failed:", reconcileError);
+      /* Rebind the message menu to the permanent database id. */
+      const menuButton = optimisticRow.querySelector(".message-menu-btn");
+      if(menuButton){
+        const newMenuButton = menuButton.cloneNode(true);
+        menuButton.replaceWith(newMenuButton);
+        newMenuButton.addEventListener("click", event=>{
+          event.preventDefault();
+          event.stopPropagation();
+          closeMenus();
+          const bubble = optimisticRow.querySelector(".message");
+          const menu = createMessageMenu(realMessage, bubble);
+          document.body.appendChild(menu);
+          const rect = bubble.getBoundingClientRect();
+          menu.style.left = Math.max(8, Math.min(rect.right - 130, window.innerWidth - 138)) + "px";
+          menu.style.top = Math.min(window.innerHeight - 120, rect.bottom + 7) + "px";
+          menu.classList.add("open");
+        });
+      }
+
+      /* Rebind reactions to the permanent database id as well. */
+      const bubble = optimisticRow.querySelector(".message");
+      if(bubble){
+        const oldPicker = bubble._reactionPicker;
+        if(oldPicker) oldPicker.remove();
+        const picker = createReactionPicker(realMessage, bubble);
+        bubble._reactionPicker = picker;
+      }
     }
 
     /* Keep the sidebar preview/order current after a successful send. */
@@ -9044,13 +9087,6 @@ async function startApp(){
     finishLoading();
 
     /*
-     * Mark the app as ready before showing optional install UI.
-     * This prevents the install card from appearing over the splash/loading screen.
-     */
-    window.__totalkAppReady = true;
-    window.dispatchEvent(new Event("totalk-app-ready"));
-
-    /*
      * Focus input after loading
      * without forcing keyboard open
      * on mobile.
@@ -9480,10 +9516,9 @@ if ("serviceWorker" in navigator) {
 
   let deferredInstallPrompt = null;
   let dismissedThisSession = false;
-  let appReady = window.__totalkAppReady === true;
 
   function showInstallCard(){
-    if(!deferredInstallPrompt || dismissedThisSession || isStandalone() || !appReady) return;
+    if(!deferredInstallPrompt || dismissedThisSession || isStandalone()) return;
     card.classList.add('is-visible');
   }
 
@@ -9491,27 +9526,10 @@ if ("serviceWorker" in navigator) {
     card.classList.remove('is-visible');
   }
 
-  window.addEventListener('totalk-app-ready', function(){
-    appReady = true;
-
-    /*
-     * Give the splash screen time to finish its fade-out before
-     * showing the optional install card.
-     */
-    setTimeout(showInstallCard, 850);
-  });
-
   window.addEventListener('beforeinstallprompt', function(event){
     event.preventDefault();
     deferredInstallPrompt = event;
-
-    /*
-     * If the app is already ready, show after a short polished delay.
-     * Otherwise totalk-app-ready will show it after loading finishes.
-     */
-    if(appReady){
-      setTimeout(showInstallCard, 850);
-    }
+    setTimeout(showInstallCard, 1200);
   });
 
   installBtn.addEventListener('click', async function(){
