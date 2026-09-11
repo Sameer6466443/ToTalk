@@ -4131,6 +4131,9 @@ let remoteTypingStopTimer = null;
 /* Read-receipt watcher: checks the other participant's last_read_at while a chat is open. */
 let seenStatusTimer = null;
 let seenStatusRequestInFlight = false;
+/* Keep read receipts monotonic so a delayed/stale RPC response can never
+   move an already-Seen message back to Sent. */
+const highestPartnerReadTimeByConversation = new Map();
 
 let replyTarget = null;
 let currentUserRestricted = false;
@@ -6273,7 +6276,16 @@ async function deleteMessage(
 function applySeenStatus(partnerLastReadAt){
 
   const readTime = Date.parse(partnerLastReadAt || "") || 0;
-  if(!readTime) return;
+  if(!readTime || !currentConversationId) return;
+
+  /* Never allow an older/delayed read timestamp to roll the UI backwards. */
+  const previousReadTime =
+    highestPartnerReadTimeByConversation.get(currentConversationId) || 0;
+  const stableReadTime = Math.max(previousReadTime, readTime);
+  highestPartnerReadTimeByConversation.set(
+    currentConversationId,
+    stableReadTime
+  );
 
   document
     .querySelectorAll(".message-row.mine[data-message-id]")
@@ -6286,7 +6298,8 @@ function applySeenStatus(partnerLastReadAt){
       if(!data || !status) return;
 
       const messageTime = Date.parse(data.created_at || "") || 0;
-      const seen = messageTime > 0 && messageTime <= readTime;
+      const alreadySeen = data._seen === true || status.classList.contains("seen");
+      const seen = alreadySeen || (messageTime > 0 && messageTime <= stableReadTime);
 
       status.textContent = seen ? "Seen" : "Sent";
       status.classList.toggle("seen",seen);
