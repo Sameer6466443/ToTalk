@@ -3857,53 +3857,29 @@ function updateToTalkNotificationUI(){
   }
 }
 
-function totalkPushDiag(message){
-  try{
-    console.log("ToTalk PUSH DIAG:", message);
-    if(typeof showDatabaseError === "function"){
-      showDatabaseError(new Error("ToTalk Push Diagnostic: " + message));
-    }
-  }catch(e){}
-}
-
 async function registerToTalkPushSubscription(){
-  if(pushSubscriptionInFlight || !currentUser?.id){
-    totalkPushDiag("Stopped before start: pushSubscriptionInFlight=" + pushSubscriptionInFlight + ", currentUser.id=" + (currentUser?.id || "missing"));
-    return false;
+  if(!currentUser?.id) return false;
+  if(pushSubscriptionInFlight){
+    for(let i=0;i<100 && pushSubscriptionInFlight;i++){
+      await new Promise(resolve=>setTimeout(resolve,100));
+    }
+    if(pushSubscriptionInFlight) return false;
   }
-  if(areToTalkNotificationsDisabled()){
-    totalkPushDiag("Stopped: ToTalk notifications are disabled.");
-    return false;
-  }
-  if(!("serviceWorker" in navigator) || !("PushManager" in window)){
-    totalkPushDiag("Stopped: Service Worker or PushManager is unavailable.");
-    return false;
-  }
-  if(!("Notification" in window)){
-    totalkPushDiag("Stopped: Notification API is unavailable.");
-    return false;
-  }
-  if(Notification.permission !== "granted"){
-    totalkPushDiag("Stopped: Notification permission is " + Notification.permission + ".");
-    return false;
-  }
-  if(!window.isSecureContext){
-    totalkPushDiag("Stopped: page is not a secure HTTPS context.");
-    return false;
-  }
+  if(areToTalkNotificationsDisabled()) return false;
+  if(!("serviceWorker" in navigator) || !("PushManager" in window)) return false;
+  if(!("Notification" in window) || Notification.permission !== "granted") return false;
+  if(!window.isSecureContext) return false;
 
   pushSubscriptionInFlight = true;
 
   try{
-    totalkPushDiag("Stage 1: push registration function started.");
-    const registrationPromise = navigator.serviceWorker.ready;
-    const registrationTimeout = new Promise((_, reject) =>
-      setTimeout(() => reject(new Error("Service Worker did not become ready within 15 seconds.")), 15000)
-    );
-    const registration = await Promise.race([registrationPromise, registrationTimeout]);
-    totalkPushDiag("Stage 2: Service Worker is ready.");
+    let registration = await navigator.serviceWorker.getRegistration();
+    if(!registration){
+      registration = await navigator.serviceWorker.register("/sw.js");
+    }
+    await navigator.serviceWorker.ready;
+    registration = await navigator.serviceWorker.getRegistration() || registration;
     let subscription = await registration.pushManager.getSubscription();
-    totalkPushDiag("Stage 3: getSubscription completed. Existing=" + !!subscription);
 
     /*
       We changed the VAPID key. An existing browser subscription belongs to
@@ -3928,7 +3904,6 @@ async function registerToTalkPushSubscription(){
     }
 
     if(!subscription){
-      totalkPushDiag("Stage 4: creating browser push subscription...");
       subscription = await registration.pushManager.subscribe({
         userVisibleOnly:true,
         applicationServerKey:urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
@@ -3948,7 +3923,6 @@ async function registerToTalkPushSubscription(){
       throw new Error("Browser returned an incomplete push subscription.");
     }
 
-    totalkPushDiag("Stage 5: browser subscription exists; checking Supabase...");
     const {data:existing,error:findError} = await supabaseClient
       .from("push_subscriptions")
       .select("id")
@@ -3971,7 +3945,6 @@ async function registerToTalkPushSubscription(){
 
       if(updateError) throw updateError;
     }else{
-      totalkPushDiag("Stage 6: inserting subscription into Supabase...");
       const {error:insertError} = await supabaseClient
         .from("push_subscriptions")
         .insert({
