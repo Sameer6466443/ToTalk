@@ -3858,7 +3858,7 @@ function updateToTalkNotificationUI(){
 }
 
 async function registerToTalkPushSubscription(){
-  if(pushSubscriptionInFlight || !currentUser?.id) return false;
+  if(pushSubscriptionInFlight) return false;
   if(areToTalkNotificationsDisabled()) return false;
   if(!("serviceWorker" in navigator) || !("PushManager" in window)) return false;
   if(!("Notification" in window) || Notification.permission !== "granted") return false;
@@ -3867,14 +3867,45 @@ async function registerToTalkPushSubscription(){
   pushSubscriptionInFlight = true;
 
   try{
+    /*
+      Use the real Supabase Auth session as the source of truth for the
+      database user_id. This keeps the push row tied to auth.uid().
+    */
+    const {data:sessionData,error:sessionError} =
+      await supabaseClient.auth.getSession();
+
+    if(sessionError){
+      throw new Error(
+        "ToTalk Push Error: Could not read Supabase session: " +
+        sessionError.message
+      );
+    }
+
+    const authUser = sessionData?.session?.user;
+
+    if(!authUser?.id){
+      throw new Error(
+        "ToTalk Push Error: No authenticated Supabase user session is available."
+      );
+    }
+
+    const userId = authUser.id;
+
+    /* Get the existing registration first. If none exists, register it now. */
     let registration = await navigator.serviceWorker.getRegistration();
+
     if(!registration){
       registration = await navigator.serviceWorker.register("/sw.js");
     }
+
     if(!registration){
-      throw new Error("ToTalk Push Error: Service Worker registration is unavailable.");
+      throw new Error(
+        "ToTalk Push Error: Service Worker registration is unavailable."
+      );
     }
-    registration = await navigator.serviceWorker.ready;
+
+    await registration.update().catch(()=>{});
+
     let subscription = await registration.pushManager.getSubscription();
 
     /*
@@ -3888,13 +3919,16 @@ async function registerToTalkPushSubscription(){
 
     if(subscription && previousVapidKey !== VAPID_PUBLIC_KEY){
       const oldEndpoint = subscription.endpoint;
+
       await subscription.unsubscribe().catch(()=>{});
 
-      await supabaseClient
+      const {error:oldDeleteError} = await supabaseClient
         .from("push_subscriptions")
         .delete()
-        .eq("user_id",currentUser.id)
+        .eq("user_id",userId)
         .eq("endpoint",oldEndpoint);
+
+      if(oldDeleteError) throw oldDeleteError;
 
       subscription = null;
     }
@@ -3922,7 +3956,7 @@ async function registerToTalkPushSubscription(){
     const {data:existing,error:findError} = await supabaseClient
       .from("push_subscriptions")
       .select("id")
-      .eq("user_id",currentUser.id)
+      .eq("user_id",userId)
       .eq("endpoint",endpoint)
       .maybeSingle();
 
@@ -3937,14 +3971,14 @@ async function registerToTalkPushSubscription(){
           updated_at:new Date().toISOString()
         })
         .eq("id",existing.id)
-        .eq("user_id",currentUser.id);
+        .eq("user_id",userId);
 
       if(updateError) throw updateError;
     }else{
       const {error:insertError} = await supabaseClient
         .from("push_subscriptions")
         .insert({
-          user_id:currentUser.id,
+          user_id:userId,
           endpoint,
           p256dh,
           auth
@@ -3953,11 +3987,12 @@ async function registerToTalkPushSubscription(){
       if(insertError) throw insertError;
     }
 
-    console.log("ToTalk Web Push subscription saved.");
+    console.log("ToTalk Web Push subscription saved for auth user:",userId);
     return true;
 
   }catch(error){
     console.error("ToTalk Web Push subscription failed:",error);
+    showDatabaseError(error);
     throw error;
   }finally{
     pushSubscriptionInFlight = false;
@@ -4025,6 +4060,7 @@ function showToTalkNotificationButton(){
       if(nextEnabled){
         void registerToTalkPushSubscription().catch(error=>{
           console.error("ToTalk notification enable sync failed:",error);
+          showDatabaseError(error);
         });
       }else{
         void disableToTalkPushNotifications();
@@ -4044,6 +4080,7 @@ function showToTalkNotificationButton(){
 
           void registerToTalkPushSubscription().catch(error=>{
             console.error("ToTalk notification subscription failed:",error);
+            showDatabaseError(error);
           });
         }else{
           saveToTalkNotificationToggleState(false);
@@ -8732,10 +8769,6 @@ async function startApp(){
 
     currentUser =
       user;
-
-    /* Register this browser/device for background Web Push.
-       If permission is still undecided, the first user interaction
-       requests it and then saves the subscription. */
 
     /* Check restriction status. Supabase RLS remains the final authority. */
     await loadMyRestrictionStatus();
