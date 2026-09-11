@@ -3895,7 +3895,7 @@ async function registerToTalkPushSubscription(){
     let registration = await navigator.serviceWorker.getRegistration();
 
     if(!registration){
-      registration = await navigator.serviceWorker.register("/sw.js");
+      registration = await navigator.serviceWorker.register("/ToTalk/sw.js");
     }
 
     if(!registration){
@@ -9333,7 +9333,7 @@ startApp();
 /* ToTalk PWA service worker registration */
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("/sw.js")
+    navigator.serviceWorker.register("/ToTalk/sw.js")
       .then(() => console.log("ToTalk service worker registered"))
       .catch(error => console.error("ToTalk service worker error:", error));
   });
