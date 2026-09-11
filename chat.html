@@ -9044,6 +9044,13 @@ async function startApp(){
     finishLoading();
 
     /*
+     * Mark the app as ready before showing optional install UI.
+     * This prevents the install card from appearing over the splash/loading screen.
+     */
+    window.__totalkAppReady = true;
+    window.dispatchEvent(new Event("totalk-app-ready"));
+
+    /*
      * Focus input after loading
      * without forcing keyboard open
      * on mobile.
@@ -9473,9 +9480,10 @@ if ("serviceWorker" in navigator) {
 
   let deferredInstallPrompt = null;
   let dismissedThisSession = false;
+  let appReady = window.__totalkAppReady === true;
 
   function showInstallCard(){
-    if(!deferredInstallPrompt || dismissedThisSession || isStandalone()) return;
+    if(!deferredInstallPrompt || dismissedThisSession || isStandalone() || !appReady) return;
     card.classList.add('is-visible');
   }
 
@@ -9483,10 +9491,27 @@ if ("serviceWorker" in navigator) {
     card.classList.remove('is-visible');
   }
 
+  window.addEventListener('totalk-app-ready', function(){
+    appReady = true;
+
+    /*
+     * Give the splash screen time to finish its fade-out before
+     * showing the optional install card.
+     */
+    setTimeout(showInstallCard, 850);
+  });
+
   window.addEventListener('beforeinstallprompt', function(event){
     event.preventDefault();
     deferredInstallPrompt = event;
-    setTimeout(showInstallCard, 1200);
+
+    /*
+     * If the app is already ready, show after a short polished delay.
+     * Otherwise totalk-app-ready will show it after loading finishes.
+     */
+    if(appReady){
+      setTimeout(showInstallCard, 850);
+    }
   });
 
   installBtn.addEventListener('click', async function(){
