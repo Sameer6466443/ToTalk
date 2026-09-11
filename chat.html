@@ -6185,7 +6185,7 @@ async function deleteMessage(
 
     if(row){
       row.classList.add("deleting");
-      window.setTimeout(()=>row.remove(),120);
+      row.remove();
     }
 
     messageCache.delete(messageId);
@@ -6204,6 +6204,7 @@ async function deleteMessage(
      * break the message deletion.
      */
     if(recipientUserId && messageId){
+      void (async()=>{
       try{
         const {data:deletePushResult,error:deletePushError} =
           await supabaseClient.functions.invoke(
@@ -6236,6 +6237,7 @@ async function deleteMessage(
           deletePushError
         );
       }
+      })();
     }
 
     /*
@@ -6425,10 +6427,12 @@ function reconcileOptimisticMessage(data){
  * open chat on every fallback poll. Realtime remains the fast path. */
 let openConversationPollSignature = "";
 let openConversationPollConversationId = null;
+let openConversationPollInFlight = false;
 
 function resetOpenConversationPollState(){
   openConversationPollSignature = "";
   openConversationPollConversationId = null;
+  openConversationPollInFlight = false;
 }
 
 function getOpenConversationPollSignature(data){
@@ -6448,12 +6452,14 @@ async function pollOpenConversationMessages(){
   if(
     !currentUser?.id ||
     !currentConversationId ||
-    document.visibilityState !== "visible"
+    document.visibilityState !== "visible" ||
+    openConversationPollInFlight
   ){
     return;
   }
 
   const conversationId = currentConversationId;
+  openConversationPollInFlight = true;
 
   try{
 
@@ -6572,6 +6578,8 @@ async function pollOpenConversationMessages(){
 
   }catch(error){
     console.warn("Open-chat fallback poll failed:",error);
+  }finally{
+    openConversationPollInFlight = false;
   }
 }
 
