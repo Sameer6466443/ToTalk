@@ -6596,6 +6596,8 @@ async function pollOpenConversationMessages(){
     document.querySelectorAll(".message-row[data-message-id]").forEach(row=>{
       const id = String(row.dataset.messageId || "");
       if(!id || id.startsWith("local-")) return;
+      const cached = messageCache.get(id);
+      if(!liveIds.has(id) && cached?._optimistic === true) return;
       if(!liveIds.has(id)){
         row.remove();
         messageCache.delete(id);
@@ -6611,6 +6613,7 @@ async function pollOpenConversationMessages(){
 
     for(const item of (data || [])){
       const mergedItem = mergeMessageIntoCache(item);
+      mergedItem._optimistic = false;
 
       if(reconcileOptimisticMessage(mergedItem)){
         continue;
@@ -7521,10 +7524,12 @@ async function sendMessage(){
       created_at: optimistic.created_at,
       edited_at: null,
       reply_to_id: replyId,
-      conversation_id: currentConversationId
+      conversation_id: currentConversationId,
+      _optimistic: false
     };
 
-    mergeMessageIntoCache(realMessage);
+    const mergedRealMessage = mergeMessageIntoCache(realMessage);
+    mergedRealMessage._optimistic = false;
 
     const existingRealRow = dedupeMessageRows(messageId);
 
@@ -7541,6 +7546,7 @@ async function sendMessage(){
           setMessageStatusMonotonic(messageId,"Sent");
         }
       }
+      existingRealRow.classList.remove("message-sending");
     }
 
     /* Keep the sidebar preview/order current after a successful send. */
@@ -8144,6 +8150,7 @@ function startRealtime(){
 
           void markConversationAsRead(data.conversation_id);
           const mergedRealtimeMessage = mergeMessageIntoCache(data);
+          mergedRealtimeMessage._optimistic = false;
 
           /* Reconcile optimistic local sends regardless of whether
            * Realtime or the HTTP request wins the race. */
@@ -9675,6 +9682,9 @@ if ("serviceWorker" in navigator) {
   }
   #totalkInstallLater{color:rgba(240,236,255,.72);background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.08)}
   @media (min-width:700px){#totalkInstallPrompt{left:auto;right:22px;bottom:22px;width:390px}}
+
+/* Keep an optimistic message visually stable while it is being saved. */
+.message-row.message-sending .message-status{opacity:.72;}
 </style>
 
 <div id="totalkInstallPrompt" role="dialog" aria-live="polite" aria-label="Install ToTalk">
