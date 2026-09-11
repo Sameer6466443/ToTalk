@@ -6421,6 +6421,28 @@ function reconcileOptimisticMessage(data){
   return true;
 }
 
+/* Short-lived signature used only to avoid rebuilding/updating an unchanged
+ * open chat on every fallback poll. Realtime remains the fast path. */
+let openConversationPollSignature = "";
+let openConversationPollConversationId = null;
+
+function resetOpenConversationPollState(){
+  openConversationPollSignature = "";
+  openConversationPollConversationId = null;
+}
+
+function getOpenConversationPollSignature(data){
+  return (data || []).map(item =>
+    [
+      String(item.id || ""),
+      String(item.created_at || ""),
+      String(item.edited_at || ""),
+      String(item.content || ""),
+      String(item.reply_to_id || "")
+    ].join("\u001f")
+  ).join("\u001e");
+}
+
 async function pollOpenConversationMessages(){
 
   if(
@@ -6453,66 +6475,99 @@ async function pollOpenConversationMessages(){
       return;
     }
 
+    const rows = data || [];
+    const liveIds = new Set(rows.map(item=>String(item.id)));
+    const signature = getOpenConversationPollSignature(rows);
+    const conversationChanged = openConversationPollConversationId !== conversationId;
+    const dataChanged = conversationChanged || signature !== openConversationPollSignature;
+
+    /* Always remember the latest server snapshot, but only touch the DOM when
+       something actually changed. This prevents the chat from feeling like it
+       is being refreshed every 1.5 seconds while the user is reading/typing. */
+    openConversationPollConversationId = conversationId;
+    openConversationPollSignature = signature;
+
     /* The database is the source of truth. Detect deleted rows even when
        Supabase does not deliver a DELETE websocket event to the other phone. */
-    const liveIds = new Set((data || []).map(item=>String(item.id)));
+    if(dataChanged){
+      document.querySelectorAll(".message-row[data-message-id]").forEach(row=>{
+        const id = String(row.dataset.messageId || "");
+        if(!id || id.startsWith("local-")) return;
+        if(pendingLocalMessageIds.has(id)) return;
+        if(!liveIds.has(id)){
+          row.remove();
+          messageCache.delete(id);
+        }
+      });
 
-    document.querySelectorAll(".message-row[data-message-id]").forEach(row=>{
-      const id = String(row.dataset.messageId || "");
-      if(!id || id.startsWith("local-")) return;
-      if(pendingLocalMessageIds.has(id)) return;
-      if(!liveIds.has(id)){
-        row.remove();
-        messageCache.delete(id);
-      }
-    });
-
-    Array.from(messageCache.keys()).forEach(id=>{
-      const idString = String(id);
-      if(idString.startsWith("local-")) return;
-      if(pendingLocalMessageIds.has(idString)) return;
-      if(!liveIds.has(idString)) messageCache.delete(id);
-    });
+      Array.from(messageCache.keys()).forEach(id=>{
+        const idString = String(id);
+        if(idString.startsWith("local-")) return;
+        if(pendingLocalMessageIds.has(idString)) return;
+        if(!liveIds.has(idString)) messageCache.delete(id);
+      });
+    }
 
     let addedIncoming = false;
 
-    for(const item of (data || [])){
-      messageCache.set(item.id,item);
+    if(dataChanged){
+      for(const item of rows){
 
-      if(reconcileOptimisticMessage(item)){
-        continue;
+        const previous = messageCache.get(item.id);
+        messageCache.set(item.id,item);
+
+        if(reconcileOptimisticMessage(item)){
+          continue;
+        }
+
+        const existing = document.querySelector(
+          `[data-message-id="${CSS.escape(String(item.id))}"]`
+        );
+
+        if(existing){
+          /* Do not rewrite the bubble unless its actual content changed. */
+          const text = existing.querySelector(".message-text");
+          const previousContent = previous?.content || "";
+          const nextContent = item.content || "";
+          if(text && previousContent !== nextContent){
+            text.textContent = nextContent;
+          }
+
+          const time = existing.querySelector(".message-time");
+          const previousEdited = previous?.edited_at || null;
+          const nextEdited = item.edited_at || null;
+          if(time && previousEdited !== nextEdited){
+            time.textContent = formatTime(item.created_at) +
+              (nextEdited ? " · edited" : "");
+          }
+
+          continue;
+        }
+
+        addMessage(item,true);
+
+        if(item.sender_id !== currentUser.id){
+          addedIncoming = true;
+        }
       }
 
-      const existing = document.querySelector(
-        `[data-message-id="${item.id}"]`
-      );
-
-      if(existing){
-        const text = existing.querySelector(".message-text");
-        if(text) text.textContent = item.content || "";
-        continue;
+      if(!liveIds.size && !messages.querySelector(".message-row")){
+        messages.innerHTML = `
+          <div class="welcome-message" id="welcomeMessage">
+            <h3>Private conversation</h3>
+            <p>Say hello to ${escapeHtml(currentConversationPartner?.name || "your new connection")}.</p>
+          </div>
+        `;
       }
 
-      addMessage(item,true);
-
-      if(item.sender_id !== currentUser.id){
-        addedIncoming = true;
+      if(addedIncoming){
+        await markConversationAsRead(conversationId);
       }
     }
 
-    if(!liveIds.size && !messages.querySelector(".message-row")){
-      messages.innerHTML = `
-        <div class="welcome-message" id="welcomeMessage">
-          <h3>Private conversation</h3>
-          <p>Say hello to ${escapeHtml(currentConversationPartner?.name || "your new connection")}.</p>
-        </div>
-      `;
-    }
-
-    if(addedIncoming){
-      await markConversationAsRead(conversationId);
-    }
-
+    /* Seen is deliberately checked independently from the message-list
+       signature. A partner can read a message without creating a new message,
+       so the status must still update even when the chat itself is unchanged. */
     await refreshSeenStatus();
 
   }catch(error){
@@ -6544,6 +6599,8 @@ function startSeenStatusWatcher(){
 
 function stopSeenStatusWatcher(){
 
+  resetOpenConversationPollState();
+
   if(seenStatusTimer){
     clearInterval(seenStatusTimer);
     seenStatusTimer = null;
@@ -6557,6 +6614,8 @@ function stopSeenStatusWatcher(){
 ===================================================== */
 
 async function loadMessages(){
+
+  resetOpenConversationPollState();
 
   if(!currentConversationId){
     setEmptyChatState();
