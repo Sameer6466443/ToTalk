@@ -6594,7 +6594,7 @@ function startSeenStatusWatcher(){
       void pollOpenConversationMessages();
     }
 
-  },1500);
+  },500);
 }
 
 function stopSeenStatusWatcher(){
@@ -7532,7 +7532,7 @@ function refreshConversationPreviewAfterMessageDelete(conversationId){
     const runId = (conversationDeleteReconcileRuns.get(id) || 0) + 1;
     conversationDeleteReconcileRuns.set(id,runId);
     void refreshConversationPreviewAfterMessageDeleteNow(id,runId,0);
-  },120);
+  },50);
 
   conversationDeleteRefreshTimers.set(id,timer);
 }
@@ -7700,7 +7700,7 @@ async function refreshConversationPreviewAfterMessageDeleteNow(conversationId,ru
           runId,
           attempt + 1
         );
-      },180 + (attempt * 220));
+      },80 + (attempt * 120));
     }
 
   }catch(error){
