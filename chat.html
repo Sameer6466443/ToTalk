@@ -6299,18 +6299,8 @@ async function editMessage(data,bubble){
       messages.scrollTop = scrollTopBeforeSave;
     });
 
-    /* Persist in the background. If the database rejects the edit,
-       restore the previous message instead of leaving the editor stuck. */
+    /* Persist through a PostgreSQL RPC so the edit is actually committed. */
     try{
-      /*
-       * EDIT THROUGH A SMALL SECURITY-DEFINER RPC.
-       *
-       * The normal PostgREST UPDATE was already leaving the browser with an
-       * optimistic edit, but the database value was reverting on refresh.
-       * This RPC performs the ownership check and UPDATE inside PostgreSQL,
-       * then returns the exact saved row. It avoids relying on an UPDATE
-       * response/count or on client-side RLS behavior.
-       */
       const {data:savedEdit,error:editError} = await supabaseClient.rpc(
         "edit_own_message",
         {
@@ -6322,15 +6312,15 @@ async function editMessage(data,bubble){
 
       if(editError) throw editError;
 
-      if(!savedEdit?.id){
+      if(!savedEdit || !savedEdit.id){
         throw new Error(
-          "The edit RPC did not return a saved message. Make sure the edit_own_message SQL function has been created in Supabase."
+          "Edit RPC returned no saved message. Create the edit_own_message SQL function in Supabase first."
         );
       }
 
       if(String(savedEdit.content ?? "") !== content){
         throw new Error(
-          `Database returned different text after saving: "${String(savedEdit.content ?? "")}"`
+          `Supabase returned different text after saving: "${String(savedEdit.content ?? "")}"`
         );
       }
 
@@ -6343,7 +6333,7 @@ async function editMessage(data,bubble){
       messageCache.set(messageId,{...confirmedUpdate});
       if(data) Object.assign(data,confirmedUpdate);
 
-      /* Only broadcast after Supabase has confirmed the exact new text. */
+      /* Broadcast only after the database confirms the new text. */
       void broadcastMessageEdited(confirmedUpdate);
     }catch(error){
       console.error("Edit error:",error);
@@ -6372,11 +6362,7 @@ async function editMessage(data,bubble){
         previousCachedMessage.content || originalContent,
         false
       );
-      showStatus(
-        error?.message
-          ? `Edit failed: ${error.message}`
-          : "Message could not be edited."
-      );
+      showStatus("Message could not be edited.");
     }
   };
 
