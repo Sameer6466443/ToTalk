@@ -6035,17 +6035,23 @@ async function editMessage(data,bubble){
     if(closed) return;
     closed = true;
 
-    if(editor.isConnected){
-      /* ALWAYS put the message text node back. The previous version
-         removed the textarea on Save without restoring this node,
-         which made the message disappear. */
-      if(oldText){
-        const current = messageCache.get(messageId);
-        oldText.textContent = current?.content ?? originalContent;
+    /* Do not depend on the textarea's focus/click lifecycle. Replace the
+       editor DOM synchronously so mobile Chrome cannot leave "Saving…"
+       visible after the first tap. */
+    const current = messageCache.get(messageId);
+    const finalText = restore
+      ? (current?.content ?? originalContent)
+      : (current?.content ?? originalContent);
+
+    if(oldText){
+      oldText.textContent = finalText;
+      if(editor.isConnected){
         editor.replaceWith(oldText);
-      }else{
-        editor.remove();
+      }else if(!oldText.isConnected){
+        bubble.insertBefore(oldText, bubble.firstChild);
       }
+    }else if(editor.isConnected){
+      editor.remove();
     }
 
     if(actions.isConnected){
@@ -6143,7 +6149,22 @@ async function editMessage(data,bubble){
 
     /* Update the chat UI immediately, before waiting for Supabase. */
     messageCache.set(updated.id,{...updated});
+
+    /* Restore the normal message element BEFORE doing anything that can
+       trigger another event. This is the critical mobile fix. */
     oldText.textContent = content;
+    if(editor.isConnected){
+      editor.replaceWith(oldText);
+    }
+    if(actions.isConnected){
+      actions.remove();
+    }
+    bubble.classList.remove("editing");
+    closed = true;
+    if(activeEditCancel === closeEditor){
+      activeEditCancel = null;
+      activeEditBubble = null;
+    }
 
     const liveRow = document.querySelector(
       `[data-message-id="${CSS.escape(updated.id)}"]`
@@ -6168,8 +6189,7 @@ async function editMessage(data,bubble){
     updateConversationSidebarForEditedMessage(updated,originalContent);
     void broadcastMessageEdited(updated);
 
-    /* Close the editor immediately. No second tap and no page refresh. */
-    closeEditor(false);
+    /* Editor was already removed synchronously above. */
 
     requestAnimationFrame(()=>{
       messages.scrollTop = scrollTopBeforeSave;
