@@ -5976,6 +5976,22 @@ function getLatestMessageForBubble(bubble){
   };
 }
 
+async function broadcastMessageEdited(updated){
+  if(!updated?.id || !realtimeChannel) return;
+
+  try{
+    await realtimeChannel.send({
+      type:"broadcast",
+      event:"message_edited",
+      payload:{
+        message:updated
+      }
+    });
+  }catch(error){
+    console.warn("Edit broadcast failed:",error);
+  }
+}
+
 async function editMessage(data,bubble){
 
   if(!bubble || !currentUser){
@@ -6187,7 +6203,6 @@ async function editMessage(data,bubble){
 
     refreshReplyPreviewsForMessage(updated.id,updated.content || "",false);
     updateConversationSidebarForEditedMessage(updated,originalContent);
-    void broadcastMessageEdited(updated);
 
     /* Editor was already removed synchronously above. */
 
@@ -6208,6 +6223,11 @@ async function editMessage(data,bubble){
         .eq("sender_id",currentUser.id);
 
       if(error) throw error;
+
+      /* Tell the other open phone immediately after the database save
+         succeeds. This uses the same Supabase Realtime channel already
+         used by this chat, so no extra channel/setup is required. */
+      void broadcastMessageEdited(updated);
     }catch(error){
       console.error("Edit error:",error);
 
@@ -8434,6 +8454,54 @@ function startRealtime(){
   });
 
   channel
+    .on(
+      "broadcast",
+      {event:"message_edited"},
+      payload=>{
+        const data = payload?.payload?.message || payload?.message;
+        if(!data?.id) return;
+
+        if(!currentConversationId || String(data.conversation_id) !== String(currentConversationId)){
+          return;
+        }
+
+        console.log("Realtime EDIT BROADCAST:", data);
+
+        const previous =
+          messageCache.get(String(data.id)) ||
+          messageCache.get(data.id) ||
+          null;
+
+        messageCache.set(data.id,{...data});
+
+        refreshReplyPreviewsForMessage(
+          data.id,
+          data.content || "",
+          false
+        );
+
+        updateConversationSidebarForEditedMessage(
+          data,
+          previous?.content || ""
+        );
+
+        const row = document.querySelector(
+          `[data-message-id="${CSS.escape(String(data.id))}"]`
+        );
+        if(!row) return;
+
+        const text = row.querySelector(".message-text");
+        if(text) text.textContent = data.content || "";
+
+        row.dataset.messageContent = data.content || "";
+
+        const time = row.querySelector(".message-time");
+        if(time){
+          time.textContent = formatTime(data.created_at) +
+            (data.edited_at ? " · edited" : "");
+        }
+      }
+    )
     .on(
       "postgres_changes",
       {event:"INSERT",schema:"public",table:"messages"},
