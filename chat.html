@@ -6302,20 +6302,27 @@ async function editMessage(data,bubble){
     /* Persist in the background. If the database rejects the edit,
        restore the previous message instead of leaving the editor stuck. */
     try{
-      const {error} = await supabaseClient
+      const {error, count} = await supabaseClient
         .from("messages")
-        .update({
-          content,
-          edited_at:editTime
-        })
-        .eq("id",messageId)
-        .eq("sender_id",currentUser.id);
+        .update(
+          {
+            content,
+            edited_at:editTime
+          },
+          {count:"exact"}
+        )
+        .eq("id",messageId);
 
       if(error) throw error;
 
-      /* Tell the other open phone immediately after the database save
-         succeeds. This uses the same Supabase Realtime channel already
-         used by this chat, so no extra channel/setup is required. */
+      if(count !== 1){
+        throw new Error(
+          "Edit was not saved to the database. No message row was updated."
+        );
+      }
+
+      /* Only broadcast after Supabase confirms that exactly one
+         database row was updated. */
       void broadcastMessageEdited(updated);
     }catch(error){
       console.error("Edit error:",error);
