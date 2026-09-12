@@ -6080,8 +6080,7 @@ async function editMessage(data,bubble){
   save.onclick = async ()=>{
     if(saving) return;
 
-    /* Preserve the user's exact scroll position. Editing must never
-       make the message appear to disappear or jump elsewhere. */
+    /* Preserve the user's exact scroll position. */
     const scrollTopBeforeSave = messages.scrollTop;
     const content = editor.value.trim();
     if(!content){
@@ -6090,7 +6089,6 @@ async function editMessage(data,bubble){
       return;
     }
 
-    /* Compare against the LIVE cached value. */
     const liveBeforeSave = messageCache.get(messageId)?.content ?? originalContent;
     if(content === liveBeforeSave){
       closeEditor(true);
@@ -6102,20 +6100,63 @@ async function editMessage(data,bubble){
     cancel.disabled = true;
     save.textContent = "Saving…";
 
-    try{
-      /*
-       * IMPORTANT:
-       * Do NOT chain .select().single() after UPDATE here.
-       *
-       * Some ToTalk RLS setups allow the owner to UPDATE a message but do
-       * not allow the UPDATE response to SELECT that same row. In that
-       * situation the database update succeeds, but waiting for .single()
-       * throws an error and leaves the edit box stuck on "Saving…".
-       *
-       * The values we already have locally are enough to update the UI.
-       */
-      const editTime = new Date().toISOString();
+    const editTime = new Date().toISOString();
+    const cachedBeforeUpdate =
+      messageCache.get(messageId) ||
+      messageCache.get(String(messageId)) ||
+      latest ||
+      data ||
+      {};
+    const previousCachedMessage = {...cachedBeforeUpdate};
 
+    const updated = {
+      ...cachedBeforeUpdate,
+      id:messageId,
+      sender_id:cachedBeforeUpdate.sender_id || currentUser.id,
+      content,
+      created_at:cachedBeforeUpdate.created_at || null,
+      edited_at:editTime,
+      reply_to_id:cachedBeforeUpdate.reply_to_id || null,
+      conversation_id:cachedBeforeUpdate.conversation_id || currentConversationId
+    };
+
+    /* Update the chat UI immediately, before waiting for Supabase. */
+    messageCache.set(updated.id,{...updated});
+    oldText.textContent = content;
+
+    const liveRow = document.querySelector(
+      `[data-message-id="${CSS.escape(updated.id)}"]`
+    );
+
+    if(liveRow){
+      liveRow.dataset.messageContent = updated.content || "";
+      const liveBubble = liveRow.querySelector(".message");
+      const liveText = liveBubble?.querySelector(".message-text");
+      if(liveText) liveText.textContent = updated.content || "";
+
+      const time = liveBubble?.querySelector(".message-time");
+      if(time){
+        time.textContent = formatTime(updated.created_at) +
+          (updated.edited_at ? " · edited" : "");
+      }
+    }
+
+    if(data) Object.assign(data,updated);
+
+    refreshReplyPreviewsForMessage(updated.id,updated.content || "",false);
+    updateConversationSidebarForEditedMessage(updated,originalContent);
+    void broadcastMessageEdited(updated);
+
+    /* Close the editor immediately. No second tap and no page refresh. */
+    closeEditor(false);
+
+    requestAnimationFrame(()=>{
+      messages.scrollTop = scrollTopBeforeSave;
+    });
+
+    /* Persist in the background. If the database rejects the edit,
+       restore the previous message instead of leaving the editor stuck. */
+    try{
       const {error} = await supabaseClient
         .from("messages")
         .update({
@@ -6126,67 +6167,34 @@ async function editMessage(data,bubble){
         .eq("sender_id",currentUser.id);
 
       if(error) throw error;
-
-      const cachedBeforeUpdate =
-        messageCache.get(messageId) ||
-        messageCache.get(String(messageId)) ||
-        latest ||
-        data ||
-        {};
-
-      const updated = {
-        ...cachedBeforeUpdate,
-        id:messageId,
-        sender_id:cachedBeforeUpdate.sender_id || currentUser.id,
-        content,
-        created_at:cachedBeforeUpdate.created_at || null,
-        edited_at:editTime,
-        reply_to_id:cachedBeforeUpdate.reply_to_id || null,
-        conversation_id:cachedBeforeUpdate.conversation_id || currentConversationId
-      };
-
-      /* Make the NEW value authoritative everywhere. */
-      messageCache.set(updated.id,{...updated});
-
-      const liveRow = document.querySelector(
-        `[data-message-id="${CSS.escape(updated.id)}"]`
-      );
-
-      if(liveRow){
-        liveRow.dataset.messageContent = updated.content || "";
-        const liveBubble = liveRow.querySelector(".message");
-        const liveText = liveBubble?.querySelector(".message-text");
-        if(liveText) liveText.textContent = updated.content || "";
-
-        const time = liveBubble?.querySelector(".message-time");
-        if(time){
-          time.textContent = formatTime(updated.created_at) +
-            (updated.edited_at ? " · edited" : "");
-        }
-      }
-
-      /* Also update the object captured by the old menu. */
-      if(data){
-        Object.assign(data, updated);
-      }
-
-      refreshReplyPreviewsForMessage(updated.id, updated.content || "", false);
-      updateConversationSidebarForEditedMessage(updated, originalContent);
-
-      closeEditor(false);
-
-      requestAnimationFrame(()=>{
-        messages.scrollTop = scrollTopBeforeSave;
-      });
-
     }catch(error){
       console.error("Edit error:",error);
-      saving = false;
-      save.disabled = false;
-      cancel.disabled = false;
-      save.textContent = "Save";
+
+      messageCache.set(messageId,{...previousCachedMessage});
+
+      const failedRow = document.querySelector(
+        `[data-message-id="${CSS.escape(messageId)}"]`
+      );
+      const failedText = failedRow?.querySelector(".message-text");
+      if(failedText){
+        failedText.textContent = previousCachedMessage.content || originalContent;
+      }
+
+      const failedTime = failedRow?.querySelector(".message-time");
+      if(failedTime){
+        failedTime.textContent = formatTime(
+          previousCachedMessage.created_at || updated.created_at
+        ) + (previousCachedMessage.edited_at ? " · edited" : "");
+      }
+
+      if(data) Object.assign(data,previousCachedMessage);
+
+      refreshReplyPreviewsForMessage(
+        messageId,
+        previousCachedMessage.content || originalContent,
+        false
+      );
       showStatus("Message could not be edited.");
-      editor.focus();
     }
   };
 
