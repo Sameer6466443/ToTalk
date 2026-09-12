@@ -6062,7 +6062,24 @@ async function editMessage(data,bubble){
 
   activeEditCancel = closeEditor;
 
-  cancel.onclick = ()=>closeEditor(true);
+  /* Mobile-safe Cancel: handle the touch before Chrome can transfer focus. */
+  let cancelPointerHandled = false;
+  cancel.addEventListener("pointerdown",event=>{
+    event.preventDefault();
+    event.stopPropagation();
+    cancelPointerHandled = true;
+    closeEditor(true);
+  },{passive:false});
+
+  cancel.onclick = event=>{
+    event.preventDefault();
+    event.stopPropagation();
+    if(cancelPointerHandled){
+      cancelPointerHandled = false;
+      return;
+    }
+    closeEditor(true);
+  };
 
   editor.addEventListener("keydown",event=>{
     if(event.key === "Escape"){
@@ -6077,7 +6094,11 @@ async function editMessage(data,bubble){
     }
   });
 
-  save.onclick = async ()=>{
+  /* Mobile-safe Save: pointerdown makes the first physical tap perform
+     the save instead of only focusing the button. */
+  let savePointerHandled = false;
+
+  const runSave = async ()=>{
     if(saving) return;
 
     /* Preserve the user's exact scroll position. */
@@ -6197,6 +6218,24 @@ async function editMessage(data,bubble){
       showStatus("Message could not be edited.");
     }
   };
+
+  save.addEventListener("pointerdown",event=>{
+    event.preventDefault();
+    event.stopPropagation();
+    if(savePointerHandled) return;
+    savePointerHandled = true;
+    void runSave();
+  },{passive:false});
+
+  save.addEventListener("click",event=>{
+    event.preventDefault();
+    event.stopPropagation();
+    if(savePointerHandled){
+      savePointerHandled = false;
+      return;
+    }
+    void runSave();
+  });
 
   requestAnimationFrame(()=>{
     if(!editor.isConnected) return;
