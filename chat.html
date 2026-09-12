@@ -1254,6 +1254,40 @@ header{
 }
 
 /* =====================================================
+   REPLY PREVIEW SYNC
+===================================================== */
+
+function refreshReplyPreviewsForMessage(messageId, content, deleted=false){
+  const id = String(messageId || "");
+  if(!id) return;
+
+  document
+    .querySelectorAll(`.message-row[data-reply-to-id="${CSS.escape(id)}"] .reply-text`)
+    .forEach(replyText=>{
+      replyText.textContent = deleted ? "Message deleted" : String(content || "");
+    });
+}
+
+function updateConversationSidebarForEditedMessage(data, previousContent=""){
+  if(!data?.conversation_id || !conversationList) return;
+
+  const item = conversationList.querySelector(
+    `[data-conversation-id="${CSS.escape(String(data.conversation_id))}"]`
+  );
+  if(!item) return;
+
+  const preview = item.querySelector(".conversation-preview");
+  const time = item.querySelector(".conversation-time");
+
+  /* Only change the preview when it still represents this message. */
+  if(preview && (preview.textContent === String(previousContent || "") ||
+      preview.textContent === String(data.content || ""))){
+    preview.textContent = data.content || "No messages yet";
+    if(time) time.textContent = formatTime(data.created_at);
+  }
+}
+
+/* =====================================================
    REACTION PICKER
 ===================================================== */
 
@@ -5165,6 +5199,10 @@ function addMessage(
   row.dataset.messageId =
     data.id;
 
+  if(data.reply_to_id){
+    row.dataset.replyToId = String(data.reply_to_id);
+  }
+
   const bubble =
     document.createElement(
       "div"
@@ -6103,6 +6141,9 @@ async function editMessage(data,bubble){
         Object.assign(data, updated);
       }
 
+      refreshReplyPreviewsForMessage(updated.id, updated.content || "", false);
+      updateConversationSidebarForEditedMessage(updated, originalContent);
+
       closeEditor(false);
 
       requestAnimationFrame(()=>{
@@ -6187,6 +6228,8 @@ async function deleteMessage(
       row.classList.add("deleting");
       row.remove();
     }
+
+    refreshReplyPreviewsForMessage(messageId, "", true);
 
     messageCache.delete(messageId);
     messageCache.delete(String(messageId));
@@ -8378,7 +8421,11 @@ function startRealtime(){
         if(!currentConversationId || data.conversation_id !== currentConversationId) return;
 
         console.log("Realtime UPDATE:", data);
+        const previous = messageCache.get(String(data.id)) || messageCache.get(data.id) || null;
         messageCache.set(data.id, data);
+
+        refreshReplyPreviewsForMessage(data.id, data.content || "", false);
+        updateConversationSidebarForEditedMessage(data, previous?.content || "");
 
         const row = document.querySelector(
           `[data-message-id="${data.id}"]`
@@ -8427,6 +8474,8 @@ function startRealtime(){
         if(visibleRow){
           visibleRow.remove();
         }
+
+        refreshReplyPreviewsForMessage(id, "", true);
 
         messageCache.delete(id);
         messageCache.delete(String(id));
