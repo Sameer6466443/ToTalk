@@ -6302,55 +6302,42 @@ async function editMessage(data,bubble){
     /* Persist in the background. If the database rejects the edit,
        restore the previous message instead of leaving the editor stuck. */
     try{
-      const {error, count} = await supabaseClient
-        .from("messages")
-        .update(
-          {
-            content,
-            edited_at:editTime
-          },
-          {count:"exact"}
-        )
-        .eq("id",messageId);
+      /*
+       * EDIT THROUGH A SMALL SECURITY-DEFINER RPC.
+       *
+       * The normal PostgREST UPDATE was already leaving the browser with an
+       * optimistic edit, but the database value was reverting on refresh.
+       * This RPC performs the ownership check and UPDATE inside PostgreSQL,
+       * then returns the exact saved row. It avoids relying on an UPDATE
+       * response/count or on client-side RLS behavior.
+       */
+      const {data:savedEdit,error:editError} = await supabaseClient.rpc(
+        "edit_own_message",
+        {
+          p_message_id:messageId,
+          p_content:content,
+          p_edited_at:editTime
+        }
+      );
 
-      if(error) throw error;
+      if(editError) throw editError;
 
-      /* Some PostgREST responses can omit the exact count. Do not treat
-         a null count as failure; verify the actual row instead. A count
-         of zero, however, means RLS/update matching prevented the write. */
-      if(count === 0){
+      if(!savedEdit?.id){
         throw new Error(
-          "Supabase updated 0 rows. Check that you are editing your own message and that the messages UPDATE policy allows it."
+          "The edit RPC did not return a saved message. Make sure the edit_own_message SQL function has been created in Supabase."
         );
       }
 
-      /* Read the exact row back from Supabase. This is the important
-         diagnostic: the edit is considered successful only when the
-         database itself returns the new text after the UPDATE. */
-      const {data:verifyRow,error:verifyError} = await supabaseClient
-        .from("messages")
-        .select("id,content,edited_at,sender_id,conversation_id,reply_to_id,created_at")
-        .eq("id",messageId)
-        .maybeSingle();
-
-      if(verifyError) throw verifyError;
-
-      if(!verifyRow){
+      if(String(savedEdit.content ?? "") !== content){
         throw new Error(
-          "Supabase could not read the edited message back after saving."
-        );
-      }
-
-      if(String(verifyRow.content ?? "") !== content){
-        throw new Error(
-          `Database verification failed. Supabase still has: "${String(verifyRow.content ?? "")}"`
+          `Database returned different text after saving: "${String(savedEdit.content ?? "")}"`
         );
       }
 
       const confirmedUpdate = {
         ...updated,
-        ...verifyRow,
-        id:String(verifyRow.id)
+        ...savedEdit,
+        id:String(savedEdit.id)
       };
 
       messageCache.set(messageId,{...confirmedUpdate});
