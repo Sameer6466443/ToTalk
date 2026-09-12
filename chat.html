@@ -130,7 +130,7 @@ body:before{
 }
 
 /* =====================================================
-   LOADING — TO TALK ENTRY EXPERIENCE
+   LOADING
 ===================================================== */
 
 #loading{
@@ -144,31 +144,19 @@ body:before{
   flex-direction:column;
 
   overflow:hidden;
-  isolation:isolate;
 
   background:
     radial-gradient(
-      circle at 50% 46%,
-      rgba(116,70,255,.20) 0%,
-      rgba(66,36,155,.10) 24%,
-      transparent 52%
+      circle at 50% 44%,
+      rgba(113,63,255,.16),
+      transparent 28%
     ),
     radial-gradient(
-      circle at 18% 82%,
-      rgba(74,38,175,.13),
-      transparent 34%
+      circle at 20% 80%,
+      rgba(71,42,175,.10),
+      transparent 32%
     ),
-    radial-gradient(
-      circle at 86% 24%,
-      rgba(95,42,190,.10),
-      transparent 30%
-    ),
-    linear-gradient(
-      180deg,
-      #010107 0%,
-      #05020f 52%,
-      #020108 100%
-    );
+    #020108;
 
   opacity:1;
   visibility:visible;
@@ -188,168 +176,162 @@ body:before{
   position:absolute;
   inset:0;
   pointer-events:none;
-  z-index:-2;
-  opacity:.85;
 
   background-image:
-    radial-gradient(circle at 8% 14%, rgba(255,255,255,.82) 0 1.2px, transparent 1.8px),
-    radial-gradient(circle at 18% 48%, rgba(188,160,255,.78) 0 1.2px, transparent 1.8px),
-    radial-gradient(circle at 28% 82%, rgba(255,255,255,.68) 0 1px, transparent 1.7px),
-    radial-gradient(circle at 38% 22%, rgba(255,255,255,.82) 0 1.1px, transparent 1.8px),
-    radial-gradient(circle at 55% 72%, rgba(188,160,255,.72) 0 1.1px, transparent 1.8px),
-    radial-gradient(circle at 66% 16%, rgba(255,255,255,.78) 0 1.1px, transparent 1.8px),
-    radial-gradient(circle at 78% 62%, rgba(255,255,255,.68) 0 1px, transparent 1.7px),
-    radial-gradient(circle at 92% 24%, rgba(188,160,255,.72) 0 1.1px, transparent 1.8px),
-    radial-gradient(circle at 47% 88%, rgba(255,255,255,.55) 0 1px, transparent 1.7px),
-    radial-gradient(circle at 84% 86%, rgba(188,160,255,.55) 0 1px, transparent 1.7px);
+    radial-gradient(
+      circle at 8% 14%,
+      rgba(255,255,255,.75) 0 1px,
+      transparent 1.6px
+    ),
+    radial-gradient(
+      circle at 18% 48%,
+      rgba(185,151,255,.7) 0 1px,
+      transparent 1.6px
+    ),
+    radial-gradient(
+      circle at 28% 82%,
+      rgba(255,255,255,.65) 0 1px,
+      transparent 1.6px
+    ),
+    radial-gradient(
+      circle at 38% 22%,
+      rgba(255,255,255,.72) 0 1px,
+      transparent 1.6px
+    ),
+    radial-gradient(
+      circle at 55% 72%,
+      rgba(185,151,255,.6) 0 1px,
+      transparent 1.6px
+    ),
+    radial-gradient(
+      circle at 66% 16%,
+      rgba(255,255,255,.7) 0 1px,
+      transparent 1.6px
+    ),
+    radial-gradient(
+      circle at 78% 62%,
+      rgba(255,255,255,.65) 0 1px,
+      transparent 1.6px
+    ),
+    radial-gradient(
+      circle at 92% 24%,
+      rgba(185,151,255,.65) 0 1px,
+      transparent 1.6px
+    );
 }
 
 .loading-nebula{
   position:absolute;
-  width:min(76vw,720px);
-  height:min(76vw,720px);
+  width:330px;
+  height:330px;
   border-radius:50%;
-  pointer-events:none;
-  z-index:-1;
 
   background:
     radial-gradient(
       circle,
-      rgba(123,71,255,.19) 0%,
-      rgba(94,48,204,.10) 34%,
-      rgba(51,25,121,.045) 56%,
-      transparent 72%
+      rgba(126,73,255,.16),
+      rgba(76,42,180,.06) 46%,
+      transparent 70%
     );
 
-  animation:loadingNebula 5s ease-in-out infinite;
+  /* Removed expensive blur */
+  animation:loadingNebula 4s ease-in-out infinite;
 }
 
 .loading-system{
   position:relative;
-
-  width:min(76vw,460px);
-  height:min(76vw,360px);
+  width:190px;
+  height:145px;
 
   display:flex;
   align-items:center;
   justify-content:center;
-
-  margin-top:-3vh;
 }
 
 .loading-orbit{
   position:absolute;
+  width:170px;
+  height:58px;
 
-  width:min(70vw,390px);
-  height:min(24vw,132px);
-
-  border:1px solid rgba(183,145,255,.48);
+  border:1px solid rgba(174,132,255,.36);
   border-radius:50%;
 
-  box-shadow:
-    0 0 18px rgba(126,72,255,.08);
-
-  animation:
-    loadingOrbit 8s linear infinite;
+  animation:loadingOrbit 7s linear infinite;
 }
 
 .loading-orbit.two{
-  width:min(76vw,430px);
-  height:min(29vw,158px);
+  width:182px;
+  height:64px;
 
-  border-color:rgba(145,102,255,.25);
+  border-color:rgba(145,95,255,.18);
 
   animation:
-    loadingOrbitTwo 10s linear infinite reverse;
+    loadingOrbitTwo
+    9s linear infinite reverse;
 }
 
 .loading-moon{
-  position:relative;
-  z-index:2;
+  width:62px;
+  height:62px;
 
-  width:min(34vw,190px);
-  height:min(34vw,190px);
-
-  flex:0 0 auto;
   border-radius:50%;
 
   background:
-    radial-gradient(circle at 30% 25%, rgba(255,255,255,.98) 0 5%, transparent 6%),
-    radial-gradient(circle at 68% 31%, rgba(177,173,192,.28) 0 6%, transparent 7%),
-    radial-gradient(circle at 35% 68%, rgba(170,165,185,.25) 0 8%, transparent 9%),
-    radial-gradient(circle at 72% 67%, rgba(168,164,184,.20) 0 6%, transparent 7%),
-    radial-gradient(circle at 57% 50%, rgba(166,161,182,.18) 0 4%, transparent 5%),
     radial-gradient(
-      circle at 32% 25%,
-      #ffffff 0%,
-      #f3f0f8 42%,
-      #ddd9e6 72%,
-      #c8c3d2 100%
+      circle at 31% 25%,
+      #fff,
+      #eeeaff 52%,
+      #d5d0e5 100%
     );
 
   box-shadow:
-    0 0 24px rgba(255,255,255,.22),
-    0 0 60px rgba(132,76,255,.26),
-    0 0 115px rgba(101,50,220,.13);
+    0 0 15px rgba(255,255,255,.20),
+    0 0 35px rgba(127,72,255,.22);
 
   animation:
-    loadingFloat 4s ease-in-out infinite;
+    loadingFloat
+    3.5s ease-in-out infinite;
 }
 
-.loading-moon:before{
-  content:"";
-  position:absolute;
-  width:13%;
-  height:13%;
-  left:20%;
-  top:49%;
-  border-radius:50%;
-  background:rgba(126,120,142,.18);
-  box-shadow:
-    70px -48px 0 5px rgba(126,120,142,.15),
-    82px 28px 0 2px rgba(126,120,142,.13),
-    25px 72px 0 3px rgba(126,120,142,.12);
-}
-
+.loading-moon:before,
 .loading-moon:after{
   content:"";
   position:absolute;
-  width:18%;
-  height:18%;
-  right:16%;
-  top:31%;
   border-radius:50%;
-  background:rgba(126,120,142,.14);
-  box-shadow:
-    -52px 52px 0 4px rgba(126,120,142,.12);
+  background:rgba(130,120,160,.16);
+}
+
+.loading-moon:before{
+  width:10px;
+  height:10px;
+  left:15px;
+  top:19px;
+}
+
+.loading-moon:after{
+  width:15px;
+  height:15px;
+  right:12px;
+  top:29px;
 }
 
 .loading-title{
   position:relative;
+  margin-top:4px;
 
-  margin-top:clamp(-2px,-.4vh,-1px);
-
-  font-size:clamp(32px,6vw,52px);
-  line-height:1.05;
+  font-size:25px;
+  line-height:1;
   font-weight:800;
-  letter-spacing:-1.7px;
+  letter-spacing:-.5px;
   text-align:center;
-
-  color:#fbf9ff;
-  text-shadow:
-    0 2px 24px rgba(139,91,255,.16);
 }
 
 .loading-subtitle{
   position:relative;
+  margin-top:10px;
 
-  margin-top:14px;
-
-  color:#aaa2bd;
-  font-size:clamp(15px,2.8vw,19px);
-  line-height:1.3;
-  font-weight:400;
-  letter-spacing:.1px;
+  color:#9d96ae;
+  font-size:13px;
   text-align:center;
 }
 
@@ -357,24 +339,20 @@ body:before{
   position:relative;
 
   display:flex;
-  align-items:center;
-  justify-content:center;
-
-  gap:9px;
-  margin-top:22px;
+  gap:7px;
+  margin-top:15px;
 }
 
 .loading-dots span{
-  width:7px;
-  height:7px;
+  width:6px;
+  height:6px;
 
   border-radius:50%;
-  background:#b995ff;
-
-  box-shadow:0 0 10px rgba(157,106,255,.45);
+  background:#bfa4ff;
 
   animation:
-    loadingDot 1.25s ease-in-out infinite;
+    loadingDot
+    1.25s ease-in-out infinite;
 }
 
 .loading-dots span:nth-child(2){
@@ -387,13 +365,13 @@ body:before{
 
 @keyframes loadingDot{
   0%,100%{
-    transform:translateY(0) scale(.82);
-    opacity:.28;
+    transform:translateY(0);
+    opacity:.25;
   }
 
   50%{
-    transform:translateY(-5px) scale(1);
-    opacity:1;
+    transform:translateY(-4px);
+    opacity:.9;
   }
 }
 
@@ -403,7 +381,7 @@ body:before{
   }
 
   50%{
-    transform:translateY(-8px);
+    transform:translateY(-4px);
   }
 }
 
@@ -430,76 +408,12 @@ body:before{
 @keyframes loadingNebula{
   0%,100%{
     transform:scale(.96);
-    opacity:.68;
+    opacity:.65;
   }
 
   50%{
     transform:scale(1.04);
-    opacity:.95;
-  }
-}
-
-/* Small phones: keep the composition strong without crowding it. */
-@media (max-width:520px){
-  .loading-system{
-    width:92vw;
-    height:78vw;
-    margin-top:-4vh;
-  }
-
-  .loading-orbit{
-    width:76vw;
-    height:28vw;
-  }
-
-  .loading-orbit.two{
-    width:84vw;
-    height:34vw;
-  }
-
-  .loading-moon{
-    width:38vw;
-    height:38vw;
-    max-width:190px;
-    max-height:190px;
-  }
-
-  .loading-title{
-    font-size:clamp(34px,9vw,46px);
-  }
-
-  .loading-subtitle{
-    font-size:15px;
-    margin-top:12px;
-  }
-
-  .loading-dots{
-    margin-top:18px;
-  }
-}
-
-/* Very short screens: reduce vertical spacing, not the visual hierarchy. */
-@media (max-height:700px){
-  .loading-system{
-    height:270px;
-    margin-top:-2vh;
-  }
-
-  .loading-moon{
-    width:145px;
-    height:145px;
-  }
-
-  .loading-title{
-    font-size:36px;
-  }
-
-  .loading-subtitle{
-    margin-top:10px;
-  }
-
-  .loading-dots{
-    margin-top:15px;
+    opacity:.9;
   }
 }
 
@@ -3324,14 +3238,14 @@ function updateConversationSidebarForEditedMessage(data, previousContent=""){
     class="loading-title"
     id="loadingTitle"
   >
-    Entering ToTalk
+    ToTalk
   </div>
 
   <div
     class="loading-subtitle"
     id="loadingSubtitle"
   >
-    Connecting your account
+    Connecting…
   </div>
 
   <div class="loading-dots">
