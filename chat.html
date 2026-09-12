@@ -5976,20 +5976,109 @@ function getLatestMessageForBubble(bubble){
   };
 }
 
+let editSyncChannel = null;
+
 async function broadcastMessageEdited(updated){
-  if(!updated?.id || !realtimeChannel) return;
+  if(!updated?.id || !editSyncChannel) return;
 
   try{
-    await realtimeChannel.send({
+    await editSyncChannel.send({
       type:"broadcast",
       event:"message_edited",
       payload:{
-        message:updated
+        message:{
+          id:String(updated.id),
+          content:String(updated.content || ""),
+          edited_at:updated.edited_at || null,
+          created_at:updated.created_at || null,
+          sender_id:updated.sender_id || null,
+          conversation_id:updated.conversation_id || null,
+          reply_to_id:updated.reply_to_id || null
+        }
       }
     });
   }catch(error){
     console.warn("Edit broadcast failed:",error);
   }
+}
+
+function startEditSync(){
+  if(!currentUser || editSyncChannel) return;
+
+  const channel = supabaseClient.channel("totalk-edit-sync-v1",{
+    config:{broadcast:{self:false}}
+  });
+
+  channel.on(
+    "broadcast",
+    {event:"message_edited"},
+    payload=>{
+      const data = payload?.payload?.message || payload?.message;
+      if(!data?.id) return;
+
+      const messageConversationId = String(data.conversation_id || "");
+      const activeConversationId = String(currentConversationId || "");
+
+      if(!messageConversationId || !activeConversationId ||
+         messageConversationId !== activeConversationId){
+        return;
+      }
+
+      const id = String(data.id);
+      const previous =
+        messageCache.get(id) ||
+        messageCache.get(data.id) ||
+        null;
+
+      console.log("ToTalk EDIT SYNC:",data);
+
+      messageCache.set(id,{
+        ...(previous || {}),
+        ...data,
+        id
+      });
+
+      const row = document.querySelector(
+        `[data-message-id="${CSS.escape(id)}"]`
+      );
+
+      if(row){
+        row.dataset.messageContent = String(data.content || "");
+        const text = row.querySelector(".message-text");
+        if(text) text.textContent = String(data.content || "");
+
+        const time = row.querySelector(".message-time");
+        if(time){
+          time.textContent = formatTime(data.created_at) +
+            (data.edited_at ? " · edited" : "");
+        }
+      }
+
+      refreshReplyPreviewsForMessage(id,String(data.content || ""),false);
+      updateConversationSidebarForEditedMessage(
+        data,
+        previous?.content || ""
+      );
+    }
+  );
+
+  editSyncChannel = channel;
+
+  channel.subscribe(status=>{
+    console.log("ToTalk Edit Sync status:",status);
+
+    if(status === "CHANNEL_ERROR" || status === "TIMED_OUT"){
+      if(editSyncChannel === channel){
+        editSyncChannel = null;
+      }
+
+      setTimeout(()=>{
+        if(currentUser && !editSyncChannel){
+          startEditSync();
+        }
+      },1500);
+    }
+  });
 }
 
 async function editMessage(data,bubble){
@@ -9274,6 +9363,11 @@ logoutBtn.addEventListener(
         typingChannelReady = false;
       }
 
+      if(editSyncChannel){
+        await supabaseClient.removeChannel(editSyncChannel);
+        editSyncChannel = null;
+      }
+
       currentBlockState = {blockedByMe:false,blockedMe:false};
 
       if(presenceChannel){
@@ -9655,6 +9749,10 @@ async function startApp(){
 
     /* Realtime stays connected, but only the active conversation is rendered. */
     startRealtime();
+
+    /* Shared edit channel: both phones use the same channel so edits
+       propagate even though the main message channel is user-specific. */
+    startEditSync();
 
     startDeleteSync();
 
