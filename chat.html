@@ -6103,18 +6103,47 @@ async function editMessage(data,bubble){
     save.textContent = "Saving…";
 
     try{
-      const {data:updated,error} = await supabaseClient
+      /*
+       * IMPORTANT:
+       * Do NOT chain .select().single() after UPDATE here.
+       *
+       * Some ToTalk RLS setups allow the owner to UPDATE a message but do
+       * not allow the UPDATE response to SELECT that same row. In that
+       * situation the database update succeeds, but waiting for .single()
+       * throws an error and leaves the edit box stuck on "Saving…".
+       *
+       * The values we already have locally are enough to update the UI.
+       */
+      const editTime = new Date().toISOString();
+
+      const {error} = await supabaseClient
         .from("messages")
         .update({
           content,
-          edited_at:new Date().toISOString()
+          edited_at:editTime
         })
         .eq("id",messageId)
-        .eq("sender_id",currentUser.id)
-        .select("id,sender_id,content,created_at,edited_at,reply_to_id,conversation_id")
-        .single();
+        .eq("sender_id",currentUser.id);
 
       if(error) throw error;
+
+      const cachedBeforeUpdate =
+        messageCache.get(messageId) ||
+        messageCache.get(String(messageId)) ||
+        latest ||
+        data ||
+        {};
+
+      const updated = {
+        ...cachedBeforeUpdate,
+        id:messageId,
+        sender_id:cachedBeforeUpdate.sender_id || currentUser.id,
+        content,
+        created_at:cachedBeforeUpdate.created_at || null,
+        edited_at:editTime,
+        reply_to_id:cachedBeforeUpdate.reply_to_id || null,
+        conversation_id:cachedBeforeUpdate.conversation_id || currentConversationId
+      };
 
       /* Make the NEW value authoritative everywhere. */
       messageCache.set(updated.id,{...updated});
