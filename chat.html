@@ -6315,15 +6315,49 @@ async function editMessage(data,bubble){
 
       if(error) throw error;
 
-      if(count !== 1){
+      /* Some PostgREST responses can omit the exact count. Do not treat
+         a null count as failure; verify the actual row instead. A count
+         of zero, however, means RLS/update matching prevented the write. */
+      if(count === 0){
         throw new Error(
-          "Edit was not saved to the database. No message row was updated."
+          "Supabase updated 0 rows. Check that you are editing your own message and that the messages UPDATE policy allows it."
         );
       }
 
-      /* Only broadcast after Supabase confirms that exactly one
-         database row was updated. */
-      void broadcastMessageEdited(updated);
+      /* Read the exact row back from Supabase. This is the important
+         diagnostic: the edit is considered successful only when the
+         database itself returns the new text after the UPDATE. */
+      const {data:verifyRow,error:verifyError} = await supabaseClient
+        .from("messages")
+        .select("id,content,edited_at,sender_id,conversation_id,reply_to_id,created_at")
+        .eq("id",messageId)
+        .maybeSingle();
+
+      if(verifyError) throw verifyError;
+
+      if(!verifyRow){
+        throw new Error(
+          "Supabase could not read the edited message back after saving."
+        );
+      }
+
+      if(String(verifyRow.content ?? "") !== content){
+        throw new Error(
+          `Database verification failed. Supabase still has: "${String(verifyRow.content ?? "")}"`
+        );
+      }
+
+      const confirmedUpdate = {
+        ...updated,
+        ...verifyRow,
+        id:String(verifyRow.id)
+      };
+
+      messageCache.set(messageId,{...confirmedUpdate});
+      if(data) Object.assign(data,confirmedUpdate);
+
+      /* Only broadcast after Supabase has confirmed the exact new text. */
+      void broadcastMessageEdited(confirmedUpdate);
     }catch(error){
       console.error("Edit error:",error);
 
@@ -6351,7 +6385,11 @@ async function editMessage(data,bubble){
         previousCachedMessage.content || originalContent,
         false
       );
-      showStatus("Message could not be edited.");
+      showStatus(
+        error?.message
+          ? `Edit failed: ${error.message}`
+          : "Message could not be edited."
+      );
     }
   };
 
